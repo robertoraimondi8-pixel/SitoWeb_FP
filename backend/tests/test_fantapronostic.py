@@ -12,7 +12,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://matchday-hub-29.preview.emergentagent.com"
+BASE_URL = "https://fantascore-1.preview.emergentagent.com"
 
 class TestHealth:
     """API health check"""

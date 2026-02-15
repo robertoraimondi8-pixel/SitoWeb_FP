@@ -1,0 +1,185 @@
+<analysis>
+<original_problem_statement>
+The user wants to build a full-stack MVP of a fantasy football prediction app called FantaPronostic.
+
+The initial technical specification () was based on a Node.js/NestJS/PostgreSQL stack. However, the user provided new instructions to use **FastAPI and MongoDB** for the backend, while keeping all business rules from the original spec.
+
+**PRODUCT REQUIREMENTS (as per user requests):**
+- **Backend**: FastAPI with MongoDB. The database should be structured with separate collections and references (like a relational DB), not large embedded documents.
+- **Frontend**: React Native with Expo and TypeScript.
+- **Authentication**: Email/Password and Google OAuth.
+- **Admin**: A simple web admin dashboard served from the backend () for managing game data (Seasons, Matchdays, Matches).
+- **Payments**: Stripe integration for a National League subscription, with a verified webhook to activate membership.
+- **Core Features**:
+    - Onboarding flow for new users to join/create leagues.
+    - Private and National leagues.
+    - Prediction submission for 11 matches per matchday, with a choice of one market per match (1X2, Goal/NoGoal, Over/Under, Exact Score).
+    - Match and prediction locking based on server time.
+    - **Jolly Feature**: A single bonus per matchday that doubles the points for that day. A user gets one jolly for the first half of the season and one for the second half.
+    - Live score updates (via polling), standings, and user profiles.
+- **Internationalization (i18n)**: Italian (default) and English languages.
+- **Design**: Dark mode default with a blue and orange color palette based on the provided logo.
+</original_problem_statement>
+
+**User's preferred language**: Italiano
+
+**what currently exists?**
+A full-stack application with a FastAPI backend and a React Native (Expo) frontend.
+- **Backend**: The core is built with FastAPI and connects to MongoDB. It includes data models, user authentication (email/password & Google OAuth), league management, and admin CRUD endpoints. A data seeding script is also present.
+- **Frontend**: The app has a functional login screen, a post-registration onboarding flow, and screens for creating/joining/listing private leagues. A predictions screen exists but is based on faulty logic and needs a major refactor.
+- **State**: The application is in the middle of a critical refactoring of the Jolly feature.
+
+**Last working item**:
+- Last item agent was working: Refactoring the Jolly feature. The user reported that the feature was incorrectly implemented on a per-match basis instead of per-matchday. The agent was in the process of correcting the backend logic to align with the user's explicit requirements.
+- Status: IN PROGRESS
+- Agent Testing Done: N
+- Which testing method agent to use? both
+- User Testing Done: N
+
+**All Pending/In progress Issue list**:
+- Issue 1: (P0) The Jolly feature is implemented incorrectly. It allows a user to apply a jolly to a single match, but it should be a single toggle for an entire matchday.
+
+  Issues Detail:
+  - Issue 1:
+     - **Description**: The Jolly feature must be a single bonus per matchday, not per match. This requires significant changes to the backend models, API endpoints, scoring logic, and the frontend UI.
+     - **Attempted fixes**: The agent started the backend refactor. It updated the Pydantic models in  (removing  from ) and the Joker API endpoint in . It was in the middle of updating the scoring logic and other references in  when the session ended.
+     - **Next debug checklist**:
+       1.  **Backend**:
+           - Complete the refactoring of . Search for all remaining instances of  and ensure they are replaced with the new per-matchday logic (e.g., a boolean  on the matchday object).
+           - Verify the scoring logic in the  function correctly applies the  bonus to the *total score* of the matchday if the jolly is active.
+           - Test the updated  endpoint to ensure a user can set/unset a jolly for a matchday and is prevented from using more than one per season-half.
+       2.  **Frontend**:
+           - Redesign . Remove the jolly toggle from the individual match card component.
+           - Add a new, single, sticky Jolly toggle component at the top of the predictions screen.
+           - This toggle should call the updated API to activate/deactivate the jolly for the current matchday.
+           - The toggle should be disabled/locked based on  time.
+           - Update the Home screen () to correctly reflect the matchday's jolly status.
+     - **Why fix this issue and what will be achieved with the fix?**: This is a critical business rule for the game. Fixing it will align the app with the user's core requirements for the Jolly feature.
+     - **Status**: IN PROGRESS
+     - **Is recurring issue?** N
+     - **Should Test frontend/backend/both after fix?** both
+     - **Blocked on other issue**: None
+
+**In progress Task List**:
+The Jolly Refactor is the only in-progress item and is categorized as an issue.
+
+**Upcoming and Future Tasks**
+- **Upcoming Tasks**:
+    - **P1: Stripe Payment for National League**: Implement the frontend flow for the Join National League option on the onboarding screen. This involves integrating with the Stripe checkout session endpoint. ()
+    - **P2: Home Screen UI**:
+        - Implement the Live card with 60s polling. ()
+        - Implement the Classifiche (Standings) card. ()
+    - **P3: Standings Screens**: Build the full weekly and total standings screens.
+- **Future Tasks**:
+    - **Password Recovery**: Implement the Forgot Password flow.
+    - **Bonus Campionati**: Implement the logic for awarding points for correct end-of-season champion predictions.
+    - **Push Notifications**: For admin announcements or important game events.
+    - **Live API Integration**: Replace manual admin updates with a real-time sports data API.
+
+**Completed work in this session**
+- **Backend Architecture**: Full setup using FastAPI and MongoDB.
+- **Database**: All core collections (, , , , , etc.) have been created and a seed script () is functional.
+- **Authentication**: Implemented user registration and login with both Email/Password and Google OAuth.
+- **Login Screen**: A polished login screen was created and approved by the user.
+- **Onboarding & Leagues**: A complete flow for new users to be onboarded and to create, join, and view private leagues has been implemented and verified.
+- **Admin Dashboard**: A basic web UI for admin tasks is served from the backend at .
+
+**Earlier issues found/mentioned but not fixed**
+None. The agent has been responsive to fixing issues as they arose. The current Jolly refactor is the only outstanding issue.
+
+**Known issue recurrence from previous fork**
+N/A
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+- **Backend**: FastAPI, Python, MongoDB (via )
+- **Frontend**: React Native, Expo, TypeScript
+- **State Management**: React Context API (, )
+- **Authentication**: JWT (for email/password), Google OAuth (via Emergent-managed flow)
+- **Payments**: Stripe (playbook received, backend endpoint for checkout session exists but frontend UI not implemented)
+- **Internationalization**:  for Italian and English.
+
+**key DB schema**
+- : Stores user information, including credentials and roles.
+- : Stores league details (name, code, type).
+- : Links users to leagues. .
+- : Defines seasons (e.g., Serie A 2024-2025).
+- : Represents a game week within a season.
+- : The 11 individual matches for a given matchday.
+- : Stores user predictions for matches.
+- : Tracks jolly usage. . **Model was recently refactored.**
+- : Logs actions performed by admins.
+
+**changes in tech stack**
+The project was pivoted from the initial spec of  to  at the user's request.
+
+**All files of reference**
+- : The core FastAPI application containing all API endpoints and business logic. **This file is in the middle of a major refactor for the Jolly feature.**
+- : Contains all Pydantic models. The  models were recently changed.
+- : The frontend screen for submitting predictions. **Its UI is now outdated and needs to be redesigned to support the per-matchday Jolly.**
+- : The main entry point for the frontend, handling authentication and initial routing.
+- : The user onboarding screen.
+- : A summary document created by the agent at the end of the last session.
+
+**Areas that need refactoring**:
+- : The entire Jolly UI needs to be removed from the match cards and replaced with a single, top-level toggle for the matchday.
+
+**key api endpoints**
+- , , 
+- , 
+- 
+- 
+-  (for setting/deleting the matchday jolly)
+- : Serves the admin dashboard.
+- : CRUD endpoints for managing game data.
+
+**Critical Info for New Agent**
+- **Jolly Refactor is Priority #1**: The user gave explicit, urgent instructions to fix the Jolly feature. It must be a **per-matchday** bonus, not per-match. The backend refactor is in-progress; the frontend has not been started. You must complete this before moving on.
+- **User is Detail-Oriented**: The user provides very specific requirements and expects them to be followed exactly. Refer to their messages for constraints on locking, validation, and business logic.
+- **Tech Stack**: The stack is FastAPI/MongoDB and Expo/React Native, a change from the original spec document.
+
+**documents created in this job**
+- 
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User (Critical)**: Urgent correction: the Jolly is implemented per match, but it must be PER MATCHDAY. Provided detailed requirements for the fix, including UI changes, locking rules, and DB model constraints. (IN PROGRESS)
+2.  **Agent**: Created a project state summary file as requested.
+3.  **User**: Requested the agent to create a project summary file before the session ends. (COMPLETED)
+4.  **Agent**: Continued refactoring the  file for the new Jolly logic.
+5.  **Agent**: Started the Jolly refactor by updating the scoring engine in .
+6.  **Agent**: Updated the joker endpoint in  to be per-matchday.
+7.  **Agent**: Started the Jolly refactor on the backend models in .
+8.  **Agent**: Acknowledged the critical correction for the Jolly feature and laid out a plan to fix it.
+9.  **User**: Approved milestones 4 & 5 (Predictions & Jolly) and provided strict constraints, including server-side validation and locking rules. (This led to the incorrect implementation).
+10. **Agent**: Reported completion of milestones 1-3 (Onboarding, Leagues, Admin setup) with screenshots and a summary of the DB and endpoints.
+
+**Project Health Check:**
+- **Broken**:
+    - The Jolly feature is non-functional and in a half-refactored state.
+    - The frontend predictions screen () is out of sync with the backend changes and will not work correctly.
+- **Mocked**:
+    - The Stats card on the home screen is a placeholder.
+
+**3rd Party Integrations**
+- **Stripe (Payments)** — requires User API Key. (Playbook received, test key available in env, but frontend flow not implemented).
+- **Emergent-managed Google Auth** — uses Emergent LLM Key. (Implemented and functional for login).
+
+**Testing status**
+- **Testing agent used after significant changes**: YES, it was used to validate the login flow and the (now incorrect) predictions screen.
+- **Troubleshoot agent used after agent stuck in loop**: NO
+- **Test files created**:
+    - 
+- **Known regressions**: The entire Jolly feature, which was previously working (but incorrectly), is now broken during the refactor.
+
+**Credentials to test flow:**
+Seed data creates two users. Check  for credentials.
+- user: , password: 
+- user: , password: 
+- admin: , password: 
+
+**What agent forgot to execute**
+The agent was in the middle of a chain of  calls to refactor . This chain was interrupted. The next agent must ensure this refactoring is complete by searching for any remaining legacy per-match jolly logic before proceeding to the frontend changes.
+
+</analysis>
