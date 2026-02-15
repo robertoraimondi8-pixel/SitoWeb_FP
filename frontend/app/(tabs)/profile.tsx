@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const { colors, isDark, toggleTheme } = useTheme();
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, handleAuthError } = useAuth();
   const router = useRouter();
   const [leagueCount, setLeagueCount] = useState(0);
 
@@ -20,9 +20,16 @@ export default function ProfileScreen() {
       try {
         const p = await apiCall('/profile', { token });
         setLeagueCount(p.leagues_count);
-      } catch (e) { console.error(e); }
+      } catch (e: any) { 
+        if (isAuthError(e)) {
+          await handleAuthError(e);
+          router.replace('/(auth)/login');
+          return;
+        }
+        console.error(e); 
+      }
     })();
-  }, [token]);
+  }, [token, handleAuthError, router]);
 
   const switchLang = () => {
     const newLang = i18n.language === 'it' ? 'en' : 'it';
