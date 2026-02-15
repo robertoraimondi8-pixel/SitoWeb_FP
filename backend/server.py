@@ -803,8 +803,10 @@ async def get_live_matchday(matchday_id: str, user=Depends(get_current_user)):
         pts = 0.0
         is_correct = None
         if pred and m.get("home_score") is not None:
+            # Use prediction's market_type (user's choice), fallback to match's
+            pred_market = pred.get("market_type", m.get("market_type", "1X2"))
             pts, is_correct = calculate_match_points(
-                pred["prediction_value"], m["market_type"],
+                pred["prediction_value"], pred_market,
                 m.get("home_score"), m.get("away_score"), m["status"]
             )
         match_pts.append((m["id"], pts, is_correct))
@@ -816,8 +818,9 @@ async def get_live_matchday(matchday_id: str, user=Depends(get_current_user)):
         pred = preds_dict.get(m["id"])
         pts = 0.0
         if pred and m.get("home_score") is not None:
+            pred_market = pred.get("market_type", m.get("market_type", "1X2"))
             pts, _ = calculate_match_points(
-                pred["prediction_value"], m["market_type"],
+                pred["prediction_value"], pred_market,
                 m.get("home_score"), m.get("away_score"), m["status"]
             )
             is_joker = joker_match_id == m["id"]
