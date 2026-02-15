@@ -6,33 +6,54 @@ import { apiCall } from '../src/api/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Index() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, token } = useAuth();
   const router = useRouter();
-  const [processing, setProcessing] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+    handleRouting();
+  }, [isLoading, isAuthenticated, token]);
+
+  const handleRouting = async () => {
     // Check for Google OAuth callback (session_id in URL hash)
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const hash = window.location.hash;
       if (hash && hash.includes('session_id=')) {
-        setProcessing(true);
         const sessionId = hash.split('session_id=')[1]?.split('&')[0];
         if (sessionId) {
-          processGoogleSession(sessionId);
+          await processGoogleSession(sessionId);
           return;
         }
       }
     }
 
-    if (!isLoading && !processing) {
-      if (isAuthenticated) {
-        router.replace('/(tabs)/home');
-      } else {
-        router.replace('/(auth)/login');
-      }
+    if (isLoading) return;
+
+    if (!isAuthenticated) {
+      setChecking(false);
+      router.replace('/(auth)/login');
+      return;
     }
-  }, [isLoading, isAuthenticated, processing]);
+
+    // Authenticated: check if user has leagues
+    try {
+      const leagues = await apiCall('/leagues', { token });
+      if (!leagues || leagues.length === 0) {
+        // Check if onboarding was already shown
+        const onboardingSeen = await AsyncStorage.getItem('onboarding_seen');
+        if (!onboardingSeen) {
+          setChecking(false);
+          router.replace('/onboarding');
+          return;
+        }
+      }
+    } catch (e) {
+      // If error checking leagues, go to home anyway
+    }
+
+    setChecking(false);
+    router.replace('/(tabs)/home');
+  };
 
   const processGoogleSession = async (sessionId: string) => {
     try {
@@ -43,14 +64,13 @@ export default function Index() {
       await AsyncStorage.setItem('access_token', res.access_token);
       await AsyncStorage.setItem('refresh_token', res.refresh_token);
       await AsyncStorage.setItem('user', JSON.stringify(res.user));
-      // Clean hash from URL
       if (typeof window !== 'undefined') {
         window.history.replaceState(null, '', window.location.pathname);
       }
-      router.replace('/(tabs)/home');
+      // New Google user → onboarding
+      router.replace('/onboarding');
     } catch (e) {
       console.error('Google auth error:', e);
-      setProcessing(false);
       router.replace('/(auth)/login');
     }
   };
