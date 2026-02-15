@@ -161,6 +161,7 @@ class PredictionResponse(BaseModel):
     user_id: str
     match_id: str
     matchday_id: str
+    market_type: str
     prediction_value: str
     points: Optional[float] = None
     is_correct: Optional[bool] = None
