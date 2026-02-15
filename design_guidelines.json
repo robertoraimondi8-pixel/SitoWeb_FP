@@ -1,0 +1,193 @@
+{
+  "brand_identity": {
+    "name": "FantaPronostic",
+    "ethos": "The Arena in Your Pocket",
+    "emotion": "Electric, Precise, Competitive",
+    "theme_mode": "dark_default_with_toggle"
+  },
+  "design_principles": {
+    "fusion": "Sports Data x Neo-Brutalism. Raw numbers meet glowing accents.",
+    "interaction": "Tactile cards. Pressing a prediction button should feel like punching a ticket.",
+    "hierarchy": "Score > Status > Team Names. The data that changes most often gets the brightest color.",
+    "density": "High density for rankings, spacious for prediction inputs."
+  },
+  "typography": {
+    "font_family_headings": "Barlow Condensed",
+    "font_family_body": "Manrope",
+    "weights": {
+      "light": "300",
+      "regular": "400",
+      "semiBold": "600",
+      "bold": "700",
+      "extraBold": "800"
+    },
+    "sizes": {
+      "xs": 12,
+      "sm": 14,
+      "base": 16,
+      "lg": 18,
+      "xl": 20,
+      "2xl": 24,
+      "3xl": 30,
+      "4xl": 36,
+      "display": 48
+    },
+    "line_heights": {
+      "tight": 1.1,
+      "normal": 1.5,
+      "relaxed": 1.75
+    },
+    "instructions": "Use expo-font to load 'Barlow Condensed' for all headers/scores and 'Manrope' for UI text. Fallback to system sans-serif."
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "default": "#1A3A6B",
+        "light": "#2C528A",
+        "dark": "#122646"
+      },
+      "accent": {
+        "default": "#F5A623",
+        "glow": "rgba(245, 166, 35, 0.5)",
+        "muted": "#B87A16"
+      },
+      "background": {
+        "dark": "#0F172A",
+        "card": "#1E293B",
+        "light": "#F8FAFC",
+        "card_light": "#FFFFFF"
+      },
+      "text": {
+        "dark_primary": "#F1F5F9",
+        "dark_secondary": "#94A3B8",
+        "light_primary": "#0F172A",
+        "light_secondary": "#64748B"
+      },
+      "status": {
+        "success": "#10B981",
+        "error": "#EF4444",
+        "warning": "#F59E0B",
+        "info": "#3B82F6"
+      }
+    },
+    "gradients": {
+      "primary_card": ["#1A3A6B", "#162E54"],
+      "accent_action": ["#F5A623", "#E09215"]
+    }
+  },
+  "layout_spacing": {
+    "spacing_scale": {
+      "xxs": 2,
+      "xs": 4,
+      "sm": 8,
+      "md": 12,
+      "lg": 16,
+      "xl": 24,
+      "2xl": 32,
+      "3xl": 48
+    },
+    "border_radius": {
+      "sm": 4,
+      "md": 8,
+      "lg": 12,
+      "xl": 16,
+      "full": 9999
+    },
+    "containers": {
+      "screen_padding": 16,
+      "card_padding": 16
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": {
+        "bg": "#F5A623",
+        "text": "#0F172A",
+        "radius": 12,
+        "height": 48,
+        "font_weight": "bold",
+        "uppercase": true
+      },
+      "secondary": {
+        "bg": "transparent",
+        "border": "#F5A623",
+        "text": "#F5A623",
+        "radius": 12,
+        "height": 48
+      },
+      "ghost": {
+        "bg": "transparent",
+        "text": "#94A3B8"
+      }
+    },
+    "cards": {
+      "match_card": {
+        "bg": "#1E293B",
+        "border_color": "rgba(255,255,255,0.1)",
+        "border_width": 1,
+        "shadow": "0px 4px 12px rgba(0,0,0,0.3)"
+      },
+      "ranking_row": {
+        "bg_alternate": "rgba(255,255,255,0.03)",
+        "highlight_user": "rgba(245, 166, 35, 0.1)"
+      }
+    },
+    "navigation": {
+      "bottom_tab": {
+        "height": 60,
+        "bg": "rgba(15, 23, 42, 0.95)",
+        "blur_intensity": 20,
+        "active_color": "#F5A623",
+        "inactive_color": "#64748B"
+      }
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": {
+      "style": "bg-opacity-90 backdrop-blur-md border-t border-white/10"
+    },
+    "shadows": {
+      "glow": {
+        "shadowColor": "#F5A623",
+        "shadowOffset": { "width": 0, "height": 0 },
+        "shadowOpacity": 0.4,
+        "shadowRadius": 10,
+        "elevation": 5
+      }
+    }
+  },
+  "assets": {
+    "images": [
+      {
+        "category": "backgrounds",
+        "url": "https://images.unsplash.com/photo-1709078477781-3f885189ecbf?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwyfHxmb290YmFsbCUyMHN0YWRpdW0lMjBuaWdodCUyMGRhcmslMjBhdG1vc3BoZXJlfGVufDB8fHx8MTc3MTE4NTcxNHww&ixlib=rb-4.1.0&q=85",
+        "description": "Atmospheric foggy stadium night - Use as subtle overlay background with low opacity"
+      },
+      {
+        "category": "placeholders",
+        "url": "https://images.unsplash.com/photo-1674941063377-69c61db07740?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwxfHxzb2NjZXIlMjBwbGF5ZXIlMjBzaWxob3VldHRlJTIwYWN0aW9uJTIwZHluYW1pY3xlbnwwfHx8fDE3NzExODU3MTR8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Dynamic player silhouette - Use for empty states or promo cards"
+      }
+    ],
+    "logo_url": "https://customer-assets.emergentagent.com/job_matchday-hub-29/artifacts/i3zag5z6_ChatGPT%20Image%2015%20feb%202026%2C%2019_21_56.png",
+    "icons": "Use @expo/vector-icons (Ionicons or MaterialCommunityIcons) for all UI icons."
+  },
+  "instructions_to_main_agent": [
+    "1. USE StyleSheet.create() for all styling. Do not use Tailwind/NativeWind unless explicitly configured.",
+    "2. REACT NATIVE SPECIFIC: Use <View>, <Text>, <TouchableOpacity>, <FlatList>, <ScrollView>. NO HTML tags (div, span).",
+    "3. NAVIGATION: Use 'expo-router'. File structure: /app/index.js, /app/(tabs)/_layout.js, etc.",
+    "4. THEME: Implement a ThemeContext to handle the Dark/Light toggle. Default to DARK.",
+    "5. PREDICTION INPUTS: For the 11 matches, use a horizontal scroll or segmented control for the market types (1X2, Goal/NoGoal). Don't show all inputs at once; keep it clean.",
+    "6. LIVE SCORE: Use a polling mechanism (setInterval) to fetch scores every 30-60s.",
+    "7. HEADER: Custom header component with 'Barlow Condensed' font.",
+    "8. DATA-TESTID: Add 'testID' prop to all interactables (React Native uses 'testID' not 'data-testid')."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Every interaction needs micro-animations - hover states (Pressable pressed), transitions.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN"
+  ]
+}
