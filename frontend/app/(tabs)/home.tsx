@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -12,11 +13,16 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { token, user } = useAuth();
+  const { leagues, activeLeague, refreshLeagues } = useLeague();
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    if (token) refreshLeagues(token);
+  }, [token]);
 
   const fetchHome = useCallback(async () => {
     try {
