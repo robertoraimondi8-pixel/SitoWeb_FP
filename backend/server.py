@@ -1190,8 +1190,9 @@ async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_admin))
     await score_summaries_col.delete_many({"matchday_id": matchday_id})
 
     for uid, preds in user_preds.items():
+        # Check if joker is active for this matchday (per-matchday, not per-match)
         joker = await joker_usages_col.find_one({"user_id": uid, "matchday_id": matchday_id}, {"_id": 0})
-        joker_match_id = joker["match_id"] if joker else None
+        joker_active = joker is not None and joker.get("is_active", False)
 
         match_pts = []
         for p in preds:
@@ -1212,7 +1213,8 @@ async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_admin))
                 {"$set": {"points": pts, "is_correct": is_correct}}
             )
 
-        totals = calculate_matchday_total(match_pts, joker_match_id, matches_dict)
+        # Calculate totals with joker_active (boolean for matchday x2)
+        totals = calculate_matchday_total(match_pts, joker_active, matches_dict)
 
         await score_summaries_col.insert_one({
             "id": new_id(),
@@ -1223,6 +1225,7 @@ async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_admin))
             "total_points": totals["total_points"],
             "valid_matches": totals["valid_matches"],
             "void_matches": totals["void_matches"],
+            "joker_active": joker_active,
             "created_at": now_utc(),
         })
 
