@@ -275,6 +275,7 @@ metadata:
 test_plan:
   current_focus:
     - "P1 - Google OAuth Mobile Fix"
+    - "P2 - Rankings detail inconsistency"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -282,28 +283,43 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: |
-      P0 AUTH SESSION HARDENING - IN PROGRESS:
+      P1 GOOGLE OAUTH MOBILE FIX - IMPLEMENTED:
       
-      COMPLETED:
-      1. ✅ Created centralized API client with auto-refresh logic (/app/frontend/src/api/client.ts)
-      2. ✅ apiCall() now intercepts 401 errors and automatically calls POST /api/auth/refresh
-      3. ✅ If refresh succeeds, retries original request with new token
-      4. ✅ If refresh fails, throws AuthError for logout handling
-      5. ✅ Updated ALL frontend files to use apiCall() and handle AuthError:
-         - home.tsx, predictions.tsx, rankings.tsx, profile.tsx
-         - live/[matchdayId].tsx, user-predictions.tsx, onboarding.tsx
-         - league/create.tsx, join.tsx, join-private.tsx
-         - AuthContext.tsx, LeagueContext.tsx
-      6. ✅ Backend /api/auth/refresh endpoint VERIFIED WORKING
+      FRONTEND CHANGES (login.tsx):
+      1. ✅ Added expo-auth-session + expo-crypto packages
+      2. ✅ Implemented WebBrowser.openAuthSessionAsync for native OAuth flow
+      3. ✅ Added comprehensive logging with [GoogleOAuth] prefix
+      4. ✅ Added 15s timeout with user-friendly error message
+      5. ✅ Added retry button on error
+      6. ✅ Session ID extraction from hash fragment AND query params
+      7. ✅ Updated scheme from "frontend" to "fantapronostic"
       
-      NEXT STEPS:
-      - Test full E2E flow on mobile (Expo Go)
-      - P1: Debug Google OAuth spinner issue on iOS
+      FRONTEND CHANGES (callback.tsx):
+      1. ✅ Added [GoogleCallback] logging prefix
+      2. ✅ Multiple methods to extract session_id
+      3. ✅ Better error handling with retry button
       
-      Credentials: marco@test.com / password123
+      APP.JSON CHANGES:
+      1. ✅ Updated app name to "FantaPronostic"
+      2. ✅ Updated slug to "fantapronostic"
+      3. ✅ Updated scheme to "fantapronostic"
+      4. ✅ Added iOS bundleIdentifier + CFBundleURLTypes
+      5. ✅ Added Android package + intentFilters
+      
+      BACKEND CHANGES (server.py):
+      1. ✅ Added comprehensive [GoogleOAuth] logging
+      2. ✅ Logs session verification steps
+      3. ✅ Logs user creation/lookup
+      4. ✅ Better error handling for network issues
+      
+      WHERE TO READ LOGS:
+      - Frontend: Expo console (in Terminal or Expo Go app debug panel)
+      - Backend: /var/log/supervisor/backend.err.log
+      
+      READY FOR TESTING ON EXPO GO
   - agent: "main"
     message: |
-      COMPLETED JOLLY REFACTOR (P0):
+      P0 AUTH SESSION HARDENING - COMPLETED:
       
       BACKEND CHANGES:
       1. Removed all joker_match_id references from server.py
