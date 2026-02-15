@@ -59,7 +59,7 @@ class FantaPronosticTester:
         print("\n🔐 Testing Login...")
         
         response = await self.api_call("POST", "/auth/login", {
-            "email": "marco@fantapronostic.com",
+            "email": "marco@test.com",
             "password": "password123"
         })
         
