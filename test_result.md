@@ -237,6 +237,30 @@ backend:
     priority: "medium"
     needs_retesting: false
 
+  - task: "P2 - User Profile Endpoint Consistency"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: P2 User Profile Endpoint consistency working correctly. GET /api/standings/user/{user_id}?league_id={league_id} returns total_points that matches /api/standings/total. Tested with user UserA_Test (12.0 points) - profile endpoint returned same total_points. Matchday breakdown sum also matches total points correctly."
+
+  - task: "P3 - COMPLETED Matchday Frozen State"
+    implemented: false
+    working: false
+    file: "server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ FAILED: P3 COMPLETED Matchday frozen state not working properly. GET /api/predictions/user/{user_id}/{matchday_id} for COMPLETED matchday (ID: fc5de530-f640-41bd-89a6-442f62308ea6, Number: 10) still shows 2 pending outcomes out of 11 total matches. Expected: All matches in COMPLETED matchday should have final outcomes (correct/wrong), not pending. Found matches with 'finished' status but 'pending' outcome, indicating the outcome calculation logic needs fixing for COMPLETED matchdays."
+
 frontend:
   - task: "Jolly toggle per MATCHDAY"
     implemented: true
