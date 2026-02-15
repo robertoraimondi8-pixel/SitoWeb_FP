@@ -1,0 +1,240 @@
+{
+  "summary": "Predictions Screen & Joker System Testing (Milestone 4-5) COMPLETE - 13/13 backend tests PASSED (100%), all frontend flows working correctly. User-chosen market_type per match, 1 market per match validation, EXACT_SCORE format validation, lock per match, joker POST/DELETE endpoints, and joker limit all functional.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_predictions_joker.py",
+    "/app/test_reports/pytest/predictions_joker_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✓ Backend: User can choose market_type per match (1X2, GOAL_NOGOL, OVER_UNDER_25, EXACT_SCORE)",
+    "✓ Backend: Only 1 market per match enforced - duplicate match_id returns 400 error",
+    "✓ Backend: EXACT_SCORE format validation works - invalid formats ('abc', '21') rejected",
+    "✓ Backend: Valid EXACT_SCORE formats accepted: 0-0, 3-2, 10-5 (numbers >=0)",
+    "✓ Backend: Lock per match enforced - matches past start_time cannot accept predictions",
+    "✓ Backend: Joker POST /api/predictions/{matchday_id}/joker works correctly",
+    "✓ Backend: Joker DELETE endpoint removes joker successfully",
+    "✓ Backend: Joker can be switched between matches in same matchday",
+    "✓ Backend: Joker limit per half per season constraint implemented (lines 602-619 server.py)",
+    "✓ Frontend: Login and navigation to Predictions tab working perfectly",
+    "✓ Frontend: 11 match cards displayed with team names (Juventus vs Roma, Inter vs Milan, etc.)",
+    "✓ Frontend: Market selector pills (1X2, GNG, O/U, ES) visible with point values (1 pt, 0.5 pt, 0.5 pt, 4 pt)",
+    "✓ Frontend: Selecting 1X2 market shows value options (1, X, 2) - tested and working",
+    "✓ Frontend: Selecting EXACT_SCORE shows two number inputs (home-away) - tested with 2-1",
+    "✓ Frontend: Selecting GOAL_NOGOL shows GOAL/NOGOL buttons - tested",
+    "✓ Frontend: Save button works - displays 'Pronostici salvati!' green success message",
+    "✓ Frontend: Joker toggle visible on each unlocked match card with ⭐ icon",
+    "✓ Frontend: Joker can be activated - star turns orange, shows 'Jolly Attivo'",
+    "✓ Frontend: Joker active match has orange border and '🔥 JOLLY x2' badge",
+    "✓ Frontend: Changing market on a match clears previous value (tested: 1X2 → EXACT_SCORE)",
+    "✓ Frontend: Prediction counter shows '4/11 partite' at top",
+    "✓ Frontend: All testID attributes correctly implemented on interactive elements",
+    "✓ Dark theme consistently applied (#0F172A background, #F5A623 accent orange)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_predictions_joker.py"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "100% (all interactive flows working)"
+  },
+  "seed_data_creation": "Used existing seeded matchday with 11 matches. All matches have start_times in the future (2h from seed). Created test users dynamically for joker limit testing.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Predictions screen and Joker system fully functional. Backend APIs all working (13/13 tests pass). Frontend flows tested: login → predictions tab → 11 match cards visible → market selection (1X2, GNG, O/U, ES) shows appropriate value options → EXACT_SCORE shows two number inputs → save predictions works with success message → joker toggle activates with orange border and 'Jolly Attivo' text → changing market clears previous value. All milestone 4-5 requirements met.",
+  "test_details": {
+    "backend_tests": {
+      "total": 13,
+      "passed": 13,
+      "failed": 0,
+      "test_file": "/app/backend/tests/test_predictions_joker.py",
+      "categories": {
+        "user_chosen_market": {
+          "count": 4,
+          "status": "ALL PASSED",
+          "tests": [
+            "test_save_prediction_with_1X2_market - User chooses 1X2 market, saves prediction with value '1'",
+            "test_save_prediction_with_EXACT_SCORE_market - User chooses EXACT_SCORE market, saves with value '2-1'",
+            "test_save_prediction_with_GOAL_NOGOL_market - User chooses GOAL_NOGOL market, saves with value 'GOAL'",
+            "test_save_prediction_with_OVER_UNDER_market - User chooses OVER_UNDER_25 market, saves with value 'OVER'"
+          ]
+        },
+        "prediction_validation": {
+          "count": 4,
+          "status": "ALL PASSED",
+          "tests": [
+            "test_duplicate_match_id_returns_400 - Duplicate match_id in payload returns 400 error with 'duplicate' or 'only 1 market' message",
+            "test_invalid_EXACT_SCORE_format_abc - Invalid format 'abc' rejected with validation error",
+            "test_invalid_EXACT_SCORE_format_no_dash - Invalid format '21' (no dash) rejected",
+            "test_valid_EXACT_SCORE_formats - Valid formats 0-0, 3-2, 10-5 all accepted"
+          ]
+        },
+        "match_lock": {
+          "count": 1,
+          "status": "ALL PASSED",
+          "tests": [
+            "test_cannot_save_for_locked_match - Match with start_time in past returns 'locked' error, cannot accept predictions"
+          ]
+        },
+        "joker_endpoints": {
+          "count": 3,
+          "status": "ALL PASSED",
+          "tests": [
+            "test_set_joker_for_match - POST /api/predictions/{matchday_id}/joker sets joker successfully",
+            "test_delete_joker - DELETE /api/predictions/{matchday_id}/joker removes joker",
+            "test_switch_joker_to_another_match - Joker can be switched between matches in same matchday"
+          ]
+        },
+        "joker_limit": {
+          "count": 1,
+          "status": "ALL PASSED",
+          "tests": [
+            "test_joker_limit_per_half - Backend enforces 1 joker per half per season constraint (lines 602-619 server.py)"
+          ]
+        }
+      }
+    },
+    "frontend_tests": {
+      "total": 17,
+      "passed": 17,
+      "failed": 0,
+      "details": [
+        {
+          "test": "Login with marco@test.com",
+          "status": "PASSED",
+          "note": "Successfully logged in and redirected to home screen"
+        },
+        {
+          "test": "Navigate to Predictions tab",
+          "status": "PASSED",
+          "note": "Clicked 'Pronostici' tab in bottom navigation, predictions screen loaded"
+        },
+        {
+          "test": "11 match cards displayed",
+          "testID": "match-card-*",
+          "status": "PASSED",
+          "note": "Found 11 match cards as expected for seeded matchday"
+        },
+        {
+          "test": "Team names visible",
+          "status": "PASSED",
+          "note": "Team names displayed: Juventus vs Roma, Inter vs Milan, Napoli vs Lazio, Atalanta vs Fiorentina, Bologna vs Torino, Udinese vs Genoa, Cagliari vs Lecce, Real Madrid vs Barcelona, Man City vs Liverpool, PSG vs Marseille, Bayern vs Dortmund"
+        },
+        {
+          "test": "Market selector pills with points",
+          "testID": "market-*-*",
+          "status": "PASSED",
+          "note": "All 4 market pills visible on each card: 1X2 (1 pt), GNG (0.5 pt), O/U (0.5 pt), ES (4 pt)"
+        },
+        {
+          "test": "Select 1X2 market",
+          "testID": "market-0-1X2",
+          "status": "PASSED",
+          "note": "Clicked 1X2 pill on match 0, pill highlighted in orange"
+        },
+        {
+          "test": "1X2 value options visible",
+          "testID": "value-0-1, value-0-X, value-0-2",
+          "status": "PASSED",
+          "note": "Three value buttons (1, X, 2) appeared below market selector"
+        },
+        {
+          "test": "Select value '1' for 1X2",
+          "testID": "value-0-1",
+          "status": "PASSED",
+          "note": "Clicked value '1', button highlighted in blue"
+        },
+        {
+          "test": "Switch to EXACT_SCORE market",
+          "testID": "market-0-EXACT_SCORE",
+          "status": "PASSED",
+          "note": "Clicked ES pill on same match, market changed from 1X2 to ES"
+        },
+        {
+          "test": "Changing market clears previous value",
+          "status": "PASSED",
+          "note": "When switched from 1X2 (value '1') to EXACT_SCORE, previous '1' value was cleared"
+        },
+        {
+          "test": "EXACT_SCORE shows two number inputs",
+          "testID": "exact-home-0, exact-away-0",
+          "status": "PASSED",
+          "note": "Two large number input fields appeared with dash separator (2-1 format)"
+        },
+        {
+          "test": "Fill EXACT_SCORE inputs",
+          "testID": "exact-home-0, exact-away-0",
+          "status": "PASSED",
+          "note": "Filled home score '2' and away score '1', displayed as 2-1"
+        },
+        {
+          "test": "Select GOAL_NOGOL market",
+          "testID": "market-3-GOAL_NOGOL",
+          "status": "PASSED",
+          "note": "Clicked GNG pill on match 3, GOAL/NOGOL value buttons appeared"
+        },
+        {
+          "test": "Select GOAL value",
+          "testID": "value-3-GOAL",
+          "status": "PASSED",
+          "note": "Clicked 'GOAL' button, button highlighted in blue"
+        },
+        {
+          "test": "Joker toggle visible",
+          "testID": "joker-*",
+          "status": "PASSED",
+          "note": "Joker toggle with ⭐ icon visible on each unlocked match card"
+        },
+        {
+          "test": "Activate joker on match 4",
+          "testID": "joker-4",
+          "status": "PASSED",
+          "note": "Clicked joker toggle, star turned orange, text changed to 'Jolly Attivo'"
+        },
+        {
+          "test": "Save predictions and success message",
+          "testID": "save-predictions-btn",
+          "status": "PASSED",
+          "note": "Clicked '💾 Salva Pronostici' button, green success banner 'Pronostici salvati!' appeared at bottom"
+        }
+      ]
+    }
+  },
+  "screenshots": [
+    ".screenshots/01_frontend_initial.png",
+    ".screenshots/02_home_loaded.png",
+    ".screenshots/03_predictions_screen.png",
+    ".screenshots/04_1X2_selected.png",
+    ".screenshots/05_exact_score_filled.png",
+    ".screenshots/06_goal_nogol_selected.png",
+    ".screenshots/07_joker_activated.png",
+    ".screenshots/08_predictions_saved.png"
+  ],
+  "additional_notes": [
+    "All 11 match cards displayed correctly with competition, team names, and market selector pills",
+    "Market selection flow working perfectly - user can choose any market per match",
+    "Value options appear dynamically based on selected market type",
+    "EXACT_SCORE shows two numeric inputs with proper formatting (H-A format)",
+    "Joker toggle functional with visual feedback (orange star, orange border, 'JOLLY x2' badge)",
+    "Save predictions shows success message and updates prediction counter",
+    "Changing market clears previous value to prevent stale data",
+    "Prediction counter at top shows 'X/11 partite' tracking user progress",
+    "Mobile-first design working perfectly (390x844 viewport tested)",
+    "All testID attributes correctly implemented for automated testing",
+    "Dark theme consistent (#0F172A background, #F5A623 accent)",
+    "Backend properly validates: duplicate match_ids, invalid EXACT_SCORE formats, locked matches",
+    "Backend joker endpoints working: POST to set, DELETE to remove, can switch between matches",
+    "Backend enforces joker limit: 1 per half per season (constraint exists in code lines 602-619)",
+    "Lock per match working: matches past start_time reject predictions with 'locked' error",
+    "Integration between frontend and backend fully functional - all API calls successful"
+  ]
+}
