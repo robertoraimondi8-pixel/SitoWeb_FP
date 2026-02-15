@@ -156,6 +156,78 @@ async def get_me(user=Depends(get_current_user)):
     return {k: v for k, v in user.items() if k != "_id"}
 
 
+@auth_router.post("/google/session")
+async def google_auth_session(request: Request):
+    """Process Google OAuth session_id from Emergent Auth.
+    Verifies session with Emergent, creates/updates user, returns JWT tokens."""
+    import aiohttp
+    body = await request.json()
+    session_id = body.get("session_id")
+    if not session_id:
+        raise HTTPException(400, "session_id required")
+
+    # Call Emergent Auth to verify session and get user data
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+            headers={"X-Session-ID": session_id},
+        ) as resp:
+            if resp.status != 200:
+                raise HTTPException(401, "Invalid Google session")
+            google_data = await resp.json()
+
+    email = google_data.get("email")
+    name = google_data.get("name", "")
+    picture = google_data.get("picture", "")
+
+    if not email:
+        raise HTTPException(400, "No email from Google")
+
+    # Check if user already exists
+    existing = await users_col.find_one({"email": email}, {"_id": 0})
+    if existing:
+        # Update profile picture if changed
+        if picture and existing.get("picture") != picture:
+            await users_col.update_one({"id": existing["id"]}, {"$set": {"picture": picture}})
+        user_id = existing["id"]
+        role = existing.get("role", "user")
+        username = existing.get("username", name)
+        language = existing.get("language", "it")
+    else:
+        # Create new user from Google data
+        user_id = new_id()
+        # Generate unique username from name
+        base_username = name.replace(" ", "_")[:20] if name else email.split("@")[0]
+        username = base_username
+        suffix = 1
+        while await users_col.find_one({"username": username}):
+            username = f"{base_username}_{suffix}"
+            suffix += 1
+
+        user = {
+            "id": user_id,
+            "email": email,
+            "username": username,
+            "password": "",  # No password for Google users
+            "role": "user",
+            "language": "it",
+            "picture": picture,
+            "auth_provider": "google",
+            "created_at": now_utc(),
+        }
+        await users_col.insert_one(user)
+        role = "user"
+        language = "it"
+
+    access = create_access_token(user_id, role)
+    refresh = create_refresh_token(user_id)
+    return TokenResponse(
+        access_token=access,
+        refresh_token=refresh,
+        user={"id": user_id, "email": email, "username": username, "role": role, "language": language}
+    )
+
+
 # ========================================
 # USER ROUTES (Home, Profile)
 # ========================================
