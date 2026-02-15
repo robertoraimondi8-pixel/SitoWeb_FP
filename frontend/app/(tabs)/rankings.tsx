@@ -29,7 +29,7 @@ interface StandingEntry {
 export default function RankingsScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { token } = useAuth();
+  const { token, handleAuthError } = useAuth();
   const [tab, setTab] = useState<'total' | 'weekly'>('total');
   const [leagues, setLeagues] = useState<any[]>([]);
   const [selectedLeague, setSelectedLeague] = useState('');
@@ -53,9 +53,16 @@ export default function RankingsScreen() {
         setMatchdays(mds);
         if (ls.length > 0) setSelectedLeague(ls[0].id);
         if (mds.length > 0) setSelectedMatchday(mds[0]);
-      } catch (e) { console.error(e); }
+      } catch (e: any) { 
+        if (isAuthError(e)) {
+          await handleAuthError(e);
+          router.replace('/(auth)/login');
+          return;
+        }
+        console.error(e); 
+      }
     })();
-  }, [token]);
+  }, [token, handleAuthError]);
 
   // Fetch standings when tab/league/matchday changes
   const fetchStandings = useCallback(async () => {
@@ -71,9 +78,16 @@ export default function RankingsScreen() {
       }
       const res = await apiCall(url, { token });
       setStandings(res);
-    } catch (e) { console.error(e); }
+    } catch (e: any) { 
+      if (isAuthError(e)) {
+        await handleAuthError(e);
+        router.replace('/(auth)/login');
+        return;
+      }
+      console.error(e); 
+    }
     finally { setLoading(false); }
-  }, [token, tab, selectedLeague, selectedMatchday]);
+  }, [token, tab, selectedLeague, selectedMatchday, handleAuthError]);
 
   useEffect(() => { fetchStandings(); }, [fetchStandings]);
 
