@@ -1066,8 +1066,87 @@ async def view_user_predictions_legacy(league_id: str, matchday_id: str, user_id
 
 
 # ========================================
-# LIVE ROUTES
+# LIVE ROUTES (con supporto polling 60s)
 # ========================================
+
+@live_router.get("/{matchday_id}")
+async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(get_current_user)):
+    """
+    Live matchday data con supporto polling ogni 60 secondi.
+    Include: stato partite, score aggiornati, punti live utente, totale con jolly.
+    """
+    matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+    if not matchday:
+        raise HTTPException(404, "Matchday not found")
+
+    matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    preds_dict = {p["match_id"]: p for p in preds}
+    
+    # Get joker for this matchday
+    joker = await joker_usages_col.find_one({"user_id": user["id"], "matchday_id": matchday_id}, {"_id": 0})
+    joker_active = joker is not None and joker.get("is_active", False)
+
+    matches_dict = {m["id"]: m for m in matches}
+
+    # Calculate points for all matches
+    match_pts = []
+    live_matches = []
+    
+    for m in sorted(matches, key=lambda x: x.get("start_time", "")):
+        pred = preds_dict.get(m["id"])
+        pts = 0.0
+        is_correct = None
+        outcome = "pending"
+        
+        if pred and m.get("home_score") is not None:
+            pred_market = pred.get("market_type", m.get("market_type", "1X2"))
+            pts, is_correct = calculate_match_points(
+                pred["prediction_value"], pred_market,
+                m.get("home_score"), m.get("away_score"), m["status"]
+            )
+            if is_correct is True:
+                outcome = "correct"
+            elif is_correct is False:
+                outcome = "wrong"
+        
+        match_pts.append((m["id"], pts, is_correct))
+
+        live_matches.append({
+            "match_id": m["id"],
+            "home_team": m["home_team"],
+            "away_team": m["away_team"],
+            "competition": m.get("competition", ""),
+            "start_time": m["start_time"],
+            "home_score": m.get("home_score"),
+            "away_score": m.get("away_score"),
+            "status": m["status"],  # scheduled / live / finished / postponed / void
+            "my_prediction": pred.get("prediction_value") if pred else None,
+            "my_market": pred.get("market_type") if pred else None,
+            "points": pts,
+            "outcome": outcome if pred else "no_prediction",
+        })
+
+    # Calculate totals with joker
+    totals = calculate_matchday_total(match_pts, joker_active, matches_dict)
+
+    return {
+        "matchday_id": matchday_id,
+        "matchday_number": matchday["number"],
+        "matchday_label": matchday.get("label", f"Giornata {matchday['number']}"),
+        "matchday_status": matchday["status"],
+        "matches": live_matches,
+        "jolly_active": joker_active,
+        "base_points": totals["base_points"],
+        "joker_bonus": totals["joker_bonus"],
+        "total_live_points": totals["total_points"],
+        "valid_matches": totals["valid_matches"],
+        "void_matches": totals["void_matches"],
+        "server_time": server_now().isoformat(),
+    }
+
+
+# Legacy endpoint - keep for compatibility
 @live_router.get("/matchday/{matchday_id}")
 async def get_live_matchday(matchday_id: str, user=Depends(get_current_user)):
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
