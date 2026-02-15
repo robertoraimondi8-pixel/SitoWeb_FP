@@ -91,7 +91,7 @@ export default function RankingsScreen() {
 
   useEffect(() => { fetchStandings(); }, [fetchStandings]);
 
-  // Navigate to user predictions transparency
+  // Navigate to user predictions transparency (weekly)
   const viewUserPredictions = (userId: string) => {
     if (!selectedMatchday) return;
     router.push({
@@ -99,6 +99,17 @@ export default function RankingsScreen() {
       params: { 
         userId, 
         matchdayId: selectedMatchday.id,
+        leagueId: selectedLeague 
+      }
+    });
+  };
+
+  // Navigate to user profile (total standings)
+  const viewUserProfile = (userId: string) => {
+    router.push({
+      pathname: '/user-detail',
+      params: { 
+        userId, 
         leagueId: selectedLeague 
       }
     });
