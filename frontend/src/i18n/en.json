@@ -65,5 +65,9 @@
   "membership_price": "€20.00 / season",
   "payment_success": "Payment completed!",
   "payment_processing": "Payment processing...",
-  "back_home": "Back to Home"
+  "back_home": "Back to Home",
+  "forgot_password": "Forgot password?",
+  "or": "or",
+  "continue_with_google": "Continue with Google",
+  "authenticating": "Authenticating..."
 }
