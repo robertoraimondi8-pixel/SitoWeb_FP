@@ -152,6 +152,9 @@ backend:
       - working: true
         agent: "main"
         comment: "GET /standings/total - classifica totale con ordinamento corretto. GET /standings/weekly/{id} - classifica settimanale con esatti e 1x2. GET /standings/matchdays - lista giornate."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: All standings endpoints working correctly. GET /standings/total returns proper structure with league_id, league_name, standings_type, entries array. Each entry contains user_id, username, rank, total_points, matchdays_played, jolly_used, current_week_points. GET /standings/matchdays returns list of available matchdays. GET /standings/weekly/{matchday_id} returns weekly standings with matchday_points, exact_correct, 1x2_correct, jolly_active fields."
 
   - task: "Trasparenza pronostici endpoint"
     implemented: true
