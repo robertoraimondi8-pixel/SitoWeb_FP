@@ -1,0 +1,154 @@
+# FantaPronostic - PRD (Product Requirements Document)
+
+## Overview
+FantaPronostic is a football prediction platform mobile app built with Expo React Native (frontend) and FastAPI + MongoDB (backend).
+
+## Architecture
+- **Frontend**: Expo React Native with TypeScript, expo-router, i18n (IT/EN), Zustand
+- **Backend**: FastAPI (Python) with MongoDB, JWT auth, Stripe integration
+- **Admin Dashboard**: Web admin served by FastAPI at /admin
+
+## Features Implemented (MVP)
+
+### 1. Authentication ✅
+- Email + Password (register/login)
+- Google OAuth via Emergent Auth (session verification on backend)
+- JWT access + refresh tokens
+- Role-based access: user / admin / superadmin
+- Password show/hide toggle
+- "Password dimenticata?" placeholder
+- "Registrati" link
+
+### 2. Home Hub ✅
+- Dynamic matchday card (OPEN/LOCKED/LIVE/COMPLETED)
+- Countdown to first_kickoff - 60s
+- CTA for predictions or live view
+- Rankings preview
+- User leagues display
+- Statistics placeholder with adapter pattern
+
+### 3. Predictions ✅
+- 11 matches per matchday
+- Market types: 1X2 (1pt), GOAL_NOGOL (0.5pt), OVER_UNDER_25 (0.5pt), EXACT_SCORE (4pt)
+- Lock per match: modifiable until start_time (server time)
+- Server-side validation
+- Batch save
+
+### 4. Joker System ✅
+- 1 usage per half (andata/ritorno) per season
+- Activatable/modifiable until first_kickoff - 60s
+- x2 on valid match points only
+- No points on void matches
+
+### 5. Live ✅
+- Shows user's 11 predictions with live scores
+- Provisional points calculation
+- Polling every 60s
+- No public rankings during live
+
+### 6. Rankings ✅
+- Weekly and Total standings
+- League filter
+- Top 3 highlighted + user position
+- Predictions visible only when matchday COMPLETED + same league
+
+### 7. Leagues ✅
+- National league (Stripe payment required)
+- Private leagues (create with invite code)
+- Join via invite code
+
+### 8. Stripe Payments ✅
+- Checkout session for national league membership (€20/season)
+- Webhook verification
+- Membership activated only after webhook confirmation
+
+### 9. Admin Dashboard ✅
+- Web dashboard at /admin
+- CRUD: Seasons, Matchdays, Matches
+- Live manual update (score + status)
+- Confirm matchday → COMPLETED (triggers idempotent scoring)
+- Audit log viewer
+- League and payment management
+
+### 10. i18n ✅
+- Italian (default) + English
+- All UI text in translation files
+- Language selectable in profile
+
+### 11. Database ✅ (MongoDB with relational references)
+- Collections: users, seasons, leagues, memberships, payment_transactions, matchdays, matches, predictions, joker_usages, champion_picks, score_summaries, standings_cache, audit_logs, notifications
+- Unique indexes enforced (user+match, user+season+half for joker, etc.)
+- ObjectId excluded from all responses
+
+### 12. Seed Data ✅
+- 1 season (Serie A 2024-2025)
+- 1 matchday with 11 matches (various competitions)
+- 3 users (admin, Marco_FP, Giulia_Pro)
+- 1 national league, 1 private league (code: AMICI2024)
+
+## Login Credentials
+- Admin: admin@fantapronostic.com / admin123
+- User 1: marco@test.com / password123
+- User 2: giulia@test.com / password123
+- Private league code: AMICI2024
+
+## API Endpoints
+### Auth
+- POST /api/auth/register
+- POST /api/auth/login
+- POST /api/auth/refresh
+- GET /api/auth/me
+- POST /api/auth/google/session (Emergent Google OAuth)
+
+### User
+- GET /api/home
+- GET /api/profile
+- PUT /api/profile
+
+### Leagues
+- GET /api/leagues
+- POST /api/leagues (create private)
+- POST /api/leagues/join
+- GET /api/leagues/national
+- GET /api/leagues/seasons
+
+### Predictions
+- GET /api/predictions/{matchday_id}
+- POST /api/predictions/{matchday_id}
+- POST /api/predictions/{matchday_id}/joker
+- DELETE /api/predictions/{matchday_id}/joker
+
+### Standings
+- GET /api/standings/weekly/{matchday_id}?league=
+- GET /api/standings/total?league=
+- GET /api/standings/leagues/{league_id}/matchdays/{matchday_id}/users/{user_id}/predictions
+
+### Live
+- GET /api/live/matchday/{matchday_id}
+
+### Payments
+- POST /api/payments/checkout
+- GET /api/payments/status/{session_id}
+- POST /api/webhook/stripe
+
+### Admin
+- GET/POST /api/admin/seasons
+- PUT /api/admin/seasons/{id}
+- GET/POST /api/admin/matchdays
+- PUT /api/admin/matchdays/{id}
+- GET/POST /api/admin/matches
+- PUT /api/admin/matches/{id}
+- POST /api/admin/matches/{id}/live-update
+- POST /api/admin/matchdays/{id}/confirm
+- POST /api/admin/matchdays/{id}/recalc
+- GET /api/admin/audit-logs
+- GET /api/admin/leagues
+- GET /api/admin/payments
+- GET /api/admin/score-summaries/{matchday_id}
+
+## Design
+- Dark mode default with light toggle
+- Primary: #1A3A6B (deep blue)
+- Accent: #F5A623 (vibrant orange)
+- Card-based UI, minimal modern style
+- Official logo in login screen
