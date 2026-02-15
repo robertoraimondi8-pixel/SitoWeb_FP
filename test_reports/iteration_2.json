@@ -1,0 +1,249 @@
+{
+  "summary": "Onboarding & League Management Testing (Milestone 1-3) - 11 backend tests PASSED (100%), frontend flows working correctly. New user onboarding with language selector, 3 league paths (National paid, Create Private, Join Private), league creation with invite codes, and league list all functional. Admin dashboard routing issue identified.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [],
+    "routing_issues": [
+      {
+        "route": "/admin",
+        "issue": "Admin dashboard shows 'Unmatched Route' 404 error - Expo Router catches /admin before backend can serve HTML admin dashboard",
+        "priority": "MEDIUM",
+        "workaround": "Backend admin HTML exists at GET /admin endpoint in server.py but not accessible through Expo app routing",
+        "recommendation": "Either: 1) Exclude /admin from Expo Router app directory, 2) Create separate admin route outside Expo app, or 3) Create admin screen within Expo app that loads backend admin HTML in WebView"
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_onboarding_leagues.py",
+    "/app/backend/tests/test_fantapronostic.py",
+    "/app/backend/tests/test_login_screen.py",
+    "/app/test_reports/pytest/onboarding_leagues_results.xml"
+  ],
+  "action_items": [
+    "Fix /admin routing: Admin dashboard HTML not accessible through frontend URL - Expo Router intercepts the route"
+  ],
+  "critical_code_review_comments": [
+    "✓ All backend league management APIs functional and properly secured",
+    "✓ Onboarding screen correctly shows logo, language selector (IT/EN flags), and 3 path cards",
+    "✓ Language selector is functional - switches between Italian and English with flag icons",
+    "✓ Create private league flow works: modal → name input → success screen with invite code",
+    "✓ Invite codes displayed prominently in large, bold text (e.g., KX7ZR64H)",
+    "✓ League list shows all user leagues with member_count, active badge, and share buttons",
+    "✓ All testID attributes correctly implemented on interactive elements",
+    "✓ Dark theme consistently applied (#0F172A background, #F5A623 accent)",
+    "✓ Mobile-first design working correctly (390x844 viewport tested)",
+    "✓ POST /api/leagues returns invite_code in response",
+    "✓ POST /api/leagues/join with code AMICI2024 works correctly",
+    "✓ GET /api/leagues returns leagues with member_count field",
+    "✓ GET /api/leagues/national returns national leagues (1 league found)",
+    "✓ GET /api/leagues/seasons returns active seasons",
+    "✓ Admin GET /api/admin/matchdays returns matchdays with admin token",
+    "✓ Admin GET /api/admin/matches returns 11 seeded matches for demo matchday",
+    "⚠ Admin dashboard HTML at /admin route caught by Expo Router - shows 404 'Unmatched Route'"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_onboarding_leagues.py"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 tests passed)",
+    "frontend": "~95% (onboarding, league creation, league list all working, admin dashboard routing issue)"
+  },
+  "seed_data_creation": "Used existing seeded data: marco@test.com, admin@fantapronostic.com, AMICI2024 private league code, 11 matches in matchday. Created test users dynamically for testing.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Onboarding and league management fully functional. Backend APIs all working (11/11 tests pass). Frontend flows tested: register → onboarding screen with logo, language selector (IT/EN flags functional), 3 path cards (National €20 paid, Create Private free, Join Private). Create league shows success screen with invite code (e.g., KX7ZR64H) prominently displayed. League list shows leagues with member_count, active badge, invite codes with share buttons. Only issue: /admin route shows Expo Router 404 'Unmatched Route' - backend admin HTML exists but Expo Router intercepts the route before backend can serve it.",
+  "test_details": {
+    "backend_tests": {
+      "total": 11,
+      "passed": 11,
+      "failed": 0,
+      "test_file": "/app/backend/tests/test_onboarding_leagues.py",
+      "categories": {
+        "new_user_onboarding": {
+          "count": 2,
+          "status": "ALL PASSED",
+          "tests": [
+            "test_register_new_user_returns_tokens - Returns access_token, refresh_token, user object with email, username, language",
+            "test_new_user_has_empty_leagues - New user GET /api/leagues returns empty array (triggers onboarding)"
+          ]
+        },
+        "league_creation": {
+          "count": 1,
+          "status": "ALL PASSED",
+          "tests": [
+            "test_create_private_league - POST /api/leagues creates private league, returns id, name, invite_code (8 chars), league_type='private', member_count=1"
+          ]
+        },
+        "league_join": {
+          "count": 2,
+          "status": "ALL PASSED",
+          "tests": [
+            "test_join_private_league_with_code - POST /api/leagues/join with AMICI2024 returns league object, verified in user's league list",
+            "test_join_invalid_code_returns_404 - Invalid code INVALID999 returns 404"
+          ]
+        },
+        "league_lists": {
+          "count": 3,
+          "status": "ALL PASSED",
+          "tests": [
+            "test_get_user_leagues_with_member_count - GET /api/leagues returns leagues array with member_count for each league",
+            "test_get_national_leagues - GET /api/leagues/national returns 1 national league with member_count",
+            "test_get_active_seasons - GET /api/leagues/seasons returns 1 active season"
+          ]
+        },
+        "admin_endpoints": {
+          "count": 2,
+          "status": "ALL PASSED",
+          "tests": [
+            "test_admin_get_matchdays - GET /api/admin/matchdays with admin token returns 1 matchday",
+            "test_admin_get_matches_for_seeded_matchday - GET /api/admin/matches returns 11 seeded matches"
+          ]
+        },
+        "integration_flow": {
+          "count": 1,
+          "status": "ALL PASSED",
+          "tests": [
+            "test_complete_league_flow - User1 creates league → gets invite code → User2 joins with code → member_count increases to 2"
+          ]
+        }
+      }
+    },
+    "frontend_tests": {
+      "total": 14,
+      "passed": 13,
+      "failed": 1,
+      "details": [
+        {
+          "test": "Register new user → onboarding redirect",
+          "status": "PASSED",
+          "note": "New user registered (testuser_75457@test.com) successfully redirected to /onboarding"
+        },
+        {
+          "test": "Onboarding screen - Logo",
+          "testID": "N/A",
+          "status": "PASSED",
+          "note": "FantaPronostic logo visible at top of onboarding screen"
+        },
+        {
+          "test": "Onboarding screen - Language selector IT",
+          "testID": "onboarding-lang-it",
+          "status": "PASSED",
+          "note": "Italian language selector with 🇮🇹 flag visible and clickable"
+        },
+        {
+          "test": "Onboarding screen - Language selector EN",
+          "testID": "onboarding-lang-en",
+          "status": "PASSED",
+          "note": "English language selector with 🇬🇧 flag visible and clickable, tested switching between languages"
+        },
+        {
+          "test": "Onboarding screen - National League card",
+          "testID": "onboarding-national-btn",
+          "status": "PASSED",
+          "note": "National League card visible with €20.00 price, globe icon, 'Sfida tutti i giocatori' description"
+        },
+        {
+          "test": "Onboarding screen - Create Private League card",
+          "testID": "onboarding-create-private-btn",
+          "status": "PASSED",
+          "note": "Create Private League card visible with 'GRATIS' badge, add-circle icon"
+        },
+        {
+          "test": "Onboarding screen - Join Private League card",
+          "testID": "onboarding-join-private-btn",
+          "status": "PASSED",
+          "note": "Join Private League card visible with enter icon"
+        },
+        {
+          "test": "Create league modal",
+          "testID": "league-name-input",
+          "status": "PASSED",
+          "note": "Clicking 'Crea Lega Privata' opens modal with name input field and shield icon"
+        },
+        {
+          "test": "Create league submit",
+          "testID": "create-league-submit-btn",
+          "status": "PASSED",
+          "note": "Submit button creates league successfully, filled with 'TestLeague_8375'"
+        },
+        {
+          "test": "League creation success screen",
+          "testID": "share-code-btn",
+          "status": "PASSED",
+          "note": "Success screen displays with green checkmark icon, 'Lega Creata!' title, invite code KX7ZR64H displayed prominently in large bold text"
+        },
+        {
+          "test": "Go home from success screen",
+          "testID": "go-home-btn",
+          "status": "PASSED",
+          "note": "'Torna alla Home' button present and clickable"
+        },
+        {
+          "test": "League list screen",
+          "testID": "league-item-*",
+          "status": "PASSED",
+          "note": "League list shows 1 league (TestLeague_8375) with shield icon, 'PRIVATA' badge, '1 membri' text, 'Attiva' badge in orange"
+        },
+        {
+          "test": "League list invite code display",
+          "testID": "share-code-*",
+          "status": "PASSED",
+          "note": "Invite code KX7ZR64H displayed with 'Codice Invito' label and '📤 Condividi' share button"
+        },
+        {
+          "test": "Admin dashboard at /admin",
+          "testID": "N/A",
+          "status": "FAILED",
+          "note": "Shows Expo Router 404 'Unmatched Route' error - backend admin HTML exists but route intercepted by Expo Router"
+        }
+      ]
+    }
+  },
+  "screenshots": [
+    ".screenshots/onboarding_01_initial_load.png",
+    ".screenshots/onboarding_02_register_filled.png",
+    ".screenshots/onboarding_03_screen_loaded.png",
+    ".screenshots/onboarding_04_create_modal.png",
+    ".screenshots/onboarding_05_league_created_success.png",
+    ".screenshots/onboarding_06_league_list.png",
+    ".screenshots/onboarding_07_admin_dashboard.png",
+    ".screenshots/admin_01_initial.png"
+  ],
+  "additional_notes": [
+    "All onboarding flow components correctly implemented with proper testIDs",
+    "Language selector functional - successfully switches between IT and EN with flag icons (🇮🇹 🇬🇧)",
+    "Create private league flow complete: modal → input → success screen with invite code",
+    "Invite codes displayed in prominent large bold text for easy sharing",
+    "League list correctly shows member_count, active badge, and invite codes with share buttons",
+    "Mobile-first design working perfectly (390x844 viewport tested)",
+    "Dark theme consistent throughout (#0F172A background, #F5A623 accent orange)",
+    "All backend league APIs functional and returning correct data structures",
+    "Admin backend HTML dashboard exists at /admin endpoint but not accessible through Expo app due to routing conflict",
+    "Backend returns 11 seeded matches as expected for demo matchday",
+    "Integration flow tested: create league → get code → another user joins → member_count increases",
+    "No console errors related to league operations or onboarding flow"
+  ],
+  "rca_of_issue": {
+    "issue": "Admin dashboard at /admin shows Expo Router 404 'Unmatched Route'",
+    "root_cause": "Expo Router's file-based routing intercepts the /admin route before the backend can serve the HTML admin dashboard. The backend has a valid GET /admin endpoint (server.py lines 1249-1252) that returns HTML, but when accessed through the frontend URL (https://matchday-hub-29.preview.emergentagent.com/admin), Expo Router looks for app/admin.tsx or app/admin/index.tsx and returns 404 'Unmatched Route' instead of proxying to backend.",
+    "reproduction_steps": [
+      "1. Navigate to https://matchday-hub-29.preview.emergentagent.com/admin",
+      "2. Expo Router processes the route and looks for app/admin.tsx",
+      "3. File not found, Expo Router returns 404 'Unmatched Route' error screen",
+      "4. Backend GET /admin endpoint never reached"
+    ],
+    "mitigation_options": [
+      "Option 1: Create app/admin/index.tsx that uses WebView to load backend admin HTML",
+      "Option 2: Move admin dashboard to /api/admin path (but this requires backend route change)",
+      "Option 3: Create admin screen within Expo app (React Native components instead of HTML)",
+      "Option 4: Document that admin dashboard should be accessed via direct backend URL if available"
+    ],
+    "recommended_solution": "Option 1 - Create app/admin/index.tsx with WebView component that loads backend admin HTML. This preserves the existing backend admin dashboard while making it accessible through Expo app routing."
+  }
+}
