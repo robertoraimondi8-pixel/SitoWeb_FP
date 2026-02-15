@@ -719,25 +719,130 @@ async def get_joker_status(matchday_id: str, user=Depends(get_current_user)):
 
 
 # ========================================
-# STANDINGS ROUTES
+# STANDINGS ROUTES (Classifiche)
 # ========================================
+
+@standings_router.get("/total")
+async def get_total_standings(league_id: str = None, user=Depends(get_current_user)):
+    """
+    Classifica Totale della lega.
+    Ordinamento: punti_totali DESC, punti_settimana_corrente DESC, created_at ASC
+    """
+    if not league_id:
+        membership = await memberships_col.find_one({"user_id": user["id"], "status": "active"})
+        if membership:
+            league_id = membership["league_id"]
+
+    if not league_id:
+        return {"league_id": "", "league_name": "", "standings_type": "total", "entries": [], "my_position": None}
+
+    league_doc = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league_doc:
+        raise HTTPException(404, "League not found")
+    
+    members = await memberships_col.find({"league_id": league_id, "status": "active"}).to_list(1000)
+    member_user_ids = [m["user_id"] for m in members]
+
+    # Get active season for current week points
+    season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
+    current_matchday = None
+    if season:
+        current_matchday = await matchdays_col.find_one(
+            {"season_id": season["id"], "status": {"$in": ["OPEN", "LOCKED", "LIVE"]}},
+            {"_id": 0},
+            sort=[("number", -1)]
+        )
+
+    # Aggregate total points and matchdays per user
+    pipeline = [
+        {"$match": {"user_id": {"$in": member_user_ids}}},
+        {"$group": {
+            "_id": "$user_id", 
+            "total_points": {"$sum": "$total_points"}, 
+            "matchdays_played": {"$sum": 1},
+            "created_at": {"$min": "$created_at"}
+        }},
+    ]
+    totals = await score_summaries_col.aggregate(pipeline).to_list(1000)
+    totals_dict = {t["_id"]: t for t in totals}
+
+    # Get current week points for secondary sort
+    current_week_points = {}
+    if current_matchday:
+        current_scores = await score_summaries_col.find(
+            {"matchday_id": current_matchday["id"], "user_id": {"$in": member_user_ids}},
+            {"_id": 0}
+        ).to_list(1000)
+        current_week_points = {s["user_id"]: s["total_points"] for s in current_scores}
+
+    # Get jolly usage count per user for this season
+    jolly_counts = {}
+    if season:
+        jolly_pipeline = [
+            {"$match": {"user_id": {"$in": member_user_ids}, "season_id": season["id"]}},
+            {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+        ]
+        jolly_data = await joker_usages_col.aggregate(jolly_pipeline).to_list(1000)
+        jolly_counts = {j["_id"]: j["count"] for j in jolly_data}
+
+    # Build entries for all members (including those with 0 points)
+    entries = []
+    for uid in member_user_ids:
+        u = await users_col.find_one({"id": uid}, {"_id": 0, "password": 0})
+        t = totals_dict.get(uid, {"total_points": 0, "matchdays_played": 0, "created_at": ""})
+        entries.append({
+            "user_id": uid,
+            "username": u["username"] if u else "Unknown",
+            "total_points": t["total_points"],
+            "current_week_points": current_week_points.get(uid, 0),
+            "matchdays_played": t["matchdays_played"],
+            "jolly_used": jolly_counts.get(uid, 0),
+            "created_at": t.get("created_at", ""),
+            "is_current_user": uid == user["id"],
+        })
+
+    # Sort: total DESC, current_week DESC, created_at ASC
+    entries.sort(key=lambda x: (-x["total_points"], -x["current_week_points"], x["created_at"]))
+    
+    # Assign ranks
+    for i, e in enumerate(entries):
+        e["rank"] = i + 1
+
+    my_pos = next((e for e in entries if e["is_current_user"]), None)
+
+    return {
+        "league_id": league_id,
+        "league_name": league_doc["name"],
+        "standings_type": "total",
+        "entries": entries[:50],
+        "my_position": my_pos,
+        "current_matchday": current_matchday["number"] if current_matchday else None,
+    }
+
+
 @standings_router.get("/weekly/{matchday_id}")
-async def get_weekly_standings(matchday_id: str, league: str = None, user=Depends(get_current_user)):
+async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Depends(get_current_user)):
+    """
+    Classifica Settimanale per una giornata specifica.
+    Ordinamento: punti_giornata DESC, risultati_esatti DESC, 1x2_corretti DESC
+    """
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
     if not matchday:
         raise HTTPException(404, "Matchday not found")
 
-    # Get league members
-    if not league:
+    if not league_id:
         membership = await memberships_col.find_one({"user_id": user["id"], "status": "active"})
         if membership:
-            league = membership["league_id"]
+            league_id = membership["league_id"]
 
-    if not league:
-        return StandingsResponse(league_id="", league_name="", standings_type="weekly", entries=[], my_position=None)
+    if not league_id:
+        return {"league_id": "", "league_name": "", "standings_type": "weekly", "entries": [], "my_position": None}
 
-    league_doc = await leagues_col.find_one({"id": league}, {"_id": 0})
-    members = await memberships_col.find({"league_id": league, "status": "active"}).to_list(1000)
+    league_doc = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league_doc:
+        raise HTTPException(404, "League not found")
+    
+    members = await memberships_col.find({"league_id": league_id, "status": "active"}).to_list(1000)
     member_user_ids = [m["user_id"] for m in members]
 
     # Get scores for this matchday
@@ -745,106 +850,219 @@ async def get_weekly_standings(matchday_id: str, league: str = None, user=Depend
         {"matchday_id": matchday_id, "user_id": {"$in": member_user_ids}},
         {"_id": 0}
     ).to_list(1000)
+    scores_dict = {s["user_id"]: s for s in scores}
 
+    # Get predictions to count exact scores and 1X2 correct
+    all_preds = await predictions_col.find(
+        {"matchday_id": matchday_id, "user_id": {"$in": member_user_ids}},
+        {"_id": 0}
+    ).to_list(10000)
+
+    # Group predictions by user and count types
+    user_pred_stats = {}
+    for p in all_preds:
+        uid = p["user_id"]
+        if uid not in user_pred_stats:
+            user_pred_stats[uid] = {"exact_correct": 0, "1x2_correct": 0}
+        
+        if p.get("is_correct"):
+            market = p.get("market_type", "1X2")
+            if market == "EXACT_SCORE":
+                user_pred_stats[uid]["exact_correct"] += 1
+            elif market == "1X2":
+                user_pred_stats[uid]["1x2_correct"] += 1
+
+    # Build entries
     entries = []
-    for s in scores:
-        u = await users_col.find_one({"id": s["user_id"]}, {"_id": 0, "password": 0})
-        entries.append(StandingEntry(
-            rank=0,
-            user_id=s["user_id"],
-            username=u["username"] if u else "Unknown",
-            total_points=s["total_points"],
-            matchdays_played=1,
-            is_current_user=s["user_id"] == user["id"],
-        ))
+    for uid in member_user_ids:
+        u = await users_col.find_one({"id": uid}, {"_id": 0, "password": 0})
+        s = scores_dict.get(uid, {"total_points": 0, "joker_active": False})
+        stats = user_pred_stats.get(uid, {"exact_correct": 0, "1x2_correct": 0})
+        
+        entries.append({
+            "user_id": uid,
+            "username": u["username"] if u else "Unknown",
+            "matchday_points": s.get("total_points", 0),
+            "base_points": s.get("base_points", 0),
+            "joker_bonus": s.get("joker_bonus", 0),
+            "exact_correct": stats["exact_correct"],
+            "1x2_correct": stats["1x2_correct"],
+            "jolly_active": s.get("joker_active", False),
+            "is_current_user": uid == user["id"],
+        })
 
-    entries.sort(key=lambda x: x.total_points, reverse=True)
+    # Sort: points DESC, exact DESC, 1x2 DESC
+    entries.sort(key=lambda x: (-x["matchday_points"], -x["exact_correct"], -x["1x2_correct"]))
+    
     for i, e in enumerate(entries):
-        e.rank = i + 1
+        e["rank"] = i + 1
 
-    my_pos = next((e for e in entries if e.is_current_user), None)
+    my_pos = next((e for e in entries if e["is_current_user"]), None)
 
-    return StandingsResponse(
-        league_id=league,
-        league_name=league_doc["name"] if league_doc else "",
-        standings_type="weekly",
-        entries=entries[:50],
-        my_position=my_pos,
-    )
-
-
-@standings_router.get("/total")
-async def get_total_standings(league: str = None, user=Depends(get_current_user)):
-    if not league:
-        membership = await memberships_col.find_one({"user_id": user["id"], "status": "active"})
-        if membership:
-            league = membership["league_id"]
-
-    if not league:
-        return StandingsResponse(league_id="", league_name="", standings_type="total", entries=[], my_position=None)
-
-    league_doc = await leagues_col.find_one({"id": league}, {"_id": 0})
-    members = await memberships_col.find({"league_id": league, "status": "active"}).to_list(1000)
-    member_user_ids = [m["user_id"] for m in members]
-
-    # Aggregate total points per user
-    pipeline = [
-        {"$match": {"user_id": {"$in": member_user_ids}}},
-        {"$group": {"_id": "$user_id", "total": {"$sum": "$total_points"}, "matchdays": {"$sum": 1}}},
-        {"$sort": {"total": -1}},
-    ]
-    totals = await score_summaries_col.aggregate(pipeline).to_list(1000)
-
-    entries = []
-    for i, t in enumerate(totals):
-        u = await users_col.find_one({"id": t["_id"]}, {"_id": 0, "password": 0})
-        entries.append(StandingEntry(
-            rank=i + 1,
-            user_id=t["_id"],
-            username=u["username"] if u else "Unknown",
-            total_points=t["total"],
-            matchdays_played=t["matchdays"],
-            is_current_user=t["_id"] == user["id"],
-        ))
-
-    my_pos = next((e for e in entries if e.is_current_user), None)
-
-    return StandingsResponse(
-        league_id=league,
-        league_name=league_doc["name"] if league_doc else "",
-        standings_type="total",
-        entries=entries[:50],
-        my_position=my_pos,
-    )
+    return {
+        "league_id": league_id,
+        "league_name": league_doc["name"],
+        "standings_type": "weekly",
+        "matchday_id": matchday_id,
+        "matchday_number": matchday["number"],
+        "matchday_label": matchday.get("label", f"Giornata {matchday['number']}"),
+        "entries": entries[:50],
+        "my_position": my_pos,
+    }
 
 
-# View user predictions (only if COMPLETED and same league)
-@standings_router.get("/leagues/{league_id}/matchdays/{matchday_id}/users/{user_id}/predictions")
-async def view_user_predictions(league_id: str, matchday_id: str, user_id: str, user=Depends(get_current_user)):
+@standings_router.get("/matchdays")
+async def get_available_matchdays(user=Depends(get_current_user)):
+    """Lista giornate disponibili per la classifica settimanale."""
+    season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
+    if not season:
+        return []
+    
+    matchdays = await matchdays_col.find(
+        {"season_id": season["id"]},
+        {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}
+    ).sort("number", -1).to_list(50)
+    
+    return matchdays
+
+
+# ========================================
+# TRASPARENZA PRONOSTICI
+# ========================================
+
+@prediction_router.get("/user/{target_user_id}/{matchday_id}")
+async def get_user_predictions_transparency(target_user_id: str, matchday_id: str, league_id: str = None, user=Depends(get_current_user)):
+    """
+    Visualizza i pronostici di un altro utente per una giornata.
+    Accessibile solo se matchday.status = LOCKED, LIVE, o COMPLETED.
+    Entrambi gli utenti devono essere nella stessa lega.
+    """
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
-    if not matchday or matchday["status"] != "COMPLETED":
-        raise HTTPException(403, "Predictions visible only for completed matchdays")
+    if not matchday:
+        raise HTTPException(404, "Matchday not found")
+    
+    # Solo LOCKED, LIVE o COMPLETED
+    if matchday["status"] not in ("LOCKED", "LIVE", "COMPLETED"):
+        raise HTTPException(403, "Pronostici visibili solo dopo il lock della giornata")
 
-    # Check both users are in same league
-    my_mem = await memberships_col.find_one({"user_id": user["id"], "league_id": league_id, "status": "active"})
-    target_mem = await memberships_col.find_one({"user_id": user_id, "league_id": league_id, "status": "active"})
-    if not my_mem or not target_mem:
-        raise HTTPException(403, "Both users must be in the same league")
+    # Trova la lega in comune
+    if not league_id:
+        # Cerca una lega in cui entrambi sono membri
+        my_memberships = await memberships_col.find({"user_id": user["id"], "status": "active"}).to_list(100)
+        my_leagues = [m["league_id"] for m in my_memberships]
+        
+        target_membership = await memberships_col.find_one({
+            "user_id": target_user_id, 
+            "status": "active",
+            "league_id": {"$in": my_leagues}
+        })
+        if not target_membership:
+            raise HTTPException(403, "Utente non nella stessa lega")
+        league_id = target_membership["league_id"]
+    else:
+        # Verifica che entrambi siano nella lega specificata
+        my_mem = await memberships_col.find_one({"user_id": user["id"], "league_id": league_id, "status": "active"})
+        target_mem = await memberships_col.find_one({"user_id": target_user_id, "league_id": league_id, "status": "active"})
+        if not my_mem or not target_mem:
+            raise HTTPException(403, "Entrambi gli utenti devono essere nella stessa lega")
 
-    preds = await predictions_col.find({"user_id": user_id, "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    # Get target user info
+    target_user = await users_col.find_one({"id": target_user_id}, {"_id": 0, "password": 0})
+    if not target_user:
+        raise HTTPException(404, "User not found")
+
+    # Get all matches for this matchday
     matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
     matches_dict = {m["id"]: m for m in matches}
 
-    result = []
-    for p in preds:
-        m = matches_dict.get(p["match_id"], {})
-        result.append({
-            "match": m,
-            "prediction_value": p["prediction_value"],
-            "points": p.get("points"),
-            "is_correct": p.get("is_correct"),
+    # Get user predictions
+    preds = await predictions_col.find({"user_id": target_user_id, "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    preds_dict = {p["match_id"]: p for p in preds}
+
+    # Get joker status
+    joker = await joker_usages_col.find_one({"user_id": target_user_id, "matchday_id": matchday_id}, {"_id": 0})
+    jolly_active = joker is not None and joker.get("is_active", False)
+
+    # Get score summary
+    score_summary = await score_summaries_col.find_one(
+        {"user_id": target_user_id, "matchday_id": matchday_id}, 
+        {"_id": 0}
+    )
+
+    # Build response with all 11 matches
+    predictions_list = []
+    total_base_points = 0.0
+    
+    for m in sorted(matches, key=lambda x: x.get("start_time", "")):
+        pred = preds_dict.get(m["id"])
+        
+        # Determine outcome
+        outcome = "pending"  # pending / correct / wrong
+        points = 0.0
+        
+        if pred:
+            if pred.get("is_correct") is True:
+                outcome = "correct"
+                points = pred.get("points", 0)
+            elif pred.get("is_correct") is False:
+                outcome = "wrong"
+                points = 0
+            elif m["status"] == "finished":
+                # Calculate on the fly if not stored
+                from scoring import calculate_match_points
+                pts, is_correct = calculate_match_points(
+                    pred["prediction_value"],
+                    pred.get("market_type", "1X2"),
+                    m.get("home_score"),
+                    m.get("away_score"),
+                    m["status"]
+                )
+                outcome = "correct" if is_correct else "wrong" if is_correct is False else "pending"
+                points = pts
+        
+        if m["status"] not in ("void", "postponed", "cancelled"):
+            total_base_points += points
+        
+        predictions_list.append({
+            "match_id": m["id"],
+            "home_team": m["home_team"],
+            "away_team": m["away_team"],
+            "competition": m.get("competition", ""),
+            "start_time": m["start_time"],
+            "home_score": m.get("home_score"),
+            "away_score": m.get("away_score"),
+            "match_status": m["status"],
+            "market_type": pred.get("market_type") if pred else None,
+            "prediction_value": pred.get("prediction_value") if pred else None,
+            "outcome": outcome if pred else "no_prediction",
+            "points": points,
         })
-    return result
+
+    # Calculate totals
+    total_points = total_base_points * 2 if jolly_active else total_base_points
+    joker_bonus = total_base_points if jolly_active else 0
+
+    return {
+        "user_id": target_user_id,
+        "username": target_user["username"],
+        "matchday_id": matchday_id,
+        "matchday_number": matchday["number"],
+        "matchday_label": matchday.get("label", f"Giornata {matchday['number']}"),
+        "matchday_status": matchday["status"],
+        "predictions": predictions_list,
+        "jolly_active": jolly_active,
+        "base_points": total_base_points,
+        "joker_bonus": joker_bonus,
+        "total_points": total_points,
+        "score_summary": score_summary,
+    }
+
+
+# Legacy endpoint - redirect to new one
+@standings_router.get("/leagues/{league_id}/matchdays/{matchday_id}/users/{user_id}/predictions")
+async def view_user_predictions_legacy(league_id: str, matchday_id: str, user_id: str, user=Depends(get_current_user)):
+    """Legacy endpoint - use /api/predictions/user/{user_id}/{matchday_id} instead."""
+    return await get_user_predictions_transparency(user_id, matchday_id, league_id, user)
 
 
 # ========================================
