@@ -179,7 +179,12 @@ class ExtendedJollyTester:
             print("❌ Test matchdays not available")
             return False
             
-        # Activate joker on first matchday
+        # First, clear any existing joker for this user in this half
+        # Try to delete joker from existing matchday (may not exist, that's ok)
+        await self.api_call("DELETE", f"/predictions/98856f76-a5d9-40e9-97b8-cf3e6667eeb2/joker", 
+                           token=self.user_token, expect_error=True)
+        
+        # Activate joker on first test matchday
         response1 = await self.api_call("POST", f"/predictions/{self.matchday1_id}/joker", 
                                        token=self.user_token)
         if not response1 or not response1.get("is_active"):
