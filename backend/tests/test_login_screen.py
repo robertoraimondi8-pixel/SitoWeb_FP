@@ -111,8 +111,8 @@ class TestAuthEndpointAvailability:
             "password": "test",
             "language": "it"
         })
-        # Should return 200 or 400 (not 404), meaning endpoint exists
-        assert response.status_code in (200, 400)
+        # Should return 200, 400, or 422 (not 404), meaning endpoint exists
+        assert response.status_code in (200, 400, 422)
         print("✓ Register endpoint is accessible")
     
     def test_google_session_endpoint_exists(self):
