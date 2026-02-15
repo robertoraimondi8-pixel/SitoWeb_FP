@@ -680,16 +680,6 @@ async def get_joker_status(matchday_id: str, user=Depends(get_current_user)):
         "half": half,
         "matchday_id": matchday_id,
     }
-    first_kickoff = datetime.fromisoformat(matchday["first_kickoff"].replace("Z", "+00:00"))
-    lock_time = first_kickoff - timedelta(seconds=60)
-
-    if now >= lock_time:
-        raise HTTPException(400, "Cannot remove joker after lock time")
-
-    result = await joker_usages_col.delete_one({"user_id": user["id"], "matchday_id": matchday_id})
-    if result.deleted_count == 0:
-        raise HTTPException(404, "No joker found for this matchday")
-    return {"message": "Joker removed"}
 
 
 # ========================================
