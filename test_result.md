@@ -259,7 +259,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "P0 - Auth Token Auto-Refresh"
     - "P1 - Google OAuth Mobile Fix"
   stuck_tasks: []
   test_all: false
