@@ -6,13 +6,13 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
-import { apiCall } from '../../src/api/client';
+import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { token, user } = useAuth();
+  const { token, user, logout, handleAuthError } = useAuth();
   const { leagues, activeLeague, refreshLeagues } = useLeague();
   const router = useRouter();
   const [data, setData] = useState<any>(null);
@@ -25,13 +25,26 @@ export default function HomeScreen() {
   }, [token]);
 
   const fetchHome = useCallback(async () => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const res = await apiCall('/home', { token });
       setData(res);
       if (res.matchday?.countdown_seconds) setCountdown(res.matchday.countdown_seconds);
-    } catch (e) { console.error(e); }
+    } catch (e: any) {
+      // Handle auth errors gracefully - redirect to login
+      if (isAuthError(e)) {
+        await handleAuthError(e);
+        router.replace('/(auth)/login');
+        return;
+      }
+      console.error('Home fetch error:', e.message);
+    }
     finally { setLoading(false); setRefreshing(false); }
-  }, [token]);
+  }, [token, handleAuthError, router]);
 
   useEffect(() => { fetchHome(); }, [fetchHome]);
 
