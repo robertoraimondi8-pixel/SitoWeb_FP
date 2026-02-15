@@ -82,7 +82,7 @@ export default function LoginScreen() {
     try {
       // Generate redirect URI using expo-auth-session
       const redirectUri = AuthSession.makeRedirectUri({
-        scheme: 'frontend',
+        scheme: 'fantapronostic',
         path: 'auth/callback',
       });
       console.log(`${LOG_PREFIX} Generated redirectUri: ${redirectUri}`);
