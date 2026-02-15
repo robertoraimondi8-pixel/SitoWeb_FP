@@ -198,6 +198,21 @@ backend:
         agent: "main"
         comment: "Implementata regola: 1 sola OPEN per stagione. Quando admin setta OPEN, le altre diventano LOCKED. /api/home carica OPEN o ultima LOCKED. Testato manualmente con successo."
 
+  - task: "P0 Auth Token Auto-Refresh"
+    implemented: true
+    working: true
+    file: "server.py, auth.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented centralized API client with auto-refresh logic in frontend. Backend /api/auth/refresh endpoint verified working. Updated all frontend files to use apiCall() and handle AuthError."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: P0 Auth Token Refresh functionality fully working. All 8 core tests passed: Login endpoint returns access_token and refresh_token, Refresh endpoint accepts refresh_token and returns NEW tokens, Expired tokens correctly rejected with 401, Core app endpoints (home, leagues, profile) accessible with valid tokens, Invalid refresh tokens rejected, Protected endpoints require authentication. Both user (marco@test.com) and admin (admin@fantapronostic.com) credentials working correctly."
+
   - task: "User authentication (email/password + Google)"
     implemented: true
     working: true
