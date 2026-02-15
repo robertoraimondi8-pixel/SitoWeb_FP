@@ -123,7 +123,7 @@ export default function RankingsScreen() {
       <TouchableOpacity
         key={entry.user_id}
         testID={`rank-${index}`}
-        onPress={() => selectedMatchday && viewUserPredictions(entry.user_id)}
+        onPress={() => viewUserProfile(entry.user_id)}
         style={[
           isTop3 ? s.topRow : s.row,
           { 
