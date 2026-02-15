@@ -464,12 +464,23 @@ async def get_predictions(matchday_id: str, user=Depends(get_current_user)):
     preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
 
-    joker = await joker_usages_col.find_one(
-        {"user_id": user["id"], "matchday_id": matchday_id},
-        {"_id": 0}
-    )
+    # Get joker status for this matchday
+    season = await seasons_col.find_one({"id": matchday["season_id"]}, {"_id": 0})
+    half = matchday["half"]
+    joker = await joker_usages_col.find_one({
+        "user_id": user["id"],
+        "season_id": season["id"] if season else "",
+        "half": half,
+    }, {"_id": 0})
+
+    joker_active = joker is not None and joker.get("matchday_id") == matchday_id and joker.get("is_active", False)
+    joker_used_other_matchday = joker is not None and joker.get("matchday_id") != matchday_id
 
     now = server_now()
+    first_kickoff = datetime.fromisoformat(matchday["first_kickoff"].replace("Z", "+00:00"))
+    lock_time = first_kickoff - timedelta(seconds=60)
+    joker_locked = now >= lock_time
+
     result = []
     for m in matches:
         start = datetime.fromisoformat(m["start_time"].replace("Z", "+00:00"))
@@ -479,13 +490,17 @@ async def get_predictions(matchday_id: str, user=Depends(get_current_user)):
             "match": m,
             "prediction": pred,
             "is_locked": is_locked,
-            "is_joker": joker["match_id"] == m["id"] if joker else False,
         })
 
     return {
         "matchday": matchday,
         "predictions": result,
-        "joker": joker,
+        "joker": {
+            "is_active": joker_active,
+            "is_locked": joker_locked,
+            "used_other_matchday": joker_used_other_matchday,
+            "half": half,
+        },
     }
 
 
