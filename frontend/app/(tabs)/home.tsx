@@ -67,7 +67,7 @@ export default function HomeScreen() {
           <Text style={[s.greeting, { color: colors.textSecondary }]}>Ciao, {user?.username}</Text>
           <Text style={[s.headerTitle, { color: colors.accent }]}>FantaPronostic</Text>
         </View>
-        <TouchableOpacity testID="leagues-btn" onPress={() => router.push('/league/join')} style={[s.iconBtn, { backgroundColor: colors.card }]}>
+        <TouchableOpacity testID="leagues-btn" onPress={() => router.push('/league/list')} style={[s.iconBtn, { backgroundColor: colors.card }]}>
           <Ionicons name="people" size={22} color={colors.accent} />
         </TouchableOpacity>
       </View>
