@@ -167,6 +167,9 @@ backend:
       - working: true
         agent: "main"
         comment: "GET /predictions/user/{user_id}/{matchday_id} - visualizza pronostici altri utenti. Accessibile solo per LOCKED/LIVE/COMPLETED. Controllo lega in comune."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Transparency endpoint working correctly. GET /predictions/user/{user_id}/{matchday_id} returns proper structure with predictions array, jolly_active, total_points. Each prediction contains outcome (correct/wrong/pending), points. Access control working: returns 403 for OPEN matchdays and invalid users. League membership verification working correctly."
 
   - task: "Live endpoint con polling"
     implemented: true
