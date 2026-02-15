@@ -103,11 +103,12 @@ class ExtendedJollyTester:
             
         # Handle the response properly - it should be a list
         seasons_list = response
-        if "_status_code" in seasons_list:
+        if isinstance(seasons_list, dict) and "_status_code" in seasons_list:
             seasons_list.pop("_status_code")
             
         if not isinstance(seasons_list, list):
             print(f"❌ Invalid seasons response type: {type(seasons_list)}")
+            print(f"   Response: {seasons_list}")
             return False
             
         active_seasons = [s for s in seasons_list if s.get("is_active")]
