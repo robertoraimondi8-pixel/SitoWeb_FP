@@ -1179,8 +1179,14 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
         pred = preds_dict.get(m["id"])
         
         # Determine outcome based on match and matchday status
-        outcome = "pending"  # pending / correct / wrong
+        outcome = "pending"  # pending / correct / wrong / no_prediction / void
         points = 0.0
+        
+        # Determine final match status for UI FIRST
+        final_match_status = m["status"]
+        if matchday["status"] == "COMPLETED" and final_match_status in ("scheduled", "live"):
+            # If matchday is completed but match still shows scheduled/live, it should be finished
+            final_match_status = "finished"
         
         if pred:
             # If prediction has is_correct stored, use it (from admin confirm)
@@ -1190,14 +1196,14 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
             elif pred.get("is_correct") is False:
                 outcome = "wrong"
                 points = 0
-            elif m["status"] in ("finished", "void", "postponed", "cancelled"):
+            elif final_match_status in ("finished", "void", "postponed", "cancelled"):
                 # Match is finished, calculate outcome on the fly
                 pts, is_correct = calculate_match_points(
                     pred["prediction_value"],
                     pred.get("market_type", "1X2"),
                     m.get("home_score"),
                     m.get("away_score"),
-                    m["status"]
+                    final_match_status
                 )
                 if is_correct is True:
                     outcome = "correct"
@@ -1206,24 +1212,34 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
                     outcome = "wrong"
                     points = 0
                 else:
-                    outcome = "pending"
-            # If matchday is COMPLETED, force outcome based on match status
-            if matchday["status"] == "COMPLETED":
-                if m["status"] in ("finished",) and outcome == "pending":
-                    # Match finished but outcome still pending means wrong
+                    # calculate_match_points returned None for is_correct
+                    # For COMPLETED matchdays, treat as wrong
+                    if matchday["status"] == "COMPLETED":
+                        outcome = "wrong"
+                    else:
+                        outcome = "pending"
+            else:
+                # Match not finished yet
+                if matchday["status"] == "COMPLETED":
+                    # Matchday completed but no stored result - treat as wrong
                     outcome = "wrong"
-                elif m["status"] in ("void", "postponed", "cancelled"):
-                    outcome = "void"
+                else:
+                    outcome = "pending"
+            
+            # Handle void/postponed/cancelled matches
+            if final_match_status in ("void", "postponed", "cancelled"):
+                outcome = "void"
+                points = 0
+        else:
+            # No prediction made
+            if matchday["status"] == "COMPLETED" or final_match_status in ("finished", "void", "postponed", "cancelled"):
+                outcome = "no_prediction"
+            else:
+                outcome = "no_prediction"
         
         # Only count valid matches towards base points
-        if m["status"] not in ("void", "postponed", "cancelled") and outcome == "correct":
+        if final_match_status not in ("void", "postponed", "cancelled") and outcome == "correct":
             total_base_points += points
-        
-        # Determine final match status for UI
-        final_match_status = m["status"]
-        if matchday["status"] == "COMPLETED" and final_match_status == "scheduled":
-            # If matchday is completed but match still shows scheduled, it should be finished
-            final_match_status = "finished"
         
         predictions_list.append({
             "match_id": m["id"],
