@@ -926,6 +926,121 @@ async def get_available_matchdays(user=Depends(get_current_user)):
     return matchdays
 
 
+@standings_router.get("/user/{target_user_id}")
+async def get_user_standings_profile(target_user_id: str, league_id: str = None, user=Depends(get_current_user)):
+    """
+    Profilo utente con statistiche totali nella lega.
+    Ritorna gli stessi dati visibili nella classifica totale.
+    """
+    if not league_id:
+        # Cerca una lega in comune
+        my_memberships = await memberships_col.find({"user_id": user["id"], "status": "active"}).to_list(100)
+        my_leagues = [m["league_id"] for m in my_memberships]
+        
+        target_membership = await memberships_col.find_one({
+            "user_id": target_user_id, 
+            "status": "active",
+            "league_id": {"$in": my_leagues}
+        })
+        if not target_membership:
+            raise HTTPException(403, "Utente non nella stessa lega")
+        league_id = target_membership["league_id"]
+    else:
+        # Verifica che entrambi siano nella lega specificata
+        my_mem = await memberships_col.find_one({"user_id": user["id"], "league_id": league_id, "status": "active"})
+        target_mem = await memberships_col.find_one({"user_id": target_user_id, "league_id": league_id, "status": "active"})
+        if not my_mem or not target_mem:
+            raise HTTPException(403, "Entrambi gli utenti devono essere nella stessa lega")
+
+    # Get target user info
+    target_user = await users_col.find_one({"id": target_user_id}, {"_id": 0, "password": 0})
+    if not target_user:
+        raise HTTPException(404, "User not found")
+
+    # Get league info
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+
+    # Get active season
+    season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
+
+    # Aggregate total points for this user
+    pipeline = [
+        {"$match": {"user_id": target_user_id}},
+        {"$group": {
+            "_id": "$user_id", 
+            "total_points": {"$sum": "$total_points"}, 
+            "matchdays_played": {"$sum": 1},
+            "total_base_points": {"$sum": "$base_points"},
+            "total_joker_bonus": {"$sum": "$joker_bonus"},
+        }},
+    ]
+    totals = await score_summaries_col.aggregate(pipeline).to_list(1)
+    user_totals = totals[0] if totals else {"total_points": 0, "matchdays_played": 0, "total_base_points": 0, "total_joker_bonus": 0}
+
+    # Get current week points
+    current_matchday = None
+    current_week_points = 0
+    if season:
+        current_matchday = await matchdays_col.find_one(
+            {"season_id": season["id"], "status": {"$in": ["OPEN", "LOCKED", "LIVE", "COMPLETED"]}},
+            {"_id": 0},
+            sort=[("number", -1)]
+        )
+        if current_matchday:
+            current_score = await score_summaries_col.find_one(
+                {"user_id": target_user_id, "matchday_id": current_matchday["id"]},
+                {"_id": 0}
+            )
+            if current_score:
+                current_week_points = current_score.get("total_points", 0)
+
+    # Get jolly usage count
+    jolly_used = 0
+    if season:
+        jolly_used = await joker_usages_col.count_documents({
+            "user_id": target_user_id, 
+            "season_id": season["id"]
+        })
+
+    # Calculate rank in league
+    members = await memberships_col.find({"league_id": league_id, "status": "active"}).to_list(1000)
+    member_user_ids = [m["user_id"] for m in members]
+
+    # Get all totals for ranking
+    all_totals_pipeline = [
+        {"$match": {"user_id": {"$in": member_user_ids}}},
+        {"$group": {
+            "_id": "$user_id", 
+            "total_points": {"$sum": "$total_points"}, 
+        }},
+        {"$sort": {"total_points": -1}},
+    ]
+    all_totals = await score_summaries_col.aggregate(all_totals_pipeline).to_list(1000)
+    
+    rank = 1
+    for i, t in enumerate(all_totals):
+        if t["_id"] == target_user_id:
+            rank = i + 1
+            break
+
+    return {
+        "user_id": target_user_id,
+        "username": target_user["username"],
+        "email": target_user.get("email", ""),
+        "league_id": league_id,
+        "league_name": league["name"] if league else "",
+        "rank": rank,
+        "total_points": user_totals["total_points"],
+        "matchdays_played": user_totals["matchdays_played"],
+        "total_base_points": user_totals["total_base_points"],
+        "total_joker_bonus": user_totals["total_joker_bonus"],
+        "current_week_points": current_week_points,
+        "current_matchday": current_matchday["number"] if current_matchday else None,
+        "jolly_used": jolly_used,
+        "is_current_user": target_user_id == user["id"],
+    }
+
+
 # ========================================
 # TRASPARENZA PRONOSTICI
 # ========================================
