@@ -259,12 +259,34 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Jolly toggle per MATCHDAY"
+    - "P0 - Auth Token Auto-Refresh"
+    - "P1 - Google OAuth Mobile Fix"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "main"
+    message: |
+      P0 AUTH SESSION HARDENING - IN PROGRESS:
+      
+      COMPLETED:
+      1. ✅ Created centralized API client with auto-refresh logic (/app/frontend/src/api/client.ts)
+      2. ✅ apiCall() now intercepts 401 errors and automatically calls POST /api/auth/refresh
+      3. ✅ If refresh succeeds, retries original request with new token
+      4. ✅ If refresh fails, throws AuthError for logout handling
+      5. ✅ Updated ALL frontend files to use apiCall() and handle AuthError:
+         - home.tsx, predictions.tsx, rankings.tsx, profile.tsx
+         - live/[matchdayId].tsx, user-predictions.tsx, onboarding.tsx
+         - league/create.tsx, join.tsx, join-private.tsx
+         - AuthContext.tsx, LeagueContext.tsx
+      6. ✅ Backend /api/auth/refresh endpoint VERIFIED WORKING
+      
+      NEXT STEPS:
+      - Test full E2E flow on mobile (Expo Go)
+      - P1: Debug Google OAuth spinner issue on iOS
+      
+      Credentials: marco@test.com / password123
   - agent: "main"
     message: |
       COMPLETED JOLLY REFACTOR (P0):
