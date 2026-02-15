@@ -310,3 +310,25 @@ agent_communication:
       - Scoring applies x2 multiplier when joker active ✅
       
       BACKEND JOLLY FEATURE IS FULLY FUNCTIONAL AND READY FOR PRODUCTION.
+  - agent: "testing"
+    message: |
+      ✅ NEW ENDPOINTS TESTING COMPLETED - ALL TESTS PASSED (8/8)
+      
+      TESTED ENDPOINTS:
+      1. ✅ Login Authentication - marco@test.com credentials working
+      2. ✅ GET /api/standings/total - Returns proper structure:
+         - league_id, league_name, standings_type, entries array
+         - Each entry: user_id, username, rank, total_points, matchdays_played, jolly_used, current_week_points
+      3. ✅ GET /api/standings/matchdays - Returns list of available matchdays
+      4. ✅ GET /api/standings/weekly/{matchday_id} - Returns weekly standings:
+         - matchday_id, matchday_number, entries with matchday_points, exact_correct, 1x2_correct, jolly_active
+      5. ✅ GET /api/live/{matchday_id} - Returns live data:
+         - matchday_status, matches array, base_points, joker_bonus, total_live_points, server_time
+         - Each match: status, home_score, away_score, my_prediction, outcome, points
+      6. ✅ GET /api/predictions/user/{user_id}/{matchday_id} - Transparency endpoint:
+         - Returns predictions array, jolly_active, total_points
+         - Each prediction: outcome (correct/wrong/pending), points
+      7. ✅ Access Control for OPEN matchdays - Correctly returns 403
+      8. ✅ Access Control for invalid users - Correctly returns 403
+      
+      ALL NEW STANDINGS, TRANSPARENCY, AND LIVE ENDPOINTS ARE FULLY FUNCTIONAL.
