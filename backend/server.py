@@ -993,23 +993,26 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
     predictions_list = []
     total_base_points = 0.0
     
+    # For COMPLETED matchdays, use stored scores if available
+    use_stored_scores = matchday["status"] == "COMPLETED" and score_summary is not None
+    
     for m in sorted(matches, key=lambda x: x.get("start_time", "")):
         pred = preds_dict.get(m["id"])
         
-        # Determine outcome
+        # Determine outcome based on match and matchday status
         outcome = "pending"  # pending / correct / wrong
         points = 0.0
         
         if pred:
+            # If prediction has is_correct stored, use it (from admin confirm)
             if pred.get("is_correct") is True:
                 outcome = "correct"
                 points = pred.get("points", 0)
             elif pred.get("is_correct") is False:
                 outcome = "wrong"
                 points = 0
-            elif m["status"] == "finished":
-                # Calculate on the fly if not stored
-                from scoring import calculate_match_points
+            elif m["status"] in ("finished", "void", "postponed", "cancelled"):
+                # Match is finished, calculate outcome on the fly
                 pts, is_correct = calculate_match_points(
                     pred["prediction_value"],
                     pred.get("market_type", "1X2"),
@@ -1017,11 +1020,31 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
                     m.get("away_score"),
                     m["status"]
                 )
-                outcome = "correct" if is_correct else "wrong" if is_correct is False else "pending"
-                points = pts
+                if is_correct is True:
+                    outcome = "correct"
+                    points = pts
+                elif is_correct is False:
+                    outcome = "wrong"
+                    points = 0
+                else:
+                    outcome = "pending"
+            # If matchday is COMPLETED, force outcome based on match status
+            if matchday["status"] == "COMPLETED":
+                if m["status"] in ("finished",) and outcome == "pending":
+                    # Match finished but outcome still pending means wrong
+                    outcome = "wrong"
+                elif m["status"] in ("void", "postponed", "cancelled"):
+                    outcome = "void"
         
-        if m["status"] not in ("void", "postponed", "cancelled"):
+        # Only count valid matches towards base points
+        if m["status"] not in ("void", "postponed", "cancelled") and outcome == "correct":
             total_base_points += points
+        
+        # Determine final match status for UI
+        final_match_status = m["status"]
+        if matchday["status"] == "COMPLETED" and final_match_status == "scheduled":
+            # If matchday is completed but match still shows scheduled, it should be finished
+            final_match_status = "finished"
         
         predictions_list.append({
             "match_id": m["id"],
@@ -1031,7 +1054,7 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
             "start_time": m["start_time"],
             "home_score": m.get("home_score"),
             "away_score": m.get("away_score"),
-            "match_status": m["status"],
+            "match_status": final_match_status,
             "market_type": pred.get("market_type") if pred else None,
             "prediction_value": pred.get("prediction_value") if pred else None,
             "outcome": outcome if pred else "no_prediction",
