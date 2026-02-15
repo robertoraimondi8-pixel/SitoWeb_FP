@@ -952,10 +952,10 @@ async def get_available_matchdays(user=Depends(get_current_user)):
 
 
 @standings_router.get("/user/{target_user_id}")
-async def get_user_standings_profile(target_user_id: str, league_id: str = None, user=Depends(get_current_user)):
+async def get_user_standings_profile(target_user_id: str, league_id: str = None, season_id: str = None, user=Depends(get_current_user)):
     """
     Profilo utente con statistiche totali nella lega.
-    Ritorna gli stessi dati visibili nella classifica totale.
+    Ritorna gli stessi dati visibili nella classifica totale + breakdown per matchday.
     """
     if not league_id:
         # Cerca una lega in comune
@@ -985,8 +985,11 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
     # Get league info
     league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
 
-    # Get active season
-    season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
+    # Get active season or use provided season_id
+    if season_id:
+        season = await seasons_col.find_one({"id": season_id}, {"_id": 0})
+    else:
+        season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
 
     # Aggregate total points for this user
     pipeline = [
@@ -1005,6 +1008,7 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
     # Get current week points
     current_matchday = None
     current_week_points = 0
+    last_matchday_id = None
     if season:
         current_matchday = await matchdays_col.find_one(
             {"season_id": season["id"], "status": {"$in": ["OPEN", "LOCKED", "LIVE", "COMPLETED"]}},
@@ -1012,6 +1016,7 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
             sort=[("number", -1)]
         )
         if current_matchday:
+            last_matchday_id = current_matchday["id"]
             current_score = await score_summaries_col.find_one(
                 {"user_id": target_user_id, "matchday_id": current_matchday["id"]},
                 {"_id": 0}
@@ -1048,6 +1053,38 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
             rank = i + 1
             break
 
+    # NEW: Get breakdown per matchday (P2 fix)
+    matchday_breakdown = []
+    if season:
+        # Get all score summaries for this user in this season
+        user_scores = await score_summaries_col.find(
+            {"user_id": target_user_id},
+            {"_id": 0}
+        ).to_list(100)
+        
+        # Get matchdays info
+        matchdays_list = await matchdays_col.find(
+            {"season_id": season["id"]},
+            {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}
+        ).sort("number", 1).to_list(50)
+        matchdays_dict = {m["id"]: m for m in matchdays_list}
+        
+        for score in user_scores:
+            md = matchdays_dict.get(score.get("matchday_id"))
+            if md:
+                matchday_breakdown.append({
+                    "matchday_id": score["matchday_id"],
+                    "matchday_number": md["number"],
+                    "matchday_label": md.get("label", f"Giornata {md['number']}"),
+                    "status": md["status"],
+                    "base_points": score.get("base_points", 0),
+                    "joker_bonus": score.get("joker_bonus", 0),
+                    "total_points": score.get("total_points", 0),
+                })
+        
+        # Sort by matchday number
+        matchday_breakdown.sort(key=lambda x: x["matchday_number"])
+
     return {
         "user_id": target_user_id,
         "username": target_user["username"],
@@ -1061,8 +1098,10 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
         "total_joker_bonus": user_totals["total_joker_bonus"],
         "current_week_points": current_week_points,
         "current_matchday": current_matchday["number"] if current_matchday else None,
+        "last_matchday_id": last_matchday_id,
         "jolly_used": jolly_used,
         "is_current_user": target_user_id == user["id"],
+        "matchday_breakdown": matchday_breakdown,
     }
 
 
