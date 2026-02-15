@@ -210,9 +210,9 @@ const s = StyleSheet.create({
     marginBottom: 36,
   },
   logo: {
-    width: LOGO_SIZE,
+    width: LOGO_SIZE * 1.3,
     height: LOGO_SIZE,
-    borderRadius: LOGO_SIZE / 2,
+    borderRadius: 20,
   },
   /* ─── Form Card ─── */
   formCard: {
