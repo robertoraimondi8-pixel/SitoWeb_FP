@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
+  Image, Dimensions,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
+
+const { width } = Dimensions.get('window');
+const LOGO_SIZE = Math.min(width * 0.35, 160);
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -13,15 +20,17 @@ export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
-    if (!email || !password) return;
+    if (!email.trim() || !password) return;
     setLoading(true);
     setError('');
     try {
-      await login(email, password);
+      await login(email.trim().toLowerCase(), password);
       router.replace('/(tabs)/home');
     } catch (e: any) {
       setError(e.message || 'Login failed');
@@ -30,78 +39,294 @@ export default function LoginScreen() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+    setGoogleLoading(true);
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const redirectUrl = window.location.origin;
+      window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+    }
+  };
+
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[s.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
-        <View style={s.logoWrap}>
-          <View style={[s.logoCircle, { backgroundColor: colors.accent }]}>
-            <Ionicons name="football" size={48} color={colors.background} />
-          </View>
-          <Text style={[s.title, { color: colors.accent }]}>FANTA</Text>
-          <Text style={[s.subtitle, { color: colors.text }]}>Pronostic</Text>
-        </View>
-
-        <View style={[s.card, { backgroundColor: colors.card }]}>
-          <Text style={[s.cardTitle, { color: colors.text }]}>{t('login')}</Text>
-
-          {error ? <Text style={s.error}>{error}</Text> : null}
-
-          <View style={[s.inputWrap, { borderColor: colors.border }]}>
-            <Ionicons name="mail-outline" size={20} color={colors.textSecondary} />
-            <TextInput
-              testID="login-email-input"
-              style={[s.input, { color: colors.text }]}
-              placeholder={t('email')}
-              placeholderTextColor={colors.textSecondary}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
+    <View style={[s.container, { backgroundColor: colors.background }]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={s.keyboardView}
+      >
+        <ScrollView
+          contentContainerStyle={s.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Logo */}
+          <View style={s.logoSection}>
+            <Image
+              testID="app-logo"
+              source={require('../../assets/logo.png')}
+              style={s.logo}
+              resizeMode="contain"
             />
           </View>
 
-          <View style={[s.inputWrap, { borderColor: colors.border }]}>
-            <Ionicons name="lock-closed-outline" size={20} color={colors.textSecondary} />
-            <TextInput
-              testID="login-password-input"
-              style={[s.input, { color: colors.text }]}
-              placeholder={t('password')}
-              placeholderTextColor={colors.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
+          {/* Form Card */}
+          <View style={[s.formCard, { backgroundColor: colors.card }]}>
+            {error ? (
+              <View style={[s.errorBanner, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
+                <Ionicons name="alert-circle" size={18} color={colors.error} />
+                <Text style={[s.errorText, { color: colors.error }]}>{error}</Text>
+              </View>
+            ) : null}
+
+            {/* Email Input */}
+            <View style={[s.inputContainer, { borderColor: colors.border }]}>
+              <Ionicons name="mail-outline" size={20} color={colors.textSecondary} style={s.inputIcon} />
+              <TextInput
+                testID="login-email-input"
+                style={[s.input, { color: colors.text }]}
+                placeholder={t('email')}
+                placeholderTextColor={colors.textSecondary}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            {/* Password Input */}
+            <View style={[s.inputContainer, { borderColor: colors.border }]}>
+              <Ionicons name="lock-closed-outline" size={20} color={colors.textSecondary} style={s.inputIcon} />
+              <TextInput
+                testID="login-password-input"
+                style={[s.input, { color: colors.text }]}
+                placeholder={t('password')}
+                placeholderTextColor={colors.textSecondary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                testID="toggle-password-btn"
+                onPress={() => setShowPassword(!showPassword)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Forgot Password */}
+            <TouchableOpacity testID="forgot-password-btn" style={s.forgotRow}>
+              <Text style={[s.forgotText, { color: colors.accent }]}>Password dimenticata?</Text>
+            </TouchableOpacity>
+
+            {/* Login Button */}
+            <TouchableOpacity
+              testID="login-submit-btn"
+              style={[s.loginBtn, { backgroundColor: colors.accent }]}
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.background} />
+              ) : (
+                <Text style={[s.loginBtnText, { color: colors.background }]}>
+                  {t('login').toUpperCase()}
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={s.dividerRow}>
+              <View style={[s.dividerLine, { backgroundColor: colors.border }]} />
+              <Text style={[s.dividerText, { color: colors.textSecondary }]}>oppure</Text>
+              <View style={[s.dividerLine, { backgroundColor: colors.border }]} />
+            </View>
+
+            {/* Google Login */}
+            <TouchableOpacity
+              testID="google-login-btn"
+              style={[s.googleBtn, { borderColor: colors.border }]}
+              onPress={handleGoogleLogin}
+              disabled={googleLoading}
+              activeOpacity={0.85}
+            >
+              {googleLoading ? (
+                <ActivityIndicator color={colors.text} />
+              ) : (
+                <>
+                  <View style={s.googleIconWrap}>
+                    <Text style={s.googleG}>G</Text>
+                  </View>
+                  <Text style={[s.googleBtnText, { color: colors.text }]}>
+                    Continua con Google
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
 
-          <TouchableOpacity testID="login-submit-btn" style={[s.btn, { backgroundColor: colors.accent }]} onPress={handleLogin} disabled={loading}>
-            {loading ? <ActivityIndicator color={colors.background} /> : <Text style={[s.btnText, { color: colors.background }]}>{t('login').toUpperCase()}</Text>}
+          {/* Register Link */}
+          <TouchableOpacity
+            testID="go-to-register-btn"
+            onPress={() => router.push('/(auth)/register')}
+            style={s.registerRow}
+          >
+            <Text style={[s.registerLabel, { color: colors.textSecondary }]}>
+              {t('no_account')}{' '}
+            </Text>
+            <Text style={[s.registerLink, { color: colors.accent }]}>
+              {t('register')}
+            </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity testID="go-to-register-btn" onPress={() => router.push('/(auth)/register')} style={s.linkWrap}>
-            <Text style={[s.link, { color: colors.textSecondary }]}>{t('no_account')} </Text>
-            <Text style={[s.linkAccent, { color: colors.accent }]}>{t('register')}</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  logoWrap: { alignItems: 'center', marginBottom: 40 },
-  logoCircle: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  title: { fontSize: 36, fontWeight: '800', letterSpacing: 2 },
-  subtitle: { fontSize: 28, fontWeight: '300', marginTop: -4 },
-  card: { borderRadius: 16, padding: 24 },
-  cardTitle: { fontSize: 22, fontWeight: '700', marginBottom: 20 },
-  error: { color: '#EF4444', fontSize: 13, marginBottom: 12, textAlign: 'center' },
-  inputWrap: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, marginBottom: 14, height: 52 },
-  input: { flex: 1, marginLeft: 10, fontSize: 16 },
-  btn: { height: 52, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
-  btnText: { fontSize: 16, fontWeight: '700', letterSpacing: 1 },
-  linkWrap: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
-  link: { fontSize: 14 },
-  linkAccent: { fontSize: 14, fontWeight: '600' },
+  container: {
+    flex: 1,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    paddingTop: 60,
+  },
+  /* ─── Logo ─── */
+  logoSection: {
+    alignItems: 'center',
+    marginBottom: 36,
+  },
+  logo: {
+    width: LOGO_SIZE,
+    height: LOGO_SIZE,
+    borderRadius: LOGO_SIZE / 2,
+  },
+  /* ─── Form Card ─── */
+  formCard: {
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 28,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  /* ─── Inputs ─── */
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 14,
+    height: 54,
+    paddingHorizontal: 14,
+    marginBottom: 14,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    height: '100%',
+  },
+  /* ─── Forgot Password ─── */
+  forgotRow: {
+    alignSelf: 'flex-end',
+    marginBottom: 20,
+    paddingVertical: 2,
+  },
+  forgotText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  /* ─── Login Button ─── */
+  loginBtn: {
+    height: 54,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loginBtnText: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+  },
+  /* ─── Divider ─── */
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 22,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    marginHorizontal: 14,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  /* ─── Google Button ─── */
+  googleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 54,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 10,
+  },
+  googleIconWrap: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleG: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#4285F4',
+  },
+  googleBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  /* ─── Register Link ─── */
+  registerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 24,
+  },
+  registerLabel: {
+    fontSize: 14,
+  },
+  registerLink: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });
