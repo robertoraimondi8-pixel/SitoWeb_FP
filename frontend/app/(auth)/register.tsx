@@ -25,7 +25,7 @@ export default function RegisterScreen() {
     try {
       await register(email, username, password, lang);
       i18n.changeLanguage(lang);
-      router.replace('/(tabs)/home');
+      router.replace('/onboarding');
     } catch (e: any) {
       setError(e.message || 'Registration failed');
     } finally {
