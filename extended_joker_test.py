@@ -96,7 +96,8 @@ class ExtendedJollyTester:
     async def get_season_id(self):
         """Get active season ID"""
         response = await self.api_call("GET", "/admin/seasons", token=self.admin_token)
-        if not response:
+        if not response or not isinstance(response, list):
+            print(f"❌ Invalid seasons response: {response}")
             return False
             
         active_seasons = [s for s in response if s.get("is_active")]
