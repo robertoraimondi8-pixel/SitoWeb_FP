@@ -1107,6 +1107,22 @@ async def admin_update_matchday(matchday_id: str, req: AdminMatchdayUpdate, admi
     updates = {k: v for k, v in req.dict().items() if v is not None}
     if not updates:
         raise HTTPException(400, "No updates")
+    
+    # REGOLA: Una sola giornata OPEN per stagione
+    # Quando si setta OPEN, tutte le altre della stessa stagione diventano LOCKED
+    if updates.get("status") == "OPEN":
+        matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+        if matchday:
+            season_id = matchday["season_id"]
+            # Lock tutte le altre giornate OPEN della stessa stagione
+            result = await matchdays_col.update_many(
+                {"season_id": season_id, "id": {"$ne": matchday_id}, "status": "OPEN"},
+                {"$set": {"status": "LOCKED"}}
+            )
+            if result.modified_count > 0:
+                await log_audit(admin["id"], admin["username"], "AUTO_LOCK", "matchday", season_id, 
+                    {"locked_count": result.modified_count, "reason": f"New OPEN matchday {matchday_id}"})
+    
     await matchdays_col.update_one({"id": matchday_id}, {"$set": updates})
     await log_audit(admin["id"], admin["username"], "UPDATE", "matchday", matchday_id, updates)
     return await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
