@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Image, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
+
+const { width } = Dimensions.get('window');
+const LOGO_SIZE = Math.min(width * 0.30, 140);
 
 export default function RegisterScreen() {
   const { t, i18n } = useTranslation();
@@ -36,12 +39,14 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[s.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+        {/* Logo - Same as Login */}
         <View style={s.logoWrap}>
-          <View style={[s.logoCircle, { backgroundColor: colors.accent }]}>
-            <Ionicons name="football" size={48} color={colors.background} />
-          </View>
-          <Text style={[s.title, { color: colors.accent }]}>FANTA</Text>
-          <Text style={[s.subtitle, { color: colors.text }]}>Pronostic</Text>
+          <Image
+            testID="register-logo"
+            source={require('../../assets/logo.png')}
+            style={s.logo}
+            resizeMode="contain"
+          />
         </View>
 
         <View style={[s.card, { backgroundColor: colors.card }]}>
