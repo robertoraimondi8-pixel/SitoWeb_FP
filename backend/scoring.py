@@ -83,19 +83,18 @@ def calculate_match_points(
 
 def calculate_matchday_total(
     match_points: list,
-    joker_match_id: Optional[str],
+    joker_active: bool,
     matches_dict: dict,
 ) -> dict:
     """
     Calculate total points for a matchday.
     match_points: list of (match_id, points, is_correct)
-    joker_match_id: the match_id the joker is applied to (if any)
+    joker_active: True if joker is active for this MATCHDAY (x2 total valid points)
     matches_dict: dict of match_id -> match data
 
     Returns dict with base_points, joker_bonus, total_points, valid_matches, void_matches.
     """
     base_points = 0.0
-    joker_bonus = 0.0
     valid_matches = 0
     void_matches = 0
 
@@ -111,10 +110,8 @@ def calculate_matchday_total(
             valid_matches += 1
             base_points += points
 
-            # Joker: x2 on valid match points only
-            if joker_match_id == match_id and points > 0:
-                joker_bonus += points  # adds another x of the points (so total is x2)
-
+    # Joker: x2 on total base_points from valid matches only
+    joker_bonus = base_points if joker_active else 0.0
     total_points = base_points + joker_bonus
 
     return {
