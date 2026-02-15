@@ -1158,8 +1158,10 @@ async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_admin))
             m = matches_dict.get(p["match_id"])
             if not m:
                 continue
+            # Use prediction's market_type (user's choice)
+            pred_market = p.get("market_type", m.get("market_type", "1X2"))
             pts, is_correct = calculate_match_points(
-                p["prediction_value"], m["market_type"],
+                p["prediction_value"], pred_market,
                 m.get("home_score"), m.get("away_score"), m["status"]
             )
             match_pts.append((m["id"], pts, is_correct))
