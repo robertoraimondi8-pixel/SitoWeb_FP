@@ -5,9 +5,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
-import { useAuth } from '../src/contexts/AuthContext';
-import { useTheme } from '../src/contexts/ThemeContext';
-import { apiCall } from '../src/api/client';
+import { useAuth } from '../../src/contexts/AuthContext';
+import { useTheme } from '../../src/contexts/ThemeContext';
+import { apiCall } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 
 const POLLING_INTERVAL = 60000; // 60 seconds
