@@ -282,17 +282,18 @@ async def get_home(user=Depends(get_current_user)):
             preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday["id"]}, {"_id": 0}).to_list(20)
             preds_dict = {p["match_id"]: p for p in preds}
             joker = await joker_usages_col.find_one({"user_id": user["id"], "matchday_id": matchday["id"]}, {"_id": 0})
+            joker_active = joker is not None and joker.get("is_active", False)
 
-            total_prov = 0.0
+            # Calculate base points for all matches
+            base_pts_sum = 0.0
             live_list = []
             for m in live_matches:
                 pred = preds_dict.get(m["id"])
                 pts = 0.0
                 if pred and m.get("home_score") is not None:
                     pts, _ = calculate_match_points(pred["prediction_value"], pred.get("market_type", m.get("market_type", "1X2")), m.get("home_score"), m.get("away_score"), m["status"])
-                    if joker and joker.get("match_id") == m["id"] and m["status"] not in ("void", "postponed", "cancelled") and pts > 0:
-                        pts *= 2
-                total_prov += pts
+                    if m["status"] not in ("void", "postponed", "cancelled"):
+                        base_pts_sum += pts
                 live_list.append({
                     "match_id": m["id"],
                     "home_team": m["home_team"],
@@ -302,13 +303,16 @@ async def get_home(user=Depends(get_current_user)):
                     "status": m["status"],
                     "my_prediction": pred["prediction_value"] if pred else None,
                     "points": pts,
-                    "is_joker": joker and joker.get("match_id") == m["id"],
                 })
+
+            # Jolly x2 on total matchday points
+            total_prov = base_pts_sum * 2 if joker_active else base_pts_sum
 
             live_data = {
                 "matchday_id": matchday["id"],
                 "matches": live_list,
                 "total_provisional": total_prov,
+                "joker_active": joker_active,
             }
 
     # Rankings preview
