@@ -1246,8 +1246,8 @@ async def api_root():
 # ========================================
 # ADMIN WEB DASHBOARD
 # ========================================
-@app.get("/admin", response_class=HTMLResponse)
-@app.get("/admin/{path:path}", response_class=HTMLResponse)
+@app.get("/api/admin-ui", response_class=HTMLResponse)
+@app.get("/api/admin-ui/{path:path}", response_class=HTMLResponse)
 async def admin_dashboard(path: str = ""):
     return get_admin_html()
 
