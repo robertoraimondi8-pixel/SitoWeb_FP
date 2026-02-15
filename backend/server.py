@@ -496,28 +496,47 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
 
     now = server_now()
     saved = []
+    errors = []
+
+    # Validate: no duplicate match_ids in payload
+    match_ids_in_payload = [p.match_id for p in req.predictions]
+    if len(match_ids_in_payload) != len(set(match_ids_in_payload)):
+        raise HTTPException(400, "Duplicate match_id in payload — only 1 market per match allowed")
 
     for p in req.predictions:
         match = await matches_col.find_one({"id": p.match_id, "matchday_id": matchday_id}, {"_id": 0})
         if not match:
+            errors.append({"match_id": p.match_id, "error": "Match not found"})
             continue
 
         # Lock per match: check match start_time (server time)
         start = datetime.fromisoformat(match["start_time"].replace("Z", "+00:00"))
         if now >= start:
-            continue  # Skip locked matches silently
+            errors.append({"match_id": p.match_id, "error": "Match locked (started)"})
+            continue
 
-        # Validate prediction value based on market type
-        valid = _validate_prediction(p.prediction_value, match["market_type"])
+        # Validate market_type is valid
+        if p.market_type not in ("1X2", "GOAL_NOGOL", "OVER_UNDER_25", "EXACT_SCORE"):
+            errors.append({"match_id": p.match_id, "error": f"Invalid market_type: {p.market_type}"})
+            continue
+
+        # Validate prediction value based on user-chosen market type
+        valid = _validate_prediction(p.prediction_value, p.market_type)
         if not valid:
+            errors.append({"match_id": p.match_id, "error": f"Invalid value '{p.prediction_value}' for market {p.market_type}"})
             continue
 
         existing = await predictions_col.find_one({"user_id": user["id"], "match_id": p.match_id})
         ts = now_utc()
         if existing:
+            # Overwrite: change market + value (only 1 market per match guaranteed)
             await predictions_col.update_one(
                 {"user_id": user["id"], "match_id": p.match_id},
-                {"$set": {"prediction_value": p.prediction_value, "updated_at": ts}}
+                {"$set": {
+                    "market_type": p.market_type,
+                    "prediction_value": p.prediction_value,
+                    "updated_at": ts,
+                }}
             )
         else:
             await predictions_col.insert_one({
@@ -525,6 +544,7 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
                 "user_id": user["id"],
                 "match_id": p.match_id,
                 "matchday_id": matchday_id,
+                "market_type": p.market_type,
                 "prediction_value": p.prediction_value,
                 "points": None,
                 "is_correct": None,
@@ -532,9 +552,9 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
                 "created_at": ts,
                 "updated_at": ts,
             })
-        saved.append(p.match_id)
+        saved.append({"match_id": p.match_id, "market_type": p.market_type, "value": p.prediction_value})
 
-    return {"saved_count": len(saved), "saved_matches": saved}
+    return {"saved_count": len(saved), "saved": saved, "errors": errors}
 
 
 def _validate_prediction(value: str, market_type: str) -> bool:
