@@ -141,6 +141,42 @@ backend:
         agent: "testing"
         comment: "✅ VERIFIED: All joker API endpoints working correctly. POST activates joker (returns is_active: true), DELETE deactivates (returns is_active: false), GET joker-status returns all required fields. UNIQUE constraint working - prevents multiple jokers in same half with error 'Joker already used in half X'."
 
+  - task: "Standings endpoints (Total + Weekly)"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "GET /standings/total - classifica totale con ordinamento corretto. GET /standings/weekly/{id} - classifica settimanale con esatti e 1x2. GET /standings/matchdays - lista giornate."
+
+  - task: "Trasparenza pronostici endpoint"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "GET /predictions/user/{user_id}/{matchday_id} - visualizza pronostici altri utenti. Accessibile solo per LOCKED/LIVE/COMPLETED. Controllo lega in comune."
+
+  - task: "Live endpoint con polling"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "GET /live/{matchday_id} - dati live con stato partite, score, punti calcolati. Include server_time per sincronizzazione."
+
   - task: "Unicità giornata OPEN per stagione"
     implemented: true
     working: true
