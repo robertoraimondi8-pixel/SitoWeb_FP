@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { apiCall } from '../api/client';
+import { apiCall, isAuthError } from '../api/client';
 
 interface League {
   id: string;
