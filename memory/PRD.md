@@ -29,10 +29,13 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 
 ### 3. Predictions ✅
 - 11 matches per matchday
-- Market types: 1X2 (1pt), GOAL_NOGOL (0.5pt), OVER_UNDER_25 (0.5pt), EXACT_SCORE (4pt)
-- Lock per match: modifiable until start_time (server time)
-- Server-side validation
-- Batch save
+- **USER CHOOSES market type per match** (1X2=1pt, GOAL_NOGOL=0.5pt, OVER_UNDER_25=0.5pt, EXACT_SCORE=4pt)
+- Only 1 market per match enforced (server rejects duplicate match_ids)
+- EXACT_SCORE validated: format H-A, numbers >=0
+- Lock per match: modifiable until match.start_time (server time)
+- Other matches in same matchday remain editable until their start_time
+- Batch save with per-match error reporting
+- "Pronostici salvati!" success feedback
 
 ### 4. Joker System ✅
 - 1 usage per half (andata/ritorno) per season
