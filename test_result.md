@@ -101,3 +101,128 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: |
+  FantaPronostic - Fantasy Football Prediction App MVP.
+  Critical P0 fix: The Jolly feature must work PER MATCHDAY (not per match).
+  - Jolly = single toggle for entire matchday that doubles ALL valid points
+  - Constraint: 1 jolly per ANDATA (half=1) + 1 per RITORNO (half=2) per season
+  - Lock: modifiable until first_kickoff - 60s (server UTC), then LOCKED
+  - Scoring: sum of valid match points * 2 if jolly active
+
+backend:
+  - task: "Jolly per MATCHDAY (not per match)"
+    implemented: true
+    working: "NA"
+    file: "server.py, scoring.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Refactored backend to use joker_active (bool) instead of joker_match_id. Updated: get_predictions, get_live_matchday, admin_confirm_matchday, get_home. Scoring applies x2 to total matchday points."
+
+  - task: "Jolly API endpoints"
+    implemented: true
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "POST /predictions/{matchday_id}/joker - activates jolly, DELETE removes. Lock enforced at first_kickoff - 60s. UNIQUE(user_id, season_id, half) enforced via DB index."
+
+  - task: "User authentication (email/password + Google)"
+    implemented: true
+    working: true
+    file: "server.py, auth.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+
+  - task: "League creation and joining"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+
+  - task: "Predictions save and retrieve"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+
+frontend:
+  - task: "Jolly toggle per MATCHDAY"
+    implemented: true
+    working: "NA"
+    file: "app/(tabs)/predictions.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Replaced per-match jolly toggles with single sticky toggle at top of predictions screen. Shows state: ATTIVO x2, BLOCCATO, USATO. Calls new API."
+
+  - task: "Login screen"
+    implemented: true
+    working: true
+    file: "app/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+
+  - task: "Onboarding flow"
+    implemented: true
+    working: true
+    file: "app/onboarding.tsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Jolly per MATCHDAY (not per match)"
+    - "Jolly API endpoints"
+    - "Jolly toggle per MATCHDAY"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: |
+      COMPLETED JOLLY REFACTOR (P0):
+      
+      BACKEND CHANGES:
+      1. Removed all joker_match_id references from server.py
+      2. scoring.py calculate_matchday_total now takes joker_active (bool) - applies x2 to total
+      3. Updated /predictions/{id} response - joker object now has is_active, is_locked, used_other_matchday, half
+      4. Updated /live/matchday - uses joker_active for scoring
+      5. Updated admin_confirm_matchday - joker_active for final scoring
+      6. Removed duplicate code block (lines 683-692)
+      
+      FRONTEND CHANGES:
+      1. Replaced per-match joker toggle with single JOLLY GIORNATA toggle at top
+      2. Shows lock status (BLOCCATO) and usage status (USATO Andata/Ritorno)
+      3. Toggle disabled when locked or already used in another matchday
+      
+      PLEASE TEST:
+      1. Backend: POST/DELETE /api/predictions/{matchday_id}/joker endpoints
+      2. Backend: Verify UNIQUE constraint prevents 2nd joker in same half
+      3. Backend: Verify scoring calculates base_points * 2 when joker active
+      4. Credentials: marco@fantapronostic.com / password123
