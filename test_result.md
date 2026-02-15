@@ -298,9 +298,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "P1 - Google OAuth Mobile Fix"
-    - "P2 - Rankings detail inconsistency"
-  stuck_tasks: []
+    - "P3 - COMPLETED Matchday Frozen State"
+  stuck_tasks:
+    - "P3 - COMPLETED Matchday Frozen State"
   test_all: false
   test_priority: "high_first"
 
