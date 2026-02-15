@@ -113,27 +113,33 @@ user_problem_statement: |
 backend:
   - task: "Jolly per MATCHDAY (not per match)"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py, scoring.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Refactored backend to use joker_active (bool) instead of joker_match_id. Updated: get_predictions, get_live_matchday, admin_confirm_matchday, get_home. Scoring applies x2 to total matchday points."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Jolly works per MATCHDAY correctly. All 8 core tests passed: Login, Home endpoint, Predictions with joker status, Activate/Deactivate joker, Joker status endpoint, Scoring verification. Joker applies x2 multiplier to total matchday points as expected."
 
   - task: "Jolly API endpoints"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "POST /predictions/{matchday_id}/joker - activates jolly, DELETE removes. Lock enforced at first_kickoff - 60s. UNIQUE(user_id, season_id, half) enforced via DB index."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: All joker API endpoints working correctly. POST activates joker (returns is_active: true), DELETE deactivates (returns is_active: false), GET joker-status returns all required fields. UNIQUE constraint working - prevents multiple jokers in same half with error 'Joker already used in half X'."
 
   - task: "User authentication (email/password + Google)"
     implemented: true
