@@ -141,6 +141,18 @@ backend:
         agent: "testing"
         comment: "✅ VERIFIED: All joker API endpoints working correctly. POST activates joker (returns is_active: true), DELETE deactivates (returns is_active: false), GET joker-status returns all required fields. UNIQUE constraint working - prevents multiple jokers in same half with error 'Joker already used in half X'."
 
+  - task: "Unicità giornata OPEN per stagione"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementata regola: 1 sola OPEN per stagione. Quando admin setta OPEN, le altre diventano LOCKED. /api/home carica OPEN o ultima LOCKED. Testato manualmente con successo."
+
   - task: "User authentication (email/password + Google)"
     implemented: true
     working: true
