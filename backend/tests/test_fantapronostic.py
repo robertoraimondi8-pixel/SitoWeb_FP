@@ -11,9 +11,8 @@ Tests cover:
 """
 import pytest
 import requests
-import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', '').rstrip('/')
+BASE_URL = "https://matchday-hub-29.preview.emergentagent.com"
 
 class TestHealth:
     """API health check"""
