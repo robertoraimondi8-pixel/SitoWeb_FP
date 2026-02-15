@@ -842,41 +842,27 @@ async def get_live_matchday(matchday_id: str, user=Depends(get_current_user)):
     matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
     preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
+    
+    # Get joker for this matchday (per-matchday logic)
     joker = await joker_usages_col.find_one({"user_id": user["id"], "matchday_id": matchday_id}, {"_id": 0})
+    joker_active = joker is not None and joker.get("is_active", False)
 
-    live_matches = []
-    total_prov = 0.0
     matches_dict = {m["id"]: m for m in matches}
 
+    # Calculate points for all matches
     match_pts = []
+    live_matches = []
     for m in matches:
         pred = preds_dict.get(m["id"])
         pts = 0.0
         is_correct = None
         if pred and m.get("home_score") is not None:
-            # Use prediction's market_type (user's choice), fallback to match's
             pred_market = pred.get("market_type", m.get("market_type", "1X2"))
             pts, is_correct = calculate_match_points(
                 pred["prediction_value"], pred_market,
                 m.get("home_score"), m.get("away_score"), m["status"]
             )
         match_pts.append((m["id"], pts, is_correct))
-
-    joker_match_id = joker["match_id"] if joker else None
-    totals = calculate_matchday_total(match_pts, joker_match_id, matches_dict)
-
-    for m in matches:
-        pred = preds_dict.get(m["id"])
-        pts = 0.0
-        if pred and m.get("home_score") is not None:
-            pred_market = pred.get("market_type", m.get("market_type", "1X2"))
-            pts, _ = calculate_match_points(
-                pred["prediction_value"], pred_market,
-                m.get("home_score"), m.get("away_score"), m["status"]
-            )
-            is_joker = joker_match_id == m["id"]
-            if is_joker and m["status"] not in ("void", "postponed", "cancelled") and pts > 0:
-                pts *= 2
 
         live_matches.append(LiveMatchData(
             match_id=m["id"],
@@ -888,8 +874,11 @@ async def get_live_matchday(matchday_id: str, user=Depends(get_current_user)):
             status=m["status"],
             my_prediction=pred["prediction_value"] if pred else None,
             points=pts,
-            is_joker=joker_match_id == m["id"] if joker else False,
+            is_joker=False,  # No longer per-match, always False
         ))
+
+    # Calculate totals with joker_active (boolean for matchday)
+    totals = calculate_matchday_total(match_pts, joker_active, matches_dict)
 
     return LiveMatchdayResponse(
         matchday_id=matchday_id,
@@ -897,7 +886,7 @@ async def get_live_matchday(matchday_id: str, user=Depends(get_current_user)):
         status=matchday["status"],
         matches=live_matches,
         total_provisional_points=totals["total_points"],
-        joker_applied=joker is not None,
+        joker_applied=joker_active,
     )
 
 
