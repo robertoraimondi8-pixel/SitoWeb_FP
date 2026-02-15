@@ -94,10 +94,8 @@ export default function RegisterScreen() {
 const s = StyleSheet.create({
   container: { flex: 1 },
   scroll: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  logoWrap: { alignItems: 'center', marginBottom: 40 },
-  logoCircle: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  title: { fontSize: 36, fontWeight: '800', letterSpacing: 2 },
-  subtitle: { fontSize: 28, fontWeight: '300', marginTop: -4 },
+  logoWrap: { alignItems: 'center', marginBottom: 30 },
+  logo: { width: LOGO_SIZE * 1.3, height: LOGO_SIZE, borderRadius: 16 },
   card: { borderRadius: 16, padding: 24 },
   cardTitle: { fontSize: 22, fontWeight: '700', marginBottom: 20 },
   error: { color: '#EF4444', fontSize: 13, marginBottom: 12, textAlign: 'center' },
