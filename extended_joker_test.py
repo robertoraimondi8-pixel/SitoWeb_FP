@@ -48,10 +48,10 @@ class ExtendedJollyTester:
                     return None
                     
                 try:
-                    result = await resp.json() if response_text else {}
+                    result = json.loads(response_text) if response_text else {}
                     result["_status_code"] = resp.status
                     return result
-                except:
+                except json.JSONDecodeError:
                     return {"text": response_text, "status": resp.status, "_status_code": resp.status}
                     
         except Exception as e:
