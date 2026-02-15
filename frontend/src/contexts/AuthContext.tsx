@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { apiCall } from '../api/client';
+import { apiCall, AuthError, isAuthError } from '../api/client';
 
 interface User {
   id: string;
@@ -19,7 +19,8 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, username: string, password: string, language: string) => Promise<void>;
   logout: () => Promise<void>;
-  refresh: () => Promise<void>;
+  refresh: () => Promise<boolean>;
+  handleAuthError: (error: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState>({} as AuthState);
@@ -64,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await apiCall('/auth/login', {
       method: 'POST',
       body: { email, password },
+      skipAuth: true,
     });
     await saveAuth(res.access_token, res.refresh_token, res.user);
   }, []);
@@ -72,29 +74,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await apiCall('/auth/register', {
       method: 'POST',
       body: { email, username, password, language },
+      skipAuth: true,
     });
     await saveAuth(res.access_token, res.refresh_token, res.user);
   }, []);
 
   const logout = useCallback(async () => {
-    await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'user']);
+    await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'user', 'onboarding_seen']);
     setToken(null);
     setRefreshToken(null);
     setUser(null);
   }, []);
 
-  const refresh = useCallback(async () => {
-    if (!refreshToken) return;
+  const refresh = useCallback(async (): Promise<boolean> => {
+    const currentRefreshToken = await AsyncStorage.getItem('refresh_token');
+    if (!currentRefreshToken) {
+      await logout();
+      return false;
+    }
+    
     try {
       const res = await apiCall('/auth/refresh', {
         method: 'POST',
-        body: { refresh_token: refreshToken },
+        body: { refresh_token: currentRefreshToken },
+        skipAuth: true,
       });
       await saveAuth(res.access_token, res.refresh_token, res.user);
+      return true;
     } catch {
       await logout();
+      return false;
     }
-  }, [refreshToken, logout]);
+  }, [logout]);
+
+  // Handler per gestire errori di autenticazione
+  const handleAuthError = useCallback(async (error: any) => {
+    if (isAuthError(error)) {
+      await logout();
+    }
+  }, [logout]);
 
   return (
     <AuthContext.Provider
@@ -108,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         logout,
         refresh,
+        handleAuthError,
       }}
     >
       {children}
