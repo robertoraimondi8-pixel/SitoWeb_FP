@@ -16,7 +16,7 @@ import * as WebBrowser from 'expo-web-browser';
 export default function OnboardingScreen() {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
-  const { token, user } = useAuth();
+  const { token, user, handleAuthError } = useAuth();
   const { refreshLeagues } = useLeague();
   const router = useRouter();
   const [nationalLeagues, setNationalLeagues] = useState<any[]>([]);
@@ -29,10 +29,17 @@ export default function OnboardingScreen() {
       try {
         const nls = await apiCall('/leagues/national', { token });
         setNationalLeagues(nls);
-      } catch (e) { console.error(e); }
+      } catch (e: any) { 
+        if (isAuthError(e)) {
+          await handleAuthError(e);
+          router.replace('/(auth)/login');
+          return;
+        }
+        console.error(e); 
+      }
       finally { setLoading(false); }
     })();
-  }, [token]);
+  }, [token, handleAuthError, router]);
 
   const switchLang = (newLang: string) => {
     setLang(newLang);
