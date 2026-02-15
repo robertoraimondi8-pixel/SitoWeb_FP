@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 """
-FantaPronostic Backend Testing - P0 Auth Token Refresh Functionality
-Testing Agent: Comprehensive auth flow testing including token refresh
+FantaPronostic Backend Testing - P2 & P3 Bug Fixes
+Testing P2: User Profile Endpoint consistency 
+Testing P3: COMPLETED Matchday "Frozen" State
 """
 
 import requests
 import json
-import time
-import jwt
-from datetime import datetime, timezone, timedelta
 import sys
+from typing import Dict, Any, Optional, List
 
-# Configuration
-BASE_URL = "https://bugbuster-101.preview.emergentagent.com/api"
-TEST_USER_EMAIL = "marco@test.com"
-TEST_USER_PASSWORD = "password123"
-ADMIN_EMAIL = "admin@fantapronostic.com"
-ADMIN_PASSWORD = "admin123"
+# Backend URL from environment
+BACKEND_URL = "https://bugbuster-101.preview.emergentagent.com/api"
 
-class AuthTestSuite:
+# Test credentials
+TEST_EMAIL = "marco@test.com"
+TEST_PASSWORD = "password123"
+
+class FantaPronosticTester:
     def __init__(self):
         self.session = requests.Session()
         self.access_token = None
