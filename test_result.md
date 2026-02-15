@@ -182,6 +182,9 @@ backend:
       - working: true
         agent: "main"
         comment: "GET /live/{matchday_id} - dati live con stato partite, score, punti calcolati. Include server_time per sincronizzazione."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Live endpoint working correctly. GET /live/{matchday_id} returns proper structure with matchday_status, matches array, base_points, joker_bonus, total_live_points, server_time. Each match contains status, home_score, away_score, my_prediction, outcome, points. Server time included for synchronization. Polling support confirmed."
 
   - task: "Unicità giornata OPEN per stagione"
     implemented: true
