@@ -27,7 +27,7 @@ interface Prediction {
 
 export default function UserPredictionsScreen() {
   const { colors } = useTheme();
-  const { token } = useAuth();
+  const { token, handleAuthError } = useAuth();
   const params = useLocalSearchParams<{ userId: string; matchdayId: string; leagueId?: string }>();
   
   const [data, setData] = useState<any>(null);
@@ -42,11 +42,16 @@ export default function UserPredictionsScreen() {
         const res = await apiCall(url, { token });
         setData(res);
       } catch (e: any) { 
+        if (isAuthError(e)) {
+          await handleAuthError(e);
+          router.replace('/(auth)/login');
+          return;
+        }
         setError(e.message || 'Errore nel caricamento');
       }
       finally { setLoading(false); }
     })();
-  }, [params.userId, params.matchdayId, params.leagueId, token]);
+  }, [params.userId, params.matchdayId, params.leagueId, token, handleAuthError]);
 
   const getOutcomeColor = (outcome: string) => {
     switch (outcome) {
