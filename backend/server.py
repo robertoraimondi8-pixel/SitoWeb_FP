@@ -246,12 +246,29 @@ async def get_home(user=Depends(get_current_user)):
         leagues = await leagues_col.find({"id": {"$in": league_ids}}, {"_id": 0}).to_list(100)
         user_leagues = leagues
 
-    # Get current/latest matchday
+    # REGOLA: Carica la giornata attiva
+    # 1. Prima cerca l'UNICA giornata OPEN della stagione
+    # 2. Se non esiste, carica l'ultima LOCKED (per number decrescente)
     matchday = await matchdays_col.find_one(
-        {"season_id": season["id"]},
-        {"_id": 0},
-        sort=[("number", -1)]
+        {"season_id": season["id"], "status": "OPEN"},
+        {"_id": 0}
     )
+    
+    if not matchday:
+        # Nessuna OPEN, cerca l'ultima LOCKED
+        matchday = await matchdays_col.find_one(
+            {"season_id": season["id"], "status": "LOCKED"},
+            {"_id": 0},
+            sort=[("number", -1)]
+        )
+    
+    if not matchday:
+        # Fallback: ultima giornata qualsiasi (LIVE, COMPLETED, ecc.)
+        matchday = await matchdays_col.find_one(
+            {"season_id": season["id"]},
+            {"_id": 0},
+            sort=[("number", -1)]
+        )
 
     matchday_data = None
     live_data = None
