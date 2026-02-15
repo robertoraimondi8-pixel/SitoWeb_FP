@@ -440,3 +440,28 @@ agent_communication:
       - Both user and admin roles functioning
       
       P0 AUTH TOKEN REFRESH FUNCTIONALITY IS FULLY OPERATIONAL AND SECURE.
+  - agent: "testing"
+    message: |
+      ✅ P2 & P3 BUG FIX TESTING COMPLETED - MIXED RESULTS (1/2 PASSED)
+      
+      TESTED P2 - USER PROFILE ENDPOINT CONSISTENCY:
+      ✅ PASSED: GET /api/standings/user/{user_id}?league_id={league_id} working correctly
+      - Tested with user UserA_Test (ID: 94c97e59-cec4-45a6-b51b-683e9917e923)
+      - Profile endpoint total_points (12.0) matches total standings list
+      - Matchday breakdown array present with 2 entries
+      - Breakdown sum (12.0) equals total_points ✓
+      - Rank, jolly_used, matchdays_played all returned consistently ✓
+      
+      ❌ FAILED P3 - COMPLETED MATCHDAY FROZEN STATE:
+      - Tested COMPLETED matchday 10 (ID: fc5de530-f640-41bd-89a6-442f62308ea6)
+      - Found 2 pending outcomes out of 11 total matches in COMPLETED matchday
+      - Issue: Matches with status "finished" still showing outcome "pending"
+      - Expected: All matches in COMPLETED matchday should have final outcomes (correct/wrong)
+      
+      ROOT CAUSE ANALYSIS:
+      The transparency endpoint logic in get_user_predictions_transparency() needs fixing.
+      Lines 1210-1216 in server.py handle outcome calculation for COMPLETED matchdays,
+      but the logic for forcing final outcomes when matchday.status == "COMPLETED" 
+      is not working correctly for all finished matches.
+      
+      CRITICAL P3 BUG REQUIRES MAIN AGENT ATTENTION.
