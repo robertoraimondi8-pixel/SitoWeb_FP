@@ -42,7 +42,8 @@ interface JokerState {
 export default function PredictionsScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { token } = useAuth();
+  const router = useRouter();
+  const { token, handleAuthError } = useAuth();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -84,9 +85,16 @@ export default function PredictionsScreen() {
         }
       });
       setPreds(predMap);
-    } catch (e) { console.error(e); }
+    } catch (e: any) { 
+      if (isAuthError(e)) {
+        await handleAuthError(e);
+        router.replace('/(auth)/login');
+        return;
+      }
+      console.error(e); 
+    }
     finally { setLoading(false); }
-  }, [token]);
+  }, [token, handleAuthError, router]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
