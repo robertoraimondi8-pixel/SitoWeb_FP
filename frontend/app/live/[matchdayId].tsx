@@ -29,7 +29,7 @@ interface LiveMatch {
 
 export default function LiveScreen() {
   const { colors } = useTheme();
-  const { token } = useAuth();
+  const { token, handleAuthError } = useAuth();
   const params = useLocalSearchParams<{ matchdayId: string }>();
   
   const [data, setData] = useState<any>(null);
@@ -69,12 +69,19 @@ export default function LiveScreen() {
       setData(res);
       setLastUpdate(new Date());
       setCountdown(60);
-    } catch (e) { console.error(e); }
+    } catch (e: any) { 
+      if (isAuthError(e)) {
+        await handleAuthError(e);
+        router.replace('/(auth)/login');
+        return;
+      }
+      console.error(e); 
+    }
     finally { 
       setLoading(false); 
       setRefreshing(false);
     }
-  }, [params.matchdayId, token, data?.matches, pulseAnim]);
+  }, [params.matchdayId, token, data?.matches, pulseAnim, handleAuthError]);
 
   // Initial load
   useEffect(() => { fetchLiveData(); }, []);
