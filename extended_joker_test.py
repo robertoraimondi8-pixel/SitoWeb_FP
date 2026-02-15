@@ -40,18 +40,19 @@ class ExtendedJollyTester:
             
         try:
             async with self.session.request(method, url, json=data, headers=headers) as resp:
-                response_text = await resp.text()
-                
                 if resp.status >= 400 and not expect_error:
+                    response_text = await resp.text()
                     print(f"❌ API Error {resp.status}: {endpoint}")
                     print(f"   Response: {response_text}")
                     return None
                     
                 try:
-                    result = json.loads(response_text) if response_text else {}
-                    result["_status_code"] = resp.status
+                    result = await resp.json()
+                    if isinstance(result, dict):
+                        result["_status_code"] = resp.status
                     return result
-                except json.JSONDecodeError:
+                except Exception as e:
+                    response_text = await resp.text()
                     return {"text": response_text, "status": resp.status, "_status_code": resp.status}
                     
         except Exception as e:
