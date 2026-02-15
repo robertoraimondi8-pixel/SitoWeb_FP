@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { useLeague } from '../src/contexts/LeagueContext';
-import { apiCall } from '../src/api/client';
+import { apiCall, isAuthError } from '../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 
