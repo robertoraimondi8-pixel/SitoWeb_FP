@@ -65,5 +65,9 @@
   "membership_price": "€20.00 / stagione",
   "payment_success": "Pagamento completato!",
   "payment_processing": "Pagamento in elaborazione...",
-  "back_home": "Torna alla Home"
+  "back_home": "Torna alla Home",
+  "forgot_password": "Password dimenticata?",
+  "or": "oppure",
+  "continue_with_google": "Continua con Google",
+  "authenticating": "Autenticazione in corso..."
 }
