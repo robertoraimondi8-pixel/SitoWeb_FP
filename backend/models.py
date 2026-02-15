@@ -173,7 +173,6 @@ class PredictionResponse(BaseModel):
 # ===== JOKER =====
 class JokerSetRequest(BaseModel):
     matchday_id: str
-    match_id: str  # which match to apply joker to
 
 
 class JokerResponse(BaseModel):
@@ -181,7 +180,6 @@ class JokerResponse(BaseModel):
     user_id: str
     season_id: str
     matchday_id: str
-    match_id: str
     half: int
     is_active: bool
     created_at: str
