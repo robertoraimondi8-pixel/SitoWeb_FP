@@ -148,6 +148,7 @@ class MatchResponse(BaseModel):
 # ===== PREDICTION =====
 class PredictionInput(BaseModel):
     match_id: str
+    market_type: str  # User chooses: "1X2", "GOAL_NOGOL", "OVER_UNDER_25", "EXACT_SCORE"
     prediction_value: str  # "1","X","2" for 1X2; "GOAL","NOGOL"; "OVER","UNDER"; "2-1" for exact
 
 
