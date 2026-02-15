@@ -289,7 +289,7 @@ async def get_home(user=Depends(get_current_user)):
                 pred = preds_dict.get(m["id"])
                 pts = 0.0
                 if pred and m.get("home_score") is not None:
-                    pts, _ = calculate_match_points(pred["prediction_value"], m["market_type"], m.get("home_score"), m.get("away_score"), m["status"])
+                    pts, _ = calculate_match_points(pred["prediction_value"], pred.get("market_type", m.get("market_type", "1X2")), m.get("home_score"), m.get("away_score"), m["status"])
                     if joker and joker.get("match_id") == m["id"] and m["status"] not in ("void", "postponed", "cancelled") and pts > 0:
                         pts *= 2
                 total_prov += pts
