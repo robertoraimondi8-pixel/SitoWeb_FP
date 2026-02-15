@@ -9,7 +9,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://fantascore-1.preview.emergentagent.com"
+BASE_URL = "https://bugbuster-101.preview.emergentagent.com"
 
 
 class TestLoginEmailPassword:

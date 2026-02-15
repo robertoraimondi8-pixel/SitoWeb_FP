@@ -13,7 +13,7 @@ index 0000000..20874f7
 +import json
 +from datetime import datetime
 +
-+BASE_URL = "https://fantascore-1.preview.emergentagent.com/api"
++BASE_URL = "https://bugbuster-101.preview.emergentagent.com/api"
 +TEST_USER = {"email": "marco@test.com", "password": "password123"}
 +
 +def detailed_verification():
@@ -149,7 +149,7 @@ index 4be2267..f852120 100644
 -+from datetime import datetime, timezone, timedelta
 -+
 -+# Get backend URL from frontend env
--+BACKEND_URL = "https://fantascore-1.preview.emergentagent.com/api"
+-+BACKEND_URL = "https://bugbuster-101.preview.emergentagent.com/api"
 -+
 -+class ExtendedJollyTester:
 -+    def __init__(self):
@@ -562,7 +562,7 @@ index 0000000..60b90a2
 +from datetime import datetime
 +
 +# API Configuration
-+BASE_URL = "https://fantascore-1.preview.emergentagent.com/api"
++BASE_URL = "https://bugbuster-101.preview.emergentagent.com/api"
 +TEST_USER = {
 +    "email": "marco@test.com", 
 +    "password": "password123"
