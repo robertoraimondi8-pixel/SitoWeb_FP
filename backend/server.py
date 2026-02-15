@@ -578,10 +578,11 @@ def _validate_prediction(value: str, market_type: str) -> bool:
 
 
 # ========================================
-# JOKER ROUTES
+# JOKER ROUTES (Matchday-level, NOT per-match)
 # ========================================
 @prediction_router.post("/{matchday_id}/joker")
-async def set_joker(matchday_id: str, req: JokerSetRequest, user=Depends(get_current_user)):
+async def set_joker(matchday_id: str, user=Depends(get_current_user)):
+    """Activate joker for this matchday. x2 on ALL valid match points."""
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
     if not matchday:
         raise HTTPException(404, "Matchday not found")
@@ -593,7 +594,6 @@ async def set_joker(matchday_id: str, req: JokerSetRequest, user=Depends(get_cur
     if now >= lock_time:
         raise HTTPException(400, "Joker lock time passed (60s before first kickoff)")
 
-    # Check joker limit: 1 per half per season
     season = await seasons_col.find_one({"id": matchday["season_id"]}, {"_id": 0})
     if not season:
         raise HTTPException(400, "Season not found")
@@ -608,36 +608,78 @@ async def set_joker(matchday_id: str, req: JokerSetRequest, user=Depends(get_cur
 
     if existing_joker:
         if existing_joker["matchday_id"] == matchday_id:
-            # Update joker match for same matchday
+            # Already active on this matchday, toggle is_active
             await joker_usages_col.update_one(
                 {"id": existing_joker["id"]},
-                {"$set": {"match_id": req.match_id, "is_active": True}}
+                {"$set": {"is_active": True}}
             )
-            return {"message": "Joker updated", "match_id": req.match_id}
+            return {"message": "Joker activated for matchday", "matchday_id": matchday_id, "is_active": True}
         else:
-            # Already used joker for this half in another matchday
-            raise HTTPException(400, f"Joker already used for half {half} in matchday {existing_joker['matchday_id']}")
+            raise HTTPException(400, f"Joker already used in half {half} (matchday {existing_joker['matchday_id']})")
 
     await joker_usages_col.insert_one({
         "id": new_id(),
         "user_id": user["id"],
         "season_id": season["id"],
         "matchday_id": matchday_id,
-        "match_id": req.match_id,
         "half": half,
         "is_active": True,
         "created_at": now_utc(),
     })
-    return {"message": "Joker set", "match_id": req.match_id}
+    return {"message": "Joker activated for matchday", "matchday_id": matchday_id, "is_active": True}
 
 
 @prediction_router.delete("/{matchday_id}/joker")
 async def remove_joker(matchday_id: str, user=Depends(get_current_user)):
+    """Deactivate joker for this matchday."""
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
     if not matchday:
         raise HTTPException(404, "Matchday not found")
 
     now = server_now()
+    first_kickoff = datetime.fromisoformat(matchday["first_kickoff"].replace("Z", "+00:00"))
+    lock_time = first_kickoff - timedelta(seconds=60)
+
+    if now >= lock_time:
+        raise HTTPException(400, "Cannot remove joker after lock time")
+
+    result = await joker_usages_col.delete_one({"user_id": user["id"], "matchday_id": matchday_id})
+    if result.deleted_count == 0:
+        raise HTTPException(404, "No joker found for this matchday")
+    return {"message": "Joker removed", "matchday_id": matchday_id, "is_active": False}
+
+
+@prediction_router.get("/{matchday_id}/joker-status")
+async def get_joker_status(matchday_id: str, user=Depends(get_current_user)):
+    """Get joker status for this matchday and availability for the half."""
+    matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+    if not matchday:
+        raise HTTPException(404, "Matchday not found")
+
+    season = await seasons_col.find_one({"id": matchday["season_id"]}, {"_id": 0})
+    half = matchday["half"]
+
+    now = server_now()
+    first_kickoff = datetime.fromisoformat(matchday["first_kickoff"].replace("Z", "+00:00"))
+    lock_time = first_kickoff - timedelta(seconds=60)
+    is_locked = now >= lock_time
+
+    joker = await joker_usages_col.find_one({
+        "user_id": user["id"],
+        "season_id": season["id"] if season else "",
+        "half": half,
+    }, {"_id": 0})
+
+    is_active_this_matchday = joker is not None and joker.get("matchday_id") == matchday_id and joker.get("is_active", False)
+    used_other_matchday = joker is not None and joker.get("matchday_id") != matchday_id
+
+    return {
+        "is_active": is_active_this_matchday,
+        "is_locked": is_locked,
+        "used_other_matchday": used_other_matchday,
+        "half": half,
+        "matchday_id": matchday_id,
+    }
     first_kickoff = datetime.fromisoformat(matchday["first_kickoff"].replace("Z", "+00:00"))
     lock_time = first_kickoff - timedelta(seconds=60)
 
