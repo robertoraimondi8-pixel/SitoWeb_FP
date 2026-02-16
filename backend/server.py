@@ -1726,6 +1726,37 @@ async def admin_update_season(season_id: str, req: AdminSeasonUpdate, admin=Depe
     return await seasons_col.find_one({"id": season_id}, {"_id": 0})
 
 
+# A) ADMIN: Set current matchday for /home
+@admin_router.put("/seasons/{season_id}/current-matchday")
+async def admin_set_current_matchday(season_id: str, matchday_id: str, admin=Depends(require_admin)):
+    """
+    Imposta la giornata corrente che sarà mostrata in /home.
+    Usare questo per forzare quale giornata vedere indipendentemente dallo status.
+    """
+    season = await seasons_col.find_one({"id": season_id})
+    if not season:
+        raise HTTPException(404, "Season not found")
+    
+    matchday = await matchdays_col.find_one({"id": matchday_id, "season_id": season_id})
+    if not matchday:
+        raise HTTPException(404, "Matchday not found in this season")
+    
+    await seasons_col.update_one(
+        {"id": season_id}, 
+        {"$set": {"current_matchday_id": matchday_id}}
+    )
+    await log_audit(admin["id"], admin["username"], "SET_CURRENT_MATCHDAY", "season", season_id, 
+        {"matchday_id": matchday_id, "matchday_number": matchday["number"]})
+    
+    return {
+        "status": "success",
+        "season_id": season_id,
+        "current_matchday_id": matchday_id,
+        "matchday_number": matchday["number"],
+        "matchday_label": matchday.get("label", f"Giornata {matchday['number']}"),
+    }
+
+
 @admin_router.get("/matchdays")
 async def admin_list_matchdays(season_id: str = None, admin=Depends(require_admin)):
     query = {}
