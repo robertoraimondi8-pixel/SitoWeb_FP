@@ -315,8 +315,10 @@ def test_c_eleven_predictions_rule(session: TestSession) -> bool:
             # Should return 400 with NEED_11_PREDICTIONS
             if response.status_code == 400:
                 error_data = response.json()
-                if isinstance(error_data, dict) and error_data.get("code") == "NEED_11_PREDICTIONS":
-                    print(f"✅ Confirm correctly rejected incomplete predictions: {error_data}")
+                # Check if error is in detail field or directly
+                error_detail = error_data.get("detail", error_data)
+                if isinstance(error_detail, dict) and error_detail.get("code") == "NEED_11_PREDICTIONS":
+                    print(f"✅ Confirm correctly rejected incomplete predictions: {error_detail}")
                     return True
                 else:
                     print(f"❌ Confirm returned 400 but wrong error format: {error_data}")
