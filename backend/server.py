@@ -88,6 +88,71 @@ def server_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+# B) FUNZIONE CENTRALIZZATA CALCOLO PUNTI GIORNATA
+async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
+    """
+    Calcola i punti di un utente per una giornata.
+    Ritorna: {base_points, joker_bonus, total_points, joker_active}
+    Usa prima score_summaries se esistono, altrimenti calcola al volo.
+    """
+    # Prima controlla se abbiamo già score_summaries
+    score_summary = await score_summaries_col.find_one(
+        {"user_id": user_id, "matchday_id": matchday_id},
+        {"_id": 0}
+    )
+    
+    if score_summary and score_summary.get("total_points") is not None:
+        return {
+            "base_points": score_summary.get("base_points", 0),
+            "joker_bonus": score_summary.get("joker_bonus", 0),
+            "total_points": score_summary.get("total_points", 0),
+            "joker_active": score_summary.get("joker_active", False),
+        }
+    
+    # Calcola al volo
+    matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    preds = await predictions_col.find({"user_id": user_id, "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    preds_dict = {p["match_id"]: p for p in preds}
+    
+    # Get joker status
+    joker = await joker_usages_col.find_one({"user_id": user_id, "matchday_id": matchday_id}, {"_id": 0})
+    joker_active = joker is not None and joker.get("is_active", False)
+    
+    base_points = 0.0
+    for m in matches:
+        if m["status"] in ("void", "postponed", "cancelled"):
+            continue
+        
+        pred = preds_dict.get(m["id"])
+        if not pred:
+            continue
+        
+        # Usa stored is_correct se disponibile
+        if pred.get("is_correct") is True:
+            base_points += pred.get("points", 0)
+        elif pred.get("is_correct") is None and m.get("home_score") is not None:
+            # Calcola al volo
+            pts, is_correct = calculate_match_points(
+                pred["prediction_value"],
+                pred.get("market_type", "1X2"),
+                m.get("home_score"),
+                m.get("away_score"),
+                m["status"]
+            )
+            if is_correct:
+                base_points += pts
+    
+    joker_bonus = base_points if joker_active else 0
+    total_points = base_points + joker_bonus
+    
+    return {
+        "base_points": base_points,
+        "joker_bonus": joker_bonus,
+        "total_points": total_points,
+        "joker_active": joker_active,
+    }
+
+
 # ========================================
 # AUTH ROUTES
 # ========================================
