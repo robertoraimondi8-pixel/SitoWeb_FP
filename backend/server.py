@@ -93,25 +93,35 @@ async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
     """
     Calcola i punti di un utente per una giornata.
     Ritorna: {base_points, joker_bonus, total_points, joker_active}
-    Usa prima score_summaries se esistono, altrimenti calcola al volo.
+    Usa prima score_summaries se esistono E sono validi, altrimenti calcola al volo.
     """
-    # Prima controlla se abbiamo già score_summaries
+    # Get matchday to check status
+    matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+    matchday_completed = matchday and matchday.get("status") == "COMPLETED"
+    
+    # Controlla se abbiamo già score_summaries
     score_summary = await score_summaries_col.find_one(
         {"user_id": user_id, "matchday_id": matchday_id},
         {"_id": 0}
     )
     
-    if score_summary and score_summary.get("total_points") is not None:
+    # Use score_summary only if:
+    # 1. It exists and has total_points set
+    # 2. AND either: matchday is not completed OR total_points > 0 (valid summary)
+    # This avoids using stale summaries with 0 points for completed matchdays
+    use_stored_summary = (
+        score_summary and 
+        score_summary.get("total_points") is not None and
+        (not matchday_completed or score_summary.get("total_points", 0) > 0 or score_summary.get("valid_matches", 0) > 0)
+    )
+    
+    if use_stored_summary:
         return {
             "base_points": score_summary.get("base_points", 0),
             "joker_bonus": score_summary.get("joker_bonus", 0),
             "total_points": score_summary.get("total_points", 0),
             "joker_active": score_summary.get("joker_active", False),
         }
-    
-    # Get matchday to check status
-    matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
-    matchday_completed = matchday and matchday.get("status") == "COMPLETED"
     
     # Calcola al volo
     matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
