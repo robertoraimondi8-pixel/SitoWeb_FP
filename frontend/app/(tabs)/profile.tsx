@@ -97,6 +97,22 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Admin Console - visible only to admins */}
+        {user?.role === 'admin' && (
+          <View style={[s.section, { backgroundColor: colors.card }]}>
+            <Text style={[s.sectionTitle, { color: colors.textSecondary }]}>ADMIN</Text>
+            <TouchableOpacity 
+              testID="admin-console-btn" 
+              style={s.settingRow} 
+              onPress={() => router.push('/admin')}
+            >
+              <Ionicons name="shield-checkmark" size={22} color={colors.error} />
+              <Text style={[s.settingLabel, { color: colors.text }]}>Admin Console</Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        )}
+
         <TouchableOpacity testID="logout-btn" style={[s.logoutBtn, { borderColor: colors.error }]} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color={colors.error} />
           <Text style={[s.logoutText, { color: colors.error }]}>{t('logout')}</Text>
