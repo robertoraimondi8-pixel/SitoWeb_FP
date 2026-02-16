@@ -952,13 +952,6 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
     members = await memberships_col.find({"league_id": league_id, "status": "active"}).to_list(1000)
     member_user_ids = [m["user_id"] for m in members]
 
-    # Get scores for this matchday
-    scores = await score_summaries_col.find(
-        {"matchday_id": matchday_id, "user_id": {"$in": member_user_ids}},
-        {"_id": 0}
-    ).to_list(1000)
-    scores_dict = {s["user_id"]: s for s in scores}
-
     # Get predictions to count exact scores and 1X2 correct
     all_preds = await predictions_col.find(
         {"matchday_id": matchday_id, "user_id": {"$in": member_user_ids}},
@@ -979,22 +972,26 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
             elif market == "1X2":
                 user_pred_stats[uid]["1x2_correct"] += 1
 
-    # Build entries
+    # B) COERENZA PUNTI: Usa compute_matchday_points per ogni utente
+    # Questo garantisce che matchday_points == total_points di /predictions/user
     entries = []
     for uid in member_user_ids:
         u = await users_col.find_one({"id": uid}, {"_id": 0, "password": 0})
-        s = scores_dict.get(uid, {"total_points": 0, "joker_active": False})
+        
+        # Usa la funzione centralizzata che ritorna gli stessi valori di /predictions/user
+        points_data = await compute_matchday_points(uid, matchday_id)
+        
         stats = user_pred_stats.get(uid, {"exact_correct": 0, "1x2_correct": 0})
         
         entries.append({
             "user_id": uid,
             "username": u["username"] if u else "Unknown",
-            "matchday_points": s.get("total_points", 0),
-            "base_points": s.get("base_points", 0),
-            "joker_bonus": s.get("joker_bonus", 0),
+            "matchday_points": points_data["total_points"],  # Coerente con /predictions/user
+            "base_points": points_data["base_points"],
+            "joker_bonus": points_data["joker_bonus"],
             "exact_correct": stats["exact_correct"],
             "1x2_correct": stats["1x2_correct"],
-            "jolly_active": s.get("joker_active", False),
+            "jolly_active": points_data["joker_active"],
             "is_current_user": uid == user["id"],
         })
 
