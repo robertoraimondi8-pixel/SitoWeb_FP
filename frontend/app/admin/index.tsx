@@ -924,65 +924,140 @@ export default function AdminConsole() {
       {/* Modal: Add Match */}
       <Modal visible={showAddMatch} transparent animationType="slide">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.modalOverlay}>
-          <View style={[s.modalForm, { backgroundColor: colors.card }]}>
-            <Text style={[s.modalTitle, { color: colors.text }]}>Aggiungi Partita</Text>
-            
-            <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Squadra Casa *</Text>
-            <TextInput
-              style={[s.formInput, { color: colors.text, borderColor: colors.border }]}
-              placeholder="Es: Juventus"
-              placeholderTextColor={colors.textSecondary}
-              value={newMatch.home_team}
-              onChangeText={(t) => setNewMatch(p => ({ ...p, home_team: t }))}
-            />
-            
-            <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Squadra Ospite *</Text>
-            <TextInput
-              style={[s.formInput, { color: colors.text, borderColor: colors.border }]}
-              placeholder="Es: Inter"
-              placeholderTextColor={colors.textSecondary}
-              value={newMatch.away_team}
-              onChangeText={(t) => setNewMatch(p => ({ ...p, away_team: t }))}
-            />
-            
-            <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Tipo Mercato</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-              {MARKET_TYPES.map((mt) => (
+          <ScrollView style={{ width: '100%' }} contentContainerStyle={{ padding: 24 }}>
+            <View style={[s.modalForm, { backgroundColor: colors.card }]}>
+              <Text style={[s.modalTitle, { color: colors.text }]}>Aggiungi Partita</Text>
+              
+              <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Squadra Casa *</Text>
+              <TextInput
+                style={[s.formInput, { color: colors.text, borderColor: colors.border }]}
+                placeholder="Es: Juventus"
+                placeholderTextColor={colors.textSecondary}
+                value={newMatch.home_team}
+                onChangeText={(t) => setNewMatch(p => ({ ...p, home_team: t }))}
+              />
+              
+              <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Squadra Ospite *</Text>
+              <TextInput
+                style={[s.formInput, { color: colors.text, borderColor: colors.border }]}
+                placeholder="Es: Inter"
+                placeholderTextColor={colors.textSecondary}
+                value={newMatch.away_team}
+                onChangeText={(t) => setNewMatch(p => ({ ...p, away_team: t }))}
+              />
+              
+              <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Competizione</Text>
+              <TextInput
+                style={[s.formInput, { color: colors.text, borderColor: colors.border }]}
+                placeholder="Es: Serie A"
+                placeholderTextColor={colors.textSecondary}
+                value={newMatch.competition}
+                onChangeText={(t) => setNewMatch(p => ({ ...p, competition: t }))}
+              />
+              
+              <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Data e Ora Partita *</Text>
+              <View style={s.dateTimeRow}>
                 <TouchableOpacity
-                  key={mt}
-                  style={[
-                    s.chip,
-                    { borderColor: colors.border },
-                    newMatch.market_type === mt && { backgroundColor: colors.accent, borderColor: colors.accent },
-                  ]}
-                  onPress={() => setNewMatch(p => ({ ...p, market_type: mt }))}
+                  style={[s.dateTimeBtn, { borderColor: colors.border }]}
+                  onPress={() => setShowMatchDatePicker(true)}
                 >
-                  <Text style={[
-                    s.chipText,
-                    { color: colors.text },
-                    newMatch.market_type === mt && { color: colors.background },
-                  ]}>
-                    {mt}
+                  <Ionicons name="calendar" size={20} color={colors.accent} />
+                  <Text style={[s.dateTimeBtnText, { color: colors.text }]}>
+                    {matchDate.toLocaleDateString('it-IT')}
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-            
-            <View style={s.modalBtns}>
-              <TouchableOpacity
-                style={[s.modalBtn, { borderColor: colors.border }]}
-                onPress={() => setShowAddMatch(false)}
-              >
-                <Text style={[s.modalBtnText, { color: colors.textSecondary }]}>Annulla</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.modalBtn, { backgroundColor: colors.accent }]}
-                onPress={addMatch}
-              >
-                <Text style={[s.modalBtnText, { color: colors.background }]}>Aggiungi</Text>
-              </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[s.dateTimeBtn, { borderColor: colors.border }]}
+                  onPress={() => setShowMatchTimePicker(true)}
+                >
+                  <Ionicons name="time" size={20} color={colors.accent} />
+                  <Text style={[s.dateTimeBtnText, { color: colors.text }]}>
+                    {matchDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              
+              {/* Match Date Picker */}
+              {showMatchDatePicker && (
+                <DateTimePicker
+                  value={matchDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={(e, d) => { 
+                    if (Platform.OS === 'android') setShowMatchDatePicker(false);
+                    if (d) setMatchDate(d); 
+                  }}
+                />
+              )}
+              
+              {/* Match Time Picker */}
+              {showMatchTimePicker && (
+                <DateTimePicker
+                  value={matchDate}
+                  mode="time"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={(e, d) => { 
+                    if (Platform.OS === 'android') setShowMatchTimePicker(false);
+                    if (d) {
+                      const newDate = new Date(matchDate);
+                      newDate.setHours(d.getHours());
+                      newDate.setMinutes(d.getMinutes());
+                      setMatchDate(newDate);
+                    }
+                  }}
+                  is24Hour={true}
+                />
+              )}
+              
+              {Platform.OS === 'ios' && (showMatchDatePicker || showMatchTimePicker) && (
+                <TouchableOpacity
+                  style={[s.donePickerBtn, { backgroundColor: colors.accent }]}
+                  onPress={() => { setShowMatchDatePicker(false); setShowMatchTimePicker(false); }}
+                >
+                  <Text style={[s.donePickerBtnText, { color: colors.background }]}>Fatto</Text>
+                </TouchableOpacity>
+              )}
+              
+              <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Tipo Mercato</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                {MARKET_TYPES.map((mt) => (
+                  <TouchableOpacity
+                    key={mt}
+                    style={[
+                      s.chip,
+                      { borderColor: colors.border },
+                      newMatch.market_type === mt && { backgroundColor: colors.accent, borderColor: colors.accent },
+                    ]}
+                    onPress={() => setNewMatch(p => ({ ...p, market_type: mt }))}
+                  >
+                    <Text style={[
+                      s.chipText,
+                      { color: colors.text },
+                      newMatch.market_type === mt && { color: colors.background },
+                    ]}>
+                      {mt}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              
+              <View style={s.modalBtns}>
+                <TouchableOpacity
+                  style={[s.modalBtn, { borderColor: colors.border }]}
+                  onPress={() => { setShowAddMatch(false); setShowMatchDatePicker(false); setShowMatchTimePicker(false); }}
+                >
+                  <Text style={[s.modalBtnText, { color: colors.textSecondary }]}>Annulla</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.modalBtn, { backgroundColor: colors.accent }]}
+                  onPress={addMatch}
+                >
+                  <Text style={[s.modalBtnText, { color: colors.background }]}>Aggiungi</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
