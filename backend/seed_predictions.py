@@ -34,32 +34,26 @@ def now_utc():
 
 
 async def seed_predictions():
-    """Seed random predictions for all non-admin users for Matchday 12."""
+    """Seed random predictions for all non-admin users for the current OPEN matchday."""
     
     print("=" * 60)
-    print("SEED PREDICTIONS - GIORNATA 12")
+    print("SEED PREDICTIONS - GIORNATA CORRENTE")
     print("=" * 60)
     
-    # 1. Find Matchday 12 (by number)
-    matchday = await matchdays_col.find_one({"number": 12}, {"_id": 0})
+    # 1. Find the current OPEN matchday (Giornata 6 based on our check)
+    matchday = await matchdays_col.find_one({"status": "OPEN"}, {"_id": 0})
     
     if not matchday:
-        # Try to find by label
-        matchday = await matchdays_col.find_one(
-            {"$or": [
-                {"label": {"$regex": "12", "$options": "i"}},
-                {"label": {"$regex": "Giornata 12", "$options": "i"}}
-            ]}, 
-            {"_id": 0}
-        )
+        # Fallback: try to find by number 6
+        matchday = await matchdays_col.find_one({"number": 6}, {"_id": 0})
     
     if not matchday:
-        print("ERROR: Giornata 12 non trovata!")
+        print("ERROR: Nessuna giornata OPEN trovata!")
         # List available matchdays
-        matchdays = await matchdays_col.find({}, {"_id": 0, "id": 1, "number": 1, "label": 1}).to_list(50)
+        matchdays = await matchdays_col.find({}, {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}).to_list(50)
         print("\nGiornate disponibili:")
         for md in matchdays:
-            print(f"  - Number: {md.get('number')}, Label: {md.get('label')}, ID: {md['id']}")
+            print(f"  - Number: {md.get('number')}, Label: {md.get('label')}, Status: {md.get('status')}, ID: {md['id']}")
         return
     
     matchday_id = matchday["id"]
