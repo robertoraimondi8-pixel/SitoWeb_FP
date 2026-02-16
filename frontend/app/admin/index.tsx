@@ -100,8 +100,11 @@ export default function AdminConsole() {
     home_team: '', 
     away_team: '', 
     market_type: '1X2',
-    start_time: '',
+    competition: 'Serie A',
   });
+  const [matchDate, setMatchDate] = useState(new Date());
+  const [showMatchDatePicker, setShowMatchDatePicker] = useState(false);
+  const [showMatchTimePicker, setShowMatchTimePicker] = useState(false);
   
   // Check admin access
   useEffect(() => {
