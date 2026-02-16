@@ -1830,6 +1830,37 @@ async def admin_update_matchday(matchday_id: str, req: AdminMatchdayUpdate, admi
     return await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
 
 
+@admin_router.delete("/matchdays/{matchday_id}")
+async def admin_delete_matchday(matchday_id: str, admin=Depends(require_admin)):
+    """Elimina una giornata e tutti i dati associati (partite, pronostici, score_summaries, joker)."""
+    matchday = await matchdays_col.find_one({"id": matchday_id})
+    if not matchday:
+        raise HTTPException(404, "Matchday not found")
+    
+    # Delete associated data
+    deleted_matches = await matches_col.delete_many({"matchday_id": matchday_id})
+    deleted_predictions = await predictions_col.delete_many({"matchday_id": matchday_id})
+    deleted_scores = await score_summaries_col.delete_many({"matchday_id": matchday_id})
+    deleted_jokers = await joker_usages_col.delete_many({"matchday_id": matchday_id})
+    
+    # Delete matchday
+    await matchdays_col.delete_one({"id": matchday_id})
+    
+    await log_audit(admin["id"], admin["username"], "DELETE", "matchday", matchday_id, {
+        "deleted_matches": deleted_matches.deleted_count,
+        "deleted_predictions": deleted_predictions.deleted_count,
+        "deleted_scores": deleted_scores.deleted_count,
+        "deleted_jokers": deleted_jokers.deleted_count,
+    })
+    
+    return {
+        "status": "deleted",
+        "matchday_id": matchday_id,
+        "deleted_matches": deleted_matches.deleted_count,
+        "deleted_predictions": deleted_predictions.deleted_count,
+    }
+
+
 @admin_router.get("/matches")
 async def admin_list_matches(matchday_id: str = None, admin=Depends(require_admin)):
     query = {}
