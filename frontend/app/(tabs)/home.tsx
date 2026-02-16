@@ -117,6 +117,12 @@ export default function HomeScreen() {
                 <Text style={[s.ctaText, { color: '#fff' }]}>{t('view_live')}</Text>
               </TouchableOpacity>
             )}
+            {data.matchday.status === 'COMPLETED' && (
+              <TouchableOpacity testID="view-results-btn" style={[s.ctaBtn, { backgroundColor: colors.textSecondary }]} onPress={() => router.push(`/live/${data.matchday.id}`)}>
+                <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                <Text style={[s.ctaText, { color: '#fff' }]}>{t('view_results') || 'Vedi Risultati'}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
