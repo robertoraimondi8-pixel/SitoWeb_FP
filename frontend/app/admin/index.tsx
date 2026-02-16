@@ -235,14 +235,19 @@ export default function AdminConsole() {
     setActionLoading(true);
     try {
       const kickoffISO = selectedDate.toISOString();
+      const number = parseInt(newMatchday.number, 10);
+      
+      // half: 1=andata (giornate 1-19), 2=ritorno (giornate 20-38)
+      const half = number <= 19 ? 1 : 2;
       
       await apiCall('/admin/matchdays', {
         method: 'POST',
         token,
         body: {
           season_id: selectedSeason.id,
-          number: parseInt(newMatchday.number, 10),
+          number: number,
           label: newMatchday.label || `Giornata ${newMatchday.number}`,
+          half: half,
           first_kickoff: kickoffISO,
           status: 'DRAFT',
         },
