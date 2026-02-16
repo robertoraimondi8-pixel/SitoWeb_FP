@@ -1158,6 +1158,8 @@ const s = StyleSheet.create({
   statusSelectorText: { fontSize: 11, fontWeight: '700', color: '#fff' },
   
   matchMeta: { fontSize: 11 },
+  matchTimeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  matchTimeText: { fontSize: 12, fontWeight: '600' },
   
   saveAllBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: 12, marginTop: 8 },
   saveAllBtnText: { fontSize: 15, fontWeight: '700' },
