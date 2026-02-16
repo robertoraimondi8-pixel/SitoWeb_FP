@@ -326,11 +326,12 @@ async def get_home(user=Depends(get_current_user)):
         matchday_data = {
             "id": matchday["id"],
             "number": matchday["number"],
-            "label": matchday.get("label"),
+            "label": matchday.get("label") or f"Giornata {matchday['number']}",  # Fix: no "Test Matchday"
             "status": matchday["status"],
             "first_kickoff": matchday["first_kickoff"],
             "countdown_seconds": countdown_seconds,
-            "total_matches": match_count,
+            "total_matches": total_matches,  # C) Sempre almeno 11
+            "matches_loaded": match_count,  # Quanti match reali sono caricati
             "my_predictions_count": my_predictions,
         }
 
