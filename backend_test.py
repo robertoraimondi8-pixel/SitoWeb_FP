@@ -1,342 +1,392 @@
 #!/usr/bin/env python3
 """
-FantaPronostic Backend Testing - P2 & P3 Bug Fixes
-Testing P2: User Profile Endpoint consistency 
-Testing P3: COMPLETED Matchday "Frozen" State
+FantaPronostic Backend Testing - A, B, C Fixes
+Tests the specific fixes requested:
+A) Admin Current Matchday
+B) Points Consistency 
+C) 11 Predictions Rule
 """
 
 import requests
 import json
 import sys
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 
-# Backend URL from environment
-BACKEND_URL = "https://bugbuster-101.preview.emergentagent.com/api"
+# Backend URL from frontend .env
+BACKEND_URL = "https://bugbuster-101.preview.emergentagent.com"
+API_BASE = f"{BACKEND_URL}/api"
 
 # Test credentials
-TEST_EMAIL = "marco@test.com"
-TEST_PASSWORD = "password123"
+ADMIN_CREDS = {"email": "admin@fantapronostic.com", "password": "admin123"}
+USER_CREDS = {"email": "marco@test.com", "password": "password123"}
 
-class FantaPronosticTester:
+class TestSession:
     def __init__(self):
         self.session = requests.Session()
-        self.access_token = None
-        self.user_data = None
+        self.admin_token = None
+        self.user_token = None
+        self.admin_user_id = None
+        self.user_user_id = None
         
-    def log(self, message: str, level: str = "INFO"):
-        """Log test messages"""
-        print(f"[{level}] {message}")
-        
-    def login(self) -> bool:
-        """Login and get access token"""
+    def login_admin(self) -> bool:
+        """Login as admin and store token"""
         try:
-            self.log("🔐 Attempting login...")
-            response = self.session.post(f"{BACKEND_URL}/auth/login", json={
-                "email": TEST_EMAIL,
-                "password": TEST_PASSWORD
-            })
-            
+            response = self.session.post(f"{API_BASE}/auth/login", json=ADMIN_CREDS)
             if response.status_code == 200:
                 data = response.json()
-                self.access_token = data.get("access_token")
-                self.user_data = data.get("user")
-                self.session.headers.update({"Authorization": f"Bearer {self.access_token}"})
-                self.log(f"✅ Login successful - User: {self.user_data.get('username', 'Unknown')}")
+                self.admin_token = data["access_token"]
+                self.admin_user_id = data["user"]["id"]
+                print(f"✅ Admin login successful: {data['user']['username']}")
                 return True
             else:
-                self.log(f"❌ Login failed: {response.status_code} - {response.text}", "ERROR")
+                print(f"❌ Admin login failed: {response.status_code} - {response.text}")
                 return False
-                
         except Exception as e:
-            self.log(f"❌ Login error: {str(e)}", "ERROR")
+            print(f"❌ Admin login error: {e}")
             return False
     
-    def get_user_leagues(self) -> List[Dict]:
-        """Get user's leagues"""
+    def login_user(self) -> bool:
+        """Login as regular user and store token"""
         try:
-            self.log("📋 Getting user leagues...")
-            response = self.session.get(f"{BACKEND_URL}/leagues")
-            
+            response = self.session.post(f"{API_BASE}/auth/login", json=USER_CREDS)
             if response.status_code == 200:
-                leagues = response.json()
-                self.log(f"✅ Found {len(leagues)} leagues")
-                return leagues
+                data = response.json()
+                self.user_token = data["access_token"]
+                self.user_user_id = data["user"]["id"]
+                print(f"✅ User login successful: {data['user']['username']}")
+                return True
             else:
-                self.log(f"❌ Failed to get leagues: {response.status_code}", "ERROR")
-                return []
-                
+                print(f"❌ User login failed: {response.status_code} - {response.text}")
+                return False
         except Exception as e:
-            self.log(f"❌ Error getting leagues: {str(e)}", "ERROR")
-            return []
+            print(f"❌ User login error: {e}")
+            return False
     
-    def get_total_standings(self, league_id: str) -> Dict:
-        """Get total standings for a league"""
-        try:
-            self.log(f"🏆 Getting total standings for league {league_id}...")
-            response = self.session.get(f"{BACKEND_URL}/standings/total?league_id={league_id}")
-            
-            if response.status_code == 200:
-                standings = response.json()
-                self.log(f"✅ Total standings retrieved - {len(standings.get('entries', []))} entries")
-                return standings
-            else:
-                self.log(f"❌ Failed to get total standings: {response.status_code}", "ERROR")
-                return {}
-                
-        except Exception as e:
-            self.log(f"❌ Error getting total standings: {str(e)}", "ERROR")
-            return {}
+    def get_headers(self, is_admin: bool = False) -> Dict[str, str]:
+        """Get authorization headers"""
+        token = self.admin_token if is_admin else self.user_token
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     
-    def get_user_profile(self, user_id: str, league_id: str) -> Dict:
-        """Get user profile from standings endpoint"""
-        try:
-            self.log(f"👤 Getting user profile for user {user_id} in league {league_id}...")
-            response = self.session.get(f"{BACKEND_URL}/standings/user/{user_id}?league_id={league_id}")
-            
-            if response.status_code == 200:
-                profile = response.json()
-                self.log(f"✅ User profile retrieved - Total points: {profile.get('total_points', 0)}")
-                return profile
-            else:
-                self.log(f"❌ Failed to get user profile: {response.status_code} - {response.text}", "ERROR")
-                return {}
-                
-        except Exception as e:
-            self.log(f"❌ Error getting user profile: {str(e)}", "ERROR")
-            return {}
+    def api_call(self, method: str, endpoint: str, is_admin: bool = False, **kwargs) -> requests.Response:
+        """Make authenticated API call"""
+        headers = self.get_headers(is_admin)
+        url = f"{API_BASE}{endpoint}"
+        return self.session.request(method, url, headers=headers, **kwargs)
+
+def test_a_admin_current_matchday(session: TestSession) -> bool:
+    """
+    A) Admin Current Matchday:
+    - Test PUT /api/admin/seasons/{season_id}/current-matchday?matchday_id=...
+    - Verify it sets current_matchday_id on the season
+    - Then test GET /api/home returns that matchday
+    """
+    print("\n🔍 Testing A) Admin Current Matchday...")
     
-    def get_matchdays_list(self) -> List[Dict]:
-        """Get available matchdays"""
-        try:
-            self.log("📅 Getting matchdays list...")
-            response = self.session.get(f"{BACKEND_URL}/standings/matchdays")
-            
-            if response.status_code == 200:
-                matchdays = response.json()
-                self.log(f"✅ Found {len(matchdays)} matchdays")
-                return matchdays
-            else:
-                self.log(f"❌ Failed to get matchdays: {response.status_code}", "ERROR")
-                return []
-                
-        except Exception as e:
-            self.log(f"❌ Error getting matchdays: {str(e)}", "ERROR")
-            return []
-    
-    def get_user_predictions(self, user_id: str, matchday_id: str) -> Dict:
-        """Get user predictions for a specific matchday"""
-        try:
-            self.log(f"🎯 Getting predictions for user {user_id} in matchday {matchday_id}...")
-            response = self.session.get(f"{BACKEND_URL}/predictions/user/{user_id}/{matchday_id}")
-            
-            if response.status_code == 200:
-                predictions = response.json()
-                self.log(f"✅ Predictions retrieved - {len(predictions.get('predictions', []))} predictions")
-                return predictions
-            elif response.status_code == 403:
-                self.log(f"⚠️ Access denied (403) - Matchday might be OPEN or user not in same league")
-                return {}
-            else:
-                self.log(f"❌ Failed to get predictions: {response.status_code} - {response.text}", "ERROR")
-                return {}
-                
-        except Exception as e:
-            self.log(f"❌ Error getting predictions: {str(e)}", "ERROR")
-            return {}
-    
-    def test_p2_user_profile_consistency(self) -> bool:
-        """
-        P2 Test: User Profile Endpoint consistency
-        Verify that total_points in /api/standings/user/{user_id} matches /api/standings/total
-        """
-        self.log("\n" + "="*60)
-        self.log("🧪 TESTING P2: User Profile Endpoint Consistency")
-        self.log("="*60)
+    try:
+        # 1. Get active season
+        print("1. Getting active season...")
+        response = session.api_call("GET", "/leagues/seasons", is_admin=True)
+        if response.status_code != 200:
+            print(f"❌ Failed to get seasons: {response.status_code}")
+            return False
         
-        # Get user's leagues
-        leagues = self.get_user_leagues()
+        seasons = response.json()
+        if not seasons:
+            print("❌ No active seasons found")
+            return False
+        
+        season = seasons[0]
+        season_id = season["id"]
+        print(f"✅ Found active season: {season_id}")
+        
+        # 2. Get matchdays for the season
+        print("2. Getting matchdays for season...")
+        response = session.api_call("GET", "/standings/matchdays", is_admin=True)
+        if response.status_code != 200:
+            print(f"❌ Failed to get matchdays: {response.status_code}")
+            return False
+        
+        matchdays = response.json()
+        if not matchdays:
+            print("❌ No matchdays found")
+            return False
+        
+        # Pick a matchday to test with
+        test_matchday = matchdays[0]
+        matchday_id = test_matchday["id"]
+        print(f"✅ Using test matchday: {matchday_id} (Number: {test_matchday['number']})")
+        
+        # 3. Test set-current-matchday endpoint
+        print("3. Testing PUT /api/admin/seasons/{season_id}/current-matchday...")
+        endpoint = f"/admin/seasons/{season_id}/current-matchday"
+        params = {"matchday_id": matchday_id}
+        response = session.api_call("PUT", endpoint, is_admin=True, params=params)
+        
+        if response.status_code != 200:
+            print(f"❌ Set current matchday failed: {response.status_code} - {response.text}")
+            return False
+        
+        result = response.json()
+        print(f"✅ Set current matchday successful: {result}")
+        
+        # 4. Verify GET /api/home returns the expected matchday
+        print("4. Verifying GET /api/home returns the set matchday...")
+        response = session.api_call("GET", "/home", is_admin=False)  # Test as regular user
+        if response.status_code != 200:
+            print(f"❌ Home endpoint failed: {response.status_code}")
+            return False
+        
+        home_data = response.json()
+        if not home_data.get("matchday"):
+            print("❌ Home endpoint returned no matchday data")
+            return False
+        
+        returned_matchday_id = home_data["matchday"]["id"]
+        if returned_matchday_id == matchday_id:
+            print(f"✅ Home endpoint correctly returns set matchday: {returned_matchday_id}")
+            return True
+        else:
+            print(f"❌ Home endpoint returned wrong matchday. Expected: {matchday_id}, Got: {returned_matchday_id}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Test A failed with exception: {e}")
+        return False
+
+def test_b_points_consistency(session: TestSession) -> bool:
+    """
+    B) Points Consistency:
+    - Test GET /api/standings/weekly/{matchday_id}?league_id=...
+    - Test GET /api/predictions/user/{user_id}/{matchday_id}?league_id=...
+    - Verify: matchday_points in weekly standings EQUALS total_points in user predictions
+    """
+    print("\n🔍 Testing B) Points Consistency...")
+    
+    try:
+        # 1. Get user's leagues to find a league_id
+        print("1. Getting user leagues...")
+        response = session.api_call("GET", "/leagues", is_admin=False)
+        if response.status_code != 200:
+            print(f"❌ Failed to get leagues: {response.status_code}")
+            return False
+        
+        leagues = response.json()
         if not leagues:
-            self.log("❌ P2 FAILED: No leagues found", "ERROR")
+            print("❌ User has no leagues")
             return False
         
         league_id = leagues[0]["id"]
-        self.log(f"📋 Using league: {leagues[0]['name']} (ID: {league_id})")
+        print(f"✅ Using league: {league_id}")
         
-        # Get total standings
-        total_standings = self.get_total_standings(league_id)
-        if not total_standings or not total_standings.get("entries"):
-            self.log("❌ P2 FAILED: No total standings data", "ERROR")
+        # 2. Get available matchdays
+        print("2. Getting available matchdays...")
+        response = session.api_call("GET", "/standings/matchdays", is_admin=False)
+        if response.status_code != 200:
+            print(f"❌ Failed to get matchdays: {response.status_code}")
             return False
         
-        # Pick a user from standings (not necessarily current user)
-        test_user = total_standings["entries"][0]  # Top user
-        user_id = test_user["user_id"]
-        expected_total_points = test_user["total_points"]
-        
-        self.log(f"🎯 Testing user: {test_user['username']} (Expected points: {expected_total_points})")
-        
-        # Get user profile
-        user_profile = self.get_user_profile(user_id, league_id)
-        if not user_profile:
-            self.log("❌ P2 FAILED: Could not get user profile", "ERROR")
-            return False
-        
-        # Verify consistency
-        profile_total_points = user_profile.get("total_points", 0)
-        profile_rank = user_profile.get("rank", 0)
-        profile_matchdays_played = user_profile.get("matchdays_played", 0)
-        profile_jolly_used = user_profile.get("jolly_used", 0)
-        
-        self.log(f"📊 Profile data:")
-        self.log(f"   - Total points: {profile_total_points}")
-        self.log(f"   - Rank: {profile_rank}")
-        self.log(f"   - Matchdays played: {profile_matchdays_played}")
-        self.log(f"   - Jolly used: {profile_jolly_used}")
-        
-        # Check if matchday_breakdown exists
-        matchday_breakdown = user_profile.get("matchday_breakdown", [])
-        self.log(f"   - Matchday breakdown: {len(matchday_breakdown)} entries")
-        
-        # Verify total_points consistency
-        if profile_total_points == expected_total_points:
-            self.log(f"✅ P2 PASSED: Total points consistent ({profile_total_points})")
-            
-            # Additional verification: sum of matchday breakdown should equal total
-            if matchday_breakdown:
-                breakdown_sum = sum(md.get("total_points", 0) for md in matchday_breakdown)
-                if breakdown_sum == profile_total_points:
-                    self.log(f"✅ P2 BONUS: Matchday breakdown sum matches total ({breakdown_sum})")
-                else:
-                    self.log(f"⚠️ P2 WARNING: Breakdown sum ({breakdown_sum}) != total ({profile_total_points})")
-            
-            return True
-        else:
-            self.log(f"❌ P2 FAILED: Total points mismatch - Profile: {profile_total_points}, Expected: {expected_total_points}", "ERROR")
-            return False
-    
-    def test_p3_completed_matchday_frozen_state(self) -> bool:
-        """
-        P3 Test: COMPLETED Matchday "Frozen" State
-        Verify that COMPLETED matchdays show final outcomes (not pending)
-        """
-        self.log("\n" + "="*60)
-        self.log("🧪 TESTING P3: COMPLETED Matchday Frozen State")
-        self.log("="*60)
-        
-        # Get matchdays list
-        matchdays = self.get_matchdays_list()
+        matchdays = response.json()
         if not matchdays:
-            self.log("❌ P3 FAILED: No matchdays found", "ERROR")
+            print("❌ No matchdays available")
             return False
         
-        # Find a COMPLETED matchday
-        completed_matchday = None
+        # Find a matchday that's not OPEN (so we can see predictions)
+        test_matchday = None
         for md in matchdays:
-            if md.get("status") == "COMPLETED":
-                completed_matchday = md
+            if md["status"] in ["LOCKED", "LIVE", "COMPLETED"]:
+                test_matchday = md
                 break
         
-        if not completed_matchday:
-            self.log("⚠️ P3 SKIPPED: No COMPLETED matchdays found for testing")
-            return True  # Not a failure, just no data to test
+        if not test_matchday:
+            # Use first matchday if no locked ones found
+            test_matchday = matchdays[0]
         
-        matchday_id = completed_matchday["id"]
-        matchday_number = completed_matchday["number"]
+        matchday_id = test_matchday["id"]
+        print(f"✅ Using matchday: {matchday_id} (Status: {test_matchday['status']})")
         
-        self.log(f"🎯 Testing COMPLETED matchday: {matchday_number} (ID: {matchday_id})")
+        # 3. Test GET /api/standings/weekly/{matchday_id}
+        print("3. Testing GET /api/standings/weekly/{matchday_id}...")
+        endpoint = f"/standings/weekly/{matchday_id}"
+        params = {"league_id": league_id}
+        response = session.api_call("GET", endpoint, is_admin=False, params=params)
         
-        # Get user's leagues to find a user to test
-        leagues = self.get_user_leagues()
-        if not leagues:
-            self.log("❌ P3 FAILED: No leagues found", "ERROR")
+        if response.status_code != 200:
+            print(f"❌ Weekly standings failed: {response.status_code} - {response.text}")
             return False
         
-        league_id = leagues[0]["id"]
+        weekly_standings = response.json()
+        print(f"✅ Weekly standings retrieved: {len(weekly_standings.get('entries', []))} entries")
         
-        # Get total standings to find a user
-        total_standings = self.get_total_standings(league_id)
-        if not total_standings or not total_standings.get("entries"):
-            self.log("❌ P3 FAILED: No standings data", "ERROR")
+        # Find current user in standings
+        user_standing = None
+        for entry in weekly_standings.get("entries", []):
+            if entry["user_id"] == session.user_user_id:
+                user_standing = entry
+                break
+        
+        if not user_standing:
+            print(f"❌ Current user not found in weekly standings")
             return False
         
-        # Test with first user in standings
-        test_user = total_standings["entries"][0]
-        user_id = test_user["user_id"]
+        weekly_points = user_standing["matchday_points"]
+        print(f"✅ User's weekly standings points: {weekly_points}")
         
-        self.log(f"👤 Testing predictions for user: {test_user['username']}")
+        # 4. Test GET /api/predictions/user/{user_id}/{matchday_id}
+        print("4. Testing GET /api/predictions/user/{user_id}/{matchday_id}...")
+        endpoint = f"/predictions/user/{session.user_user_id}/{matchday_id}"
+        params = {"league_id": league_id}
+        response = session.api_call("GET", endpoint, is_admin=False, params=params)
         
-        # Get user predictions for COMPLETED matchday
-        predictions_data = self.get_user_predictions(user_id, matchday_id)
-        if not predictions_data:
-            self.log("⚠️ P3 SKIPPED: Could not access predictions (might be access control)", "WARN")
-            return True  # Not necessarily a failure
+        if response.status_code != 200:
+            print(f"❌ User predictions failed: {response.status_code} - {response.text}")
+            return False
         
-        predictions = predictions_data.get("predictions", [])
-        matchday_status = predictions_data.get("matchday_status", "")
+        predictions_data = response.json()
+        predictions_points = predictions_data.get("total_points", 0)
+        print(f"✅ User's predictions total_points: {predictions_points}")
         
-        self.log(f"📊 Matchday status: {matchday_status}")
-        self.log(f"🎯 Found {len(predictions)} predictions")
-        
-        # Verify all matches have final outcomes
-        pending_count = 0
-        finished_count = 0
-        total_matches = len(predictions)
-        
-        for pred in predictions:
-            match_status = pred.get("match_status", "")
-            outcome = pred.get("outcome", "")
-            
-            self.log(f"   Match: {pred.get('home_team', '')} vs {pred.get('away_team', '')} - Status: {match_status}, Outcome: {outcome}")
-            
-            if outcome == "pending":
-                pending_count += 1
-            elif match_status == "finished":
-                finished_count += 1
-        
-        self.log(f"📈 Summary: {finished_count} finished, {pending_count} pending out of {total_matches} total")
-        
-        # For COMPLETED matchdays, there should be no pending outcomes for finished matches
-        if pending_count == 0:
-            self.log(f"✅ P3 PASSED: No pending outcomes in COMPLETED matchday")
+        # 5. Verify consistency
+        if weekly_points == predictions_points:
+            print(f"✅ Points consistency verified: {weekly_points} == {predictions_points}")
             return True
         else:
-            self.log(f"❌ P3 FAILED: Found {pending_count} pending outcomes in COMPLETED matchday", "ERROR")
+            print(f"❌ Points inconsistency found: weekly={weekly_points} != predictions={predictions_points}")
             return False
+            
+    except Exception as e:
+        print(f"❌ Test B failed with exception: {e}")
+        return False
+
+def test_c_eleven_predictions_rule(session: TestSession) -> bool:
+    """
+    C) 11 Predictions Rule:
+    - Test POST /api/predictions/{matchday_id}/confirm
+    - If user has < 11 predictions, should return 400 with NEED_11_PREDICTIONS
+    - Test GET /api/home returns total_matches >= 11 (never 0)
+    """
+    print("\n🔍 Testing C) 11 Predictions Rule...")
     
-    def run_all_tests(self) -> bool:
-        """Run all P2 and P3 tests"""
-        self.log("🚀 Starting FantaPronostic P2 & P3 Bug Fix Testing")
-        self.log(f"🌐 Backend URL: {BACKEND_URL}")
-        self.log(f"👤 Test User: {TEST_EMAIL}")
-        
-        # Login first
-        if not self.login():
-            self.log("❌ CRITICAL: Login failed - cannot proceed with tests", "ERROR")
+    try:
+        # 1. Get current matchday from home
+        print("1. Getting current matchday from home...")
+        response = session.api_call("GET", "/home", is_admin=False)
+        if response.status_code != 200:
+            print(f"❌ Home endpoint failed: {response.status_code}")
             return False
         
-        # Run P2 test
-        p2_result = self.test_p2_user_profile_consistency()
+        home_data = response.json()
+        if not home_data.get("matchday"):
+            print("❌ No matchday data in home response")
+            return False
         
-        # Run P3 test
-        p3_result = self.test_p3_completed_matchday_frozen_state()
+        matchday = home_data["matchday"]
+        matchday_id = matchday["id"]
+        total_matches = matchday.get("total_matches", 0)
         
-        # Final summary
-        self.log("\n" + "="*60)
-        self.log("📋 FINAL TEST RESULTS")
-        self.log("="*60)
-        self.log(f"P2 - User Profile Consistency: {'✅ PASSED' if p2_result else '❌ FAILED'}")
-        self.log(f"P3 - COMPLETED Matchday Frozen: {'✅ PASSED' if p3_result else '❌ FAILED'}")
+        print(f"✅ Current matchday: {matchday_id}")
+        print(f"✅ Total matches: {total_matches}")
         
-        overall_success = p2_result and p3_result
-        self.log(f"\n🎯 OVERALL RESULT: {'✅ ALL TESTS PASSED' if overall_success else '❌ SOME TESTS FAILED'}")
+        # Verify total_matches >= 11 (never 0)
+        if total_matches >= 11:
+            print(f"✅ Total matches rule verified: {total_matches} >= 11")
+        else:
+            print(f"❌ Total matches rule failed: {total_matches} < 11")
+            return False
         
-        return overall_success
+        # 2. Check current predictions count
+        print("2. Checking current predictions count...")
+        response = session.api_call("GET", f"/predictions/{matchday_id}", is_admin=False)
+        if response.status_code != 200:
+            print(f"❌ Failed to get predictions: {response.status_code}")
+            return False
+        
+        predictions_data = response.json()
+        predictions_list = predictions_data.get("predictions", [])
+        current_predictions = sum(1 for p in predictions_list if p.get("prediction"))
+        
+        print(f"✅ Current predictions count: {current_predictions}")
+        
+        # 3. Test confirm endpoint
+        print("3. Testing POST /api/predictions/{matchday_id}/confirm...")
+        endpoint = f"/predictions/{matchday_id}/confirm"
+        response = session.api_call("POST", endpoint, is_admin=False)
+        
+        if current_predictions < 11:
+            # Should return 400 with NEED_11_PREDICTIONS
+            if response.status_code == 400:
+                error_data = response.json()
+                if isinstance(error_data, dict) and error_data.get("code") == "NEED_11_PREDICTIONS":
+                    print(f"✅ Confirm correctly rejected incomplete predictions: {error_data}")
+                    return True
+                else:
+                    print(f"❌ Confirm returned 400 but wrong error format: {error_data}")
+                    return False
+            else:
+                print(f"❌ Confirm should have returned 400 for incomplete predictions, got: {response.status_code}")
+                return False
+        else:
+            # Should succeed
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ Confirm successful with complete predictions: {result}")
+                return True
+            else:
+                print(f"❌ Confirm failed with complete predictions: {response.status_code} - {response.text}")
+                return False
+                
+    except Exception as e:
+        print(f"❌ Test C failed with exception: {e}")
+        return False
 
 def main():
-    """Main test execution"""
-    tester = FantaPronosticTester()
-    success = tester.run_all_tests()
-    sys.exit(0 if success else 1)
+    """Run all tests"""
+    print("🚀 Starting FantaPronostic Backend Testing - A, B, C Fixes")
+    print(f"Backend URL: {BACKEND_URL}")
+    
+    session = TestSession()
+    
+    # Login both users
+    if not session.login_admin():
+        print("❌ Admin login failed, cannot continue")
+        return False
+    
+    if not session.login_user():
+        print("❌ User login failed, cannot continue")
+        return False
+    
+    # Run tests
+    results = []
+    
+    print("\n" + "="*60)
+    results.append(("A) Admin Current Matchday", test_a_admin_current_matchday(session)))
+    
+    print("\n" + "="*60)
+    results.append(("B) Points Consistency", test_b_points_consistency(session)))
+    
+    print("\n" + "="*60)
+    results.append(("C) 11 Predictions Rule", test_c_eleven_predictions_rule(session)))
+    
+    # Summary
+    print("\n" + "="*60)
+    print("📊 TEST RESULTS SUMMARY:")
+    print("="*60)
+    
+    passed = 0
+    for test_name, result in results:
+        status = "✅ PASSED" if result else "❌ FAILED"
+        print(f"{status}: {test_name}")
+        if result:
+            passed += 1
+    
+    print(f"\nOverall: {passed}/{len(results)} tests passed")
+    
+    if passed == len(results):
+        print("🎉 All tests passed!")
+        return True
+    else:
+        print("⚠️  Some tests failed - see details above")
+        return False
 
 if __name__ == "__main__":
-    main()
+    success = main()
+    sys.exit(0 if success else 1)
