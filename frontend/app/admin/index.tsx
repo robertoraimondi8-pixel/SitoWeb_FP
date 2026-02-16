@@ -4,9 +4,10 @@
  * Gestione completa: seasons, matchdays, matches, risultati, punteggi.
  * 
  * Funzionalità:
- * - Creare/eliminare giornate
+ * - Creare/eliminare giornate (con date picker)
  * - Aggiungere partite a una giornata
  * - Aggiornare risultati in diretta
+ * - Salva tutto con un click
  * - Cambiare stato partite (scheduled/live/finished)
  * - Confermare punteggi
  * 
@@ -24,6 +25,7 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 // Types
 interface Season {
@@ -75,8 +77,9 @@ export default function AdminConsole() {
   const [selectedMatchday, setSelectedMatchday] = useState<Matchday | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   
-  // Match results editing
+  // Match results editing - track which have been modified
   const [editingResults, setEditingResults] = useState<Record<string, { home: string; away: string; status: string }>>({});
+  const [modifiedMatches, setModifiedMatches] = useState<Set<string>>(new Set());
   
   // Modals
   const [showStatusPicker, setShowStatusPicker] = useState(false);
@@ -84,8 +87,13 @@ export default function AdminConsole() {
   const [showAddMatch, setShowAddMatch] = useState(false);
   const [showMatchStatusPicker, setShowMatchStatusPicker] = useState<string | null>(null);
   
+  // Date picker state
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  
   // Create matchday form
-  const [newMatchday, setNewMatchday] = useState({ number: '', label: '', first_kickoff: '' });
+  const [newMatchday, setNewMatchday] = useState({ number: '', label: '' });
   
   // Add match form
   const [newMatch, setNewMatch] = useState({ 
@@ -149,6 +157,7 @@ export default function AdminConsole() {
       setMatchdays(data.sort((a: Matchday, b: Matchday) => a.number - b.number));
       setSelectedMatchday(null);
       setMatches([]);
+      setModifiedMatches(new Set());
     } catch (e: any) {
       if (isAuthError(e)) {
         await handleAuthError(e);
@@ -172,6 +181,7 @@ export default function AdminConsole() {
         };
       });
       setEditingResults(initial);
+      setModifiedMatches(new Set());
     } catch (e: any) {
       if (isAuthError(e)) {
         await handleAuthError(e);
@@ -187,6 +197,15 @@ export default function AdminConsole() {
     await loadSeasons();
     setRefreshing(false);
   }, []);
+
+  // Track modifications
+  const updateMatchResult = (matchId: string, field: 'home' | 'away' | 'status', value: string) => {
+    setEditingResults(prev => ({
+      ...prev,
+      [matchId]: { ...prev[matchId], [field]: value }
+    }));
+    setModifiedMatches(prev => new Set(prev).add(matchId));
+  };
 
   // === MATCHDAY ACTIONS ===
 
@@ -208,13 +227,15 @@ export default function AdminConsole() {
   };
 
   const createMatchday = async () => {
-    if (!selectedSeason || !newMatchday.number || !newMatchday.first_kickoff) {
-      Alert.alert('Errore', 'Compila numero e data/ora kickoff');
+    if (!selectedSeason || !newMatchday.number) {
+      Alert.alert('Errore', 'Inserisci il numero della giornata');
       return;
     }
     
     setActionLoading(true);
     try {
+      const kickoffISO = selectedDate.toISOString();
+      
       await apiCall('/admin/matchdays', {
         method: 'POST',
         token,
@@ -222,13 +243,14 @@ export default function AdminConsole() {
           season_id: selectedSeason.id,
           number: parseInt(newMatchday.number, 10),
           label: newMatchday.label || `Giornata ${newMatchday.number}`,
-          first_kickoff: newMatchday.first_kickoff,
+          first_kickoff: kickoffISO,
           status: 'DRAFT',
         },
       });
       Alert.alert('Fatto!', 'Giornata creata');
       setShowCreateMatchday(false);
-      setNewMatchday({ number: '', label: '', first_kickoff: '' });
+      setNewMatchday({ number: '', label: '' });
+      setSelectedDate(new Date());
       await loadMatchdays(selectedSeason.id);
     } catch (e: any) {
       Alert.alert('Errore', e.message || 'Impossibile creare giornata');
@@ -394,39 +416,87 @@ export default function AdminConsole() {
     }
   };
 
-  const saveMatchResult = async (matchId: string) => {
-    const result = editingResults[matchId];
-    if (!result) return;
-    
-    const homeScore = result.home ? parseInt(result.home, 10) : null;
-    const awayScore = result.away ? parseInt(result.away, 10) : null;
+  // SAVE ALL MODIFIED MATCHES
+  const saveAllMatches = async () => {
+    if (modifiedMatches.size === 0) {
+      Alert.alert('Info', 'Nessuna modifica da salvare');
+      return;
+    }
     
     setActionLoading(true);
-    try {
-      const body: any = { status: result.status };
-      if (homeScore !== null && !isNaN(homeScore)) body.home_score = homeScore;
-      if (awayScore !== null && !isNaN(awayScore)) body.away_score = awayScore;
+    let savedCount = 0;
+    let errorCount = 0;
+    
+    for (const matchId of modifiedMatches) {
+      const result = editingResults[matchId];
+      if (!result) continue;
       
-      await apiCall(`/admin/matches/${matchId}`, {
-        method: 'PUT',
-        token,
-        body,
-      });
-      Alert.alert('Fatto!', 'Partita aggiornata');
-      if (selectedMatchday) await loadMatches(selectedMatchday.id);
-    } catch (e: any) {
-      Alert.alert('Errore', e.message || 'Impossibile salvare');
-    } finally {
-      setActionLoading(false);
+      try {
+        const homeScore = result.home ? parseInt(result.home, 10) : null;
+        const awayScore = result.away ? parseInt(result.away, 10) : null;
+        
+        const body: any = { status: result.status };
+        if (homeScore !== null && !isNaN(homeScore)) body.home_score = homeScore;
+        if (awayScore !== null && !isNaN(awayScore)) body.away_score = awayScore;
+        
+        await apiCall(`/admin/matches/${matchId}`, {
+          method: 'PUT',
+          token,
+          body,
+        });
+        savedCount++;
+      } catch (e: any) {
+        errorCount++;
+        console.error(`Error saving match ${matchId}:`, e);
+      }
     }
+    
+    setActionLoading(false);
+    setModifiedMatches(new Set());
+    
+    if (errorCount > 0) {
+      Alert.alert('Attenzione', `Salvate ${savedCount} partite, ${errorCount} errori`);
+    } else {
+      Alert.alert('Fatto!', `Salvate ${savedCount} partite`);
+    }
+    
+    if (selectedMatchday) await loadMatches(selectedMatchday.id);
   };
 
   const updateMatchStatus = (matchId: string, status: string) => {
-    setEditingResults(prev => ({
-      ...prev,
-      [matchId]: { ...prev[matchId], status }
-    }));
+    updateMatchResult(matchId, 'status', status);
     setShowMatchStatusPicker(null);
+  };
+
+  // Date picker handlers
+  const onDateChange = (event: any, date?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
+
+  const onTimeChange = (event: any, date?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowTimePicker(false);
+    }
+    if (date) {
+      const newDate = new Date(selectedDate);
+      newDate.setHours(date.getHours());
+      newDate.setMinutes(date.getMinutes());
+      setSelectedDate(newDate);
+    }
+  };
+
+  const formatDateTime = (date: Date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
   };
 
   // === RENDER ===
@@ -615,79 +685,88 @@ export default function AdminConsole() {
             {matches.length === 0 ? (
               <Text style={[s.emptyText, { color: colors.textSecondary }]}>Nessuna partita - aggiungine!</Text>
             ) : (
-              matches.map((match) => (
-                <View key={match.id} style={[s.matchCard, { borderColor: colors.border }]}>
-                  {/* Teams */}
-                  <View style={s.matchTeamsRow}>
-                    <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>
-                      {match.home_team}
-                    </Text>
-                    <Text style={[s.vsText, { color: colors.textSecondary }]}>vs</Text>
-                    <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>
-                      {match.away_team}
-                    </Text>
-                  </View>
-                  
-                  {/* Score inputs + Status */}
-                  <View style={s.matchControlsRow}>
-                    <TextInput
-                      style={[s.scoreInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
-                      keyboardType="numeric"
-                      placeholder="H"
-                      placeholderTextColor={colors.textSecondary}
-                      value={editingResults[match.id]?.home || ''}
-                      onChangeText={(t) => setEditingResults(prev => ({
-                        ...prev,
-                        [match.id]: { ...prev[match.id], home: t }
-                      }))}
-                    />
-                    <Text style={[s.scoreDash, { color: colors.textSecondary }]}>-</Text>
-                    <TextInput
-                      style={[s.scoreInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
-                      keyboardType="numeric"
-                      placeholder="A"
-                      placeholderTextColor={colors.textSecondary}
-                      value={editingResults[match.id]?.away || ''}
-                      onChangeText={(t) => setEditingResults(prev => ({
-                        ...prev,
-                        [match.id]: { ...prev[match.id], away: t }
-                      }))}
-                    />
-                    
-                    {/* Status selector */}
-                    <TouchableOpacity
-                      style={[s.statusSelector, { backgroundColor: getMatchStatusColor(editingResults[match.id]?.status || match.status) }]}
-                      onPress={() => setShowMatchStatusPicker(match.id)}
-                    >
-                      <Text style={s.statusSelectorText}>
-                        {(editingResults[match.id]?.status || match.status).toUpperCase().slice(0, 4)}
+              <>
+                {matches.map((match) => {
+                  const isModified = modifiedMatches.has(match.id);
+                  return (
+                    <View key={match.id} style={[
+                      s.matchCard, 
+                      { borderColor: isModified ? colors.accent : colors.border },
+                      isModified && { borderWidth: 2 }
+                    ]}>
+                      {/* Teams */}
+                      <View style={s.matchTeamsRow}>
+                        <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>
+                          {match.home_team}
+                        </Text>
+                        <Text style={[s.vsText, { color: colors.textSecondary }]}>vs</Text>
+                        <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>
+                          {match.away_team}
+                        </Text>
+                        <TouchableOpacity
+                          style={[s.deleteMatchBtn]}
+                          onPress={() => deleteMatch(match.id)}
+                        >
+                          <Ionicons name="close-circle" size={22} color={colors.error} />
+                        </TouchableOpacity>
+                      </View>
+                      
+                      {/* Score inputs + Status */}
+                      <View style={s.matchControlsRow}>
+                        <TextInput
+                          style={[s.scoreInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+                          keyboardType="numeric"
+                          placeholder="H"
+                          placeholderTextColor={colors.textSecondary}
+                          value={editingResults[match.id]?.home || ''}
+                          onChangeText={(t) => updateMatchResult(match.id, 'home', t)}
+                        />
+                        <Text style={[s.scoreDash, { color: colors.textSecondary }]}>-</Text>
+                        <TextInput
+                          style={[s.scoreInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+                          keyboardType="numeric"
+                          placeholder="A"
+                          placeholderTextColor={colors.textSecondary}
+                          value={editingResults[match.id]?.away || ''}
+                          onChangeText={(t) => updateMatchResult(match.id, 'away', t)}
+                        />
+                        
+                        {/* Status selector */}
+                        <TouchableOpacity
+                          style={[s.statusSelector, { backgroundColor: getMatchStatusColor(editingResults[match.id]?.status || match.status) }]}
+                          onPress={() => setShowMatchStatusPicker(match.id)}
+                        >
+                          <Text style={s.statusSelectorText}>
+                            {(editingResults[match.id]?.status || match.status).toUpperCase().slice(0, 4)}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                      
+                      <Text style={[s.matchMeta, { color: colors.textSecondary }]}>
+                        {match.market_type} {isModified && '• Modificato'}
                       </Text>
-                    </TouchableOpacity>
-                  </View>
-                  
-                  {/* Action buttons */}
-                  <View style={s.matchActionsRow}>
-                    <Text style={[s.matchMeta, { color: colors.textSecondary }]}>
-                      {match.market_type}
-                    </Text>
-                    <View style={s.matchBtns}>
-                      <TouchableOpacity
-                        style={[s.matchBtn, { backgroundColor: colors.accent }]}
-                        onPress={() => saveMatchResult(match.id)}
-                      >
-                        <Ionicons name="checkmark" size={16} color={colors.background} />
-                        <Text style={[s.matchBtnText, { color: colors.background }]}>Salva</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[s.matchBtn, { backgroundColor: 'rgba(239,68,68,0.15)' }]}
-                        onPress={() => deleteMatch(match.id)}
-                      >
-                        <Ionicons name="trash" size={16} color={colors.error} />
-                      </TouchableOpacity>
                     </View>
-                  </View>
-                </View>
-              ))
+                  );
+                })}
+                
+                {/* SAVE ALL BUTTON */}
+                <TouchableOpacity
+                  style={[
+                    s.saveAllBtn, 
+                    { backgroundColor: modifiedMatches.size > 0 ? colors.accent : colors.border }
+                  ]}
+                  onPress={saveAllMatches}
+                  disabled={modifiedMatches.size === 0}
+                >
+                  <Ionicons name="save" size={20} color={modifiedMatches.size > 0 ? colors.background : colors.textSecondary} />
+                  <Text style={[
+                    s.saveAllBtnText, 
+                    { color: modifiedMatches.size > 0 ? colors.background : colors.textSecondary }
+                  ]}>
+                    SALVA TUTTO ({modifiedMatches.size} modifiche)
+                  </Text>
+                </TouchableOpacity>
+              </>
             )}
           </View>
         )}
@@ -732,7 +811,7 @@ export default function AdminConsole() {
         </TouchableOpacity>
       </Modal>
 
-      {/* Modal: Create Matchday */}
+      {/* Modal: Create Matchday with Date Picker */}
       <Modal visible={showCreateMatchday} transparent animationType="slide">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.modalOverlay}>
           <View style={[s.modalForm, { backgroundColor: colors.card }]}>
@@ -757,19 +836,66 @@ export default function AdminConsole() {
               onChangeText={(t) => setNewMatchday(p => ({ ...p, label: t }))}
             />
             
-            <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Primo Kickoff (ISO) *</Text>
-            <TextInput
-              style={[s.formInput, { color: colors.text, borderColor: colors.border }]}
-              placeholder="2025-03-01T15:00:00Z"
-              placeholderTextColor={colors.textSecondary}
-              value={newMatchday.first_kickoff}
-              onChangeText={(t) => setNewMatchday(p => ({ ...p, first_kickoff: t }))}
-            />
+            <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Data e Ora Primo Kickoff *</Text>
+            
+            {/* Date/Time Display */}
+            <View style={s.dateTimeRow}>
+              <TouchableOpacity
+                style={[s.dateTimeBtn, { borderColor: colors.border }]}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Ionicons name="calendar" size={20} color={colors.accent} />
+                <Text style={[s.dateTimeBtnText, { color: colors.text }]}>
+                  {selectedDate.toLocaleDateString('it-IT')}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[s.dateTimeBtn, { borderColor: colors.border }]}
+                onPress={() => setShowTimePicker(true)}
+              >
+                <Ionicons name="time" size={20} color={colors.accent} />
+                <Text style={[s.dateTimeBtnText, { color: colors.text }]}>
+                  {selectedDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            
+            {/* Date Picker */}
+            {showDatePicker && (
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onDateChange}
+                minimumDate={new Date()}
+              />
+            )}
+            
+            {/* Time Picker */}
+            {showTimePicker && (
+              <DateTimePicker
+                value={selectedDate}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onTimeChange}
+                is24Hour={true}
+              />
+            )}
+            
+            {Platform.OS === 'ios' && (showDatePicker || showTimePicker) && (
+              <TouchableOpacity
+                style={[s.donePickerBtn, { backgroundColor: colors.accent }]}
+                onPress={() => { setShowDatePicker(false); setShowTimePicker(false); }}
+              >
+                <Text style={[s.donePickerBtnText, { color: colors.background }]}>Fatto</Text>
+              </TouchableOpacity>
+            )}
             
             <View style={s.modalBtns}>
               <TouchableOpacity
                 style={[s.modalBtn, { borderColor: colors.border }]}
-                onPress={() => setShowCreateMatchday(false)}
+                onPress={() => { setShowCreateMatchday(false); setShowDatePicker(false); setShowTimePicker(false); }}
               >
                 <Text style={[s.modalBtnText, { color: colors.textSecondary }]}>Annulla</Text>
               </TouchableOpacity>
@@ -830,15 +956,6 @@ export default function AdminConsole() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-            
-            <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Orario Kickoff (ISO, opzionale)</Text>
-            <TextInput
-              style={[s.formInput, { color: colors.text, borderColor: colors.border }]}
-              placeholder="2025-03-01T15:00:00Z"
-              placeholderTextColor={colors.textSecondary}
-              value={newMatch.start_time}
-              onChangeText={(t) => setNewMatch(p => ({ ...p, start_time: t }))}
-            />
             
             <View style={s.modalBtns}>
               <TouchableOpacity
@@ -928,6 +1045,7 @@ const s = StyleSheet.create({
   matchTeamsRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   teamName: { flex: 1, fontSize: 14, fontWeight: '600' },
   vsText: { fontSize: 12 },
+  deleteMatchBtn: { padding: 4 },
   
   matchControlsRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   scoreInput: { width: 48, height: 44, borderWidth: 1, borderRadius: 8, textAlign: 'center', fontSize: 18, fontWeight: '700' },
@@ -936,11 +1054,10 @@ const s = StyleSheet.create({
   statusSelector: { paddingHorizontal: 10, paddingVertical: 10, borderRadius: 8, marginLeft: 'auto' },
   statusSelectorText: { fontSize: 11, fontWeight: '700', color: '#fff' },
   
-  matchActionsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   matchMeta: { fontSize: 11 },
-  matchBtns: { flexDirection: 'row', gap: 8 },
-  matchBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
-  matchBtnText: { fontSize: 12, fontWeight: '600' },
+  
+  saveAllBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: 12, marginTop: 8 },
+  saveAllBtnText: { fontSize: 15, fontWeight: '700' },
   
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 },
   modalContent: { width: '100%', borderRadius: 16, padding: 20, maxHeight: '80%' },
@@ -952,6 +1069,13 @@ const s = StyleSheet.create({
   
   inputLabel: { fontSize: 12, fontWeight: '600', marginBottom: 6, marginTop: 8 },
   formInput: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, marginBottom: 4 },
+  
+  dateTimeRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  dateTimeBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderRadius: 10 },
+  dateTimeBtnText: { fontSize: 15, fontWeight: '500' },
+  
+  donePickerBtn: { alignSelf: 'center', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8, marginTop: 8, marginBottom: 8 },
+  donePickerBtnText: { fontSize: 15, fontWeight: '600' },
   
   modalBtns: { flexDirection: 'row', gap: 12, marginTop: 20 },
   modalBtn: { flex: 1, paddingVertical: 14, borderRadius: 10, borderWidth: 1, alignItems: 'center' },
