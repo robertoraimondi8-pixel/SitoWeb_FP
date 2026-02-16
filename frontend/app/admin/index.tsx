@@ -381,16 +381,19 @@ export default function AdminConsole() {
           home_team: newMatch.home_team,
           away_team: newMatch.away_team,
           market_type: newMatch.market_type,
-          start_time: newMatch.start_time || selectedMatchday.first_kickoff,
+          competition: newMatch.competition,
+          start_time: matchDate.toISOString(),
           status: 'scheduled',
         },
       });
       Alert.alert('Fatto!', 'Partita aggiunta');
       setShowAddMatch(false);
-      setNewMatch({ home_team: '', away_team: '', market_type: '1X2', start_time: '' });
+      setNewMatch({ home_team: '', away_team: '', market_type: '1X2', competition: 'Serie A' });
+      setMatchDate(new Date());
       await loadMatches(selectedMatchday.id);
     } catch (e: any) {
-      Alert.alert('Errore', e.message || 'Impossibile aggiungere partita');
+      const errorMsg = typeof e.message === 'string' ? e.message : 'Impossibile aggiungere partita';
+      Alert.alert('Errore', errorMsg);
     } finally {
       setActionLoading(false);
     }
