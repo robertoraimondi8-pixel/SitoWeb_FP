@@ -1901,6 +1901,31 @@ async def admin_update_match(match_id: str, req: MatchUpdate, admin=Depends(requ
     return await matches_col.find_one({"id": match_id}, {"_id": 0})
 
 
+@admin_router.delete("/matches/{match_id}")
+async def admin_delete_match(match_id: str, admin=Depends(require_admin)):
+    """Elimina una partita e tutti i pronostici associati."""
+    match = await matches_col.find_one({"id": match_id})
+    if not match:
+        raise HTTPException(404, "Match not found")
+    
+    # Delete predictions for this match
+    deleted_predictions = await predictions_col.delete_many({"match_id": match_id})
+    
+    # Delete match
+    await matches_col.delete_one({"id": match_id})
+    
+    await log_audit(admin["id"], admin["username"], "DELETE", "match", match_id, {
+        "teams": f"{match.get('home_team')} vs {match.get('away_team')}",
+        "deleted_predictions": deleted_predictions.deleted_count,
+    })
+    
+    return {
+        "status": "deleted",
+        "match_id": match_id,
+        "deleted_predictions": deleted_predictions.deleted_count,
+    }
+
+
 @admin_router.post("/matches/{match_id}/live-update")
 async def admin_live_update(match_id: str, req: LiveUpdateRequest, admin=Depends(require_admin)):
     match = await matches_col.find_one({"id": match_id}, {"_id": 0})
