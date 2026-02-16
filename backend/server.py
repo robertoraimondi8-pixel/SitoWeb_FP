@@ -1827,7 +1827,72 @@ async def admin_update_matchday(matchday_id: str, req: AdminMatchdayUpdate, admi
     
     await matchdays_col.update_one({"id": matchday_id}, {"$set": updates})
     await log_audit(admin["id"], admin["username"], "UPDATE", "matchday", matchday_id, updates)
+    
+    # AUTO-CALCULATE SCORES: Quando status diventa COMPLETED, calcola tutti i punteggi
+    if updates.get("status") == "COMPLETED":
+        logger.info(f"[ADMIN] Matchday {matchday_id} set to COMPLETED - calculating scores...")
+        await _calculate_matchday_scores(matchday_id, admin)
+    
     return await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+
+
+async def _calculate_matchday_scores(matchday_id: str, admin: dict):
+    """Helper function to calculate and store scores for all users with predictions."""
+    matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    matches_dict = {m["id"]: m for m in matches}
+
+    # Get all predictions for this matchday
+    all_preds = await predictions_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(10000)
+
+    # Group by user
+    user_preds = {}
+    for p in all_preds:
+        user_preds.setdefault(p["user_id"], []).append(p)
+
+    # Calculate scores for each user (idempotent - delete old scores first)
+    await score_summaries_col.delete_many({"matchday_id": matchday_id})
+
+    for uid, preds in user_preds.items():
+        # Check if joker is active for this matchday
+        joker = await joker_usages_col.find_one({"user_id": uid, "matchday_id": matchday_id}, {"_id": 0})
+        joker_active = joker is not None and joker.get("is_active", False)
+
+        match_pts = []
+        for p in preds:
+            m = matches_dict.get(p["match_id"])
+            if not m:
+                continue
+            # Use prediction's market_type (user's choice)
+            pred_market = p.get("market_type", m.get("market_type", "1X2"))
+            pts, is_correct = calculate_match_points(
+                p["prediction_value"], pred_market,
+                m.get("home_score"), m.get("away_score"), m["status"]
+            )
+            match_pts.append((m["id"], pts, is_correct))
+
+            # Update individual prediction
+            await predictions_col.update_one(
+                {"id": p["id"]},
+                {"$set": {"points": pts, "is_correct": is_correct}}
+            )
+
+        # Calculate totals with joker_active (boolean for matchday x2)
+        totals = calculate_matchday_total(match_pts, joker_active, matches_dict)
+
+        await score_summaries_col.insert_one({
+            "id": new_id(),
+            "user_id": uid,
+            "matchday_id": matchday_id,
+            "base_points": totals["base_points"],
+            "joker_bonus": totals["joker_bonus"],
+            "total_points": totals["total_points"],
+            "valid_matches": totals["valid_matches"],
+            "void_matches": totals["void_matches"],
+            "joker_active": joker_active,
+            "created_at": now_utc(),
+        })
+
+    logger.info(f"[ADMIN] Scores calculated for {len(user_preds)} users in matchday {matchday_id}")
 
 
 @admin_router.delete("/matchdays/{matchday_id}")
