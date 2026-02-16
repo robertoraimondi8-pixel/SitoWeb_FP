@@ -256,6 +256,9 @@ async def google_auth_session(request: Request):
 # ========================================
 # USER ROUTES (Home, Profile)
 # ========================================
+# Costante: ogni giornata ha sempre 11 partite
+MATCHES_PER_MATCHDAY = 11
+
 @user_router.get("/home")
 async def get_home(user=Depends(get_current_user)):
     # Get active season
@@ -271,24 +274,34 @@ async def get_home(user=Depends(get_current_user)):
         leagues = await leagues_col.find({"id": {"$in": league_ids}}, {"_id": 0}).to_list(100)
         user_leagues = leagues
 
-    # REGOLA: Carica la giornata attiva
-    # 1. Prima cerca l'UNICA giornata OPEN della stagione
-    # 2. Se non esiste, carica l'ultima LOCKED (per number decrescente)
-    matchday = await matchdays_col.find_one(
-        {"season_id": season["id"], "status": "OPEN"},
-        {"_id": 0}
-    )
+    # A) ADMIN CONFIGURABILE: Cerca current_matchday_id nella season
+    matchday = None
+    
+    # Prima controlla se l'admin ha impostato un current_matchday_id
+    if season.get("current_matchday_id"):
+        matchday = await matchdays_col.find_one(
+            {"id": season["current_matchday_id"]},
+            {"_id": 0}
+        )
+    
+    # Se non c'è current_matchday_id o non esiste, usa logica standard
+    if not matchday:
+        # 1. Prima cerca l'UNICA giornata OPEN della stagione
+        matchday = await matchdays_col.find_one(
+            {"season_id": season["id"], "status": "OPEN"},
+            {"_id": 0}
+        )
     
     if not matchday:
-        # Nessuna OPEN, cerca l'ultima LOCKED
+        # 2. Cerca l'ultima LOCKED o LIVE
         matchday = await matchdays_col.find_one(
-            {"season_id": season["id"], "status": "LOCKED"},
+            {"season_id": season["id"], "status": {"$in": ["LOCKED", "LIVE"]}},
             {"_id": 0},
             sort=[("number", -1)]
         )
     
     if not matchday:
-        # Fallback: ultima giornata qualsiasi (LIVE, COMPLETED, ecc.)
+        # 3. Fallback: ultima giornata qualsiasi
         matchday = await matchdays_col.find_one(
             {"season_id": season["id"]},
             {"_id": 0},
@@ -304,7 +317,10 @@ async def get_home(user=Depends(get_current_user)):
         lock_time = first_kickoff - timedelta(seconds=60)
         countdown_seconds = max(0, int((lock_time - now).total_seconds()))
 
+        # C) REGOLA 11 PARTITE: match_count sempre almeno 11
         match_count = await matches_col.count_documents({"matchday_id": matchday["id"]})
+        total_matches = max(match_count, MATCHES_PER_MATCHDAY)  # Mai mostrare 0/0
+        
         my_predictions = await predictions_col.count_documents({"user_id": user["id"], "matchday_id": matchday["id"]})
 
         matchday_data = {
