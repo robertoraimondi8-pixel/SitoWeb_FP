@@ -125,7 +125,7 @@ async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
     base_points = 0.0
     for m in matches:
         # Determine effective match status
-        # If matchday is COMPLETED, treat all matches as finished
+        # If matchday is COMPLETED, treat all matches as finished for scoring
         effective_status = m["status"]
         if matchday_completed and effective_status in ("scheduled", "live"):
             effective_status = "finished"
@@ -141,17 +141,16 @@ async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
         if pred.get("is_correct") is True:
             base_points += pred.get("points", 0)
         elif pred.get("is_correct") is None and m.get("home_score") is not None:
-            # Calcola al volo - include both "finished" and "live" if matchday completed
-            if effective_status in ("finished", "live"):
-                pts, is_correct = calculate_match_points(
-                    pred["prediction_value"],
-                    pred.get("market_type", "1X2"),
-                    m.get("home_score"),
-                    m.get("away_score"),
-                    effective_status
-                )
-                if is_correct:
-                    base_points += pts
+            # Calcola al volo - pass "finished" to calculate_match_points when matchday completed
+            pts, is_correct = calculate_match_points(
+                pred["prediction_value"],
+                pred.get("market_type", "1X2"),
+                m.get("home_score"),
+                m.get("away_score"),
+                effective_status  # This is now "finished" for COMPLETED matchdays
+            )
+            if is_correct:
+                base_points += pts
     
     joker_bonus = base_points if joker_active else 0
     total_points = base_points + joker_bonus
