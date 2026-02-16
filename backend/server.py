@@ -109,6 +109,10 @@ async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
             "joker_active": score_summary.get("joker_active", False),
         }
     
+    # Get matchday to check status
+    matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+    matchday_completed = matchday and matchday.get("status") == "COMPLETED"
+    
     # Calcola al volo
     matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
     preds = await predictions_col.find({"user_id": user_id, "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
@@ -120,7 +124,13 @@ async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
     
     base_points = 0.0
     for m in matches:
-        if m["status"] in ("void", "postponed", "cancelled"):
+        # Determine effective match status
+        # If matchday is COMPLETED, treat all matches as finished
+        effective_status = m["status"]
+        if matchday_completed and effective_status in ("scheduled", "live"):
+            effective_status = "finished"
+        
+        if effective_status in ("void", "postponed", "cancelled"):
             continue
         
         pred = preds_dict.get(m["id"])
@@ -131,16 +141,17 @@ async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
         if pred.get("is_correct") is True:
             base_points += pred.get("points", 0)
         elif pred.get("is_correct") is None and m.get("home_score") is not None:
-            # Calcola al volo
-            pts, is_correct = calculate_match_points(
-                pred["prediction_value"],
-                pred.get("market_type", "1X2"),
-                m.get("home_score"),
-                m.get("away_score"),
-                m["status"]
-            )
-            if is_correct:
-                base_points += pts
+            # Calcola al volo - include both "finished" and "live" if matchday completed
+            if effective_status in ("finished", "live"):
+                pts, is_correct = calculate_match_points(
+                    pred["prediction_value"],
+                    pred.get("market_type", "1X2"),
+                    m.get("home_score"),
+                    m.get("away_score"),
+                    effective_status
+                )
+                if is_correct:
+                    base_points += pts
     
     joker_bonus = base_points if joker_active else 0
     total_points = base_points + joker_bonus
