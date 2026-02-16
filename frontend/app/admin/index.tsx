@@ -108,7 +108,7 @@ export default function AdminConsole() {
     market_type: '1X2',
     competition: 'Serie A',
   });
-  const [matchDate, setMatchDate] = useState(new Date());
+  const [matchDate, setMatchDate] = useState(getDefaultDate());
   const [showMatchDatePicker, setShowMatchDatePicker] = useState(false);
   const [showMatchTimePicker, setShowMatchTimePicker] = useState(false);
   
