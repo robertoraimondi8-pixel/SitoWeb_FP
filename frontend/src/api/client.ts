@@ -87,9 +87,16 @@ async function clearAuthStorage(): Promise<void> {
  */
 function isTokenExpiredError(status: number, errorBody: any): boolean {
   if (status === 401) return true;
-  if (errorBody?.detail?.toLowerCase().includes('token expired')) return true;
-  if (errorBody?.detail?.toLowerCase().includes('not authenticated')) return true;
-  if (errorBody?.detail?.toLowerCase().includes('invalid token')) return true;
+  
+  // Gestisci sia detail come stringa che come oggetto
+  const detail = errorBody?.detail;
+  if (typeof detail === 'string') {
+    const detailLower = detail.toLowerCase();
+    if (detailLower.includes('token expired')) return true;
+    if (detailLower.includes('not authenticated')) return true;
+    if (detailLower.includes('invalid token')) return true;
+  }
+  
   return false;
 }
 
