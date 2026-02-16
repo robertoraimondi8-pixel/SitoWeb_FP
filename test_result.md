@@ -334,9 +334,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "P3 - COMPLETED Matchday Frozen State"
-  stuck_tasks:
-    - "P3 - COMPLETED Matchday Frozen State"
+    - "A) Admin Current Matchday"
+    - "B) Points Consistency"
+    - "C) 11 Predictions Rule"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
