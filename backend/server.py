@@ -700,6 +700,46 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
     return {"saved_count": len(saved), "saved": saved, "errors": errors}
 
 
+# C) REGOLA 11 PARTITE: Endpoint per verificare/confermare pronostici completi
+@prediction_router.post("/{matchday_id}/confirm")
+async def confirm_predictions(matchday_id: str, user=Depends(get_current_user)):
+    """
+    Verifica che l'utente abbia inserito tutti gli 11 pronostici.
+    Ritorna errore 400 se < 11 pronostici.
+    """
+    matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+    if not matchday:
+        raise HTTPException(404, "Matchday not found")
+    
+    if matchday["status"] in ("COMPLETED",):
+        raise HTTPException(400, "Matchday is completed")
+    
+    # Count matches in matchday
+    total_matches = await matches_col.count_documents({"matchday_id": matchday_id})
+    required_matches = max(total_matches, MATCHES_PER_MATCHDAY)
+    
+    # Count user predictions
+    user_predictions = await predictions_col.count_documents({
+        "user_id": user["id"], 
+        "matchday_id": matchday_id
+    })
+    
+    if user_predictions < required_matches:
+        raise HTTPException(400, {
+            "code": "NEED_11_PREDICTIONS",
+            "message": f"Devi inserire tutti e {required_matches} i pronostici per confermare",
+            "current": user_predictions,
+            "required": required_matches,
+        })
+    
+    return {
+        "status": "confirmed",
+        "predictions_count": user_predictions,
+        "required": required_matches,
+        "message": f"Hai inserito tutti i {required_matches} pronostici!"
+    }
+
+
 def _validate_prediction(value: str, market_type: str) -> bool:
     v = value.upper()
     if market_type == "1X2":
