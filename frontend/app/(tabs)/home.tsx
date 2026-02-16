@@ -103,7 +103,7 @@ export default function HomeScreen() {
               </View>
             )}
             <Text style={[s.predCount, { color: colors.textSecondary }]}>
-              {data.matchday.my_predictions_count}/{data.matchday.total_matches} {t('matches')}
+              {data.matchday.my_predictions_count}/{Math.max(data.matchday.total_matches, 11)} {t('matches')}
             </Text>
             {data.matchday.status === 'OPEN' && (
               <TouchableOpacity testID="insert-predictions-btn" style={[s.ctaBtn, { backgroundColor: colors.accent }]} onPress={() => router.push('/(tabs)/predictions')}>
