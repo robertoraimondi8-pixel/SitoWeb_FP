@@ -14,7 +14,7 @@ import pytest
 import requests
 import random
 
-BASE_URL = "https://bugbuster-101.preview.emergentagent.com"
+BASE_URL = "https://matchday-seeder.preview.emergentagent.com"
 
 
 @pytest.fixture

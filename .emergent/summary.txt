@@ -1,115 +1,168 @@
 <analysis>
 
 **original_problem_statement**:
-The user has completed a full end-to-end test of the application and, while the core logic is sound, has identified several critical bugs and data inconsistency issues when testing on a mobile device (iPhone with Expo Go). The immediate goal is to fix these specific bugs to improve application stability and user experience.
+The user initially reported critical bugs after mobile testing: unstable auth sessions (P0), broken Google OAuth on iOS (P1), and UI/data inconsistencies (P2, P3). During the fix process, more severe data consistency issues were found and addressed, related to how points were calculated and displayed between different screens.
+
+Subsequently, the user requested the creation of a comprehensive in-app Admin Console to manage seasons, matchdays, matches, and results, moving away from  commands. This became a major feature development task.
+
+Finally, the user reported a bug where newly created matchday predictions were locked and requested a way to seed random predictions for test users to validate the scoring system.
 
 **PRODUCT REQUIREMENTS (current task):**
 
-1.  **Auth Session Hardening (P0 - CRITICAL):**
-    -   Implement a centralized API client (fetch wrapper) in the frontend that automatically handles  errors by using the refresh token to get a new access token and then retrying the original request once.
-    -   If the token refresh fails, the user should be logged out and redirected to the login screen.
-    -   Eliminate Token expired errors in the console and prevent the app from showing Not authenticated toasts on valid sessions.
+1.  **Admin Console Usability (P0):**
+    *   Display the  for each match within the Admin Console match list. (DONE)
+    *   Seed Matchday 12 with random predictions for all existing test users to allow for a full-cycle scoring test. (PENDING)
 
-2.  **Google OAuth Mobile Fix (P1):**
-    -   Fix the Google login flow on iOS (Expo Go), which currently gets stuck on a loading spinner and never completes.
-    -   This involves verifying deep links, , and ensuring the session callback is handled robustly.
+2.  **Verify Previous Fixes (P1):**
+    *   **Google OAuth:** User to test the new  based Google Login flow on a real iOS device (Expo Go).
+    *   **Data Consistency:** User to verify that total standings and user detail points (P2) are now consistent, and that  matchdays show frozen final results (P3).
+    *   **Scoring Logic:** User to verify that the weekly standings points are now consistent with the user prediction detail screen after the  function was fixed.
+    *   **Locked Predictions:** User to verify that creating new matchdays/matches with future dates correctly leaves them open for predictions.
 
-3.  **UI/Data Consistency Fixes (P2):**
-    -   **Logo:** The user registration screen must use the same new logo as the login screen ().
-    -   **Total Standings:** The user detail screen, when accessed from the total standings list, must show the same total points as the list, not 0. This requires a new backend endpoint to fetch a consistent user summary.
-    -   **Weekly Standings:** When viewing a  matchday, all finished matches must show their final outcome (correct/wrong) and not appear as live or pending. The data must be frozen.
+3.  **Admin Console MVP (Feature - LARGELY DONE):**
+    *   Provide a secure, admin-only section in the app.
+    *   Allow management of seasons, matchdays (set current, change status, create/delete), and matches (set results, add/delete, set start times).
+    *   Implement user-friendly controls like date pickers and a Save All button.
 
 **User's preferred language**: Italiano
 
 **what currently exists?**
-A full-stack FantaPronostic application with a FastAPI/MongoDB backend and a React Native/Expo frontend. The core game logic (predictions, jolly, scoring, standings) has been implemented and successfully passed a comprehensive end-to-end test. However, the application suffers from critical session management and data consistency bugs that have been identified during mobile testing. The agent has already started implementing fixes.
+A full-stack FantaPronostic application. The initial critical bugs (P0-P3) have been addressed. The token auto-refresh system is in place, the mobile Google OAuth flow has been completely re-implemented, and numerous data consistency bugs have been fixed by centralizing the scoring logic in the backend.
+
+A significant new feature, an in-app **Admin Console**, has been built. It allows an admin user to manage most aspects of the game (seasons, matchdays, matches, results) directly from the mobile app, with features like date pickers and bulk saving.
 
 **Last working item**:
--   Last item agent was working: The agent was implementing the fixes requested by the user. It had already created the API client with token refresh logic, updated the AuthContext, fixed the logo on the register screen, and corrected the backend logic for frozen match outcomes. The immediate next step was to add a new backend endpoint  in  to resolve the data inconsistency between the total standings list and the user detail screen.
--   Status: IN PROGRESS
--   Agent Testing Done: N
--   Which testing method agent to use? both
--   User Testing Done: N
+- Last item agent was working: The agent was fulfilling a two-part user request.
+    1.  It successfully modified the Admin Console UI () to display the  for each match.
+    2.  It was about to execute a script to generate and save random predictions for all test users for Giornata 12 to facilitate a comprehensive scoring test by the user.
+- Status: IN PROGRESS
+- Agent Testing Done: N (The script to seed predictions has not been run yet).
+- Which testing method agent to use? The agent should write and execute a script (e.g., Python using ) to create the random predictions. No automated testing agent is needed for this specific task. The user will perform manual verification of the outcome.
+- User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: (P0) Auth session is not stable. The app logs the user out with a Token expired error because there is no automatic token refresh mechanism.
--   Issue 2: (P1) Google OAuth login is broken on iOS (Expo Go), getting stuck on a loading spinner.
--   Issue 3: (P2) User detail view shows inconsistent data (0 points) when navigated to from the total standings list.
--   Issue 4: (P3) When viewing a user's predictions for a  matchday, some matches incorrectly show a live or pending status.
+-   **Issue 1: Linting Errors (P2)**: During the session, the linter reported multiple parsing errors in TypeScript files (e.g., ). The agent concluded these were likely ESLint configuration issues and ignored them. These errors should be investigated and fixed to ensure code quality and prevent potential runtime issues.
 
 **Issues Detail**:
--   **Issue 1: Auth Session Instability**
-    -   **Attempted fixes**: The agent created a new API client wrapper at  that intercepts 401 errors, attempts to refresh the token, and retries the original request. The  and  have been updated to use this new client.
+-   **Issue 1: Linter Parsing Errors**
+    -   **Attempted fixes**: None. The agent ignored the errors.
     -   **Next debug checklist**:
-        1.  Ensure the new API client is used for *all* API calls throughout the frontend, not just on the home screen.
-        2.  Verify the backend endpoint  works as expected.
-        3.  Thoroughly test the full refresh flow: let a token expire, make an API call, and confirm the app refreshes the token transparently without logging the user out.
-        4.  Test the failure case: if the refresh token is also invalid, confirm the user is logged out and redirected to the login screen.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical user experience issue that makes the app unusable after a short period. Fixing it will provide a stable, persistent login session.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on other issue**: None
+        1.  Run yarn run v1.22.22
+$ expo lint
+env: load .env
+env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PUBLIC_BACKEND_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT
+$ /app/frontend/node_modules/.bin/eslint /app/frontend/src /app/frontend/app --fix=false --cache=true --cache-location=/app/frontend/.expo/cache/eslint/
 
--   **Issue 2: Google OAuth Mobile Fix**
-    -   **Attempted fixes**: None yet.
-    -   **Next debug checklist**:
-        1.  Review the  configuration for any incorrect  or deep link settings.
-        2.  Inspect the code in  that handles the Google login flow.
-        3.  Trace the redirect flow from the browser back to the Expo Go app, checking for errors in the logs.
-        4.  Verify that the  is correctly received and exchanged for access/refresh tokens.
-    -   **Why fix this issue and what will be achieved with the fix?**: Provides a key authentication method for users.
+/app/frontend/app/(auth)/callback.tsx
+  16:10  warning  'processing' is assigned a value but never used                                                                           @typescript-eslint/no-unused-vars
+  20:6   warning  React Hook useEffect has a missing dependency: 'processGoogleCallback'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/frontend/app/(auth)/login.tsx
+  5:22  warning  'Alert' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/frontend/app/(tabs)/home.tsx
+  15:24  warning  'logout' is assigned a value but never used                                                                        @typescript-eslint/no-unused-vars
+  16:11  warning  'leagues' is assigned a value but never used                                                                       @typescript-eslint/no-unused-vars
+  16:20  warning  'activeLeague' is assigned a value but never used                                                                  @typescript-eslint/no-unused-vars
+  25:6   warning  React Hook useEffect has a missing dependency: 'refreshLeagues'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/frontend/app/(tabs)/rankings.tsx
+  30:11  warning  't' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/app/frontend/app/admin/index.tsx
+  126:6  warning  React Hook useEffect has a missing dependency: 'loadSeasons'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
+  133:6  warning  React Hook useEffect has a missing dependency: 'loadMatchdays'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  140:6  warning  React Hook useEffect has a missing dependency: 'loadMatches'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
+  208:6  warning  React Hook useCallback has a missing dependency: 'loadSeasons'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  510:9  warning  'formatDateTime' is assigned a value but never used                                                               @typescript-eslint/no-unused-vars
+
+/app/frontend/app/index.tsx
+  11:10  warning  'checking' is assigned a value but never used                                                                     @typescript-eslint/no-unused-vars
+  15:6   warning  React Hook useEffect has a missing dependency: 'handleRouting'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  50:14  warning  'e' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+
+/app/frontend/app/league/create.tsx
+  12:19  warning  'isAuthError' is defined but never used  @typescript-eslint/no-unused-vars
+  43:14  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+  57:14  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+/app/frontend/app/league/join-private.tsx
+  12:19  warning  'isAuthError' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/frontend/app/league/join.tsx
+  8:19  warning  'isAuthError' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/frontend/app/league/list.tsx
+  24:6   warning  React Hook useEffect has a missing dependency: 'refreshLeagues'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  37:14  warning  'e' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+
+/app/frontend/app/live/[matchdayId].tsx
+   87:41  warning  React Hook useEffect has a missing dependency: 'fetchLiveData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   98:6   warning  React Hook useEffect has a missing dependency: 'data'. Either include it or remove the dependency array           react-hooks/exhaustive-deps
+  112:6   warning  React Hook useEffect has a missing dependency: 'data'. Either include it or remove the dependency array           react-hooks/exhaustive-deps
+
+/app/frontend/app/onboarding.tsx
+  4:36  warning  'Platform' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/frontend/src/api/client.ts
+  65:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/frontend/src/contexts/AuthContext.tsx
+  3:19  warning  'AuthError' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/frontend/src/contexts/LeagueContext.tsx
+  1:54  warning  'useEffect' is defined but never used    @typescript-eslint/no-unused-vars
+  3:19  warning  'isAuthError' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/frontend/src/i18n/index.ts
+  6:1  warning  Caution: `i18n` also has a named export `use`. Check if you meant to write `import {use} from 'i18next'` instead  import/no-named-as-default-member
+
+✖ 32 problems (0 errors, 32 warnings)
+
+Done in 5.54s. or the equivalent command in the  directory to see the full list of errors.
+        2.  Inspect the  file and  to ensure they are correctly configured for TypeScript and React Native.
+        3.  Address the specific parsing errors reported by the linter, which may involve correcting syntax or updating ESLint rules.
+    -   **Why fix this issue and what will be achieved with the fix?**: Ensures code quality, prevents hidden bugs, and makes future development easier.
     -   **Status**: NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** frontend
-    -   **Blocked on other issue**: None
-
--   **Issue 3: Inconsistent Total Standings Data**
-    -   **Attempted fixes**: The agent was about to add a new backend endpoint.
-    -   **Next debug checklist**:
-        1.  **Backend**: Implement the new endpoint  in . This endpoint should return a user's profile summary (, , etc.) consistent with the data shown in the main standings list.
-        2.  **Frontend**: Update the user detail screen ( or a similar new component) to fetch data from this new endpoint instead of whatever it is currently using.
-    -   **Why fix this issue and what will be achieved with the fix?**: Fixes confusing and incorrect information being shown to the user, improving trust in the app's data.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on other issue**: None
-
--   **Issue 4: Inconsistent Completed Match Status**
-    -   **Attempted fixes**: The agent modified the  endpoint in  to ensure that for  matchdays, the outcome is read from the persisted prediction result ( field) rather than being calculated on-the-fly.
-    -   **Next debug checklist**:
-        1.  **Backend**: Test the endpoint again to confirm the fix works for a  matchday.
-        2.  **Frontend**: No frontend changes should be needed if the backend fix is correct, but visual verification is required.
-    -   **Why fix this issue and what will be achieved with the fix?**: Ensures that past game data is presented accurately and is not mutable or shown with an incorrect status.
-    -   **Status**: IN PROGRESS (Backend fix applied, verification pending)
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on other issue**: None
+    -   **Is recurring issue?** Y (Appeared during the session and was ignored).
+    -   **Should Test frontend/backend/both after fix?** frontend (by running the linter again).
+    -   **Blocked on other issue**: None.
 
 **In progress Task List**:
-The tasks are the implementation of the fixes for the issues listed above.
+-   **Task 1: Seed Random Predictions for Matchday 12 (P0 - HIGHEST PRIORITY)**
+    -   **Where to resume**: Write and execute a script to perform the following actions:
+        1.  Fetch all users who are not admins.
+        2.  Fetch all matches for Giornata 12.
+        3.  For each user, iterate through the 11 matches and create a random prediction (e.g., '1', 'X', '2').
+        4.  Save these predictions to the database using the  endpoint or by direct DB insertion.
+    -   **What will be achieved with this?**: This will provide the necessary data for the user to test the entire scoring and standings calculation pipeline for a completed matchday.
+    -   **Status**: NOT STARTED
+    -   **Should Test frontend/backend/both after fix?** N/A (User will test manually).
+    -   **Blocked on something**: No.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
     -   **P1: Stripe Payment for National League**: Implement the frontend flow for the Join National League option on the onboarding screen. This involves integrating with the Stripe checkout session endpoint. ()
 -   **Future Tasks**:
     -   Password Recovery: Implement the Forgot Password flow.
-    -   Bonus Campionati: Implement the logic for awarding points for correct end-of-season champion predictions.
     -   Push Notifications: For admin announcements or important game events.
     -   Live API Integration: Replace manual admin updates with a real-time sports data API.
 
 **Completed work in this session**
--   **Jolly Feature Refactor (COMPLETED)**: Migrated the Jolly bonus from a per-match to a per-matchday implementation, including backend logic, DB model changes, and a complete UI overhaul on the predictions screen.
--   **Active Matchday Uniqueness (COMPLETED)**: Implemented and tested a backend rule ensuring only one matchday can be  per season, automatically locking others.
--   **Standings & Transparency Features (COMPLETED)**: Implemented backend endpoints and frontend UI for total/weekly standings, user prediction transparency, and a live matchday view with polling.
--   **Full End-to-End Test (COMPLETED)**: Successfully executed a comprehensive E2E test script validating the entire game flow from setup, prediction, live scoring, void matches, final confirmation, and idempotency.
--   **Bug Fixes Started (IN PROGRESS)**:
-    -   Created an API client wrapper for automatic token refresh.
-    -   Fixed inconsistent logo on the registration screen.
-    -   Corrected backend logic for showing final results on completed matchdays.
+-   **Auth Session Hardening (P0)**: Implemented a global API client with automatic JWT refresh token logic and applied it across the entire frontend.
+-   **Google OAuth Mobile Fix (P1)**: Re-implemented the mobile Google login flow from scratch using  to fix the infinite spinner issue on iOS.
+-   **Data Inconsistency Fixes (P2, P3 & more)**:
+    -   Created a new  screen to show a consistent points breakdown.
+    -   Fixed backend logic to freeze results for  matchdays.
+    -   **Resolved critical scoring bug**: Centralized scoring logic in a  function and fixed it to ignore stale  data, ensuring  and  show consistent points.
+-   **Locked Predictions Bug Fix**: Corrected the logic for newly created matches by setting their default  to be in the future, and updated existing affected matches.
+-   **FEATURE: In-App Admin Console**:
+    -   Created a new, admin-only section at .
+    -   Implemented UI for managing seasons, matchdays (CRUD, set status, set current), and matches (CRUD, set results, set start times).
+    -   Added UX improvements like date pickers and a Save All Results button.
 
 **Earlier issues found/mentioned but not fixed**
-None. The agent is currently working on all known issues.
+- The linter parsing errors mentioned in All Pending/In progress Issue list were found in message 65 and ignored by the agent.
 
 **Known issue recurrence from previous fork**
 N/A
@@ -119,77 +172,77 @@ N/A
 
 **Key Technical Concepts**
 -   **Backend**: FastAPI, Python, MongoDB ()
--   **Frontend**: React Native, Expo, TypeScript
+-   **Frontend**: React Native, Expo, TypeScript, Expo Router
+-   **Authentication**: JWT (Access + Refresh tokens),  for Google OAuth.
+-   **UI Components**:  for date selection in the new Admin Console.
 -   **State Management**: React Context API (, )
--   **Authentication**: JWT (Access + Refresh tokens), Google OAuth (via Emergent-managed flow). **Auto-refresh logic is currently being implemented.**
--   **Routing**: Expo File-Based Routing ()
+-   **Key Logic**: A new centralized  function in  is now the source of truth for weekly scoring calculations.
 
 **key DB schema**
--   No schema changes in this session. Key collections remain: , , , , , , , , .
+- No schema changes, but the reliance on the  collection has been reduced in favor of on-the-fly calculations for  matchdays to ensure data consistency.
 
 **changes in tech stack**
-None.
+- Added , ,  to handle Google OAuth on mobile.
+- Added  for the Admin Console UI.
 
 **All files of reference**
--   : **New file.** Contains the critical token-refresh logic.
--   : **Heavily modified** to use the new API client.
--   : Needs to be checked for the Google OAuth fix.
--   : Was the first file to be updated with the new API client. All other files with API calls need similar updates.
--   : Needs the new  endpoint and has been modified to fix the frozen state of completed matches.
--   : The screen where the user navigates to the inconsistent detail view.
--   : The user detail screen that needs to be updated to use the new endpoint.
-
-**Areas that need refactoring**:
--   All frontend components that make API calls need to be refactored to use the new centralized  from  to ensure consistent auth handling.
-
-**key api endpoints**
--   : Crucial for the session hardening task.
--   : **To be created.** Needed to fix the standings data inconsistency.
--   : Recently modified to fix frozen status logic.
+-   : **New file**. The comprehensive Admin Console UI.
+-   : **Heavily modified**. Contains new admin endpoints (DELETE), the crucial  function, and fixes for data consistency across multiple endpoints (, , ).
+-   : **Rewritten** to use  for a cross-platform Google login.
+-   : **Modified** to correctly handle non-string error details.
+-   : Logic was investigated for the locked predictions bug.
+-   : **New file** created to show consistent user stats.
+-   : Modified to navigate to the new  screen.
 
 **Critical Info for New Agent**
--   **Priority is Bug Fixing**: Do not start new features. Your entire focus must be on resolving the 5 user-reported bugs (Auth, Google Login, Logo, Standings data).
--   **Auth is P0**: The token auto-refresh mechanism is the most critical fix. The foundation is laid in , but it must be applied globally and tested thoroughly.
--   **User is Technical**: The user provides detailed technical requirements. Follow them precisely.
--   **Core Logic is Sound**: The E2E tests passed, so don't refactor the core scoring or game logic. The bugs are in the presentation and session layers (UI data consistency, auth handling).
+-   **Your immediate task is to seed the database**. The user is waiting for random predictions on Matchday 12 for all test users. You must write a script to accomplish this as the first action.
+-   **The Admin Console is a major new feature**. Be aware of its capabilities and the new endpoints in  that support it.
+-   **Data consistency was the main theme**. The key fix was creating  in the backend and forcing a recalculation for completed matchdays if the stored  was stale (e.g., points=0). Do not re-introduce bugs by trusting  blindly.
+-   **User verification is pending for many items**: Google OAuth, the Admin Console, and all data consistency fixes need to be confirmed by the user. Be prepared for feedback on these items.
+-   **Ignored Linter Errors**: The previous agent ignored TypeScript parsing errors. It's a good idea to address these to ensure code health before adding more features.
 
 **documents created in this job**
-None new.
+- 
+- 
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (Critical Bug Report)**: Provided a detailed list of 5 bugs found on mobile (Token Expired, Google Login fails, inconsistent logo, inconsistent standings data) and specific technical instructions on how to fix them. (IN PROGRESS)
-2.  **Agent**: Acknowledged the bug report and started analysis.
-3.  **User (E2E Test PASS)**: Confirmed the E2E test passed and provided a final summary.
-4.  **Agent**: Ran a final clean E2E test which passed and confirmed all core logic works.
-5.  ... (Messages 5-9 were part of a complex debugging session during the E2E test where the agent fixed data inconsistencies related to test user memberships and match IDs).
-10. **User (Request for E2E Test)**: Requested a comprehensive end-to-end test of the entire application flow to validate stability before moving to new features. (COMPLETED)
+-   **10. (LATEST)** User Request: 1. Display match start times in the admin UI. 2. Seed random predictions for all test users for Matchday 12 for testing. (IN PROGRESS)
+-   **9.** User Bug Report: After creating Matchday 12, all predictions are locked even though the matchday is open. (RESOLVED)
+-   **8.** User Request: Fix an error () and add a date/time picker for individual matches in the Admin Console. (RESOLVED)
+-   **7.** User Request: Add a date picker for creating matchdays and a Save All button for match results in the Admin Console. (RESOLVED)
+-   **6.** User Request: Add create/delete functionality for matchdays and matches to the Admin Console. (RESOLVED)
+-   **5.** User provides detailed requirements for an in-app Admin Console MVP. (IN PROGRESS / LARGELY COMPLETE)
+-   **4.** User asks for the admin panel link, revealing the need for a UI instead of curl. (SPARKED ADMIN CONSOLE FEATURE)
+-   **3.** User reports a data consistency bug: Weekly standings show 0 points for a user, but the detail view shows correct predictions and points. (RESOLVED)
+-   **2.** User provides a very detailed problem statement covering multiple data consistency issues (current matchday, weekly points, 11-match rule). (RESOLVED)
+-   **1.** User reports a bug on a completed matchday where some matches still appear live. (RESOLVED)
 
 **Project Health Check:**
--   **Broken**:
-    -   User session management (expires without refresh).
-    -   Google OAuth on iOS.
--   **Mocked**:
-    -   No mocked functionality. The issues are with real but inconsistent data presentation.
+-   **Broken**: No features are known to be outright broken.
+-   **Mocked**: No mocked functionality.
+-   **Pending Verification**:
+    -   Google OAuth on mobile (iOS).
+    -   The entire new Admin Console feature.
+    -   All data consistency and scoring fixes.
 
 **3rd Party Integrations**
 -   **Stripe (Payments)** — requires User API Key. (Backend exists, not yet integrated into frontend flow).
--   **Emergent-managed Google Auth** — uses Emergent LLM Key. (Implemented, but broken on iOS).
+-   **Emergent-managed Google Auth** — uses Emergent LLM Key. (Re-implemented with , pending user test).
+-   **@react-native-community/datetimepicker**: New dependency for the Admin Console UI.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES, a full backend test suite was run and passed after the Standings/Live feature implementation.
+-   **Testing agent used after significant changes**: YES, backend tests were run multiple times to verify fixes for auth and data consistency.
 -   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: Test scripts were run via , but no persistent test files were created in this session.
--   **Known regressions**: Google OAuth on mobile is a regression or a previously untested broken feature. The token expiration is a newly discovered critical issue.
+-   **Test files created**: No persistent test files. Tests were run via  and ad-hoc scripts.
+-   **Known regressions**: None known, but many changes are pending user verification.
 
 **Credentials to test flow:**
 -   Admin:  / 
 -   User:  / 
--   Test users from E2E script: ,  (passwords are likely ). Check  and test scripts for definitive credentials.
+-   Other test users exist and can be found in the  collection.
 
 **What agent forgot to execute**
-The agent was in the middle of implementing the bug fixes. It had not yet:
--   Globally applied the new  to all API calls in the frontend.
--   Started debugging the Google OAuth mobile issue.
--   Finished implementing the  backend endpoint.
+- The agent was about to execute the script to seed random predictions for test users. This is the immediate next step.
+- The agent did not fix the linter/parsing errors it encountered, dismissing them as configuration issues.
 
 </analysis>

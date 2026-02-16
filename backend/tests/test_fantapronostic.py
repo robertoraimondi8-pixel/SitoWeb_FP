@@ -12,7 +12,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://bugbuster-101.preview.emergentagent.com"
+BASE_URL = "https://matchday-seeder.preview.emergentagent.com"
 
 class TestHealth:
     """API health check"""
