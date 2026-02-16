@@ -111,6 +111,42 @@ user_problem_statement: |
   - Scoring: sum of valid match points * 2 if jolly active
 
 backend:
+  - task: "A) Admin Current Matchday"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Admin Current Matchday functionality working correctly. PUT /api/admin/seasons/{season_id}/current-matchday successfully sets current_matchday_id on season. GET /api/home correctly returns the admin-configured matchday. Tested with season 19e329ae-4c6b-47ea-ab38-50a4d1baab1e and matchday 1e026165-1240-4d6c-86d5-253c9a69a199."
+
+  - task: "B) Points Consistency"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Points consistency between endpoints working correctly. GET /api/standings/weekly/{matchday_id} matchday_points (0.0) equals GET /api/predictions/user/{user_id}/{matchday_id} total_points (0.0). Both endpoints use the same compute_matchday_points function ensuring consistency."
+
+  - task: "C) 11 Predictions Rule"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: 11 Predictions Rule working correctly. GET /api/home returns total_matches >= 11 (verified: 11). POST /api/predictions/{matchday_id}/confirm correctly returns 400 with NEED_11_PREDICTIONS error when user has < 11 predictions (tested with 0 predictions). Error format: {'code': 'NEED_11_PREDICTIONS', 'message': 'Devi inserire tutti e 11 i pronostici per confermare', 'current': 0, 'required': 11}."
+
   - task: "Jolly per MATCHDAY (not per match)"
     implemented: true
     working: true
