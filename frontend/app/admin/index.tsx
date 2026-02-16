@@ -705,13 +705,14 @@ export default function AdminConsole() {
               <>
                 {matches.map((match) => {
                   const isModified = modifiedMatches.has(match.id);
+                  const matchTime = match.start_time ? new Date(match.start_time) : null;
                   return (
                     <View key={match.id} style={[
                       s.matchCard, 
                       { borderColor: isModified ? colors.accent : colors.border },
                       isModified && { borderWidth: 2 }
                     ]}>
-                      {/* Teams */}
+                      {/* Teams + Time */}
                       <View style={s.matchTeamsRow}>
                         <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>
                           {match.home_team}
@@ -727,6 +728,16 @@ export default function AdminConsole() {
                           <Ionicons name="close-circle" size={22} color={colors.error} />
                         </TouchableOpacity>
                       </View>
+                      
+                      {/* Match Time Display */}
+                      {matchTime && (
+                        <View style={s.matchTimeRow}>
+                          <Ionicons name="time-outline" size={14} color={colors.accent} />
+                          <Text style={[s.matchTimeText, { color: colors.accent }]}>
+                            {matchTime.toLocaleDateString('it-IT', { weekday: 'short', day: '2-digit', month: '2-digit' })} {matchTime.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+                          </Text>
+                        </View>
+                      )}
                       
                       {/* Score inputs + Status */}
                       <View style={s.matchControlsRow}>
