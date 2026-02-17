@@ -496,14 +496,15 @@ async def get_home(user=Depends(get_current_user)):
         entries = []
         user_rank = None
         user_total_points = 0.0
-        user_matchdays_played = 0
+        # GIORNATE = total completed matchdays in season (same source as last_5_performance)
+        # Not from score_summaries count (user may have 0 pts on a matchday = no score doc)
+        user_matchdays_played = total_completed_in_season
         
         for i, t in enumerate(all_totals):
             # Check if this is the current user
             if t["_id"] == user["id"]:
                 user_rank = i + 1
                 user_total_points = t["total"]
-                user_matchdays_played = t["matchdays_played"]
             
             # Add to top 5 preview
             if i < 5:
