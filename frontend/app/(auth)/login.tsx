@@ -4,18 +4,20 @@ import {
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
   Image, Dimensions, Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { useTheme } from '../../src/contexts/ThemeContext';
 import { apiCall } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Design System
+import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+
 const { width } = Dimensions.get('window');
-const LOGO_SIZE = Math.min(width * 0.35, 160);
 
 // Timeout per Google Login (15 secondi)
 const GOOGLE_LOGIN_TIMEOUT = 15000;
@@ -25,7 +27,6 @@ const LOG_PREFIX = '[GoogleOAuth]';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
-  const { colors } = useTheme();
   const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -196,43 +197,48 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={[s.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={s.keyboardView}
+        style={styles.keyboardView}
       >
         <ScrollView
-          contentContainerStyle={s.scrollContent}
+          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {/* Logo */}
-          <View style={s.logoSection}>
-            <Image
-              testID="app-logo"
-              source={require('../../assets/logo.png')}
-              style={s.logo}
-              resizeMode="contain"
-            />
+          <View style={styles.logoSection}>
+            <View style={styles.logoContainer}>
+              <Image
+                testID="app-logo"
+                source={require('../../assets/logo-official.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </View>
           </View>
 
           {/* Form Card */}
-          <View style={[s.formCard, { backgroundColor: colors.card }]}>
+          <View style={styles.formCard}>
+            <Text style={styles.welcomeTitle}>Bentornato!</Text>
+            <Text style={styles.welcomeSubtitle}>Accedi per continuare</Text>
+
             {error ? (
-              <View style={[s.errorBanner, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
+              <View style={styles.errorBanner}>
                 <Ionicons name="alert-circle" size={18} color={colors.error} />
-                <Text style={[s.errorText, { color: colors.error }]}>{error}</Text>
+                <Text style={styles.errorText}>{error}</Text>
               </View>
             ) : null}
 
             {/* Email Input */}
-            <View style={[s.inputContainer, { borderColor: colors.border }]}>
-              <Ionicons name="mail-outline" size={20} color={colors.textSecondary} style={s.inputIcon} />
+            <View style={styles.inputContainer}>
+              <Ionicons name="mail-outline" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
                 testID="login-email-input"
-                style={[s.input, { color: colors.text }]}
+                style={styles.input}
                 placeholder={t('email')}
-                placeholderTextColor={colors.textSecondary}
+                placeholderTextColor={colors.textMuted}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -242,13 +248,13 @@ export default function LoginScreen() {
             </View>
 
             {/* Password Input */}
-            <View style={[s.inputContainer, { borderColor: colors.border }]}>
-              <Ionicons name="lock-closed-outline" size={20} color={colors.textSecondary} style={s.inputIcon} />
+            <View style={styles.inputContainer}>
+              <Ionicons name="lock-closed-outline" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
                 testID="login-password-input"
-                style={[s.input, { color: colors.text }]}
+                style={styles.input}
                 placeholder={t('password')}
-                placeholderTextColor={colors.textSecondary}
+                placeholderTextColor={colors.textMuted}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -267,45 +273,43 @@ export default function LoginScreen() {
             </View>
 
             {/* Forgot Password */}
-            <TouchableOpacity testID="forgot-password-btn" style={s.forgotRow}>
-              <Text style={[s.forgotText, { color: colors.accent }]}>Password dimenticata?</Text>
+            <TouchableOpacity testID="forgot-password-btn" style={styles.forgotRow}>
+              <Text style={styles.forgotText}>Password dimenticata?</Text>
             </TouchableOpacity>
 
             {/* Login Button */}
             <TouchableOpacity
               testID="login-submit-btn"
-              style={[s.loginBtn, { backgroundColor: colors.accent }]}
+              style={styles.loginBtn}
               onPress={handleLogin}
               disabled={loading}
               activeOpacity={0.85}
             >
               {loading ? (
-                <ActivityIndicator color={colors.background} />
+                <ActivityIndicator color={colors.textInverse} />
               ) : (
-                <Text style={[s.loginBtnText, { color: colors.background }]}>
-                  {t('login').toUpperCase()}
-                </Text>
+                <Text style={styles.loginBtnText}>ACCEDI</Text>
               )}
             </TouchableOpacity>
 
             {/* Divider */}
-            <View style={s.dividerRow}>
-              <View style={[s.dividerLine, { backgroundColor: colors.border }]} />
-              <Text style={[s.dividerText, { color: colors.textSecondary }]}>oppure</Text>
-              <View style={[s.dividerLine, { backgroundColor: colors.border }]} />
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>oppure</Text>
+              <View style={styles.dividerLine} />
             </View>
 
             {/* Google Login Error */}
             {googleError ? (
-              <View style={[s.googleErrorBanner, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
+              <View style={styles.googleErrorBanner}>
                 <Ionicons name="warning" size={18} color={colors.error} />
-                <Text style={[s.googleErrorText, { color: colors.error }]}>{googleError}</Text>
+                <Text style={styles.googleErrorText}>{googleError}</Text>
                 <TouchableOpacity 
                   testID="retry-google-btn"
                   onPress={handleRetryGoogle}
-                  style={[s.retryBtn, { borderColor: colors.error }]}
+                  style={styles.retryBtn}
                 >
-                  <Text style={[s.retryBtnText, { color: colors.error }]}>Riprova</Text>
+                  <Text style={styles.retryBtnText}>Riprova</Text>
                 </TouchableOpacity>
               </View>
             ) : null}
@@ -313,30 +317,22 @@ export default function LoginScreen() {
             {/* Google Login */}
             <TouchableOpacity
               testID="google-login-btn"
-              style={[
-                s.googleBtn, 
-                { borderColor: colors.border },
-                googleError && { opacity: 0.7 }
-              ]}
+              style={[styles.googleBtn, googleError && { opacity: 0.7 }]}
               onPress={handleGoogleLogin}
               disabled={googleLoading}
               activeOpacity={0.85}
             >
               {googleLoading ? (
-                <View style={s.googleLoadingRow}>
-                  <ActivityIndicator color={colors.text} size="small" />
-                  <Text style={[s.googleLoadingText, { color: colors.textSecondary }]}>
-                    Attendere...
-                  </Text>
+                <View style={styles.googleLoadingRow}>
+                  <ActivityIndicator color={colors.textSecondary} size="small" />
+                  <Text style={styles.googleLoadingText}>Attendere...</Text>
                 </View>
               ) : (
                 <>
-                  <View style={s.googleIconWrap}>
-                    <Text style={s.googleG}>G</Text>
+                  <View style={styles.googleIconWrap}>
+                    <Text style={styles.googleG}>G</Text>
                   </View>
-                  <Text style={[s.googleBtnText, { color: colors.text }]}>
-                    Continua con Google
-                  </Text>
+                  <Text style={styles.googleBtnText}>Continua con Google</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -346,24 +342,21 @@ export default function LoginScreen() {
           <TouchableOpacity
             testID="go-to-register-btn"
             onPress={() => router.push('/(auth)/register')}
-            style={s.registerRow}
+            style={styles.registerRow}
           >
-            <Text style={[s.registerLabel, { color: colors.textSecondary }]}>
-              {t('no_account')}{' '}
-            </Text>
-            <Text style={[s.registerLink, { color: colors.accent }]}>
-              {t('register')}
-            </Text>
+            <Text style={styles.registerLabel}>{t('no_account')} </Text>
+            <Text style={styles.registerLink}>{t('register')}</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -371,146 +364,189 @@ const s = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    paddingTop: 60,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xxxl,
+    paddingTop: spacing.xxl,
   },
+  
   /* ─── Logo ─── */
   logoSection: {
     alignItems: 'center',
-    marginBottom: 36,
+    marginBottom: spacing.xxl,
+  },
+  logoContainer: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    ...shadows.card,
   },
   logo: {
-    width: LOGO_SIZE * 1.3,
-    height: LOGO_SIZE,
-    borderRadius: 20,
+    width: 180,
+    height: 80,
   },
+  
   /* ─── Form Card ─── */
   formCard: {
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 28,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xxl,
+    ...shadows.card,
+  },
+  welcomeTitle: {
+    ...typography.titleL,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  welcomeSubtitle: {
+    ...typography.bodyS,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginBottom: 16,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.errorLight,
+    marginBottom: spacing.lg,
   },
   errorText: {
     flex: 1,
-    fontSize: 13,
-    fontWeight: '500',
+    ...typography.bodyS,
+    color: colors.error,
   },
+  
   /* ─── Inputs ─── */
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
     height: 54,
-    paddingHorizontal: 14,
-    marginBottom: 14,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    backgroundColor: colors.background,
   },
   inputIcon: {
-    marginRight: 10,
+    marginRight: spacing.md,
   },
   input: {
     flex: 1,
     fontSize: 16,
     height: '100%',
+    color: colors.textPrimary,
   },
+  
   /* ─── Forgot Password ─── */
   forgotRow: {
     alignSelf: 'flex-end',
-    marginBottom: 20,
-    paddingVertical: 2,
+    marginBottom: spacing.xl,
+    paddingVertical: spacing.xs,
   },
   forgotText: {
-    fontSize: 13,
+    ...typography.meta,
+    color: colors.accent,
     fontWeight: '600',
   },
+  
   /* ─── Login Button ─── */
   loginBtn: {
     height: 54,
-    borderRadius: 14,
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.accent,
+    ...shadows.button,
   },
   loginBtnText: {
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: 1.5,
+    color: colors.textInverse,
   },
+  
   /* ─── Divider ─── */
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 22,
+    marginVertical: spacing.xl,
   },
   dividerLine: {
     flex: 1,
     height: 1,
+    backgroundColor: colors.border,
   },
   dividerText: {
-    marginHorizontal: 14,
-    fontSize: 13,
-    fontWeight: '500',
+    marginHorizontal: spacing.lg,
+    ...typography.meta,
+    color: colors.textMuted,
   },
+  
   /* ─── Google Error ─── */
   googleErrorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginBottom: 12,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.errorLight,
+    marginBottom: spacing.md,
   },
   googleErrorText: {
     flex: 1,
-    fontSize: 13,
-    fontWeight: '500',
+    ...typography.bodyS,
+    color: colors.error,
   },
   retryBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
     borderWidth: 1,
+    borderColor: colors.error,
   },
   retryBtnText: {
-    fontSize: 12,
+    ...typography.meta,
+    color: colors.error,
     fontWeight: '600',
   },
+  
   /* ─── Google Button ─── */
   googleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     height: 54,
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 10,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    gap: spacing.md,
   },
   googleLoadingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: spacing.md,
   },
   googleLoadingText: {
-    fontSize: 14,
-    fontWeight: '500',
+    ...typography.bodyM,
+    color: colors.textSecondary,
   },
   googleIconWrap: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: '#fff',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   googleG: {
     fontSize: 16,
@@ -518,20 +554,24 @@ const s = StyleSheet.create({
     color: '#4285F4',
   },
   googleBtnText: {
-    fontSize: 15,
+    ...typography.bodyM,
+    color: colors.textPrimary,
     fontWeight: '600',
   },
+  
   /* ─── Register Link ─── */
   registerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
+    marginTop: spacing.xl,
   },
   registerLabel: {
-    fontSize: 14,
+    ...typography.bodyM,
+    color: colors.textSecondary,
   },
   registerLink: {
-    fontSize: 14,
+    ...typography.bodyM,
+    color: colors.accent,
     fontWeight: '700',
   },
 });
