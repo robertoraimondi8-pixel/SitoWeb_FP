@@ -1186,30 +1186,6 @@ export default function AdminConsole() {
         </TouchableOpacity>
       </Modal>
 
-      {/* Modal: Number Picker for New Matchday */}
-      <Modal visible={showNumberPicker} transparent animationType="slide">
-        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowNumberPicker(false)}>
-          <View style={[s.dropdownModal, { backgroundColor: colors.card }]}>
-            <View style={s.dropdownModalHandle} />
-            <Text style={[s.modalTitle, { color: colors.text }]}>Seleziona Numero Giornata</Text>
-            <ScrollView style={s.dropdownList}>
-              {getAvailableNumbers().map((num) => (
-                <TouchableOpacity
-                  key={num}
-                  style={[s.dropdownItem, { borderColor: colors.border }, newMatchday.number === String(num) && { backgroundColor: 'rgba(245,166,35,0.1)', borderColor: colors.accent }]}
-                  onPress={() => {
-                    setNewMatchday(p => ({ ...p, number: String(num), label: `Giornata ${num}` }));
-                    setShowNumberPicker(false);
-                  }}
-                >
-                  <Text style={[s.dropdownItemText, { color: colors.text }]}>Giornata {num}</Text>
-                  {newMatchday.number === String(num) && <Ionicons name="checkmark-circle" size={20} color={colors.accent} />}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </SafeAreaView>
   );
 }
