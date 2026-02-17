@@ -211,12 +211,7 @@ export default function LoginScreen() {
           {/* Logo */}
           <View style={styles.logoSection}>
             <View style={styles.logoContainer}>
-              <Image
-                testID="app-logo"
-                source={require('../../assets/logo-official.png')}
-                style={styles.logo}
-                resizeMode="contain"
-              />
+              <BrandLogo variant="full" size="lg" />
             </View>
           </View>
 
