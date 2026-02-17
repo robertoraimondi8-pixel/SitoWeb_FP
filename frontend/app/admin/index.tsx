@@ -559,6 +559,15 @@ export default function AdminConsole() {
         {actionLoading && <ActivityIndicator size="small" color={colors.accent} />}
       </View>
 
+      {/* Descriptive Banner */}
+      <View style={[s.descBanner, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <Ionicons name="shield-checkmark" size={24} color={colors.accent} />
+        <View style={s.descBannerText}>
+          <Text style={[s.descTitle, { color: colors.text }]}>Gestione Campionato</Text>
+          <Text style={[s.descSubtitle, { color: colors.textSecondary }]}>Crea e modifica stagioni, giornate e partite ufficiali.</Text>
+        </View>
+      </View>
+
       <ScrollView
         contentContainerStyle={s.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
