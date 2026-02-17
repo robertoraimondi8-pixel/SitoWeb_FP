@@ -609,47 +609,49 @@ export default function AdminConsole() {
             {matchdays.length === 0 ? (
               <Text style={[s.emptyText, { color: colors.textSecondary }]}>Nessuna giornata - creane una!</Text>
             ) : (
-              matchdays.map((md) => {
-                const isCurrent = selectedSeason.current_matchday_id === md.id;
-                const isSelected = selectedMatchday?.id === md.id;
-                return (
-                  <TouchableOpacity
-                    key={md.id}
-                    style={[
-                      s.matchdayRow,
-                      { borderColor: colors.border },
-                      isSelected && { borderColor: colors.accent, backgroundColor: 'rgba(245,166,35,0.1)' },
-                    ]}
-                    onPress={() => setSelectedMatchday(md)}
-                  >
-                    <View style={s.matchdayInfo}>
-                      <Text style={[s.matchdayNum, { color: colors.text }]}>
-                        {md.label || `Giornata ${md.number}`} {isCurrent ? '⭐' : ''}
+              <>
+                {/* DROPDOWN SELECTOR per giornate */}
+                <TouchableOpacity
+                  style={[s.dropdownSelector, { backgroundColor: colors.background, borderColor: colors.border }]}
+                  onPress={() => setShowMatchdayDropdown(true)}
+                >
+                  <Ionicons name="calendar-outline" size={20} color={colors.accent} />
+                  <Text style={[s.dropdownText, { color: colors.text }]}>
+                    {selectedMatchday 
+                      ? `${selectedMatchday.label || `Giornata ${selectedMatchday.number}`}` 
+                      : 'Seleziona giornata...'}
+                  </Text>
+                  {selectedMatchday && (
+                    <View style={[s.dropdownBadge, { backgroundColor: getStatusColor(selectedMatchday.status) }]}>
+                      <Text style={s.dropdownBadgeText}>{selectedMatchday.status}</Text>
+                    </View>
+                  )}
+                  <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+                </TouchableOpacity>
+
+                {/* Quick actions for selected matchday */}
+                {selectedMatchday && (
+                  <View style={s.quickActions}>
+                    <TouchableOpacity
+                      style={[s.quickBtn, { backgroundColor: selectedSeason.current_matchday_id === selectedMatchday.id ? colors.border : colors.accent }]}
+                      onPress={() => setCurrentMatchday(selectedMatchday.id)}
+                      disabled={selectedSeason.current_matchday_id === selectedMatchday.id}
+                    >
+                      <Ionicons name="star" size={16} color={selectedSeason.current_matchday_id === selectedMatchday.id ? colors.textSecondary : colors.background} />
+                      <Text style={[s.quickBtnText, { color: selectedSeason.current_matchday_id === selectedMatchday.id ? colors.textSecondary : colors.background }]}>
+                        {selectedSeason.current_matchday_id === selectedMatchday.id ? 'Corrente' : 'Set Corrente'}
                       </Text>
-                      <View style={[s.statusBadge, { backgroundColor: getStatusColor(md.status) }]}>
-                        <Text style={s.statusBadgeText}>{md.status}</Text>
-                      </View>
-                    </View>
-                    <View style={s.matchdayActions}>
-                      <TouchableOpacity
-                        style={[s.smallBtn, { backgroundColor: isCurrent ? colors.border : colors.accent }]}
-                        onPress={() => setCurrentMatchday(md.id)}
-                        disabled={isCurrent}
-                      >
-                        <Text style={[s.smallBtnText, { color: isCurrent ? colors.textSecondary : colors.background }]}>
-                          {isCurrent ? '⭐' : 'Set'}
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[s.smallBtn, { backgroundColor: 'rgba(239,68,68,0.2)' }]}
-                        onPress={() => deleteMatchday(md.id)}
-                      >
-                        <Ionicons name="trash" size={14} color={colors.error} />
-                      </TouchableOpacity>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[s.quickBtn, { backgroundColor: 'rgba(239,68,68,0.15)' }]}
+                      onPress={() => deleteMatchday(selectedMatchday.id)}
+                    >
+                      <Ionicons name="trash" size={16} color={colors.error} />
+                      <Text style={[s.quickBtnText, { color: colors.error }]}>Elimina</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </>
             )}
           </View>
         )}
