@@ -6,10 +6,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { useTheme } from '../../src/contexts/ThemeContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+
+// Design System
+import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+import { StatusBadge } from '../../src/components/ui';
 
 interface StandingEntry {
   user_id: string;
@@ -28,8 +31,7 @@ interface StandingEntry {
 
 export default function RankingsScreen() {
   const { t } = useTranslation();
-  const { colors } = useTheme();
-  const { token, handleAuthError } = useAuth();
+  const { token, user, handleAuthError } = useAuth();
   const [tab, setTab] = useState<'total' | 'weekly'>('total');
   const [leagues, setLeagues] = useState<any[]>([]);
   const [selectedLeague, setSelectedLeague] = useState('');
@@ -41,7 +43,6 @@ export default function RankingsScreen() {
   const [selectedMatchday, setSelectedMatchday] = useState<any>(null);
   const [showMatchdayPicker, setShowMatchdayPicker] = useState(false);
 
-  // Load leagues and matchdays on mount
   useEffect(() => {
     (async () => {
       try {
@@ -64,7 +65,6 @@ export default function RankingsScreen() {
     })();
   }, [token, handleAuthError]);
 
-  // Fetch standings when tab/league/matchday changes
   const fetchStandings = useCallback(async () => {
     if (!selectedLeague) { setLoading(false); return; }
     setLoading(true);
@@ -91,157 +91,105 @@ export default function RankingsScreen() {
 
   useEffect(() => { fetchStandings(); }, [fetchStandings]);
 
-  // Navigate to user predictions transparency (weekly)
   const viewUserPredictions = (userId: string) => {
     if (!selectedMatchday) return;
     router.push({
       pathname: '/user-predictions',
-      params: { 
-        userId, 
-        matchdayId: selectedMatchday.id,
-        leagueId: selectedLeague 
-      }
+      params: { userId, matchdayId: selectedMatchday.id, leagueId: selectedLeague }
     });
   };
 
-  // Navigate to user profile (total standings)
   const viewUserProfile = (userId: string) => {
     router.push({
       pathname: '/user-detail',
-      params: { 
-        userId, 
-        leagueId: selectedLeague 
-      }
+      params: { userId, leagueId: selectedLeague }
     });
   };
 
-  const renderTotalEntry = (entry: StandingEntry, index: number) => {
+  const formatPoints = (n: number) => n.toFixed(1);
+
+  const renderEntry = (entry: StandingEntry, index: number) => {
     const isTop3 = index < 3;
-    const medalColors = ['#FFD700', '#C0C0C0', '#CD7F32'];
+    const isCurrentUser = entry.user_id === user?.id;
+    const points = tab === 'total' ? entry.total_points : entry.matchday_points;
     
     return (
       <TouchableOpacity
         key={entry.user_id}
         testID={`rank-${index}`}
-        onPress={() => viewUserProfile(entry.user_id)}
+        onPress={() => tab === 'total' ? viewUserProfile(entry.user_id) : viewUserPredictions(entry.user_id)}
         style={[
-          isTop3 ? s.topRow : s.row,
-          { 
-            backgroundColor: isTop3 ? colors.card : 'transparent',
-            borderColor: entry.is_current_user ? colors.accent : colors.border,
-            borderWidth: entry.is_current_user ? 2 : isTop3 ? 1 : 0,
-            borderBottomWidth: isTop3 ? (entry.is_current_user ? 2 : 1) : 1,
-            borderBottomColor: isTop3 ? (entry.is_current_user ? colors.accent : colors.border) : colors.border,
-          }
+          styles.entryRow,
+          isTop3 && styles.entryRowTop3,
+          isCurrentUser && styles.entryRowCurrent,
         ]}
       >
-        {isTop3 ? (
-          <View style={[s.rankCircle, { backgroundColor: medalColors[index] }]}>
-            <Text style={s.rankCircleText}>{entry.rank}</Text>
-          </View>
-        ) : (
-          <Text style={[s.rowRank, { color: colors.textSecondary }]}>{entry.rank}</Text>
-        )}
+        {isCurrentUser && <View style={styles.currentUserAccent} />}
         
-        <View style={isTop3 ? s.rankInfo : s.rowInfo}>
-          <Text style={[isTop3 ? s.rankUsername : s.rowName, { color: colors.text }]}>
-            {entry.username}
-            {entry.is_current_user && ' (Tu)'}
+        <View style={[
+          styles.rankBadge,
+          isTop3 && styles.rankBadgeTop3,
+          { backgroundColor: isTop3 ? colors.accent : colors.background }
+        ]}>
+          <Text style={[
+            styles.rankText,
+            isTop3 && styles.rankTextTop3,
+          ]}>
+            {entry.rank}
           </Text>
-          {isTop3 && (
-            <Text style={[s.rankMeta, { color: colors.textSecondary }]}>
+        </View>
+        
+        <View style={styles.entryInfo}>
+          <Text style={[styles.entryName, isCurrentUser && styles.entryNameBold]}>
+            {entry.username}
+            {isCurrentUser && ' (Tu)'}
+          </Text>
+          {isTop3 && tab === 'total' && (
+            <Text style={styles.entryMeta}>
               {entry.matchdays_played || 0} giornate • {entry.jolly_used || 0} jolly
             </Text>
           )}
-        </View>
-        
-        <View style={s.pointsCol}>
-          <Text style={[isTop3 ? s.rankPoints : s.rowPts, { color: colors.accent }]}>
-            {(entry.total_points || 0).toFixed(1)}
-          </Text>
-          {entry.current_week_points !== undefined && entry.current_week_points > 0 && (
-            <Text style={[s.weekPoints, { color: colors.success }]}>
-              +{entry.current_week_points.toFixed(1)}
-            </Text>
-          )}
-        </View>
-        
-        <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
-      </TouchableOpacity>
-    );
-  };
-
-  const renderWeeklyEntry = (entry: StandingEntry, index: number) => {
-    const isTop3 = index < 3;
-    const medalColors = ['#FFD700', '#C0C0C0', '#CD7F32'];
-    
-    return (
-      <TouchableOpacity
-        key={entry.user_id}
-        testID={`rank-weekly-${index}`}
-        onPress={() => viewUserPredictions(entry.user_id)}
-        style={[
-          isTop3 ? s.topRow : s.row,
-          { 
-            backgroundColor: isTop3 ? colors.card : 'transparent',
-            borderColor: entry.is_current_user ? colors.accent : colors.border,
-            borderWidth: entry.is_current_user ? 2 : isTop3 ? 1 : 0,
-            borderBottomWidth: isTop3 ? (entry.is_current_user ? 2 : 1) : 1,
-            borderBottomColor: isTop3 ? (entry.is_current_user ? colors.accent : colors.border) : colors.border,
-          }
-        ]}
-      >
-        {isTop3 ? (
-          <View style={[s.rankCircle, { backgroundColor: medalColors[index] }]}>
-            <Text style={s.rankCircleText}>{entry.rank}</Text>
-          </View>
-        ) : (
-          <Text style={[s.rowRank, { color: colors.textSecondary }]}>{entry.rank}</Text>
-        )}
-        
-        <View style={isTop3 ? s.rankInfo : s.rowInfo}>
-          <Text style={[isTop3 ? s.rankUsername : s.rowName, { color: colors.text }]}>
-            {entry.username}
-            {entry.is_current_user && ' (Tu)'}
-          </Text>
-          {isTop3 && (
-            <Text style={[s.rankMeta, { color: colors.textSecondary }]}>
+          {isTop3 && tab === 'weekly' && (
+            <Text style={styles.entryMeta}>
               {entry.exact_correct || 0} esatti • {entry['1x2_correct'] || 0} 1X2
-              {entry.jolly_active && ' • JOLLY'}
             </Text>
           )}
         </View>
         
-        <View style={s.pointsCol}>
-          <Text style={[isTop3 ? s.rankPoints : s.rowPts, { color: colors.accent }]}>
-            {(entry.matchday_points || 0).toFixed(1)}
+        <View style={styles.pointsContainer}>
+          <Text style={[styles.pointsText, isTop3 && styles.pointsTextLarge]}>
+            {formatPoints(points || 0)}
           </Text>
-          {entry.jolly_active && (
-            <View style={[s.jollyBadge, { backgroundColor: 'rgba(245,166,35,0.15)' }]}>
+          {tab === 'total' && entry.current_week_points !== undefined && entry.current_week_points > 0 && (
+            <Text style={styles.weekBonus}>+{formatPoints(entry.current_week_points)}</Text>
+          )}
+          {tab === 'weekly' && entry.jolly_active && (
+            <View style={styles.jollyBadge}>
               <Ionicons name="star" size={10} color={colors.accent} />
-              <Text style={[s.jollyText, { color: colors.accent }]}>x2</Text>
+              <Text style={styles.jollyText}>x2</Text>
             </View>
           )}
         </View>
         
-        <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+        <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
       </TouchableOpacity>
     );
   };
 
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
-      <View style={s.header}>
-        <Text style={[s.headerTitle, { color: colors.text }]}>Classifiche</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Classifiche</Text>
+        <View style={styles.accentLine} />
       </View>
 
       {/* League Selector */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false} 
-        style={s.leagueScroll} 
-        contentContainerStyle={s.leagueContent}
+        style={styles.leagueScroll} 
+        contentContainerStyle={styles.leagueContent}
       >
         {leagues.map(l => (
           <TouchableOpacity 
@@ -249,16 +197,13 @@ export default function RankingsScreen() {
             testID={`league-filter-${l.id}`} 
             onPress={() => setSelectedLeague(l.id)} 
             style={[
-              s.leagueChip, 
-              { 
-                backgroundColor: selectedLeague === l.id ? colors.accent : colors.card, 
-                borderColor: colors.border 
-              }
+              styles.leagueChip, 
+              selectedLeague === l.id && styles.leagueChipActive
             ]}
           >
             <Text style={[
-              s.leagueChipText, 
-              { color: selectedLeague === l.id ? colors.background : colors.text }
+              styles.leagueChipText, 
+              selectedLeague === l.id && styles.leagueChipTextActive
             ]}>
               {l.name}
             </Text>
@@ -267,73 +212,77 @@ export default function RankingsScreen() {
       </ScrollView>
 
       {/* Tab Toggle */}
-      <View style={[s.tabRow, { backgroundColor: colors.card }]}>
-        <TouchableOpacity 
-          testID="tab-total"
-          onPress={() => setTab('total')} 
-          style={[s.tabBtn, tab === 'total' && { backgroundColor: colors.accent }]}
-        >
-          <Text style={[s.tabText, { color: tab === 'total' ? colors.background : colors.textSecondary }]}>
-            Totale
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          testID="tab-weekly"
-          onPress={() => setTab('weekly')} 
-          style={[s.tabBtn, tab === 'weekly' && { backgroundColor: colors.accent }]}
-        >
-          <Text style={[s.tabText, { color: tab === 'weekly' ? colors.background : colors.textSecondary }]}>
-            Settimanale
-          </Text>
-        </TouchableOpacity>
+      <View style={styles.tabContainer}>
+        <View style={styles.tabRow}>
+          <TouchableOpacity 
+            testID="tab-total"
+            onPress={() => setTab('total')} 
+            style={[styles.tabBtn, tab === 'total' && styles.tabBtnActive]}
+          >
+            <Text style={[styles.tabText, tab === 'total' && styles.tabTextActive]}>
+              Totale
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            testID="tab-weekly"
+            onPress={() => setTab('weekly')} 
+            style={[styles.tabBtn, tab === 'weekly' && styles.tabBtnActive]}
+          >
+            <Text style={[styles.tabText, tab === 'weekly' && styles.tabTextActive]}>
+              Settimanale
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Matchday Selector (only for weekly tab) */}
+      {/* Matchday Selector */}
       {tab === 'weekly' && (
         <TouchableOpacity 
           testID="matchday-selector"
           onPress={() => setShowMatchdayPicker(true)}
-          style={[s.matchdaySelector, { backgroundColor: colors.card, borderColor: colors.border }]}
+          style={styles.matchdaySelector}
         >
-          <Ionicons name="calendar" size={18} color={colors.accent} />
-          <Text style={[s.matchdaySelectorText, { color: colors.text }]}>
+          <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+          <Text style={styles.matchdaySelectorText}>
             {selectedMatchday ? `Giornata ${selectedMatchday.number}` : 'Seleziona giornata'}
           </Text>
-          <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
+          <View style={styles.matchdaySelectorBadge}>
+            <Text style={styles.matchdaySelectorBadgeText}>
+              {selectedMatchday?.status || ''}
+            </Text>
+          </View>
+          <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
         </TouchableOpacity>
       )}
 
       {/* Standings List */}
       {loading ? (
-        <View style={s.center}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={s.scrollContent}>
-          {standings?.entries?.map((entry: StandingEntry, i: number) => 
-            tab === 'total' ? renderTotalEntry(entry, i) : renderWeeklyEntry(entry, i)
-          )}
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.listCard}>
+            {standings?.entries?.map((entry: StandingEntry, i: number) => renderEntry(entry, i))}
+          </View>
 
-          {/* My Position (if not in visible list) */}
           {standings?.my_position && !standings.entries?.find((e: StandingEntry) => e.is_current_user) && (
-            <View style={[s.myPos, { backgroundColor: colors.card, borderColor: colors.accent }]}>
-              <Ionicons name="person" size={16} color={colors.accent} />
-              <Text style={[s.myPosText, { color: colors.text }]}>
+            <View style={styles.myPositionCard}>
+              <Ionicons name="person-outline" size={18} color={colors.accent} />
+              <Text style={styles.myPositionText}>
                 La tua posizione: #{standings.my_position.rank}
               </Text>
-              <Text style={[s.myPosPts, { color: colors.accent }]}>
-                {(standings.my_position.total_points || standings.my_position.matchday_points || 0).toFixed(1)} pts
+              <Text style={styles.myPositionPoints}>
+                {formatPoints(standings.my_position.total_points || standings.my_position.matchday_points || 0)} pts
               </Text>
             </View>
           )}
 
           {(!standings?.entries || standings.entries.length === 0) && (
-            <View style={s.emptyState}>
-              <Ionicons name="trophy-outline" size={48} color={colors.textSecondary} />
-              <Text style={[s.noData, { color: colors.textSecondary }]}>
-                Nessun dato disponibile
-              </Text>
-              <Text style={[s.noDataSub, { color: colors.textSecondary }]}>
+            <View style={styles.emptyState}>
+              <Ionicons name="trophy-outline" size={48} color={colors.textMuted} />
+              <Text style={styles.emptyTitle}>Nessun dato disponibile</Text>
+              <Text style={styles.emptySubtitle}>
                 La classifica sarà disponibile dopo la prima giornata
               </Text>
             </View>
@@ -349,13 +298,14 @@ export default function RankingsScreen() {
         onRequestClose={() => setShowMatchdayPicker(false)}
       >
         <TouchableOpacity 
-          style={s.modalOverlay} 
+          style={styles.modalOverlay} 
           activeOpacity={1} 
           onPress={() => setShowMatchdayPicker(false)}
         >
-          <View style={[s.modalContent, { backgroundColor: colors.card }]}>
-            <View style={s.modalHeader}>
-              <Text style={[s.modalTitle, { color: colors.text }]}>Seleziona Giornata</Text>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Seleziona Giornata</Text>
               <TouchableOpacity onPress={() => setShowMatchdayPicker(false)}>
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
@@ -366,26 +316,20 @@ export default function RankingsScreen() {
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[
-                    s.matchdayItem,
-                    { borderBottomColor: colors.border },
-                    selectedMatchday?.id === item.id && { backgroundColor: 'rgba(245,166,35,0.1)' }
+                    styles.matchdayItem,
+                    selectedMatchday?.id === item.id && styles.matchdayItemActive
                   ]}
                   onPress={() => {
                     setSelectedMatchday(item);
                     setShowMatchdayPicker(false);
                   }}
                 >
-                  <Text style={[s.matchdayItemText, { color: colors.text }]}>
+                  <Text style={styles.matchdayItemText}>
                     Giornata {item.number}
                   </Text>
-                  <View style={[s.statusBadge, { 
-                    backgroundColor: item.status === 'COMPLETED' ? colors.success : 
-                                    item.status === 'LIVE' ? colors.error : colors.info 
-                  }]}>
-                    <Text style={s.statusText}>{item.status}</Text>
-                  </View>
+                  <StatusBadge status={item.status} />
                   {selectedMatchday?.id === item.id && (
-                    <Ionicons name="checkmark" size={20} color={colors.accent} />
+                    <Ionicons name="checkmark-circle" size={20} color={colors.accent} />
                   )}
                 </TouchableOpacity>
               )}
@@ -397,102 +341,332 @@ export default function RankingsScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { paddingHorizontal: 16, paddingVertical: 12 },
-  headerTitle: { fontSize: 24, fontWeight: '800' },
+const styles = StyleSheet.create({
+  container: { 
+    flex: 1, 
+    backgroundColor: colors.background 
+  },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  
+  // Header
+  header: { 
+    paddingHorizontal: spacing.xl, 
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  headerTitle: { 
+    ...typography.titleL,
+    color: colors.textPrimary,
+  },
+  accentLine: {
+    width: 32,
+    height: 3,
+    backgroundColor: colors.accent,
+    marginTop: spacing.sm,
+    borderRadius: 2,
+  },
   
   // League selector
-  leagueScroll: { maxHeight: 44 },
-  leagueContent: { paddingHorizontal: 16, gap: 8, flexDirection: 'row' },
-  leagueChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
-  leagueChipText: { fontSize: 13, fontWeight: '600' },
+  leagueScroll: { 
+    maxHeight: 52,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  leagueContent: { 
+    paddingHorizontal: spacing.lg, 
+    paddingVertical: spacing.sm,
+    gap: spacing.sm, 
+    flexDirection: 'row' 
+  },
+  leagueChip: { 
+    paddingHorizontal: spacing.lg, 
+    paddingVertical: spacing.sm, 
+    borderRadius: borderRadius.pill, 
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  leagueChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  leagueChipText: { 
+    ...typography.meta,
+    color: colors.textSecondary,
+  },
+  leagueChipTextActive: {
+    color: colors.textInverse,
+    fontWeight: '600',
+  },
   
   // Tab toggle
-  tabRow: { flexDirection: 'row', marginHorizontal: 16, marginTop: 12, borderRadius: 10, padding: 3 },
-  tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
-  tabText: { fontSize: 14, fontWeight: '600' },
+  tabContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.card,
+  },
+  tabRow: { 
+    flexDirection: 'row', 
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.md, 
+    padding: spacing.xs,
+  },
+  tabBtn: { 
+    flex: 1, 
+    paddingVertical: spacing.md, 
+    borderRadius: borderRadius.sm, 
+    alignItems: 'center' 
+  },
+  tabBtnActive: {
+    backgroundColor: colors.card,
+    ...shadows.card,
+  },
+  tabText: { 
+    ...typography.bodyM,
+    color: colors.textSecondary,
+  },
+  tabTextActive: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
   
   // Matchday selector
   matchdaySelector: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    marginHorizontal: 16, 
-    marginTop: 12, 
-    paddingHorizontal: 14, 
-    paddingVertical: 10, 
-    borderRadius: 10, 
-    borderWidth: 1,
-    gap: 8,
+    marginHorizontal: spacing.lg, 
+    marginTop: spacing.md, 
+    paddingHorizontal: spacing.lg, 
+    paddingVertical: spacing.md, 
+    borderRadius: borderRadius.lg, 
+    backgroundColor: colors.card,
+    ...shadows.card,
+    gap: spacing.sm,
   },
-  matchdaySelectorText: { flex: 1, fontSize: 14, fontWeight: '500' },
+  matchdaySelectorText: { 
+    flex: 1, 
+    ...typography.bodyM,
+    color: colors.textPrimary,
+  },
+  matchdaySelectorBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.infoLight,
+  },
+  matchdaySelectorBadgeText: {
+    ...typography.metaSmall,
+    color: colors.info,
+    fontWeight: '600',
+  },
   
   // List
-  scrollContent: { padding: 16, paddingBottom: 100 },
+  scrollContent: { 
+    padding: spacing.lg, 
+    paddingBottom: 100 
+  },
+  listCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    ...shadows.card,
+    overflow: 'hidden',
+  },
   
-  // Top 3 rows
-  topRow: { 
+  // Entry row
+  entryRow: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    padding: 14, 
-    borderRadius: 14, 
-    marginBottom: 8, 
-    gap: 12 
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+    gap: spacing.md,
   },
-  rankCircle: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  rankCircleText: { fontSize: 16, fontWeight: '800', color: '#0F172A' },
-  rankInfo: { flex: 1 },
-  rankUsername: { fontSize: 15, fontWeight: '600' },
-  rankMeta: { fontSize: 11, marginTop: 2 },
-  rankPoints: { fontSize: 18, fontWeight: '800' },
+  entryRowTop3: {
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.background,
+  },
+  entryRowCurrent: {
+    backgroundColor: colors.cardHighlight,
+  },
+  currentUserAccent: {
+    position: 'absolute',
+    left: 0,
+    top: spacing.sm,
+    bottom: spacing.sm,
+    width: 3,
+    backgroundColor: colors.accent,
+    borderRadius: 2,
+  },
   
-  // Regular rows
-  row: { 
+  rankBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rankBadgeTop3: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  rankText: {
+    ...typography.bodyM,
+    color: colors.textSecondary,
+    fontWeight: '700',
+  },
+  rankTextTop3: {
+    color: colors.textInverse,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  
+  entryInfo: { 
+    flex: 1 
+  },
+  entryName: { 
+    ...typography.bodyM,
+    color: colors.textPrimary,
+  },
+  entryNameBold: {
+    fontWeight: '700',
+  },
+  entryMeta: { 
+    ...typography.metaSmall,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
+  },
+  
+  pointsContainer: { 
+    alignItems: 'flex-end',
+    marginRight: spacing.xs,
+  },
+  pointsText: { 
+    ...typography.statMedium,
+    color: colors.accent,
+  },
+  pointsTextLarge: {
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  weekBonus: { 
+    ...typography.metaSmall,
+    color: colors.success,
+    marginTop: spacing.xs,
+  },
+  
+  jollyBadge: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    paddingVertical: 12, 
-    paddingHorizontal: 4,
-    gap: 8,
+    gap: 2, 
+    paddingHorizontal: spacing.sm, 
+    paddingVertical: 2, 
+    borderRadius: borderRadius.sm, 
+    backgroundColor: colors.accentLight,
+    marginTop: spacing.xs,
   },
-  rowRank: { width: 32, fontSize: 14, fontWeight: '600', textAlign: 'center' },
-  rowInfo: { flex: 1 },
-  rowName: { fontSize: 14, fontWeight: '500' },
-  rowPts: { fontSize: 14, fontWeight: '700' },
-  
-  // Points column
-  pointsCol: { alignItems: 'flex-end', marginRight: 4 },
-  weekPoints: { fontSize: 10, fontWeight: '600', marginTop: 2 },
-  
-  // Jolly badge
-  jollyBadge: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginTop: 2 },
-  jollyText: { fontSize: 10, fontWeight: '700' },
+  jollyText: { 
+    ...typography.metaSmall,
+    color: colors.accent,
+    fontWeight: '700',
+  },
   
   // My position
-  myPos: { 
+  myPositionCard: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    gap: 8, 
-    padding: 12, 
-    borderRadius: 10, 
-    borderWidth: 2, 
-    marginTop: 16 
+    gap: spacing.md, 
+    padding: spacing.lg, 
+    borderRadius: borderRadius.lg, 
+    backgroundColor: colors.cardHighlight,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    marginTop: spacing.lg,
   },
-  myPosText: { flex: 1, fontSize: 14, fontWeight: '600' },
-  myPosPts: { fontSize: 14, fontWeight: '700' },
+  myPositionText: { 
+    flex: 1, 
+    ...typography.bodyM,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  myPositionPoints: { 
+    ...typography.statMedium,
+    color: colors.accent,
+  },
   
   // Empty state
-  emptyState: { alignItems: 'center', marginTop: 60 },
-  noData: { textAlign: 'center', marginTop: 16, fontSize: 16, fontWeight: '600' },
-  noDataSub: { textAlign: 'center', marginTop: 8, fontSize: 13 },
+  emptyState: { 
+    alignItems: 'center', 
+    marginTop: 60,
+    padding: spacing.xxl,
+  },
+  emptyTitle: { 
+    ...typography.titleM,
+    color: colors.textSecondary,
+    marginTop: spacing.lg,
+  },
+  emptySubtitle: { 
+    ...typography.bodyS,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginTop: spacing.sm,
+  },
   
   // Modal
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%', paddingBottom: 34 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' },
-  modalTitle: { fontSize: 18, fontWeight: '700' },
-  matchdayItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, gap: 12 },
-  matchdayItemText: { flex: 1, fontSize: 15, fontWeight: '500' },
-  statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
-  statusText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.4)', 
+    justifyContent: 'flex-end' 
+  },
+  modalContent: { 
+    backgroundColor: colors.card,
+    borderTopLeftRadius: borderRadius.xl, 
+    borderTopRightRadius: borderRadius.xl, 
+    maxHeight: '60%', 
+    paddingBottom: 34,
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: colors.border,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: spacing.sm,
+  },
+  modalHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    padding: spacing.lg, 
+    borderBottomWidth: 1, 
+    borderBottomColor: colors.borderLight,
+  },
+  modalTitle: { 
+    ...typography.titleM,
+    color: colors.textPrimary,
+  },
+  matchdayItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: spacing.lg, 
+    borderBottomWidth: 1, 
+    borderBottomColor: colors.borderLight,
+    gap: spacing.md,
+  },
+  matchdayItemActive: {
+    backgroundColor: colors.accentLight,
+  },
+  matchdayItemText: { 
+    flex: 1, 
+    ...typography.bodyM,
+    color: colors.textPrimary,
+  },
 });
