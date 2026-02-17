@@ -871,7 +871,13 @@ export default function AdminConsole() {
       {/* Modal: Create Matchday with Date Picker */}
       <Modal visible={showCreateMatchday} transparent animationType="slide">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.modalOverlay}>
-          <View style={[s.modalForm, { backgroundColor: colors.card }]}>
+          <ScrollView 
+            style={{ width: '100%' }} 
+            contentContainerStyle={{ padding: 0 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={[s.modalForm, { backgroundColor: colors.card }]}>
             <Text style={[s.modalTitle, { color: colors.text }]}>Nuova Giornata</Text>
             
             <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Numero *</Text>
