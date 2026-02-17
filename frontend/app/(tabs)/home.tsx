@@ -137,6 +137,71 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* USER SUMMARY (position / points / matchdays / total) */}
+        {data?.user_summary && (
+          <View testID="user-summary-card" style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[s.cardLabel, { color: colors.textSecondary, marginBottom: 10 }]}>
+              La tua lega • Sintesi
+            </Text>
+
+            <View style={s.summaryRow}>
+              <View style={s.summaryItem}>
+                <Text style={[s.summaryLabel, { color: colors.textSecondary }]}>Posizione</Text>
+                <Text style={[s.summaryValue, { color: colors.text }]}>
+                  {data.user_summary.rank ? `${data.user_summary.rank}°` : '-'}
+                </Text>
+              </View>
+
+              <View style={[s.summaryDivider, { backgroundColor: colors.border }]} />
+
+              <View style={s.summaryItem}>
+                <Text style={[s.summaryLabel, { color: colors.textSecondary }]}>Punti</Text>
+                <Text style={[s.summaryValue, { color: colors.text }]}>{formatPoints(data.user_summary.points)}</Text>
+              </View>
+
+              <View style={[s.summaryDivider, { backgroundColor: colors.border }]} />
+
+              <View style={s.summaryItem}>
+                <Text style={[s.summaryLabel, { color: colors.textSecondary }]}>Giornate</Text>
+                <Text style={[s.summaryValue, { color: colors.text }]}>{data.user_summary.matchdays_played ?? 0}</Text>
+              </View>
+
+              <View style={[s.summaryDivider, { backgroundColor: colors.border }]} />
+
+              <View style={s.summaryItem}>
+                <Text style={[s.summaryLabel, { color: colors.textSecondary }]}>Totali</Text>
+                <Text style={[s.summaryValueAccent, { color: colors.accent }]}>{formatPoints(data.user_summary.total_points)}</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* LAST 5 PERFORMANCE */}
+        {Array.isArray(data?.last_5_performance) && data.last_5_performance.length > 0 && (
+          <View testID="last5-card" style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={s.cardHeader}>
+              <Text style={[s.cardLabel, { color: colors.textSecondary }]}>Ultimi 5</Text>
+            </View>
+
+            <View style={s.last5Row}>
+              {data.last_5_performance.map((it: any) => (
+                <View key={String(it.matchday_number)} style={s.last5Item}>
+                  <View style={[s.last5Circle, performanceColor(Number(it.points || 0))]}>
+                    <Text style={s.last5CircleText}>{it.matchday_number}</Text>
+                  </View>
+                  <Text style={[s.last5Points, { color: colors.text }]}>
+                    {formatPoints(it.points)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            <Text style={[s.last5Hint, { color: colors.textSecondary }]}>
+              Punti ottenuti per giornata
+            </Text>
+          </View>
+        )}
+
         {/* LIVE PREVIEW CARD */}
         {data?.live && (
           <View testID="live-preview-card" style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
