@@ -9,7 +9,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://matchday-seeder.preview.emergentagent.com"
+BASE_URL = "https://giornate-count-fix.preview.emergentagent.com"
 
 
 class TestLoginEmailPassword:

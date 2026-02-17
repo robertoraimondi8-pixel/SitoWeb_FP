@@ -1,51 +1,75 @@
 <analysis>
-
 **original_problem_statement**:
-The user initially reported critical bugs after mobile testing: unstable auth sessions (P0), broken Google OAuth on iOS (P1), and UI/data inconsistencies (P2, P3). During the fix process, more severe data consistency issues were found and addressed, related to how points were calculated and displayed between different screens.
-
-Subsequently, the user requested the creation of a comprehensive in-app Admin Console to manage seasons, matchdays, matches, and results, moving away from  commands. This became a major feature development task.
-
-Finally, the user reported a bug where newly created matchday predictions were locked and requested a way to seed random predictions for test users to validate the scoring system.
+The user initially requested several bug fixes and a major UI overhaul. After the agent implemented a Premium Light Design System, the user provided a list of critical UI and logic fixes. The agent's work on these fixes was interrupted and ultimately unsatisfactory, leading the user to resubmit the same instructions.
 
 **PRODUCT REQUIREMENTS (current task):**
 
-1.  **Admin Console Usability (P0):**
-    *   Display the  for each match within the Admin Console match list. (DONE)
-    *   Seed Matchday 12 with random predictions for all existing test users to allow for a full-cycle scoring test. (PENDING)
+The user's most recent request (message #545, a repeat of #509) outlines four priority fixes:
 
-2.  **Verify Previous Fixes (P1):**
-    *   **Google OAuth:** User to test the new  based Google Login flow on a real iOS device (Expo Go).
-    *   **Data Consistency:** User to verify that total standings and user detail points (P2) are now consistent, and that  matchdays show frozen final results (P3).
-    *   **Scoring Logic:** User to verify that the weekly standings points are now consistent with the user prediction detail screen after the  function was fixed.
-    *   **Locked Predictions:** User to verify that creating new matchdays/matches with future dates correctly leaves them open for predictions.
+1.  **Rankings Screen UI Cleanup (P0):** Remove the redundant blue bar showing the league name, as it's already present in the screen's title and selector.
+2.  **Admin - Safer Matchday Creation (P0):** In the New Matchday modal, replace the manual number input with a dropdown menu containing numbers from 1 to 40, showing only numbers not yet used.
+3.  **Admin - Improve Usability (P1):** Fill the empty white box in the Admin Console with a descriptive title (Gestione Campionato) and subtitle to clarify its purpose.
+4.  **Home Screen - Logic Bug (P0):** Fix the Giornate (Matchdays Played) count in the user summary card. It currently shows an incorrect number of matchdays compared to the total points calculation. The count should only include matchdays with a  or  status.
 
-3.  **Admin Console MVP (Feature - LARGELY DONE):**
-    *   Provide a secure, admin-only section in the app.
-    *   Allow management of seasons, matchdays (set current, change status, create/delete), and matches (set results, add/delete, set start times).
-    *   Implement user-friendly controls like date pickers and a Save All button.
+Additionally, the user has reported other bugs via screenshots (message #369):
+*   A recurring bug where a  matchday still shows Punti Provvisori (Provisional Points) instead of Punti Ufficiali (Official Points).
+*   The league name disappeared from the blue header in the rankings screen (this is now superseded by the request to remove the bar entirely).
+*   The Admin console was missing a dropdown for matchdays (the agent has since attempted a fix for this).
 
-**User's preferred language**: Italiano
+**User's preferred language**: Italiano. The next agent MUST respond in Italian.
 
 **what currently exists?**
-A full-stack FantaPronostic application. The initial critical bugs (P0-P3) have been addressed. The token auto-refresh system is in place, the mobile Google OAuth flow has been completely re-implemented, and numerous data consistency bugs have been fixed by centralizing the scoring logic in the backend.
+A full-stack Expo (React Native) and FastAPI application for a fantasy football league. The application features user authentication (email/password and Google), predictions, weekly and total standings, and a comprehensive in-app Admin Console for managing game data.
 
-A significant new feature, an in-app **Admin Console**, has been built. It allows an admin user to manage most aspects of the game (seasons, matchdays, matches, results) directly from the mobile app, with features like date pickers and bulk saving.
+The entire application UI has been significantly refactored into a Premium Light Design System. This includes:
+- A centralized theme file () with a light color palette.
+- Reusable, styled components like , , , .
+- A consistent, modern, and clean UI across all major screens (Login, Home, Rankings, Predictions, Profile).
+- The login screen and home screen now feature the official brand logos as requested by the user.
 
 **Last working item**:
-- Last item agent was working: The agent was fulfilling a two-part user request.
-    1.  It successfully modified the Admin Console UI () to display the  for each match.
-    2.  It was about to execute a script to generate and save random predictions for all test users for Giornata 12 to facilitate a comprehensive scoring test by the user.
+- Last item agent was working: The agent was in the process of implementing a 4-point list of UI and logic fixes requested by the user (see ). The user became frustrated with the agent pausing repeatedly and re-submitted the entire request (message #545). The agent's last action was attempting to fix the Giornate count bug by inspecting .
 - Status: IN PROGRESS
-- Agent Testing Done: N (The script to seed predictions has not been run yet).
-- Which testing method agent to use? The agent should write and execute a script (e.g., Python using ) to create the random predictions. No automated testing agent is needed for this specific task. The user will perform manual verification of the outcome.
+- Agent Testing Done: N
+- Which testing method agent to use? both. The agent must use the **screenshot tool** to verify all UI changes (Rankings cleanup, Admin dropdowns, Admin text box) and use a **backend testing** method (like a  script) to verify the logic fix for the Giornate count on the home screen.
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Linting Errors (P2)**: During the session, the linter reported multiple parsing errors in TypeScript files (e.g., ). The agent concluded these were likely ESLint configuration issues and ignored them. These errors should be investigated and fixed to ensure code quality and prevent potential runtime issues.
+-   **Issue 1: Incomplete UI/Logic Fixes (P0 - HIGHEST PRIORITY)**
+-   **Issue 2: Recurring Bug - Punti Provvisori on COMPLETED matchdays (P0)**
+-   **Issue 3: Linter Parsing Errors (P2)**
 
 **Issues Detail**:
--   **Issue 1: Linter Parsing Errors**
-    -   **Attempted fixes**: None. The agent ignored the errors.
+-   **Issue 1: Incomplete UI/Logic Fixes**
+    -   **Description**: The user has requested a set of four specific fixes (msg #509, #545) that the previous agent failed to complete satisfactorily.
+    -   **Sub-Issue 1.1 - Rankings UI Cleanup**: Remove the redundant blue bar with the league name. The agent edited  (msg 514) but this needs verification.
+    -   **Sub-Issue 1.2 - Admin Matchday Creation Dropdown**: Replace the manual number input with a dropdown (1-40) of available matchday numbers. The agent made multiple edits to  but the task is complex and was interrupted. It is likely incomplete.
+    -   **Sub-Issue 1.3 - Admin Console Text Box**: Add descriptive text to the empty white box. The agent edited  (msg 538). This may be complete but needs verification.
+    -   **Sub-Issue 1.4 - Home Giornate Count Bug**: Fix the backend logic for  in the  endpoint. The agent was investigating . This is not complete.
+    -   **Next debug checklist**:
+        1.  Review the agent's partial changes for each of the four points.
+        2.  Complete the implementation for each point, ensuring it matches the user's specific instructions.
+        3.  For the Giornate count, modify the aggregation query in  within the  function to correctly count  where the user has points.
+        4.  For the Admin dropdown, ensure the list of numbers 1-40 correctly filters out already created matchdays.
+    -   **Why fix this issue and what will be achieved with the fix?**: To satisfy the user's explicit requests, improve app usability, and fix a data representation bug.
+    -   **Status**: IN PROGRESS
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?**: both
+
+-   **Issue 2: Recurring Bug - Punti Provvisori on COMPLETED matchdays**
+    -   **Description**: The user has repeatedly reported that the live results screen shows Punti Provvisori (Provisional Points) even when the matchday status is .
+    -   **Attempted fixes**: The agent identified a critical issue: two conflicting route files,  (legacy) and  (newer). The agent patched the legacy  file (msg 502), which temporarily resolved the issue. However, the root cause (duplicate files) was not addressed, and the bug has reappeared.
+    -   **Next debug checklist**:
+        1.  **Permanently resolve the routing conflict.** The best solution is to delete the legacy file .
+        2.  Ensure all links in the app that point to the live screen (e.g., from ) use the correct route that resolves to .
+        3.  Verify that the logic inside  correctly displays Punti Ufficiali when .
+    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical data representation bug that confuses the user and undermines trust in the app's scoring. Fixing it will ensure data consistency.
+    -   **Status**: IN PROGRESS
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?**: frontend
+
+-   **Issue 3: Linter Parsing Errors**
+    -   **Attempted fixes**: None. The agent ignored the errors, dismissing them as configuration issues (msg 448).
     -   **Next debug checklist**:
         1.  Run yarn run v1.22.22
 $ expo lint
@@ -58,23 +82,31 @@ $ /app/frontend/node_modules/.bin/eslint /app/frontend/src /app/frontend/app --f
   20:6   warning  React Hook useEffect has a missing dependency: 'processGoogleCallback'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
 
 /app/frontend/app/(auth)/login.tsx
-  5:22  warning  'Alert' is defined but never used  @typescript-eslint/no-unused-vars
+  19:10  warning  'BrandLogo' is defined but never used  @typescript-eslint/no-unused-vars
 
 /app/frontend/app/(tabs)/home.tsx
-  15:24  warning  'logout' is assigned a value but never used                                                                        @typescript-eslint/no-unused-vars
-  16:11  warning  'leagues' is assigned a value but never used                                                                       @typescript-eslint/no-unused-vars
-  16:20  warning  'activeLeague' is assigned a value but never used                                                                  @typescript-eslint/no-unused-vars
-  25:6   warning  React Hook useEffect has a missing dependency: 'refreshLeagues'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   2:52  warning  'ScrollView' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  12:62  warning  'getStatusColor' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+  12:78  warning  'getPerformanceColor' is defined but never used                                                                    @typescript-eslint/no-unused-vars
+  17:11  warning  't' is assigned a value but never used                                                                             @typescript-eslint/no-unused-vars
+  31:6   warning  React Hook useEffect has a missing dependency: 'refreshLeagues'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/frontend/app/(tabs)/predictions.tsx
+  208:9  warning  'isOpen' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  209:9  warning  'isLocked' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/app/frontend/app/(tabs)/profile.tsx
+  13:10  warning  'SectionCard' is defined but never used  @typescript-eslint/no-unused-vars
 
 /app/frontend/app/(tabs)/rankings.tsx
-  30:11  warning  't' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  33:11  warning  't' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
 /app/frontend/app/admin/index.tsx
-  126:6  warning  React Hook useEffect has a missing dependency: 'loadSeasons'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
-  133:6  warning  React Hook useEffect has a missing dependency: 'loadMatchdays'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
-  140:6  warning  React Hook useEffect has a missing dependency: 'loadMatches'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
-  208:6  warning  React Hook useCallback has a missing dependency: 'loadSeasons'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
-  510:9  warning  'formatDateTime' is assigned a value but never used                                                               @typescript-eslint/no-unused-vars
+  134:6  warning  React Hook useEffect has a missing dependency: 'loadSeasons'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
+  141:6  warning  React Hook useEffect has a missing dependency: 'loadMatchdays'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  148:6  warning  React Hook useEffect has a missing dependency: 'loadMatches'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
+  216:6  warning  React Hook useCallback has a missing dependency: 'loadSeasons'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  518:9  warning  'formatDateTime' is assigned a value but never used                                                               @typescript-eslint/no-unused-vars
 
 /app/frontend/app/index.tsx
   11:10  warning  'checking' is assigned a value but never used                                                                     @typescript-eslint/no-unused-vars
@@ -100,12 +132,19 @@ $ /app/frontend/node_modules/.bin/eslint /app/frontend/src /app/frontend/app --f
    87:41  warning  React Hook useEffect has a missing dependency: 'fetchLiveData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
    98:6   warning  React Hook useEffect has a missing dependency: 'data'. Either include it or remove the dependency array           react-hooks/exhaustive-deps
   112:6   warning  React Hook useEffect has a missing dependency: 'data'. Either include it or remove the dependency array           react-hooks/exhaustive-deps
+  163:9   warning  'getPointsLabel' is assigned a value but never used                                                               @typescript-eslint/no-unused-vars
 
 /app/frontend/app/onboarding.tsx
   4:36  warning  'Platform' is defined but never used  @typescript-eslint/no-unused-vars
 
 /app/frontend/src/api/client.ts
   65:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/frontend/src/components/BrandLogo.tsx
+  3:10  warning  'colors' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/frontend/src/components/ui/PrimaryButton.tsx
+  4:18  warning  'typography' is defined but never used  @typescript-eslint/no-unused-vars
 
 /app/frontend/src/contexts/AuthContext.tsx
   3:19  warning  'AuthError' is defined but never used  @typescript-eslint/no-unused-vars
@@ -117,132 +156,145 @@ $ /app/frontend/node_modules/.bin/eslint /app/frontend/src /app/frontend/app --f
 /app/frontend/src/i18n/index.ts
   6:1  warning  Caution: `i18n` also has a named export `use`. Check if you meant to write `import {use} from 'i18next'` instead  import/no-named-as-default-member
 
-✖ 32 problems (0 errors, 32 warnings)
+✖ 39 problems (0 errors, 39 warnings)
 
-Done in 5.54s. or the equivalent command in the  directory to see the full list of errors.
-        2.  Inspect the  file and  to ensure they are correctly configured for TypeScript and React Native.
-        3.  Address the specific parsing errors reported by the linter, which may involve correcting syntax or updating ESLint rules.
-    -   **Why fix this issue and what will be achieved with the fix?**: Ensures code quality, prevents hidden bugs, and makes future development easier.
+Done in 5.75s. in the  directory.
+        2.  Inspect  and  for misconfigurations.
+        3.  Fix the reported parsing errors to improve code quality.
+    -   **Why fix this issue and what will be achieved with the fix?**: Ensures code quality, prevents hidden bugs, and improves the development experience.
     -   **Status**: NOT STARTED
-    -   **Is recurring issue?** Y (Appeared during the session and was ignored).
-    -   **Should Test frontend/backend/both after fix?** frontend (by running the linter again).
-    -   **Blocked on other issue**: None.
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?**: frontend
 
 **In progress Task List**:
--   **Task 1: Seed Random Predictions for Matchday 12 (P0 - HIGHEST PRIORITY)**
-    -   **Where to resume**: Write and execute a script to perform the following actions:
-        1.  Fetch all users who are not admins.
-        2.  Fetch all matches for Giornata 12.
-        3.  For each user, iterate through the 11 matches and create a random prediction (e.g., '1', 'X', '2').
-        4.  Save these predictions to the database using the  endpoint or by direct DB insertion.
-    -   **What will be achieved with this?**: This will provide the necessary data for the user to test the entire scoring and standings calculation pipeline for a completed matchday.
-    -   **Status**: NOT STARTED
-    -   **Should Test frontend/backend/both after fix?** N/A (User will test manually).
+-   **Task 1: Complete 4-Point UI/Logic Fix (P0)**
+    -   **Where to resume**: The user has re-pasted the full list of instructions (msg #545). The next agent should start fresh on this task, reviewing any partial code from the previous agent but prioritizing a clean, complete implementation of all four points.
+    -   **What will be achieved with this?**: Fulfill the user's immediate and explicit requests, improving UI and fixing a logic bug.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: both
     -   **Blocked on something**: No.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **P1: Stripe Payment for National League**: Implement the frontend flow for the Join National League option on the onboarding screen. This involves integrating with the Stripe checkout session endpoint. ()
+    -   **P1: Stripe Payment for National League**: Implement the frontend flow for the Join National League option on the onboarding screen. ()
 -   **Future Tasks**:
     -   Password Recovery: Implement the Forgot Password flow.
     -   Push Notifications: For admin announcements or important game events.
     -   Live API Integration: Replace manual admin updates with a real-time sports data API.
 
 **Completed work in this session**
--   **Auth Session Hardening (P0)**: Implemented a global API client with automatic JWT refresh token logic and applied it across the entire frontend.
--   **Google OAuth Mobile Fix (P1)**: Re-implemented the mobile Google login flow from scratch using  to fix the infinite spinner issue on iOS.
--   **Data Inconsistency Fixes (P2, P3 & more)**:
-    -   Created a new  screen to show a consistent points breakdown.
-    -   Fixed backend logic to freeze results for  matchdays.
-    -   **Resolved critical scoring bug**: Centralized scoring logic in a  function and fixed it to ignore stale  data, ensuring  and  show consistent points.
--   **Locked Predictions Bug Fix**: Corrected the logic for newly created matches by setting their default  to be in the future, and updated existing affected matches.
--   **FEATURE: In-App Admin Console**:
-    -   Created a new, admin-only section at .
-    -   Implemented UI for managing seasons, matchdays (CRUD, set status, set current), and matches (CRUD, set results, set start times).
-    -   Added UX improvements like date pickers and a Save All Results button.
+-   **Seed Random Predictions**: Successfully seeded Matchday 6 with random predictions for all test users to facilitate testing.
+-   **Fix Initial Bugs**:
+    -   Resolved issue where a completed matchday was not clickable from the Home screen.
+    -   Fixed a bug where total standings were not updating with weekly points by ensuring score calculation runs when a matchday is set to .
+-   **Major UI Refactor (Premium Light Design System)**:
+    -   Implemented a new, consistent light theme across the entire application.
+    -   Created a central design system () and reusable components (, etc.).
+    -   Refactored Login, Home, Rankings, Predictions, and Profile screens to use the new design.
+    -   Incorporated official brand logos into the Login and Home screens based on specific user instructions.
+    -   Adjusted logo sizes, component spacing, and shadows through multiple iterations based on detailed user feedback.
+-   **Logic/UI Fixes (Partial/Initial)**:
+    -   Addressed the Punti Provvisori bug, although it later recurred.
+    -   Implemented new  and  cards on the Home screen (both backend and frontend).
 
 **Earlier issues found/mentioned but not fixed**
-- The linter parsing errors mentioned in All Pending/In progress Issue list were found in message 65 and ignored by the agent.
+-   **Issue 1: Linter/Parsing Errors**: The agent encountered TypeScript parsing errors multiple times (e.g., msg 448) but dismissed them as configuration issues and never fixed them.
 
 **Known issue recurrence from previous fork**
-N/A
+-   **Issue recurrence in previous fork**: Punti Provvisori shown on COMPLETED matchdays.
+-   **Recurrence count**: At least 2. The user reported it with a screenshot (msg #369) after the agent attempted a fix.
+-   **Status**: IN PROGRESS
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend**: FastAPI, Python, MongoDB ()
+-   **Backend**: FastAPI, Python, MongoDB
 -   **Frontend**: React Native, Expo, TypeScript, Expo Router
--   **Authentication**: JWT (Access + Refresh tokens),  for Google OAuth.
--   **UI Components**:  for date selection in the new Admin Console.
--   **State Management**: React Context API (, )
--   **Key Logic**: A new centralized  function in  is now the source of truth for weekly scoring calculations.
+-   **UI Architecture**: A new **Premium Light Design System** has been implemented, centralizing styles and creating reusable components.
+-   **State Management**: React Context API (, ). The  was modified to default to a light theme.
+-   **Routing**: Expo Router. A critical issue exists with duplicate dynamic route files in .
 
 **key DB schema**
-- No schema changes, but the reliance on the  collection has been reduced in favor of on-the-fly calculations for  matchdays to ensure data consistency.
+-   No schema changes. Logic relies on , , , , and  collections.
 
 **changes in tech stack**
-- Added , ,  to handle Google OAuth on mobile.
-- Added  for the Admin Console UI.
+-   No new package dependencies were added, but the project's internal UI architecture was completely overhauled.
 
 **All files of reference**
--   : **New file**. The comprehensive Admin Console UI.
--   : **Heavily modified**. Contains new admin endpoints (DELETE), the crucial  function, and fixes for data consistency across multiple endpoints (, , ).
--   : **Rewritten** to use  for a cross-platform Google login.
--   : **Modified** to correctly handle non-string error details.
--   : Logic was investigated for the locked predictions bug.
--   : **New file** created to show consistent user stats.
--   : Modified to navigate to the new  screen.
+-   : **Rewritten**. Now uses the new design system. Needs a logic fix for Giornate count.
+-   : **Rewritten**. Now uses the new design system with a large, dominant logo.
+-   : **Rewritten**. Needs UI cleanup (remove blue bar).
+-   : **Modified**. Needs several UI/UX improvements (dropdowns, text).
+-   : **Problematic Legacy File**. Source of the recurring Punti Provvisori bug.
+-   : The correct, updated file for the live screen.
+-   : **New**. A reusable component for displaying the brand logo.
+-   : **New**. Defines the core values (colors, spacing, etc.) of the new UI.
+-   : **Modified**. Updated with the new light theme color palette.
+-   : **Modified**. The  function needs to be fixed to address the Giornate count bug.
+
+**Areas that need refactoring**:
+-   **CRITICAL**: The two files  and  create a routing ambiguity and are the root cause of a recurring, high-priority bug. The legacy  should be deleted, and all navigation should be confirmed to point to the route handled by  (which should probably be renamed to  for clarity after the other is deleted).
+
+**key api endpoints**
+-   : Modified to add  and . The logic for  within  is buggy and needs to be fixed.
+-    and : Two different endpoints for the live screen data, one legacy. This contributes to frontend confusion.
 
 **Critical Info for New Agent**
--   **Your immediate task is to seed the database**. The user is waiting for random predictions on Matchday 12 for all test users. You must write a script to accomplish this as the first action.
--   **The Admin Console is a major new feature**. Be aware of its capabilities and the new endpoints in  that support it.
--   **Data consistency was the main theme**. The key fix was creating  in the backend and forcing a recalculation for completed matchdays if the stored  was stale (e.g., points=0). Do not re-introduce bugs by trusting  blindly.
--   **User verification is pending for many items**: Google OAuth, the Admin Console, and all data consistency fixes need to be confirmed by the user. Be prepared for feedback on these items.
--   **Ignored Linter Errors**: The previous agent ignored TypeScript parsing errors. It's a good idea to address these to ensure code health before adding more features.
+-   **Your immediate task is to implement the 4 fixes from the user's latest request (message #545).** The previous agent failed to do this, causing user frustration. Address all four points completely before finishing.
+-   **The user is very prescriptive and detail-oriented.** Follow UI instructions (spacing, size, alignment) exactly as written.
+-   **Fix the recurring Punti Provvisori bug permanently.** This is not just a UI text change; it's a routing issue. You must resolve the conflict between  and . The recommended action is to delete the outdated file () and ensure everything uses the correct one.
+-   **The user gets frustrated by long pauses.** Try to complete tasks in logical, complete chunks. Communicate your plan clearly and execute it without unnecessary interruptions.
+-   **Always respond in Italiano.**
 
 **documents created in this job**
-- 
-- 
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
--   **10. (LATEST)** User Request: 1. Display match start times in the admin UI. 2. Seed random predictions for all test users for Matchday 12 for testing. (IN PROGRESS)
--   **9.** User Bug Report: After creating Matchday 12, all predictions are locked even though the matchday is open. (RESOLVED)
--   **8.** User Request: Fix an error () and add a date/time picker for individual matches in the Admin Console. (RESOLVED)
--   **7.** User Request: Add a date picker for creating matchdays and a Save All button for match results in the Admin Console. (RESOLVED)
--   **6.** User Request: Add create/delete functionality for matchdays and matches to the Admin Console. (RESOLVED)
--   **5.** User provides detailed requirements for an in-app Admin Console MVP. (IN PROGRESS / LARGELY COMPLETE)
--   **4.** User asks for the admin panel link, revealing the need for a UI instead of curl. (SPARKED ADMIN CONSOLE FEATURE)
--   **3.** User reports a data consistency bug: Weekly standings show 0 points for a user, but the detail view shows correct predictions and points. (RESOLVED)
--   **2.** User provides a very detailed problem statement covering multiple data consistency issues (current matchday, weekly points, 11-match rule). (RESOLVED)
--   **1.** User reports a bug on a completed matchday where some matches still appear live. (RESOLVED)
+-   **10. (LATEST)** User re-submits the 4-point list of UI/logic fixes after the agent failed to complete them. (PENDING)
+-   **9.** User complains about the agent pausing. (AGENT BEHAVIOR)
+-   **8.** User complains about the agent pausing. (AGENT BEHAVIOR)
+-   **7.** User tells the agent to resume and complete all fixes without pausing. (AGENT BEHAVIOR)
+-   **6.** User complains about the agent pausing. (AGENT BEHAVIOR)
+-   **5.** User complains about the agent pausing. (AGENT BEHAVIOR)
+-   **4.** User reports three bugs with screenshots: Punti Provvisori is still wrong, league name is missing in rankings, and admin dropdown is missing. (PENDING)
+-   **3.** User reports a 520 server error with a screenshot. (RESOLVED)
+-   **2.** User asks to place the wordmark directly under Ciao, admin and reduce the space below it. (COMPLETED)
+-   **1.** User asks to increase the wordmark size by 35% on the home screen for better visibility and spacing. (COMPLETED)
 
 **Project Health Check:**
--   **Broken**: No features are known to be outright broken.
+-   **Broken**:
+    -   Logic for Giornate count on the Home screen is incorrect.
+    -   UI label for Punti Ufficiali vs Punti Provvisori is not working reliably due to a routing issue.
 -   **Mocked**: No mocked functionality.
--   **Pending Verification**:
-    -   Google OAuth on mobile (iOS).
-    -   The entire new Admin Console feature.
-    -   All data consistency and scoring fixes.
 
 **3rd Party Integrations**
 -   **Stripe (Payments)** — requires User API Key. (Backend exists, not yet integrated into frontend flow).
--   **Emergent-managed Google Auth** — uses Emergent LLM Key. (Re-implemented with , pending user test).
--   **@react-native-community/datetimepicker**: New dependency for the Admin Console UI.
+-   **Emergent-managed Google Auth** — uses Emergent LLM Key.
+-   **@react-native-community/datetimepicker**: Used in the Admin Console.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES, backend tests were run multiple times to verify fixes for auth and data consistency.
+-   **Testing agent used after significant changes**: YES, the screenshot tool was used extensively. However, it was not effective at catching the logic and data representation bugs reported by the user.
 -   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: No persistent test files. Tests were run via  and ad-hoc scripts.
--   **Known regressions**: None known, but many changes are pending user verification.
+-   **Test files created**: None.
+-   **Known regressions**:
+    -   The Punti Provvisori bug.
+    -   The league name disappeared from the rankings screen header (though the user's new requirement is to remove that header anyway).
 
 **Credentials to test flow:**
 -   Admin:  / 
 -   User:  / 
--   Other test users exist and can be found in the  collection.
 
 **What agent forgot to execute**
-- The agent was about to execute the script to seed random predictions for test users. This is the immediate next step.
-- The agent did not fix the linter/parsing errors it encountered, dismissing them as configuration issues.
+-   The agent failed to correctly and completely implement the 4-point list of UI and logic fixes provided by the user in message #509 and #545.
+-   The agent did not permanently fix the root cause of the recurring Punti Provvisori bug (the duplicate route files).
+-   The agent never addressed the TypeScript/linter parsing errors it encountered.
 
 </analysis>
