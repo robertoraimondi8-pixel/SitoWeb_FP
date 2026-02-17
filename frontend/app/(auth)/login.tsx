@@ -361,20 +361,21 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.xxxl,
-    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xxl,
   },
   
-  /* ─── Logo GRANDE E DOMINANTE ─── */
+  /* ─── Logo ENORME DOMINANTE ─── */
   logoSection: {
     alignItems: 'center',
-    marginBottom: spacing.xxl,
-    paddingTop: spacing.md,
+    justifyContent: 'center',
+    paddingTop: spacing.xxxl,
+    paddingBottom: spacing.xxxl,
+    marginBottom: spacing.lg,
   },
   mainLogo: {
-    width: width * 0.75,  // 75% della larghezza schermo
-    height: 160,          // Altezza fissa grande
+    width: width * 0.85,   // 85% larghezza schermo
+    height: 220,           // ~35% altezza schermo visibile
   },
   
   /* ─── Form Card ─── */
