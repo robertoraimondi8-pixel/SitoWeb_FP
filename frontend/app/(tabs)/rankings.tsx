@@ -447,6 +447,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   
+  // League header (blue box with league name)
+  leagueHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.md,
+  },
+  leagueHeaderText: {
+    ...typography.bodyM,
+    color: colors.textInverse,
+    fontWeight: '700',
+  },
+  
   // Matchday selector
   matchdaySelector: { 
     flexDirection: 'row', 
