@@ -1006,7 +1006,8 @@ export default function AdminConsole() {
                 <Text style={[s.modalBtnText, { color: colors.background }]}>Crea</Text>
               </TouchableOpacity>
             </View>
-          </View>
+            </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
 
