@@ -617,12 +617,20 @@ const styles = StyleSheet.create({
     color: colors.textInverse,
     fontWeight: '800',
   },
+  matchMeta: {
+    flex: 1,
+  },
   competition: { 
     ...typography.metaSmall,
     color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    flex: 1,
+  },
+  matchTime: {
+    ...typography.metaSmall,
+    color: colors.accent,
+    fontWeight: '600',
+    marginTop: 2,
   },
   lockBadge: { 
     flexDirection: 'row', 
