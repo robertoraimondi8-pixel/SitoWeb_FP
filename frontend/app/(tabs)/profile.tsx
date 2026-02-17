@@ -8,9 +8,13 @@ import { useTheme } from '../../src/contexts/ThemeContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 
+// Design System
+import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+import { SectionCard, PrimaryButton } from '../../src/components/ui';
+
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
-  const { colors, isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
   const { user, token, logout, handleAuthError } = useAuth();
   const router = useRouter();
   const [leagueCount, setLeagueCount] = useState(0);
@@ -43,104 +47,338 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <ScrollView contentContainerStyle={s.scrollContent}>
-        <View style={s.header}>
-          <View style={[s.avatar, { backgroundColor: colors.accent }]}>
-            <Text style={[s.avatarText, { color: colors.background }]}>{user?.username?.[0]?.toUpperCase()}</Text>
-          </View>
-          <Text style={[s.username, { color: colors.text }]}>{user?.username}</Text>
-          <Text style={[s.email, { color: colors.textSecondary }]}>{user?.email}</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Profilo</Text>
+          <View style={styles.accentLine} />
         </View>
 
-        <View style={[s.statsRow, { backgroundColor: colors.card }]}>
-          <View style={s.statItem}>
-            <Text style={[s.statNum, { color: colors.accent }]}>{leagueCount}</Text>
-            <Text style={[s.statLabel, { color: colors.textSecondary }]}>{t('my_leagues')}</Text>
-          </View>
-          <View style={[s.statDivider, { backgroundColor: colors.border }]} />
-          <View style={s.statItem}>
-            <Text style={[s.statNum, { color: colors.accent }]}>{user?.role}</Text>
-            <Text style={[s.statLabel, { color: colors.textSecondary }]}>Ruolo</Text>
-          </View>
-        </View>
-
-        <View style={[s.section, { backgroundColor: colors.card }]}>
-          <Text style={[s.sectionTitle, { color: colors.textSecondary }]}>{t('settings')}</Text>
-
-          <View style={s.settingRow}>
-            <Ionicons name={isDark ? 'moon' : 'sunny'} size={22} color={colors.accent} />
-            <Text style={[s.settingLabel, { color: colors.text }]}>{isDark ? t('dark_mode') : t('light_mode')}</Text>
-            <Switch testID="theme-toggle" value={isDark} onValueChange={toggleTheme} trackColor={{ false: '#ccc', true: colors.accent }} thumbColor="#fff" />
-          </View>
-
-          <TouchableOpacity testID="lang-toggle-btn" style={s.settingRow} onPress={switchLang}>
-            <Ionicons name="language" size={22} color={colors.accent} />
-            <Text style={[s.settingLabel, { color: colors.text }]}>{t('language')}</Text>
-            <View style={[s.langChip, { backgroundColor: colors.background }]}>
-              <Text style={[s.langChipText, { color: colors.accent }]}>{i18n.language.toUpperCase()}</Text>
+        {/* User Card */}
+        <View style={styles.userCard}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {user?.username?.[0]?.toUpperCase()}
+              </Text>
             </View>
+            {user?.role === 'admin' && (
+              <View style={styles.adminBadge}>
+                <Ionicons name="shield-checkmark" size={12} color={colors.textInverse} />
+              </View>
+            )}
+          </View>
+          
+          <Text style={styles.username}>{user?.username}</Text>
+          <Text style={styles.email}>{user?.email}</Text>
+          
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{leagueCount}</Text>
+              <Text style={styles.statLabel}>{t('my_leagues')}</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{user?.role === 'admin' ? 'Admin' : 'Player'}</Text>
+              <Text style={styles.statLabel}>Ruolo</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Settings Section */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>{t('settings')}</Text>
+
+          <View style={styles.settingRow}>
+            <View style={[styles.settingIcon, { backgroundColor: isDark ? colors.accentLight : colors.infoLight }]}>
+              <Ionicons name={isDark ? 'moon' : 'sunny'} size={18} color={isDark ? colors.accent : colors.info} />
+            </View>
+            <Text style={styles.settingLabel}>{isDark ? t('dark_mode') : t('light_mode')}</Text>
+            <Switch 
+              testID="theme-toggle" 
+              value={isDark} 
+              onValueChange={toggleTheme} 
+              trackColor={{ false: colors.border, true: colors.accent }} 
+              thumbColor={colors.textInverse} 
+            />
+          </View>
+
+          <View style={styles.settingDivider} />
+
+          <TouchableOpacity testID="lang-toggle-btn" style={styles.settingRow} onPress={switchLang}>
+            <View style={[styles.settingIcon, { backgroundColor: colors.infoLight }]}>
+              <Ionicons name="language" size={18} color={colors.info} />
+            </View>
+            <Text style={styles.settingLabel}>{t('language')}</Text>
+            <View style={styles.langChip}>
+              <Text style={styles.langChipText}>{i18n.language.toUpperCase()}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </TouchableOpacity>
         </View>
 
-        <View style={[s.section, { backgroundColor: colors.card }]}>
-          <TouchableOpacity testID="create-league-profile-btn" style={s.settingRow} onPress={() => router.push('/league/create')}>
-            <Ionicons name="add-circle-outline" size={22} color={colors.accent} />
-            <Text style={[s.settingLabel, { color: colors.text }]}>{t('create_league')}</Text>
-            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+        {/* League Actions */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>LEGHE</Text>
+
+          <TouchableOpacity testID="create-league-profile-btn" style={styles.settingRow} onPress={() => router.push('/league/create')}>
+            <View style={[styles.settingIcon, { backgroundColor: colors.successLight }]}>
+              <Ionicons name="add-circle-outline" size={18} color={colors.success} />
+            </View>
+            <Text style={styles.settingLabel}>{t('create_league')}</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </TouchableOpacity>
 
-          <TouchableOpacity testID="join-league-profile-btn" style={s.settingRow} onPress={() => router.push('/league/join')}>
-            <Ionicons name="enter-outline" size={22} color={colors.accent} />
-            <Text style={[s.settingLabel, { color: colors.text }]}>{t('join_league')}</Text>
-            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+          <View style={styles.settingDivider} />
+
+          <TouchableOpacity testID="join-league-profile-btn" style={styles.settingRow} onPress={() => router.push('/league/join')}>
+            <View style={[styles.settingIcon, { backgroundColor: colors.accentLight }]}>
+              <Ionicons name="enter-outline" size={18} color={colors.accent} />
+            </View>
+            <Text style={styles.settingLabel}>{t('join_league')}</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </TouchableOpacity>
         </View>
 
-        {/* Admin Console - visible only to admins */}
+        {/* Admin Console */}
         {user?.role === 'admin' && (
-          <View style={[s.section, { backgroundColor: colors.card }]}>
-            <Text style={[s.sectionTitle, { color: colors.textSecondary }]}>ADMIN</Text>
-            <TouchableOpacity 
-              testID="admin-console-btn" 
-              style={s.settingRow} 
+          <View style={styles.adminCard}>
+            <Text style={styles.adminTitle}>ADMIN CONSOLE</Text>
+            <Text style={styles.adminSubtitle}>Gestisci stagioni, giornate e partite</Text>
+            
+            <PrimaryButton
+              title="Apri Console"
+              icon="shield-checkmark"
+              variant="secondary"
               onPress={() => router.push('/admin')}
-            >
-              <Ionicons name="shield-checkmark" size={22} color={colors.error} />
-              <Text style={[s.settingLabel, { color: colors.text }]}>Admin Console</Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-            </TouchableOpacity>
+              style={styles.adminButton}
+            />
           </View>
         )}
 
-        <TouchableOpacity testID="logout-btn" style={[s.logoutBtn, { borderColor: colors.error }]} onPress={handleLogout}>
+        {/* Logout */}
+        <TouchableOpacity testID="logout-btn" style={styles.logoutBtn} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color={colors.error} />
-          <Text style={[s.logoutText, { color: colors.error }]}>{t('logout')}</Text>
+          <Text style={styles.logoutText}>{t('logout')}</Text>
         </TouchableOpacity>
+
+        {/* Version */}
+        <Text style={styles.version}>FantaPronostic v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 32 },
-  header: { alignItems: 'center', marginBottom: 24, paddingTop: 12 },
-  avatar: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  avatarText: { fontSize: 28, fontWeight: '800' },
-  username: { fontSize: 22, fontWeight: '700' },
-  email: { fontSize: 14, marginTop: 2 },
-  statsRow: { flexDirection: 'row', borderRadius: 14, padding: 16, marginBottom: 16 },
-  statItem: { flex: 1, alignItems: 'center' },
-  statNum: { fontSize: 20, fontWeight: '800' },
-  statLabel: { fontSize: 12, marginTop: 2 },
-  statDivider: { width: 1, marginVertical: 4 },
-  section: { borderRadius: 14, padding: 4, marginBottom: 16 },
-  sectionTitle: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, paddingHorizontal: 12, paddingTop: 12, paddingBottom: 4 },
-  settingRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 14, gap: 12 },
-  settingLabel: { flex: 1, fontSize: 15, fontWeight: '500' },
-  langChip: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6 },
-  langChipText: { fontSize: 13, fontWeight: '700' },
-  logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 12, borderWidth: 1, marginTop: 8 },
-  logoutText: { fontSize: 15, fontWeight: '600' },
+const styles = StyleSheet.create({
+  container: { 
+    flex: 1, 
+    backgroundColor: colors.background,
+  },
+  scrollContent: { 
+    paddingBottom: spacing.xxxl,
+  },
+  
+  // Header
+  header: {
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  headerTitle: {
+    ...typography.titleL,
+    color: colors.textPrimary,
+  },
+  accentLine: {
+    width: 32,
+    height: 3,
+    backgroundColor: colors.accent,
+    marginTop: spacing.sm,
+    borderRadius: 2,
+  },
+  
+  // User Card
+  userCard: {
+    backgroundColor: colors.card,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    padding: spacing.xl,
+    borderRadius: borderRadius.xl,
+    alignItems: 'center',
+    ...shadows.card,
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: spacing.md,
+  },
+  avatar: { 
+    width: 80, 
+    height: 80, 
+    borderRadius: 40, 
+    backgroundColor: colors.accent,
+    alignItems: 'center', 
+    justifyContent: 'center',
+  },
+  avatarText: { 
+    fontSize: 32, 
+    fontWeight: '800',
+    color: colors.textInverse,
+  },
+  adminBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.card,
+  },
+  username: { 
+    ...typography.titleL,
+    color: colors.textPrimary,
+  },
+  email: { 
+    ...typography.bodyS,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
+  
+  statsRow: { 
+    flexDirection: 'row', 
+    marginTop: spacing.xl,
+    paddingTop: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+    width: '100%',
+  },
+  statItem: { 
+    flex: 1, 
+    alignItems: 'center',
+  },
+  statValue: { 
+    ...typography.statLarge,
+    color: colors.accent,
+  },
+  statLabel: { 
+    ...typography.metaSmall,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    textTransform: 'uppercase',
+  },
+  statDivider: { 
+    width: 1, 
+    backgroundColor: colors.border,
+  },
+  
+  // Section Card
+  sectionCard: { 
+    backgroundColor: colors.card,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    borderRadius: borderRadius.xl,
+    ...shadows.card,
+    overflow: 'hidden',
+  },
+  sectionTitle: { 
+    ...typography.sectionLabel,
+    color: colors.textSecondary,
+    paddingHorizontal: spacing.xl, 
+    paddingTop: spacing.lg, 
+    paddingBottom: spacing.sm,
+  },
+  
+  settingRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: spacing.xl, 
+    paddingVertical: spacing.md, 
+    gap: spacing.md,
+  },
+  settingIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingLabel: { 
+    flex: 1, 
+    ...typography.bodyM,
+    color: colors.textPrimary,
+  },
+  settingDivider: {
+    height: 1,
+    backgroundColor: colors.borderLight,
+    marginLeft: spacing.xl + 36 + spacing.md,
+  },
+  
+  langChip: { 
+    paddingHorizontal: spacing.md, 
+    paddingVertical: spacing.xs, 
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.primary,
+  },
+  langChipText: { 
+    ...typography.meta,
+    color: colors.textInverse,
+    fontWeight: '700',
+  },
+  
+  // Admin Card
+  adminCard: {
+    backgroundColor: colors.primary,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    padding: spacing.xl,
+    borderRadius: borderRadius.xl,
+    ...shadows.card,
+  },
+  adminTitle: {
+    ...typography.sectionLabel,
+    color: 'rgba(255,255,255,0.7)',
+  },
+  adminSubtitle: {
+    ...typography.bodyM,
+    color: colors.textInverse,
+    marginTop: spacing.sm,
+  },
+  adminButton: {
+    marginTop: spacing.lg,
+    backgroundColor: colors.textInverse,
+  },
+  
+  // Logout
+  logoutBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: spacing.sm, 
+    paddingVertical: spacing.lg, 
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.xl,
+    borderRadius: borderRadius.lg, 
+    borderWidth: 1,
+    borderColor: colors.error,
+    backgroundColor: colors.errorLight,
+  },
+  logoutText: { 
+    ...typography.bodyM,
+    color: colors.error,
+    fontWeight: '600',
+  },
+  
+  // Version
+  version: {
+    ...typography.metaSmall,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginTop: spacing.xl,
+  },
 });
