@@ -202,8 +202,39 @@ export default function PredictionsScreen() {
 
   const predCount = Object.values(preds).filter(p => p.value).length;
   const totalMatches = data.predictions?.length || 0;
+  
+  // Get status info
+  const matchdayStatus = data.matchday?.status || 'OPEN';
+  const isOpen = matchdayStatus === 'OPEN';
+  const isLocked = matchdayStatus === 'LOCKED';
+  const isCompleted = matchdayStatus === 'COMPLETED';
+  
+  // Status label based on matchday status
+  const getStatusLabel = () => {
+    switch (matchdayStatus) {
+      case 'OPEN': return 'Giornata Aperta';
+      case 'LOCKED': return 'Giornata Chiusa';
+      case 'COMPLETED': return 'Giornata Completata';
+      case 'LIVE': return 'Giornata Live';
+      default: return matchdayStatus;
+    }
+  };
+  
+  // Format match datetime
+  const formatMatchTime = (startTime: string | null) => {
+    if (!startTime) return null;
+    try {
+      const date = new Date(startTime);
+      const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+      const day = days[date.getDay()];
+      const time = date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+      return `${day} ${time}`;
+    } catch {
+      return null;
+    }
+  };
 
-  const jollyDisabled = joker.is_locked || joker.used_other_matchday;
+  const jollyDisabled = joker.is_locked || joker.used_other_matchday || isCompleted;
   const jollyStatusText = joker.is_locked 
     ? 'BLOCCATO' 
     : joker.used_other_matchday 
