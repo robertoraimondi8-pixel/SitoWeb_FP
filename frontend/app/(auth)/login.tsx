@@ -361,22 +361,20 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxxl,
-    paddingTop: spacing.xxl,
+    paddingTop: spacing.lg,
   },
   
-  /* ─── Logo ─── */
+  /* ─── Logo GRANDE E DOMINANTE ─── */
   logoSection: {
     alignItems: 'center',
     marginBottom: spacing.xxl,
+    paddingTop: spacing.md,
   },
-  logoContainer: {
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.xl,
-    padding: spacing.lg,
-    ...shadows.card,
+  mainLogo: {
+    width: width * 0.75,  // 75% della larghezza schermo
+    height: 160,          // Altezza fissa grande
   },
   
   /* ─── Form Card ─── */
