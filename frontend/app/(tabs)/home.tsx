@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    borderBottomColor: colors.border,
   },
   headerLeft: {},
   greeting: {
@@ -339,13 +339,16 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: spacing.sm,
   },
-  headerLogo: {
-    width: 160,
-    height: 34,
+  accentLine: {
+    width: 40,
+    height: 3,
+    backgroundColor: colors.accent,
+    marginTop: spacing.sm,
+    borderRadius: 2,
   },
   headerButton: {
-    width: 44,
-    height: 44,
+    width: 42,
+    height: 42,
     borderRadius: borderRadius.md,
     backgroundColor: colors.background,
     alignItems: 'center',
