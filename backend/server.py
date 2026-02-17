@@ -459,33 +459,88 @@ async def get_home(user=Depends(get_current_user)):
                 "joker_active": joker_active,
             }
 
-    # Rankings preview
+    # Rankings preview + User Summary + Last 5 Performance
     rankings_preview = None
+    user_summary = None
+    last_5_performance = []
+    
     if user_leagues:
         first_league = user_leagues[0]
-        top = await score_summaries_col.aggregate([
-            {"$lookup": {"from": "memberships", "localField": "user_id", "foreignField": "user_id", "as": "mem"}},
-            {"$match": {"mem.league_id": first_league["id"]}},
-            {"$group": {"_id": "$user_id", "total": {"$sum": "$total_points"}}},
+        
+        # Get ALL members of the league for ranking calculation
+        league_members = await memberships_col.find(
+            {"league_id": first_league["id"], "status": "active"}
+        ).to_list(1000)
+        league_member_ids = [m["user_id"] for m in league_members]
+        
+        # Aggregate total points for all members
+        all_totals = await score_summaries_col.aggregate([
+            {"$match": {"user_id": {"$in": league_member_ids}}},
+            {"$group": {"_id": "$user_id", "total": {"$sum": "$total_points"}, "matchdays_played": {"$sum": 1}}},
             {"$sort": {"total": -1}},
-            {"$limit": 5}
-        ]).to_list(5)
-
+        ]).to_list(1000)
+        
+        # Build rankings preview (top 5)
         entries = []
-        for i, t in enumerate(top):
-            u = await users_col.find_one({"id": t["_id"]}, {"_id": 0, "password": 0})
-            entries.append({
-                "rank": i + 1,
-                "user_id": t["_id"],
-                "username": u["username"] if u else "Unknown",
-                "total_points": t["total"],
-            })
+        user_rank = None
+        user_total_points = 0.0
+        user_matchdays_played = 0
+        
+        for i, t in enumerate(all_totals):
+            # Check if this is the current user
+            if t["_id"] == user["id"]:
+                user_rank = i + 1
+                user_total_points = t["total"]
+                user_matchdays_played = t["matchdays_played"]
+            
+            # Add to top 5 preview
+            if i < 5:
+                u = await users_col.find_one({"id": t["_id"]}, {"_id": 0, "password": 0})
+                entries.append({
+                    "rank": i + 1,
+                    "user_id": t["_id"],
+                    "username": u["username"] if u else "Unknown",
+                    "total_points": t["total"],
+                })
+        
         rankings_preview = {"league_name": first_league["name"], "top": entries}
+        
+        # User Summary
+        user_summary = {
+            "rank": user_rank,
+            "points": user_total_points,
+            "matchdays_played": user_matchdays_played,
+            "total_points": user_total_points,
+        }
+        
+        # Last 5 Performance - Get last 5 COMPLETED matchdays
+        if season:
+            last_5_matchdays = await matchdays_col.find(
+                {"season_id": season["id"], "status": "COMPLETED"},
+                {"_id": 0, "id": 1, "number": 1}
+            ).sort("number", -1).limit(5).to_list(5)
+            
+            # Reverse to have ASC order (oldest first)
+            last_5_matchdays.reverse()
+            
+            for md in last_5_matchdays:
+                # Get user's score for this matchday
+                score = await score_summaries_col.find_one(
+                    {"user_id": user["id"], "matchday_id": md["id"]},
+                    {"_id": 0, "total_points": 1}
+                )
+                pts = score.get("total_points", 0.0) if score else 0.0
+                last_5_performance.append({
+                    "matchday_number": md["number"],
+                    "points": pts,
+                })
 
     return {
         "matchday": matchday_data,
         "live": live_data,
         "rankings_preview": rankings_preview,
+        "user_summary": user_summary,
+        "last_5_performance": last_5_performance,
         "stats_preview": {"message": "Stats coming soon"},
         "user_leagues": [{k: v for k, v in l.items() if k != "_id"} for l in user_leagues],
     }
