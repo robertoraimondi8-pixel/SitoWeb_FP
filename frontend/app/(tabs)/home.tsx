@@ -71,6 +71,17 @@ export default function HomeScreen() {
     }
   };
 
+  const performanceColor = (points: number) => {
+    if (points >= 6) return { backgroundColor: colors.success };
+    if (points >= 3) return { backgroundColor: colors.warning };
+    return { backgroundColor: colors.error };
+  };
+
+  const formatPoints = (n: any) => {
+    const num = typeof n === 'number' ? n : Number(n || 0);
+    return num.toFixed(1);
+  };
+
   if (loading) return <View style={[s.center, { backgroundColor: colors.background }]}><ActivityIndicator size="large" color={colors.accent} /></View>;
 
   return (
