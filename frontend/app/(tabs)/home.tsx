@@ -1,24 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, Animated, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { useTheme } from '../../src/contexts/ThemeContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 
+// Design System
+import { colors, typography, spacing, borderRadius, shadows, getStatusColor, getPerformanceColor } from '../../src/theme/designSystem';
+import { SectionCard, StatusBadge, PrimaryButton, StatBlock, LastFiveIndicator } from '../../src/components/ui';
+
 export default function HomeScreen() {
   const { t } = useTranslation();
-  const { colors } = useTheme();
-  const { token, user, logout, handleAuthError } = useAuth();
-  const { leagues, activeLeague, refreshLeagues } = useLeague();
+  const { token, user, handleAuthError } = useAuth();
+  const { refreshLeagues } = useLeague();
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  
+  // Fade animation
+  const fadeAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
     if (token) refreshLeagues(token);
@@ -34,8 +39,14 @@ export default function HomeScreen() {
       const res = await apiCall('/home', { token });
       setData(res);
       if (res.matchday?.countdown_seconds) setCountdown(res.matchday.countdown_seconds);
+      
+      // Fade in animation
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
     } catch (e: any) {
-      // Handle auth errors gracefully - redirect to login
       if (isAuthError(e)) {
         await handleAuthError(e);
         router.replace('/(auth)/login');
@@ -44,7 +55,7 @@ export default function HomeScreen() {
       console.error('Home fetch error:', e.message);
     }
     finally { setLoading(false); setRefreshing(false); }
-  }, [token, handleAuthError, router]);
+  }, [token, handleAuthError, router, fadeAnim]);
 
   useEffect(() => { fetchHome(); }, [fetchHome]);
 
@@ -61,313 +72,499 @@ export default function HomeScreen() {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
   };
 
-  const statusColor = (status: string) => {
-    switch (status) {
-      case 'OPEN': return colors.info;
-      case 'LOCKED': return colors.warning;
-      case 'LIVE': return colors.success;
-      case 'COMPLETED': return colors.textSecondary;
-      default: return colors.textSecondary;
-    }
-  };
-
-  const performanceColor = (points: number) => {
-    if (points >= 6) return { backgroundColor: colors.success };
-    if (points >= 3) return { backgroundColor: colors.warning };
-    return { backgroundColor: colors.error };
-  };
-
   const formatPoints = (n: any) => {
     const num = typeof n === 'number' ? n : Number(n || 0);
     return num.toFixed(1);
   };
 
-  if (loading) return <View style={[s.center, { backgroundColor: colors.background }]}><ActivityIndicator size="large" color={colors.accent} /></View>;
+  const getStatusLabel = (status: string) => {
+    switch (status?.toUpperCase()) {
+      case 'OPEN': return 'Aperta';
+      case 'LIVE': return 'Live';
+      case 'LOCKED': return 'Chiusa';
+      case 'COMPLETED': return 'Completata';
+      default: return status;
+    }
+  };
+
+  const getCtaConfig = (status: string) => {
+    switch (status?.toUpperCase()) {
+      case 'OPEN':
+        return { icon: 'create-outline' as const, label: 'INSERISCI PRONOSTICI', route: '/(tabs)/predictions' };
+      case 'LIVE':
+        return { icon: 'pulse' as const, label: 'SEGUI LIVE', route: `/live/${data?.matchday?.id}` };
+      case 'COMPLETED':
+        return { icon: 'checkmark-circle' as const, label: 'VEDI RISULTATI', route: `/live/${data?.matchday?.id}` };
+      default:
+        return null;
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.accent} />
+      </View>
+    );
+  }
+
+  const ctaConfig = data?.matchday ? getCtaConfig(data.matchday.status) : null;
 
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <View style={s.header}>
-        <View>
-          <Text style={[s.greeting, { color: colors.textSecondary }]}>Ciao, {user?.username}</Text>
-          <Text style={[s.headerTitle, { color: colors.accent }]}>FantaPronostic</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* HEADER */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.greeting}>Ciao, {user?.username}</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.titleFanta}>FANTA</Text>
+            <Text style={styles.titlePronostic}>Pronostic</Text>
+          </View>
+          <View style={styles.accentLine} />
         </View>
-        <TouchableOpacity testID="leagues-btn" onPress={() => router.push('/league/list')} style={[s.iconBtn, { backgroundColor: colors.card }]}>
-          <Ionicons name="people" size={22} color={colors.accent} />
+        <TouchableOpacity 
+          style={styles.headerButton}
+          onPress={() => router.push('/league/list')}
+        >
+          <Ionicons name="people-outline" size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={s.scrollContent} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchHome(); }} tintColor={colors.accent} />}>
+      <Animated.ScrollView 
+        style={{ opacity: fadeAnim }}
+        contentContainerStyle={styles.scrollContent} 
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={() => { setRefreshing(true); fetchHome(); }} 
+            tintColor={colors.accent}
+            colors={[colors.accent]}
+          />
+        }
+      >
         {/* MATCHDAY CARD */}
         {data?.matchday && (
-          <View testID="matchday-card" style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={s.cardHeader}>
-              <Text style={[s.cardLabel, { color: colors.textSecondary }]}>{t('matchday')}</Text>
-              <View style={[s.badge, { backgroundColor: statusColor(data.matchday.status) }]}>
-                <Text style={s.badgeText}>{t(data.matchday.status.toLowerCase())}</Text>
-              </View>
+          <View style={styles.matchdayCard}>
+            <View style={styles.matchdayHeader}>
+              <Text style={styles.sectionLabel}>GIORNATA</Text>
+              <StatusBadge status={data.matchday.status} label={getStatusLabel(data.matchday.status)} />
             </View>
-            <Text style={[s.matchdayTitle, { color: colors.text }]}>{data.matchday.label || `${t('matchday')} ${data.matchday.number}`}</Text>
+            
+            <Text style={styles.matchdayTitle}>
+              {data.matchday.label || `Giornata ${data.matchday.number}`}
+            </Text>
+            
+            <Text style={styles.matchdayMeta}>
+              {data.matchday.my_predictions_count}/{Math.max(data.matchday.total_matches, 11)} partite
+            </Text>
+
             {data.matchday.status === 'OPEN' && countdown > 0 && (
-              <View style={s.countdownWrap}>
+              <View style={styles.countdownContainer}>
                 <Ionicons name="time-outline" size={18} color={colors.accent} />
-                <Text style={[s.countdownText, { color: colors.accent }]}>{formatCountdown(countdown)}</Text>
+                <Text style={styles.countdownText}>{formatCountdown(countdown)}</Text>
               </View>
             )}
-            <Text style={[s.predCount, { color: colors.textSecondary }]}>
-              {data.matchday.my_predictions_count}/{Math.max(data.matchday.total_matches, 11)} {t('matches')}
-            </Text>
-            {data.matchday.status === 'OPEN' && (
-              <TouchableOpacity testID="insert-predictions-btn" style={[s.ctaBtn, { backgroundColor: colors.accent }]} onPress={() => router.push('/(tabs)/predictions')}>
-                <Ionicons name="create-outline" size={20} color={colors.background} />
-                <Text style={[s.ctaText, { color: colors.background }]}>{t('insert_predictions')}</Text>
-              </TouchableOpacity>
-            )}
-            {data.matchday.status === 'LIVE' && (
-              <TouchableOpacity testID="view-live-btn" style={[s.ctaBtn, { backgroundColor: colors.success }]} onPress={() => router.push(`/live/${data.matchday.id}`)}>
-                <Ionicons name="pulse" size={20} color="#fff" />
-                <Text style={[s.ctaText, { color: '#fff' }]}>{t('view_live')}</Text>
-              </TouchableOpacity>
-            )}
-            {data.matchday.status === 'COMPLETED' && (
-              <TouchableOpacity testID="view-results-btn" style={[s.ctaBtn, { backgroundColor: colors.textSecondary }]} onPress={() => router.push(`/live/${data.matchday.id}`)}>
-                <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                <Text style={[s.ctaText, { color: '#fff' }]}>{t('view_results') || 'Vedi Risultati'}</Text>
-              </TouchableOpacity>
+
+            {ctaConfig && (
+              <PrimaryButton
+                title={ctaConfig.label}
+                icon={ctaConfig.icon}
+                onPress={() => router.push(ctaConfig.route as any)}
+                style={styles.ctaButton}
+              />
             )}
           </View>
         )}
 
-        {/* USER SUMMARY (position / points / matchdays / total) */}
+        {/* USER SUMMARY */}
         {data?.user_summary && (
-          <View testID="user-summary-card" style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[s.cardLabel, { color: colors.textSecondary, marginBottom: 10 }]}>
-              La tua lega • Sintesi
-            </Text>
-
-            <View style={s.summaryRow}>
-              <View style={s.summaryItem}>
-                <Text style={[s.summaryLabel, { color: colors.textSecondary }]}>Posizione</Text>
-                <Text style={[s.summaryValue, { color: colors.text }]}>
-                  {data.user_summary.rank ? `${data.user_summary.rank}°` : '-'}
-                </Text>
-              </View>
-
-              <View style={[s.summaryDivider, { backgroundColor: colors.border }]} />
-
-              <View style={s.summaryItem}>
-                <Text style={[s.summaryLabel, { color: colors.textSecondary }]}>Punti</Text>
-                <Text style={[s.summaryValue, { color: colors.text }]}>{formatPoints(data.user_summary.points)}</Text>
-              </View>
-
-              <View style={[s.summaryDivider, { backgroundColor: colors.border }]} />
-
-              <View style={s.summaryItem}>
-                <Text style={[s.summaryLabel, { color: colors.textSecondary }]}>Giornate</Text>
-                <Text style={[s.summaryValue, { color: colors.text }]}>{data.user_summary.matchdays_played ?? 0}</Text>
-              </View>
-
-              <View style={[s.summaryDivider, { backgroundColor: colors.border }]} />
-
-              <View style={s.summaryItem}>
-                <Text style={[s.summaryLabel, { color: colors.textSecondary }]}>Totali</Text>
-                <Text style={[s.summaryValueAccent, { color: colors.accent }]}>{formatPoints(data.user_summary.total_points)}</Text>
-              </View>
+          <View style={styles.summaryCard}>
+            <Text style={styles.sectionLabel}>LA TUA LEGA · SINTESI</Text>
+            
+            <View style={styles.statsRow}>
+              <StatBlock 
+                label="Posizione" 
+                value={data.user_summary.rank ? `${data.user_summary.rank}°` : '-'}
+                accent
+              />
+              <View style={styles.statDivider} />
+              <StatBlock 
+                label="Punti" 
+                value={formatPoints(data.user_summary.points)}
+              />
+              <View style={styles.statDivider} />
+              <StatBlock 
+                label="Giornate" 
+                value={data.user_summary.matchdays_played ?? 0}
+              />
+              <View style={styles.statDivider} />
+              <StatBlock 
+                label="Totali" 
+                value={formatPoints(data.user_summary.total_points)}
+                accent
+              />
             </View>
           </View>
         )}
 
         {/* LAST 5 PERFORMANCE */}
         {Array.isArray(data?.last_5_performance) && data.last_5_performance.length > 0 && (
-          <View testID="last5-card" style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={s.cardHeader}>
-              <Text style={[s.cardLabel, { color: colors.textSecondary }]}>Ultimi 5</Text>
-            </View>
-
-            <View style={s.last5Row}>
-              {data.last_5_performance.map((it: any) => (
-                <View key={String(it.matchday_number)} style={s.last5Item}>
-                  <View style={[s.last5Circle, performanceColor(Number(it.points || 0))]}>
-                    <Text style={s.last5CircleText}>{it.matchday_number}</Text>
-                  </View>
-                  <Text style={[s.last5Points, { color: colors.text }]}>
-                    {formatPoints(it.points)}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            <Text style={[s.last5Hint, { color: colors.textSecondary }]}>
-              Punti ottenuti per giornata
-            </Text>
-          </View>
+          <SectionCard title="ULTIMI 5">
+            <LastFiveIndicator data={data.last_5_performance} />
+          </SectionCard>
         )}
 
-        {/* LIVE PREVIEW CARD */}
+        {/* LIVE PREVIEW */}
         {data?.live && (
-          <View testID="live-preview-card" style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={s.cardHeader}>
-              <Text style={[s.cardLabel, { color: colors.textSecondary }]}>LIVE</Text>
-              <View style={[s.badge, { backgroundColor: colors.success }]}>
-                <View style={s.liveDot} />
-                <Text style={s.badgeText}>LIVE</Text>
-              </View>
+          <View style={styles.liveCard}>
+            <View style={styles.liveHeader}>
+              <StatusBadge status="LIVE" label="LIVE" />
             </View>
-            <Text style={[s.liveScore, { color: colors.accent }]}>{data.live.total_provisional.toFixed(1)} pts</Text>
-            <Text style={[s.liveLabel, { color: colors.textSecondary }]}>{t('provisional_points')}</Text>
+            <Text style={styles.liveScore}>{formatPoints(data.live.total_provisional)} pts</Text>
+            <Text style={styles.liveMeta}>Punti provvisori</Text>
           </View>
         )}
 
         {/* RANKINGS PREVIEW */}
         {data?.rankings_preview && (
-          <View testID="rankings-card" style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={s.cardHeader}>
-              <Text style={[s.cardLabel, { color: colors.textSecondary }]}>{t('rankings')}</Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/rankings')}>
-                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          <View style={styles.rankingsCard}>
+            <View style={styles.rankingsHeader}>
+              <Text style={styles.sectionLabel}>CLASSIFICHE</Text>
+              <TouchableOpacity 
+                style={styles.rankingsMore}
+                onPress={() => router.push('/(tabs)/rankings')}
+              >
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
-            <Text style={[s.leagueName, { color: colors.text }]}>{data.rankings_preview.league_name}</Text>
-            {data.rankings_preview.top?.map((entry: any, i: number) => (
-              <View key={i} style={s.rankRow}>
-                <Text style={[s.rankNum, { color: i < 3 ? colors.accent : colors.textSecondary }]}>{entry.rank}</Text>
-                <Text style={[s.rankName, { color: colors.text }]}>{entry.username}</Text>
-                <Text style={[s.rankPts, { color: colors.accent }]}>{entry.total_points.toFixed(1)}</Text>
-              </View>
-            ))}
+            
+            <Text style={styles.leagueName}>{data.rankings_preview.league_name}</Text>
+            
+            {data.rankings_preview.top?.map((entry: any, i: number) => {
+              const isCurrentUser = entry.user_id === user?.id;
+              return (
+                <View 
+                  key={entry.user_id || i} 
+                  style={[
+                    styles.rankRow,
+                    isCurrentUser && styles.rankRowHighlight,
+                  ]}
+                >
+                  {isCurrentUser && <View style={styles.rankRowAccent} />}
+                  <Text style={[
+                    styles.rankPosition,
+                    i < 3 && styles.rankPositionTop3,
+                  ]}>
+                    {entry.rank}
+                  </Text>
+                  <Text style={[styles.rankName, isCurrentUser && styles.rankNameBold]}>
+                    {entry.username}
+                  </Text>
+                  <Text style={styles.rankPoints}>{formatPoints(entry.total_points)}</Text>
+                </View>
+              );
+            })}
           </View>
         )}
 
-        {/* LEAGUES */}
+        {/* MY LEAGUES */}
         {data?.user_leagues?.length > 0 && (
-          <View testID="leagues-card" style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[s.cardLabel, { color: colors.textSecondary }]}>{t('my_leagues')}</Text>
-            {data.user_leagues.map((l: any) => (
-              <View key={l.id} style={s.leagueRow}>
-                <Ionicons name={l.league_type === 'national' ? 'globe' : 'shield'} size={18} color={colors.accent} />
-                <Text style={[s.leagueText, { color: colors.text }]}>{l.name}</Text>
+          <SectionCard title="LE MIE LEGHE">
+            {data.user_leagues.map((league: any) => (
+              <View key={league.id} style={styles.leagueRow}>
+                <Ionicons 
+                  name={league.league_type === 'national' ? 'globe-outline' : 'shield-outline'} 
+                  size={20} 
+                  color={colors.primary} 
+                />
+                <Text style={styles.leagueText}>{league.name}</Text>
               </View>
             ))}
-            <View style={s.leagueBtns}>
-              <TouchableOpacity testID="create-league-btn" style={[s.smallBtn, { borderColor: colors.accent }]} onPress={() => router.push('/league/create')}>
-                <Text style={[s.smallBtnText, { color: colors.accent }]}>{t('create_league')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity testID="join-league-btn" style={[s.smallBtn, { borderColor: colors.accent }]} onPress={() => router.push('/league/join')}>
-                <Text style={[s.smallBtnText, { color: colors.accent }]}>{t('join_league')}</Text>
-              </TouchableOpacity>
+            
+            <View style={styles.leagueActions}>
+              <PrimaryButton
+                title="Crea Lega"
+                variant="outline"
+                size="small"
+                onPress={() => router.push('/league/create')}
+                style={styles.leagueBtn}
+              />
+              <PrimaryButton
+                title="Unisciti"
+                variant="outline"
+                size="small"
+                onPress={() => router.push('/league/join')}
+                style={styles.leagueBtn}
+              />
             </View>
-          </View>
+          </SectionCard>
         )}
 
         {/* STATS PLACEHOLDER */}
-        <View testID="stats-card" style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={s.cardHeader}>
-            <Text style={[s.cardLabel, { color: colors.textSecondary }]}>{t('stats')}</Text>
-            <Ionicons name="stats-chart" size={20} color={colors.textSecondary} />
+        <SectionCard title="STATISTICHE">
+          <View style={styles.statsPlaceholder}>
+            <Ionicons name="stats-chart-outline" size={32} color={colors.textMuted} />
+            <Text style={styles.statsPlaceholderText}>Prossimamente</Text>
           </View>
-          <Text style={[s.statsPlaceholder, { color: colors.textSecondary }]}>{t('stats_coming_soon')}</Text>
-        </View>
-      </ScrollView>
+        </SectionCard>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
-  greeting: { fontSize: 13 },
-  headerTitle: { fontSize: 24, fontWeight: '800', letterSpacing: 1 },
-  iconBtn: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  scrollContent: { padding: 16, paddingBottom: 32 },
-  card: { borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  cardLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1 },
-  badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  badgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' },
-  matchdayTitle: { fontSize: 20, fontWeight: '700', marginBottom: 8 },
-  countdownWrap: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  countdownText: { fontSize: 28, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  predCount: { fontSize: 13, marginBottom: 12 },
-  ctaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: 12, gap: 8 },
-  ctaText: { fontSize: 15, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  liveScore: { fontSize: 36, fontWeight: '800', marginBottom: 2 },
-  liveLabel: { fontSize: 13 },
-  leagueName: { fontSize: 15, fontWeight: '600', marginBottom: 8 },
-  rankRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, gap: 12 },
-  rankNum: { fontSize: 16, fontWeight: '800', width: 24, textAlign: 'center' },
-  rankName: { flex: 1, fontSize: 14, fontWeight: '500' },
-  rankPts: { fontSize: 14, fontWeight: '700' },
-  leagueRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },
-  leagueText: { fontSize: 14, fontWeight: '500' },
-  leagueBtns: { flexDirection: 'row', gap: 8, marginTop: 12 },
-  smallBtn: { flex: 1, borderWidth: 1, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
-  smallBtnText: { fontSize: 12, fontWeight: '600' },
-  statsPlaceholder: { fontSize: 14, paddingVertical: 20, textAlign: 'center' },
-  
-  // User Summary styles
-  summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  summaryItem: {
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
-    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
   },
-  summaryLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: 6,
-  },
-  summaryValue: {
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  summaryValueAccent: {
-    fontSize: 18,
-    fontWeight: '900',
-  },
-  summaryDivider: {
-    width: 1,
-    height: 34,
-    opacity: 0.35,
-  },
-
-  // Last 5 Performance styles
-  last5Row: {
+  
+  // Header
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8,
+    alignItems: 'flex-start',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
   },
-  last5Item: {
-    alignItems: 'center',
-    width: 56,
+  headerLeft: {},
+  greeting: {
+    ...typography.meta,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
   },
-  last5Circle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  titleFanta: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.accent,
+    letterSpacing: 0.5,
+  },
+  titlePronostic: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.primary,
+    letterSpacing: 0.5,
+  },
+  accentLine: {
+    width: 48,
+    height: 3,
+    backgroundColor: colors.accent,
+    marginTop: spacing.sm,
+    borderRadius: 2,
+  },
+  headerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  last5CircleText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '900',
+  
+  scrollContent: {
+    padding: spacing.lg,
+    paddingBottom: spacing.xxxl,
   },
-  last5Points: {
-    marginTop: 8,
-    fontSize: 12,
+  
+  sectionLabel: {
+    ...typography.sectionLabel,
+    color: colors.textSecondary,
+  },
+  
+  // Matchday Card
+  matchdayCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    marginBottom: spacing.lg,
+    ...shadows.card,
+  },
+  matchdayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  matchdayTitle: {
+    ...typography.titleL,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  matchdayMeta: {
+    ...typography.bodyS,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  countdownContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  countdownText: {
+    fontSize: 28,
     fontWeight: '800',
+    color: colors.accent,
+    fontVariant: ['tabular-nums'],
   },
-  last5Hint: {
-    marginTop: 10,
-    fontSize: 12,
-    fontWeight: '500',
-    textAlign: 'center',
+  ctaButton: {
+    marginTop: spacing.sm,
+  },
+  
+  // Summary Card
+  summaryCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    marginBottom: spacing.lg,
+    ...shadows.card,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.lg,
+  },
+  statDivider: {
+    width: 1,
+    height: 36,
+    backgroundColor: colors.border,
+  },
+  
+  // Live Card
+  liveCard: {
+    backgroundColor: colors.successLight,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    marginBottom: spacing.lg,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.success,
+  },
+  liveHeader: {
+    marginBottom: spacing.md,
+  },
+  liveScore: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: colors.success,
+  },
+  liveMeta: {
+    ...typography.bodyS,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
+  
+  // Rankings Card
+  rankingsCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    marginBottom: spacing.lg,
+    ...shadows.card,
+  },
+  rankingsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  rankingsMore: {
+    padding: spacing.xs,
+  },
+  leagueName: {
+    ...typography.titleM,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+  },
+  rankRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.sm,
+    marginBottom: spacing.xs,
+  },
+  rankRowHighlight: {
+    backgroundColor: colors.cardHighlight,
+    marginLeft: -spacing.sm,
+    marginRight: -spacing.sm,
+    paddingLeft: spacing.lg,
+  },
+  rankRowAccent: {
+    position: 'absolute',
+    left: 0,
+    top: spacing.xs,
+    bottom: spacing.xs,
+    width: 3,
+    backgroundColor: colors.accent,
+    borderRadius: 2,
+  },
+  rankPosition: {
+    width: 28,
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  rankPositionTop3: {
+    color: colors.accent,
+  },
+  rankName: {
+    flex: 1,
+    ...typography.bodyM,
+    color: colors.textPrimary,
+  },
+  rankNameBold: {
+    fontWeight: '700',
+  },
+  rankPoints: {
+    ...typography.statMedium,
+    color: colors.accent,
+  },
+  
+  // Leagues
+  leagueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  leagueText: {
+    ...typography.bodyM,
+    color: colors.textPrimary,
+  },
+  leagueActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.lg,
+  },
+  leagueBtn: {
+    flex: 1,
+  },
+  
+  // Stats Placeholder
+  statsPlaceholder: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxl,
+  },
+  statsPlaceholderText: {
+    ...typography.bodyS,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
   },
 });
