@@ -253,7 +253,7 @@ export default function PredictionsScreen() {
           </Text>
           <Text style={styles.predCounter}>{predCount}/{totalMatches} {t('matches')}</Text>
         </View>
-        <StatusBadge status={data.matchday.status} />
+        <StatusBadge status={matchdayStatus} label={getStatusLabel()} />
       </View>
 
       {/* Jolly Banner */}
