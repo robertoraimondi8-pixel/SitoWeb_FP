@@ -156,8 +156,12 @@ export default function LiveScreen() {
   const isCompleted = data?.matchday_status === 'COMPLETED';
   const isLocked = data?.matchday_status === 'LOCKED';
   
+  // DEBUG - remove after fix
+  console.log('[LiveScreen] matchday_status:', data?.matchday_status, 'isCompleted:', isCompleted);
+  
   // Determine points label based on status
   const getPointsLabel = () => {
+    console.log('[getPointsLabel] isCompleted:', isCompleted, 'isLive:', isLive, 'isLocked:', isLocked);
     if (isCompleted) return 'Punti Ufficiali';
     if (isLive || isLocked) return 'Punti Provvisori';
     return 'Punti';
