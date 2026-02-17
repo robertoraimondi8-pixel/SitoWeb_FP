@@ -101,6 +101,13 @@ export default function AdminConsole() {
   
   // Create matchday form
   const [newMatchday, setNewMatchday] = useState({ number: '', label: '' });
+  const [showNumberPicker, setShowNumberPicker] = useState(false);
+  
+  // Get available matchday numbers (1-40, excluding already created)
+  const getAvailableNumbers = () => {
+    const usedNumbers = matchdays.map(md => md.number);
+    return Array.from({ length: 40 }, (_, i) => i + 1).filter(n => !usedNumbers.includes(n));
+  };
   
   // Add match form
   const [newMatch, setNewMatch] = useState({ 
