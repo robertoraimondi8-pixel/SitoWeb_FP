@@ -329,20 +329,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.lg,
+    paddingTop: spacing.xxl,
+    paddingBottom: spacing.xl,
     backgroundColor: colors.card,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  headerLeft: {},
+  headerLeft: {
+    flex: 1,
+  },
   greeting: {
-    ...typography.meta,
+    ...typography.bodyS,
     color: colors.textSecondary,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   logoSpacing: {
     marginTop: spacing.xs,
+    marginBottom: spacing.sm,
   },
   headerButton: {
     width: 42,
