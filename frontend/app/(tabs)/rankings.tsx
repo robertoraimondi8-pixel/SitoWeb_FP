@@ -381,13 +381,13 @@ const styles = StyleSheet.create({
   },
   leagueContent: { 
     paddingHorizontal: spacing.lg, 
-    paddingVertical: spacing.sm,
-    gap: spacing.sm, 
+    paddingVertical: spacing.md,
+    gap: spacing.md, 
     flexDirection: 'row' 
   },
   leagueChip: { 
-    paddingHorizontal: spacing.lg, 
-    paddingVertical: spacing.sm, 
+    paddingHorizontal: spacing.xl, 
+    paddingVertical: spacing.md, 
     borderRadius: borderRadius.pill, 
     backgroundColor: colors.background,
     borderWidth: 1,
