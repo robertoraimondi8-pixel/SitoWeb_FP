@@ -208,11 +208,13 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Logo */}
+          {/* Logo - GRANDE E DOMINANTE */}
           <View style={styles.logoSection}>
-            <View style={styles.logoContainer}>
-              <BrandLogo variant="full" size="lg" />
-            </View>
+            <Image
+              source={require('../../assets/logo-full.png')}
+              style={styles.mainLogo}
+              resizeMode="contain"
+            />
           </View>
 
           {/* Form Card */}
