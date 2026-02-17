@@ -1204,6 +1204,11 @@ const s = StyleSheet.create({
   backBtn: { padding: 4 },
   headerTitle: { flex: 1, fontSize: 20, fontWeight: '800' },
   
+  descBanner: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 16, padding: 16, borderRadius: 12, borderWidth: 1, gap: 12 },
+  descBannerText: { flex: 1 },
+  descTitle: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
+  descSubtitle: { fontSize: 13 },
+  
   scrollContent: { padding: 16, paddingBottom: 100 },
   
   errorBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 10, marginBottom: 16 },
