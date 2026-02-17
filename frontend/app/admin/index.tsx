@@ -856,14 +856,15 @@ export default function AdminConsole() {
             <Text style={[s.modalTitle, { color: colors.text }]}>Nuova Giornata</Text>
             
             <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Numero *</Text>
-            <TextInput
-              style={[s.formInput, { color: colors.text, borderColor: colors.border }]}
-              keyboardType="numeric"
-              placeholder="Es: 12"
-              placeholderTextColor={colors.textSecondary}
-              value={newMatchday.number}
-              onChangeText={(t) => setNewMatchday(p => ({ ...p, number: t }))}
-            />
+            <TouchableOpacity
+              style={[s.formInput, { borderColor: colors.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+              onPress={() => setShowNumberPicker(true)}
+            >
+              <Text style={{ color: newMatchday.number ? colors.text : colors.textSecondary, fontSize: 15 }}>
+                {newMatchday.number ? `Giornata ${newMatchday.number}` : 'Seleziona numero...'}
+              </Text>
+              <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
             
             <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Label (opzionale)</Text>
             <TextInput
