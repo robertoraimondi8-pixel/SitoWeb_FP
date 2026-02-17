@@ -304,4 +304,70 @@ const s = StyleSheet.create({
   smallBtn: { flex: 1, borderWidth: 1, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
   smallBtnText: { fontSize: 12, fontWeight: '600' },
   statsPlaceholder: { fontSize: 14, paddingVertical: 20, textAlign: 'center' },
+  
+  // User Summary styles
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  summaryItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  summaryLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 6,
+  },
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  summaryValueAccent: {
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  summaryDivider: {
+    width: 1,
+    height: 34,
+    opacity: 0.35,
+  },
+
+  // Last 5 Performance styles
+  last5Row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  last5Item: {
+    alignItems: 'center',
+    width: 56,
+  },
+  last5Circle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  last5CircleText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  last5Points: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  last5Hint: {
+    marginTop: 10,
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
 });
