@@ -552,7 +552,17 @@ export default function AdminConsole() {
     <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+        <TouchableOpacity 
+          onPress={() => { 
+            if (router.canGoBack()) { 
+              router.back(); 
+            } else { 
+              router.replace('/(tabs)/profile'); 
+            } 
+          }} 
+          style={s.backBtn}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[s.headerTitle, { color: colors.text }]}>Admin Console</Text>
