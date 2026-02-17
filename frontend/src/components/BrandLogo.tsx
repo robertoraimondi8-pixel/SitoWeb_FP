@@ -17,10 +17,11 @@ const SIZE_MAP = {
   lg: { height: 56, aspectRatio: 3.2 },
 };
 
+// Wordmark sizes - lg is 15-20% bigger for Home header
 const WORDMARK_SIZE_MAP = {
-  sm: { height: 18, aspectRatio: 5 },
-  md: { height: 28, aspectRatio: 5 },
-  lg: { height: 40, aspectRatio: 5 },
+  sm: { height: 18, aspectRatio: 5.5 },
+  md: { height: 28, aspectRatio: 5.5 },
+  lg: { height: 38, aspectRatio: 5.5 },  // ~35% bigger than md
 };
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({
