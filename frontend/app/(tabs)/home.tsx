@@ -117,17 +117,14 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.greeting}>Ciao, {user?.username}</Text>
-          <Image
-            source={require('../../assets/logo-official.png')}
-            style={styles.headerLogo}
-            resizeMode="contain"
-          />
+          <BrandLogo variant="wordmark" size="md" />
+          <View style={styles.accentLine} />
         </View>
         <TouchableOpacity 
           style={styles.headerButton}
           onPress={() => router.push('/league/list')}
         >
-          <Ionicons name="people-outline" size={24} color={colors.primary} />
+          <Ionicons name="people-outline" size={22} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
