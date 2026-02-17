@@ -414,6 +414,21 @@ const styles = StyleSheet.create({
     color: colors.textInverse,
     fontWeight: '600',
   },
+  singleLeagueHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  singleLeagueText: {
+    ...typography.bodyM,
+    color: colors.textPrimary,
+    fontWeight: '700',
+  },
   
   // Tab toggle
   tabContainer: {
