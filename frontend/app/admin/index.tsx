@@ -86,6 +86,7 @@ export default function AdminConsole() {
   const [showCreateMatchday, setShowCreateMatchday] = useState(false);
   const [showAddMatch, setShowAddMatch] = useState(false);
   const [showMatchStatusPicker, setShowMatchStatusPicker] = useState<string | null>(null);
+  const [showMatchdayDropdown, setShowMatchdayDropdown] = useState(false);
   
   // Date picker state - default to tomorrow 15:00
   const getDefaultDate = () => {
