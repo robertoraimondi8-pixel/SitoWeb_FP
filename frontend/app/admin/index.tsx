@@ -1080,6 +1080,54 @@ export default function AdminConsole() {
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Modal: Matchday Dropdown Selector */}
+      <Modal visible={showMatchdayDropdown} transparent animationType="slide">
+        <TouchableOpacity 
+          style={s.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setShowMatchdayDropdown(false)}
+        >
+          <View style={[s.dropdownModal, { backgroundColor: colors.card }]}>
+            <View style={s.dropdownModalHandle} />
+            <Text style={[s.modalTitle, { color: colors.text }]}>Seleziona Giornata</Text>
+            <ScrollView style={s.dropdownList}>
+              {matchdays.map((md) => {
+                const isCurrent = selectedSeason?.current_matchday_id === md.id;
+                const isSelected = selectedMatchday?.id === md.id;
+                return (
+                  <TouchableOpacity
+                    key={md.id}
+                    style={[
+                      s.dropdownItem,
+                      { borderColor: colors.border },
+                      isSelected && { backgroundColor: 'rgba(245,166,35,0.1)', borderColor: colors.accent },
+                    ]}
+                    onPress={() => {
+                      setSelectedMatchday(md);
+                      setShowMatchdayDropdown(false);
+                    }}
+                  >
+                    <View style={s.dropdownItemLeft}>
+                      <Text style={[s.dropdownItemText, { color: colors.text }]}>
+                        {md.label || `Giornata ${md.number}`}
+                      </Text>
+                      {isCurrent && (
+                        <View style={[s.currentBadge, { backgroundColor: colors.accent }]}>
+                          <Text style={s.currentBadgeText}>CORRENTE</Text>
+                        </View>
+                      )}
+                    </View>
+                    <View style={[s.statusDot, { backgroundColor: getStatusColor(md.status) }]} />
+                    <Text style={[s.dropdownStatusText, { color: colors.textSecondary }]}>{md.status}</Text>
+                    {isSelected && <Ionicons name="checkmark-circle" size={20} color={colors.accent} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
