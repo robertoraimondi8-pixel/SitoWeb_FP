@@ -7,9 +7,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { useTheme } from '../../src/contexts/ThemeContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+
+// Design System
+import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+import { StatusBadge, PrimaryButton } from '../../src/components/ui';
 
 const MARKETS = [
   { key: '1X2', label: '1X2', pts: '1 pt' },
@@ -41,7 +44,6 @@ interface JokerState {
 
 export default function PredictionsScreen() {
   const { t } = useTranslation();
-  const { colors } = useTheme();
   const router = useRouter();
   const { token, handleAuthError } = useAuth();
   const [data, setData] = useState<any>(null);
@@ -59,7 +61,6 @@ export default function PredictionsScreen() {
       const res = await apiCall(`/predictions/${home.matchday.id}`, { token });
       setData(res);
 
-      // Set joker state from response
       if (res.joker) {
         setJoker({
           is_active: res.joker.is_active || false,
@@ -69,7 +70,6 @@ export default function PredictionsScreen() {
         });
       }
 
-      // Load existing predictions
       const predMap: Record<string, MatchPred> = {};
       res.predictions?.forEach((p: any) => {
         const mid = p.match.id;
@@ -157,7 +157,6 @@ export default function PredictionsScreen() {
     finally { setSaving(false); }
   };
 
-  // Jolly toggle - per MATCHDAY (not per match!)
   const handleJollyToggle = async () => {
     if (!data?.matchday) return;
     if (joker.is_locked) {
@@ -172,11 +171,9 @@ export default function PredictionsScreen() {
     setJokerLoading(true);
     try {
       if (joker.is_active) {
-        // Deactivate joker
         await apiCall(`/predictions/${data.matchday.id}/joker`, { method: 'DELETE', token });
         setJoker(prev => ({ ...prev, is_active: false }));
       } else {
-        // Activate joker
         await apiCall(`/predictions/${data.matchday.id}/joker`, { method: 'POST', token });
         setJoker(prev => ({ ...prev, is_active: true }));
       }
@@ -186,13 +183,26 @@ export default function PredictionsScreen() {
     finally { setJokerLoading(false); }
   };
 
-  if (loading) return <View style={[s.center, { backgroundColor: colors.background }]}><ActivityIndicator size="large" color={colors.accent} /></View>;
-  if (!data?.matchday) return <View style={[s.center, { backgroundColor: colors.background }]}><Text style={{ color: colors.textSecondary }}>{t('no_data')}</Text></View>;
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.accent} />
+      </View>
+    );
+  }
+
+  if (!data?.matchday) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Ionicons name="calendar-outline" size={48} color={colors.textMuted} />
+        <Text style={styles.emptyText}>{t('no_data')}</Text>
+      </View>
+    );
+  }
 
   const predCount = Object.values(preds).filter(p => p.value).length;
   const totalMatches = data.predictions?.length || 0;
 
-  // Determine jolly status for UI
   const jollyDisabled = joker.is_locked || joker.used_other_matchday;
   const jollyStatusText = joker.is_locked 
     ? 'BLOCCATO' 
@@ -203,28 +213,33 @@ export default function PredictionsScreen() {
         : 'Attiva Jolly';
 
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
-      <View style={s.header}>
-        <View>
-          <Text style={[s.headerTitle, { color: colors.text }]}>{data.matchday.label || `${t('matchday')} ${data.matchday.number}`}</Text>
-          <Text style={[s.predCounter, { color: colors.textSecondary }]}>{predCount}/{totalMatches} {t('matches')}</Text>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.headerTitle}>
+            {data.matchday.label || `${t('matchday')} ${data.matchday.number}`}
+          </Text>
+          <Text style={styles.predCounter}>{predCount}/{totalMatches} {t('matches')}</Text>
         </View>
-        <View style={[s.statusBadge, { backgroundColor: data.matchday.status === 'OPEN' ? colors.info : colors.warning }]}>
-          <Text style={s.statusText}>{data.matchday.status}</Text>
-        </View>
+        <StatusBadge status={data.matchday.status} />
       </View>
 
-      {/* JOLLY TOGGLE - STICKY at top (per MATCHDAY) */}
-      <View style={[s.jollyContainer, { backgroundColor: colors.card, borderColor: joker.is_active ? colors.accent : colors.border }]}>
-        <View style={s.jollyInfo}>
-          <Ionicons name="star" size={24} color={joker.is_active ? colors.accent : colors.textSecondary} />
-          <View style={s.jollyTextContainer}>
-            <Text style={[s.jollyTitle, { color: joker.is_active ? colors.accent : colors.text }]}>
+      {/* Jolly Banner */}
+      <View style={[
+        styles.jollyContainer, 
+        joker.is_active && styles.jollyContainerActive
+      ]}>
+        <View style={styles.jollyInfo}>
+          <View style={[styles.jollyIcon, joker.is_active && styles.jollyIconActive]}>
+            <Ionicons name="star" size={20} color={joker.is_active ? colors.textInverse : colors.accent} />
+          </View>
+          <View style={styles.jollyTextContainer}>
+            <Text style={[styles.jollyTitle, joker.is_active && styles.jollyTitleActive]}>
               JOLLY GIORNATA
             </Text>
-            <Text style={[s.jollySubtitle, { color: colors.textSecondary }]}>
-              {joker.half === 1 ? 'Andata' : 'Ritorno'} • Raddoppia TUTTI i punti
+            <Text style={styles.jollySubtitle}>
+              {joker.half === 1 ? 'Andata' : 'Ritorno'} • Raddoppia tutti i punti
             </Text>
           </View>
         </View>
@@ -233,19 +248,20 @@ export default function PredictionsScreen() {
           onPress={handleJollyToggle}
           disabled={jollyDisabled || jokerLoading}
           style={[
-            s.jollyToggleBtn,
-            joker.is_active && { backgroundColor: colors.accent },
-            jollyDisabled && { backgroundColor: 'rgba(107,114,128,0.3)' },
+            styles.jollyToggleBtn,
+            joker.is_active && styles.jollyToggleBtnActive,
+            jollyDisabled && styles.jollyToggleBtnDisabled,
           ]}
         >
           {jokerLoading ? (
-            <ActivityIndicator size="small" color={joker.is_active ? colors.background : colors.textSecondary} />
+            <ActivityIndicator size="small" color={joker.is_active ? colors.accent : colors.textSecondary} />
           ) : (
             <>
-              {joker.is_locked && <Ionicons name="lock-closed" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />}
+              {joker.is_locked && <Ionicons name="lock-closed" size={14} color={colors.textMuted} style={{ marginRight: 4 }} />}
               <Text style={[
-                s.jollyToggleText, 
-                { color: joker.is_active ? colors.background : jollyDisabled ? colors.textSecondary : colors.text }
+                styles.jollyToggleText, 
+                joker.is_active && styles.jollyToggleTextActive,
+                jollyDisabled && styles.jollyToggleTextDisabled,
               ]}>
                 {jollyStatusText}
               </Text>
@@ -255,7 +271,7 @@ export default function PredictionsScreen() {
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           {data.predictions?.map((item: any, idx: number) => {
             const m = item.match;
             const isLocked = item.is_locked;
@@ -268,100 +284,122 @@ export default function PredictionsScreen() {
                 key={m.id}
                 testID={`match-card-${idx}`}
                 style={[
-                  s.matchCard,
-                  { backgroundColor: colors.card, borderColor: colors.border },
-                  isLocked && { opacity: 0.7 },
+                  styles.matchCard,
+                  isLocked && styles.matchCardLocked,
                 ]}
               >
                 {/* Match Header */}
-                <View style={s.matchHeader}>
-                  <Text style={[s.matchNum, { color: colors.textSecondary }]}>{idx + 1}</Text>
-                  <Text style={[s.competition, { color: colors.textSecondary }]}>{m.competition}</Text>
+                <View style={styles.matchHeader}>
+                  <View style={styles.matchNumBadge}>
+                    <Text style={styles.matchNum}>{idx + 1}</Text>
+                  </View>
+                  <Text style={styles.competition}>{m.competition}</Text>
                   {isLocked && (
-                    <View style={[s.lockBadge, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
+                    <View style={styles.lockBadge}>
                       <Ionicons name="lock-closed" size={12} color={colors.error} />
-                      <Text style={[s.lockText, { color: colors.error }]}>LOCKED</Text>
+                      <Text style={styles.lockText}>LOCKED</Text>
                     </View>
                   )}
                 </View>
 
                 {/* Teams */}
-                <View style={s.teamsRow}>
-                  <Text style={[s.teamName, { color: colors.text }]}>{m.home_team}</Text>
-                  <Text style={[s.vs, { color: colors.textSecondary }]}>vs</Text>
-                  <Text style={[s.teamName, { color: colors.text }]}>{m.away_team}</Text>
+                <View style={styles.teamsRow}>
+                  <Text style={styles.teamName}>{m.home_team}</Text>
+                  <View style={styles.vsContainer}>
+                    <Text style={styles.vs}>vs</Text>
+                  </View>
+                  <Text style={styles.teamName}>{m.away_team}</Text>
                 </View>
 
                 {isLocked ? (
-                  /* Locked state: show saved prediction if any */
-                  <View style={[s.lockedArea, { backgroundColor: 'rgba(239,68,68,0.06)' }]}>
+                  <View style={styles.lockedArea}>
                     {selectedValue ? (
-                      <Text style={[s.lockedPred, { color: colors.text }]}>
-                        {selectedMarket.replace('_', '/')} → <Text style={{ fontWeight: '800', color: colors.accent }}>{selectedValue}</Text>
-                      </Text>
+                      <View style={styles.lockedPredContainer}>
+                        <View style={styles.lockedMarketBadge}>
+                          <Text style={styles.lockedMarketText}>{selectedMarket.replace('_', '/')}</Text>
+                        </View>
+                        <Text style={styles.lockedPredValue}>{selectedValue}</Text>
+                      </View>
                     ) : (
-                      <Text style={[s.lockedEmpty, { color: colors.textSecondary }]}>{t('no_predictions')}</Text>
+                      <Text style={styles.lockedEmpty}>{t('no_predictions')}</Text>
                     )}
                   </View>
                 ) : (
                   <>
                     {/* Market Selector */}
-                    <View style={s.marketRow}>
+                    <View style={styles.marketRow}>
                       {MARKETS.map(mk => (
                         <TouchableOpacity
                           key={mk.key}
                           testID={`market-${idx}-${mk.key}`}
                           onPress={() => setMarket(m.id, mk.key)}
                           style={[
-                            s.marketPill,
-                            { borderColor: colors.border },
-                            selectedMarket === mk.key && { backgroundColor: colors.accent, borderColor: colors.accent },
+                            styles.marketPill,
+                            selectedMarket === mk.key && styles.marketPillActive,
                           ]}
                         >
-                          <Text style={[s.marketLabel, { color: selectedMarket === mk.key ? colors.background : colors.text }]}>{mk.label}</Text>
-                          <Text style={[s.marketPts, { color: selectedMarket === mk.key ? 'rgba(15,23,42,0.6)' : colors.textSecondary }]}>{mk.pts}</Text>
+                          <Text style={[
+                            styles.marketLabel, 
+                            selectedMarket === mk.key && styles.marketLabelActive
+                          ]}>
+                            {mk.label}
+                          </Text>
+                          <Text style={[
+                            styles.marketPts, 
+                            selectedMarket === mk.key && styles.marketPtsActive
+                          ]}>
+                            {mk.pts}
+                          </Text>
                         </TouchableOpacity>
                       ))}
                     </View>
 
-                    {/* Value Input (based on selected market) */}
+                    {/* Value Input */}
                     {selectedMarket && selectedMarket !== 'EXACT_SCORE' && (
-                      <View style={s.valueRow}>
+                      <View style={styles.valueRow}>
                         {VALUE_OPTIONS[selectedMarket]?.map(opt => (
                           <TouchableOpacity
                             key={opt}
                             testID={`value-${idx}-${opt}`}
                             onPress={() => setValue(m.id, opt)}
                             style={[
-                              s.valueBtn,
-                              { borderColor: colors.border, backgroundColor: colors.background },
-                              selectedValue === opt && { backgroundColor: colors.primary, borderColor: colors.primary },
+                              styles.valueBtn,
+                              selectedValue === opt && styles.valueBtnActive,
                             ]}
                           >
-                            <Text style={[s.valueBtnText, { color: selectedValue === opt ? '#fff' : colors.text }]}>{opt}</Text>
+                            <Text style={[
+                              styles.valueBtnText, 
+                              selectedValue === opt && styles.valueBtnTextActive
+                            ]}>
+                              {opt}
+                            </Text>
                           </TouchableOpacity>
                         ))}
                       </View>
                     )}
 
                     {selectedMarket === 'EXACT_SCORE' && (
-                      <View style={s.exactRow}>
+                      <View style={styles.exactRow}>
                         <TextInput
                           testID={`exact-home-${idx}`}
-                          style={[s.exactInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-                          keyboardType="numeric" maxLength={2}
+                          style={styles.exactInput}
+                          keyboardType="numeric" 
+                          maxLength={2}
                           value={pred?.exactHome || ''}
                           onChangeText={v => setExact(m.id, 'home', v.replace(/[^0-9]/g, ''))}
-                          placeholder="0" placeholderTextColor={colors.textSecondary}
+                          placeholder="0" 
+                          placeholderTextColor={colors.textMuted}
                         />
-                        <Text style={[s.exactDash, { color: colors.accent }]}>-</Text>
+                        <Text style={styles.exactDash}>-</Text>
                         <TextInput
                           testID={`exact-away-${idx}`}
-                          style={[s.exactInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-                          keyboardType="numeric" maxLength={2}
+                          style={styles.exactInput}
+                          keyboardType="numeric" 
+                          maxLength={2}
                           value={pred?.exactAway || ''}
                           onChangeText={v => setExact(m.id, 'away', v.replace(/[^0-9]/g, ''))}
-                          placeholder="0" placeholderTextColor={colors.textSecondary}
+                          placeholder="0" 
+                          placeholderTextColor={colors.textMuted}
                         />
                       </View>
                     )}
@@ -374,90 +412,365 @@ export default function PredictionsScreen() {
       </KeyboardAvoidingView>
 
       {/* Footer */}
-      <View style={[s.footer, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
+      <View style={styles.footer}>
         {saved && (
-          <View style={[s.savedBanner, { backgroundColor: 'rgba(16,185,129,0.1)' }]}>
+          <View style={styles.savedBanner}>
             <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-            <Text style={[s.savedText, { color: colors.success }]}>{t('save_success')}</Text>
+            <Text style={styles.savedText}>{t('save_success')}</Text>
           </View>
         )}
-        <TouchableOpacity
-          testID="save-predictions-btn"
-          style={[s.saveBtn, { backgroundColor: colors.accent }]}
+        <PrimaryButton
+          title={t('save_predictions')}
+          icon="checkmark-circle"
           onPress={handleSave}
-          disabled={saving}
-        >
-          {saving ? <ActivityIndicator color={colors.background} /> : (
-            <>
-              <Ionicons name="checkmark-circle" size={22} color={colors.background} />
-              <Text style={[s.saveBtnText, { color: colors.background }]}>{t('save_predictions')}</Text>
-            </>
-          )}
-        </TouchableOpacity>
+          loading={saving}
+          style={styles.saveBtn}
+        />
       </View>
     </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
-  headerTitle: { fontSize: 20, fontWeight: '800' },
-  predCounter: { fontSize: 13, marginTop: 2 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  statusText: { color: '#fff', fontSize: 11, fontWeight: '700' },
-  // Jolly container - sticky
+const styles = StyleSheet.create({
+  container: { 
+    flex: 1, 
+    backgroundColor: colors.background,
+  },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    gap: spacing.lg,
+  },
+  emptyText: {
+    ...typography.bodyM,
+    color: colors.textSecondary,
+  },
+  
+  // Header
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    paddingHorizontal: spacing.xl, 
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  headerLeft: {},
+  headerTitle: { 
+    ...typography.titleL,
+    color: colors.textPrimary,
+  },
+  predCounter: { 
+    ...typography.meta,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
+  
+  // Jolly
   jollyContainer: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     justifyContent: 'space-between',
-    marginHorizontal: 16, 
-    marginBottom: 8, 
-    padding: 14, 
-    borderRadius: 14, 
-    borderWidth: 2,
+    marginHorizontal: spacing.lg, 
+    marginTop: spacing.lg,
+    padding: spacing.lg, 
+    borderRadius: borderRadius.lg, 
+    backgroundColor: colors.card,
+    ...shadows.card,
   },
-  jollyInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  jollyContainerActive: {
+    backgroundColor: colors.accentLight,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  jollyInfo: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: spacing.md, 
+    flex: 1,
+  },
+  jollyIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.accentLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  jollyIconActive: {
+    backgroundColor: colors.accent,
+  },
   jollyTextContainer: { flex: 1 },
-  jollyTitle: { fontSize: 14, fontWeight: '800', letterSpacing: 0.5 },
-  jollySubtitle: { fontSize: 11, marginTop: 2 },
+  jollyTitle: { 
+    ...typography.meta,
+    color: colors.textPrimary,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  jollyTitleActive: {
+    color: colors.accent,
+  },
+  jollySubtitle: { 
+    ...typography.metaSmall,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
   jollyToggleBtn: { 
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16, 
-    paddingVertical: 10, 
-    borderRadius: 10, 
-    backgroundColor: 'rgba(245,166,35,0.15)',
+    paddingHorizontal: spacing.lg, 
+    paddingVertical: spacing.md, 
+    borderRadius: borderRadius.md, 
+    backgroundColor: colors.background,
   },
-  jollyToggleText: { fontSize: 12, fontWeight: '700' },
+  jollyToggleBtnActive: {
+    backgroundColor: colors.accent,
+  },
+  jollyToggleBtnDisabled: {
+    backgroundColor: colors.border,
+  },
+  jollyToggleText: { 
+    ...typography.meta,
+    color: colors.textPrimary,
+    fontWeight: '700',
+  },
+  jollyToggleTextActive: {
+    color: colors.textInverse,
+  },
+  jollyToggleTextDisabled: {
+    color: colors.textMuted,
+  },
+  
   // Scroll
-  scrollContent: { padding: 16, paddingBottom: 140 },
-  matchCard: { borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 1 },
-  matchHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  matchNum: { fontSize: 11, fontWeight: '700', width: 20, textAlign: 'center' },
-  competition: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', flex: 1 },
-  lockBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
-  lockText: { fontSize: 10, fontWeight: '700' },
-  teamsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 12 },
-  teamName: { fontSize: 15, fontWeight: '700', flex: 1, textAlign: 'center' },
-  vs: { fontSize: 12, fontWeight: '400' },
-  lockedArea: { padding: 12, borderRadius: 10, alignItems: 'center' },
-  lockedPred: { fontSize: 14 },
-  lockedEmpty: { fontSize: 13 },
-  marketRow: { flexDirection: 'row', gap: 6, marginBottom: 10 },
-  marketPill: { flex: 1, paddingVertical: 8, borderRadius: 10, borderWidth: 1, alignItems: 'center' },
-  marketLabel: { fontSize: 13, fontWeight: '700' },
-  marketPts: { fontSize: 10, marginTop: 1 },
-  valueRow: { flexDirection: 'row', gap: 8, marginBottom: 4 },
-  valueBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, borderWidth: 1.5, alignItems: 'center' },
-  valueBtnText: { fontSize: 15, fontWeight: '800' },
-  exactRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 4 },
-  exactInput: { width: 60, height: 52, borderRadius: 12, borderWidth: 1.5, textAlign: 'center', fontSize: 22, fontWeight: '800' },
-  exactDash: { fontSize: 28, fontWeight: '300' },
-  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, borderTopWidth: 1 },
-  savedBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, marginBottom: 8 },
-  savedText: { fontSize: 13, fontWeight: '600' },
-  saveBtn: { flexDirection: 'row', height: 52, borderRadius: 12, alignItems: 'center', justifyContent: 'center', gap: 8 },
-  saveBtnText: { fontSize: 16, fontWeight: '700', letterSpacing: 0.5 },
+  scrollContent: { 
+    padding: spacing.lg, 
+    paddingBottom: 140,
+  },
+  
+  // Match Card
+  matchCard: { 
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl, 
+    padding: spacing.lg, 
+    marginBottom: spacing.md, 
+    ...shadows.card,
+  },
+  matchCardLocked: {
+    opacity: 0.75,
+  },
+  matchHeader: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: spacing.sm, 
+    marginBottom: spacing.md,
+  },
+  matchNumBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  matchNum: { 
+    ...typography.metaSmall,
+    color: colors.textInverse,
+    fontWeight: '800',
+  },
+  competition: { 
+    ...typography.metaSmall,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    flex: 1,
+  },
+  lockBadge: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: spacing.xs, 
+    paddingHorizontal: spacing.sm, 
+    paddingVertical: spacing.xs, 
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.errorLight,
+  },
+  lockText: { 
+    ...typography.metaSmall,
+    color: colors.error,
+    fontWeight: '700',
+  },
+  
+  teamsRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: spacing.md, 
+    marginBottom: spacing.lg,
+  },
+  teamName: { 
+    ...typography.bodyM,
+    color: colors.textPrimary,
+    fontWeight: '700',
+    flex: 1, 
+    textAlign: 'center',
+  },
+  vsContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vs: { 
+    ...typography.metaSmall,
+    color: colors.textMuted,
+  },
+  
+  lockedArea: { 
+    padding: spacing.lg, 
+    borderRadius: borderRadius.md, 
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+  lockedPredContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  lockedMarketBadge: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.infoLight,
+  },
+  lockedMarketText: {
+    ...typography.metaSmall,
+    color: colors.info,
+    fontWeight: '600',
+  },
+  lockedPredValue: { 
+    ...typography.statMedium,
+    color: colors.accent,
+  },
+  lockedEmpty: { 
+    ...typography.bodyS,
+    color: colors.textMuted,
+  },
+  
+  marketRow: { 
+    flexDirection: 'row', 
+    gap: spacing.sm, 
+    marginBottom: spacing.md,
+  },
+  marketPill: { 
+    flex: 1, 
+    paddingVertical: spacing.md, 
+    borderRadius: borderRadius.md, 
+    backgroundColor: colors.background,
+    alignItems: 'center',
+  },
+  marketPillActive: {
+    backgroundColor: colors.accent,
+  },
+  marketLabel: { 
+    ...typography.meta,
+    color: colors.textPrimary,
+    fontWeight: '700',
+  },
+  marketLabelActive: {
+    color: colors.textInverse,
+  },
+  marketPts: { 
+    ...typography.metaSmall,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  marketPtsActive: {
+    color: 'rgba(255,255,255,0.7)',
+  },
+  
+  valueRow: { 
+    flexDirection: 'row', 
+    gap: spacing.sm,
+  },
+  valueBtn: { 
+    flex: 1, 
+    paddingVertical: spacing.md, 
+    borderRadius: borderRadius.md, 
+    backgroundColor: colors.background,
+    borderWidth: 2,
+    borderColor: colors.border,
+    alignItems: 'center',
+  },
+  valueBtnActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  valueBtnText: { 
+    ...typography.bodyM,
+    color: colors.textPrimary,
+    fontWeight: '800',
+  },
+  valueBtnTextActive: {
+    color: colors.textInverse,
+  },
+  
+  exactRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: spacing.lg,
+  },
+  exactInput: { 
+    width: 64, 
+    height: 56, 
+    borderRadius: borderRadius.md, 
+    backgroundColor: colors.background,
+    borderWidth: 2,
+    borderColor: colors.border,
+    textAlign: 'center', 
+    fontSize: 24, 
+    fontWeight: '800',
+    color: colors.textPrimary,
+  },
+  exactDash: { 
+    fontSize: 28, 
+    fontWeight: '300',
+    color: colors.textMuted,
+  },
+  
+  // Footer
+  footer: { 
+    position: 'absolute', 
+    bottom: 0, 
+    left: 0, 
+    right: 0, 
+    padding: spacing.lg,
+    paddingBottom: spacing.xxl,
+    backgroundColor: colors.card,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+  },
+  savedBanner: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: spacing.sm, 
+    paddingVertical: spacing.sm, 
+    paddingHorizontal: spacing.md, 
+    borderRadius: borderRadius.sm, 
+    backgroundColor: colors.successLight,
+    marginBottom: spacing.md,
+  },
+  savedText: { 
+    ...typography.meta,
+    color: colors.success,
+    fontWeight: '600',
+  },
+  saveBtn: {
+    height: 52,
+  },
 });
