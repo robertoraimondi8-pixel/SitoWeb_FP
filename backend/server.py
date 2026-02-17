@@ -473,17 +473,22 @@ async def get_home(user=Depends(get_current_user)):
         ).to_list(1000)
         league_member_ids = [m["user_id"] for m in league_members]
         
-        # FIX C: Get only COMPLETED matchday IDs to count only real matchdays played
-        completed_matchdays = await matchdays_col.find(
+        # Get only COMPLETED matchday IDs for this season
+        # This is the single source of truth for BOTH "GIORNATE" count AND "ULTIMI 5"
+        completed_matchdays_docs = await matchdays_col.find(
             {"season_id": season["id"], "status": "COMPLETED"},
             {"_id": 0, "id": 1}
         ).to_list(100)
-        completed_md_ids = [m["id"] for m in completed_matchdays]
+        completed_md_ids = [m["id"] for m in completed_matchdays_docs]
+        # GIORNATE = number of COMPLETED matchdays in season (same dataset as last_5_performance)
+        total_completed_in_season = len(completed_md_ids)
 
         # Aggregate total points for all members (only COMPLETED matchdays)
+        # NOTE: do NOT use $sum:1 here for matchdays_played — user may lack a score_summary
+        # for some matchdays (0 pts), but those still count as "played" in the season.
         all_totals = await score_summaries_col.aggregate([
             {"$match": {"user_id": {"$in": league_member_ids}, "matchday_id": {"$in": completed_md_ids}}},
-            {"$group": {"_id": "$user_id", "total": {"$sum": "$total_points"}, "matchdays_played": {"$sum": 1}}},
+            {"$group": {"_id": "$user_id", "total": {"$sum": "$total_points"}}},
             {"$sort": {"total": -1}},
         ]).to_list(1000)
         
