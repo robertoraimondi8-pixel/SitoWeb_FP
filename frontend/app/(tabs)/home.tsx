@@ -411,7 +411,9 @@ const styles = StyleSheet.create({
   summaryCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xxl,
     marginBottom: spacing.lg,
     ...shadows.card,
   },
