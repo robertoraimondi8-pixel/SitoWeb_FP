@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, Animated, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 // Design System
 import { colors, typography, spacing, borderRadius, shadows, getStatusColor, getPerformanceColor } from '../../src/theme/designSystem';
 import { SectionCard, StatusBadge, PrimaryButton, StatBlock, LastFiveIndicator } from '../../src/components/ui';
+import { BrandLogo } from '../../src/components/BrandLogo';
 
 export default function HomeScreen() {
   const { t } = useTranslation();
