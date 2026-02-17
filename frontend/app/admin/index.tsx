@@ -983,7 +983,13 @@ export default function AdminConsole() {
             <View style={s.modalBtns}>
               <TouchableOpacity
                 style={[s.modalBtn, { borderColor: colors.border }]}
-                onPress={() => { setShowCreateMatchday(false); setShowDatePicker(false); setShowTimePicker(false); }}
+                onPress={() => { 
+                  setShowCreateMatchday(false); 
+                  setShowDatePicker(false); 
+                  setShowTimePicker(false); 
+                  setShowNumberPicker(false);
+                  setNewMatchday({ number: '', label: '' });
+                }}
               >
                 <Text style={[s.modalBtnText, { color: colors.textSecondary }]}>Annulla</Text>
               </TouchableOpacity>
