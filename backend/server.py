@@ -473,9 +473,16 @@ async def get_home(user=Depends(get_current_user)):
         ).to_list(1000)
         league_member_ids = [m["user_id"] for m in league_members]
         
-        # Aggregate total points for all members
+        # FIX C: Get only COMPLETED matchday IDs to count only real matchdays played
+        completed_matchdays = await matchdays_col.find(
+            {"season_id": season["id"], "status": "COMPLETED"},
+            {"_id": 0, "id": 1}
+        ).to_list(100)
+        completed_md_ids = [m["id"] for m in completed_matchdays]
+
+        # Aggregate total points for all members (only COMPLETED matchdays)
         all_totals = await score_summaries_col.aggregate([
-            {"$match": {"user_id": {"$in": league_member_ids}}},
+            {"$match": {"user_id": {"$in": league_member_ids}, "matchday_id": {"$in": completed_md_ids}}},
             {"$group": {"_id": "$user_id", "total": {"$sum": "$total_points"}, "matchdays_played": {"$sum": 1}}},
             {"$sort": {"total": -1}},
         ]).to_list(1000)
