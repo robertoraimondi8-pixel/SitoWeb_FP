@@ -324,8 +324,13 @@ export default function PredictionsScreen() {
                   <View style={styles.matchNumBadge}>
                     <Text style={styles.matchNum}>{idx + 1}</Text>
                   </View>
-                  <Text style={styles.competition}>{m.competition}</Text>
-                  {isLocked && (
+                  <View style={styles.matchMeta}>
+                    <Text style={styles.competition}>{m.competition}</Text>
+                    {m.start_time && (
+                      <Text style={styles.matchTime}>{formatMatchTime(m.start_time)}</Text>
+                    )}
+                  </View>
+                  {item.is_locked && (
                     <View style={styles.lockBadge}>
                       <Ionicons name="lock-closed" size={12} color={colors.error} />
                       <Text style={styles.lockText}>LOCKED</Text>
