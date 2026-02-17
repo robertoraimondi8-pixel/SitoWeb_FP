@@ -262,16 +262,6 @@ export default function RankingsScreen() {
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* League Name Header */}
-          {selectedLeague && leagues.length > 0 && (
-            <View style={styles.leagueHeader}>
-              <Ionicons name="trophy" size={18} color={colors.textInverse} />
-              <Text style={styles.leagueHeaderText}>
-                {leagues.find(l => l.id === selectedLeague)?.name || 'Classifica'}
-              </Text>
-            </View>
-          )}
-          
           <View style={styles.listCard}>
             {standings?.entries?.map((entry: StandingEntry, i: number) => renderEntry(entry, i))}
           </View>
