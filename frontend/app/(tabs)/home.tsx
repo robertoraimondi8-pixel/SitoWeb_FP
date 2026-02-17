@@ -329,7 +329,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
     backgroundColor: colors.card,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -338,14 +339,10 @@ const styles = StyleSheet.create({
   greeting: {
     ...typography.meta,
     color: colors.textSecondary,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
-  accentLine: {
-    width: 40,
-    height: 3,
-    backgroundColor: colors.accent,
-    marginTop: spacing.sm,
-    borderRadius: 2,
+  logoSpacing: {
+    marginTop: spacing.xs,
   },
   headerButton: {
     width: 42,
