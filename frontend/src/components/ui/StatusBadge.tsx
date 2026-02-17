@@ -8,13 +8,15 @@ interface StatusBadgeProps {
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, label }) => {
-  const backgroundColor = getStatusColor(status);
+  const isCompleted = status?.toUpperCase() === 'COMPLETED';
+  const backgroundColor = isCompleted ? '#E2E8F0' : getStatusColor(status);
+  const textColor = isCompleted ? '#64748B' : colors.textInverse;
   const displayLabel = label || status;
   
   return (
     <View style={[styles.badge, { backgroundColor }]}>
       {status?.toUpperCase() === 'LIVE' && <View style={styles.liveDot} />}
-      <Text style={styles.text}>{displayLabel}</Text>
+      <Text style={[styles.text, { color: textColor }]}>{displayLabel}</Text>
     </View>
   );
 };
@@ -36,7 +38,6 @@ const styles = StyleSheet.create({
   },
   text: {
     ...typography.metaSmall,
-    color: colors.textInverse,
     fontWeight: '700',
     textTransform: 'uppercase',
   },

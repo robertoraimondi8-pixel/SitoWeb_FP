@@ -10,13 +10,13 @@ export const colors = {
   accent: '#F59E0B',
   accentLight: '#FEF3C7',
   
-  // Backgrounds
+  // Backgrounds - PREMIUM LIGHT
   background: '#F8FAFC',
   card: '#FFFFFF',
   cardHighlight: '#EFF6FF',
   
   // Borders & Separators
-  border: '#E5E7EB',
+  border: '#E6ECF5',
   borderLight: '#F1F5F9',
   separator: '#E2E8F0',
   
@@ -40,7 +40,13 @@ export const colors = {
   statusOpen: '#2563EB',
   statusLive: '#16A34A',
   statusLocked: '#F59E0B',
-  statusCompleted: '#64748B',
+  statusCompleted: '#94A3B8', // Lighter grey for COMPLETED badge
+  
+  // Tab bar
+  tabBarBackground: '#FFFFFF',
+  tabBarActive: '#F59E0B',
+  tabBarInactive: '#94A3B8',
+  tabBarBorder: '#E6ECF5',
 };
 
 export const typography = {
@@ -65,7 +71,7 @@ export const typography = {
   sectionLabel: {
     fontSize: 12,
     fontWeight: '600' as const,
-    letterSpacing: 1.2,
+    letterSpacing: 1.4, // Increased tracking
     textTransform: 'uppercase' as const,
   },
   
@@ -120,27 +126,35 @@ export const borderRadius = {
   pill: 50,
 };
 
+// PREMIUM iOS-style shadows
 export const shadows = {
   card: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowRadius: 10,
+    elevation: 3,
   },
   cardHover: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowRadius: 14,
+    elevation: 5,
   },
   button: {
     shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  tabBar: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.03,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 4,
   },
 };
 
