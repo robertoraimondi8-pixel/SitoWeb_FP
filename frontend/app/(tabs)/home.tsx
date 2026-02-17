@@ -339,30 +339,11 @@ const styles = StyleSheet.create({
   greeting: {
     ...typography.meta,
     color: colors.textSecondary,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  titleFanta: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.accent,
-    letterSpacing: 0.5,
-  },
-  titlePronostic: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.primary,
-    letterSpacing: 0.5,
-  },
-  accentLine: {
-    width: 48,
-    height: 3,
-    backgroundColor: colors.accent,
-    marginTop: spacing.sm,
-    borderRadius: 2,
+  headerLogo: {
+    width: 160,
+    height: 34,
   },
   headerButton: {
     width: 44,
