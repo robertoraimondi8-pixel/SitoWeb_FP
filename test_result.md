@@ -14,7 +14,9 @@
 # Main and testing agents must follow this exact format to maintain testing data. 
 # The testing data must be entered in yaml format Below is the data structure:
 # 
-## user_problem_statement: {problem_statement}
+## user_problem_statement: Fix multiple UI/logic bugs: A) Punti Provvisori shown on COMPLETED matchdays (routing conflict [id].tsx vs [matchdayId].tsx - FIXED by deleting legacy file), B) Predictions tab shows wrong status for COMPLETED (save button hidden when completed), C) Giornate count wrong in Home (now filters only COMPLETED matchdays), D) Match times visible in predictions (sorted by start_time), E/F) Rankings league name duplicated (chip selector replaced with simple header for single league), G) Admin dropdown for matchday number 1-40 (already implemented), H) Admin card profile description (already implemented).
+
+## user_problem_statement_orig: {problem_statement}
 ## backend:
 ##   - task: "Task name"
 ##     implemented: true
