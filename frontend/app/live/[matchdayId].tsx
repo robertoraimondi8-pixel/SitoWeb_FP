@@ -153,6 +153,15 @@ export default function LiveScreen() {
   }
 
   const isLive = data?.matchday_status === 'LIVE';
+  const isCompleted = data?.matchday_status === 'COMPLETED';
+  const isLocked = data?.matchday_status === 'LOCKED';
+  
+  // Determine points label based on status
+  const getPointsLabel = () => {
+    if (isCompleted) return 'Punti Ufficiali';
+    if (isLive || isLocked) return 'Punti Provvisori';
+    return 'Punti';
+  };
 
   return (
     <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
