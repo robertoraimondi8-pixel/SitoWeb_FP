@@ -116,11 +116,11 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.greeting}>Ciao, {user?.username}</Text>
-          <View style={styles.titleRow}>
-            <Text style={styles.titleFanta}>FANTA</Text>
-            <Text style={styles.titlePronostic}>Pronostic</Text>
-          </View>
-          <View style={styles.accentLine} />
+          <Image
+            source={require('../../assets/logo-official.png')}
+            style={styles.headerLogo}
+            resizeMode="contain"
+          />
         </View>
         <TouchableOpacity 
           style={styles.headerButton}
