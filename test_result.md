@@ -105,12 +105,26 @@
 #====================================================================================================
 
 user_problem_statement: |
-  FantaPronostic - Fantasy Football Prediction App MVP.
-  Critical P0 fix: The Jolly feature must work PER MATCHDAY (not per match).
-  - Jolly = single toggle for entire matchday that doubles ALL valid points
-  - Constraint: 1 jolly per ANDATA (half=1) + 1 per RITORNO (half=2) per season
-  - Lock: modifiable until first_kickoff - 60s (server UTC), then LOCKED
-  - Scoring: sum of valid match points * 2 if jolly active
+  FantaPronostic - Multiple UI/Logic Fixes:
+  FIX A: "Punti Provvisori" shown on COMPLETED matchdays - ROUTING CONFLICT RESOLVED
+    - Deleted legacy /app/live/[id].tsx (used wrong API /live/matchday/)
+    - Deleted /app/live/[matchdayId].tsx
+    - Created new /app/live/[id].tsx from [matchdayId].tsx content (param renamed to 'id')
+    - New file correctly shows "Punti Ufficiali" when matchday_status === 'COMPLETED'
+  FIX B: Predictions tab save button hidden when matchday COMPLETED
+    - Wrapped save button in {!isCompleted && (...)}
+    - Status badge already shows "Giornata Completata" for COMPLETED
+  FIX C: Giornate count bug in Home - Backend fix
+    - /api/home endpoint now only counts score_summaries for COMPLETED matchdays
+    - Added completed_matchday_ids filter in MongoDB aggregation
+  FIX D: Match times sorted by start_time in predictions
+    - predictions.tsx sorts by start_time before rendering
+  FIX E/F: Rankings - removed duplicate league chip for single league
+    - If 1 league: shows simple "🏆 League Name" header instead of chip
+    - If multiple leagues: keeps chip selector as before
+  FIX G: Admin dropdown 1-40 already implemented (verified)
+  FIX H: Admin card in profile already has description (verified)
+  Credentials: admin@fantapronostic.com/admin123, marco@test.com/password123
 
 backend:
   - task: "A) Admin Current Matchday"
