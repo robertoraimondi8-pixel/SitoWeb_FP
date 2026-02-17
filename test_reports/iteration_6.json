@@ -1,0 +1,90 @@
+{
+  "summary": "GIORNATE count fix verified - BUG FIXED. Both backend API and frontend UI now correctly show matchdays_played=6 (number of COMPLETED matchdays in season) which is coherent with ULTIMI 5 showing 5 entries. The fix ensures GIORNATE >= ULTIMI 5 count.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_api_tests": {
+      "test_file": "/app/backend/tests/test_giornate_count.py",
+      "status": "ALL PASSED (4/4)",
+      "results": {
+        "test_admin_matchdays_played_equals_completed_matchdays": {
+          "status": "PASSED",
+          "admin_matchdays_played": 6,
+          "admin_last5_count": 5,
+          "admin_points": 17.5
+        },
+        "test_marco_matchdays_played_equals_completed_matchdays": {
+          "status": "PASSED",
+          "marco_matchdays_played": 6,
+          "marco_last5_count": 5,
+          "marco_points": 5.0
+        },
+        "test_coherence_check_matchdays_played_vs_last5": {
+          "status": "PASSED",
+          "coherence": "matchdays_played (6) >= last_5_count (5) for both users"
+        },
+        "test_api_response_structure": {
+          "status": "PASSED"
+        }
+      }
+    },
+    "frontend_ui_tests": {
+      "admin_user": {
+        "status": "PASSED",
+        "sintesi_card": {
+          "POSIZIONE": "1°",
+          "PUNTI": "17.5",
+          "GIORNATE": "6 (FIXED - was showing 4 before)",
+          "TOTALI": "17.5"
+        },
+        "ultimi_5": ["G2 (0.0)", "G6 (15.0)", "G8 (1.5)", "G9 (0.0)", "G10 (1.0)"],
+        "coherence_check": "GIORNATE (6) >= ULTIMI 5 count (5) ✓"
+      },
+      "marco_user": {
+        "status": "PASSED",
+        "sintesi_card": {
+          "POSIZIONE": "4°",
+          "PUNTI": "5.0",
+          "GIORNATE": "6 (FIXED)",
+          "TOTALI": "5.0"
+        },
+        "ultimi_5": ["G2 (0.0)", "G6 (5.0)", "G8 (0.0)", "G9 (0.0)", "G10 (0.0)"],
+        "coherence_check": "GIORNATE (6) >= ULTIMI 5 count (5) ✓"
+      }
+    }
+  },
+  "fix_verification": {
+    "root_cause": "matchdays_played was counted from score_summaries documents ($sum:1). User with no score_summary for some matchdays (0 pts) was showing incorrect count.",
+    "fix_applied": "user_matchdays_played = total_completed_in_season = len(completed_md_ids) instead of counting score_summary documents",
+    "fix_location": "/app/backend/server.py lines 476-510",
+    "verification": "matchdays_played now correctly equals 6 (number of COMPLETED matchdays in season) for all users"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_giornate_count.py",
+    "/app/test_reports/pytest/giornate_count_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_giornate_count.py"
+  ],
+  "success_rate": {
+    "backend": "100% (4/4 tests passed)",
+    "frontend": "100% (2/2 user scenarios verified)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123",
+    "marco": "marco@test.com / password123"
+  },
+  "seed_data_creation": "None - used existing seed data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "GIORNATE count bug is fixed. The LA TUA LEGA · SINTESI card now correctly displays GIORNATE=6 (total COMPLETED matchdays in season) which is >= ULTIMI 5 count (5). The fix ensures both values come from the same dataset (completed_md_ids). Backend tests are in /app/backend/tests/test_giornate_count.py."
+}
