@@ -117,8 +117,9 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.greeting}>Ciao, {user?.username}</Text>
-          <BrandLogo variant="wordmark" size="md" />
-          <View style={styles.accentLine} />
+          <View style={styles.logoSpacing}>
+            <BrandLogo variant="wordmark" size="lg" />
+          </View>
         </View>
         <TouchableOpacity 
           style={styles.headerButton}
