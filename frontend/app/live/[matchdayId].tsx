@@ -221,7 +221,9 @@ export default function LiveScreen() {
           )}
           
           <View style={s.pointsItem}>
-            <Text style={[s.pointsLabel, { color: colors.textSecondary }]}>{getPointsLabel()}</Text>
+            <Text style={[s.pointsLabel, { color: colors.textSecondary }]}>
+              {data?.matchday_status === 'COMPLETED' ? 'Punti Ufficiali' : 'Punti Provvisori'}
+            </Text>
             <Text style={[s.pointsValueBig, { color: colors.accent }]}>
               {(data?.total_live_points || 0).toFixed(1)}
             </Text>
