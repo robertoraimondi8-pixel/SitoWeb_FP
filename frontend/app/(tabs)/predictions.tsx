@@ -447,22 +447,24 @@ export default function PredictionsScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        {saved && (
-          <View style={styles.savedBanner}>
-            <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-            <Text style={styles.savedText}>{t('save_success')}</Text>
-          </View>
-        )}
-        <PrimaryButton
-          title={t('save_predictions')}
-          icon="checkmark-circle"
-          onPress={handleSave}
-          loading={saving}
-          style={styles.saveBtn}
-        />
-      </View>
+      {/* Footer - only show save when not completed */}
+      {!isCompleted && (
+        <View style={styles.footer}>
+          {saved && (
+            <View style={styles.savedBanner}>
+              <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+              <Text style={styles.savedText}>{t('save_success')}</Text>
+            </View>
+          )}
+          <PrimaryButton
+            title={t('save_predictions')}
+            icon="checkmark-circle"
+            onPress={handleSave}
+            loading={saving}
+            style={styles.saveBtn}
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
