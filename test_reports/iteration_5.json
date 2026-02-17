@@ -1,0 +1,98 @@
+{
+  "summary": "Admin Console Bug Fixes Testing (FIX 1 & FIX 2) - BOTH FIXES VERIFIED WORKING. FIX 1: Modal 'Nuova Giornata' inline number picker expands/collapses correctly within same modal, auto-fills Label field. FIX 2: Back button navigates from Admin Console to Profile successfully.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "FIX_1_INLINE_NUMBER_PICKER": {
+      "description": "Modal 'Nuova Giornata' - Inline expandable list for number selection (not nested Modal)",
+      "status": "PASSED",
+      "test_steps": [
+        "1. Login as admin@fantapronostic.com/admin123",
+        "2. Navigate to Profile tab > ADMIN CONSOLE",
+        "3. Click 'Nuova' button to open modal",
+        "4. Click 'Seleziona numero...' field",
+        "5. Inline list expands showing 'Giornata X' options",
+        "6. Select 'Giornata 3'",
+        "7. Field updates, Label auto-fills, list collapses"
+      ],
+      "evidence": [
+        "Screenshot 14 shows inline list expanded with Giornata 3, 4, 5, 7, 11... items",
+        "Screenshot 15 shows after selection: Numero='Giornata 3', Label='Giornata 3' auto-filled, list collapsed",
+        "Chevron icon toggles from down to up when expanded",
+        "Numbers 1, 2, 6, 8, 9, 10 NOT shown (already created in current season)"
+      ],
+      "code_location": "/app/frontend/app/admin/index.tsx lines 877-920 (inlinePickerList implementation)"
+    },
+    "FIX_2_BACK_BUTTON": {
+      "description": "Back button in Admin Console navigates to Profile using router.canGoBack() with fallback",
+      "status": "PASSED",
+      "test_steps": [
+        "1. Login as admin",
+        "2. Navigate to Admin Console",
+        "3. Click back arrow (top-left)",
+        "4. Should navigate to Profile page"
+      ],
+      "evidence": [
+        "Screenshot 06 shows Admin Console with back arrow visible",
+        "Screenshot 07 shows Profile page after clicking back arrow",
+        "Successfully navigated from Admin Console to Profile page"
+      ],
+      "code_location": "/app/frontend/app/admin/index.tsx lines 554-565 (router.canGoBack() with fallback and hitSlop)"
+    },
+    "FIX_1_NUMBER_FILTERING": {
+      "description": "Numbers already created in current season are filtered out from dropdown",
+      "status": "PASSED",
+      "evidence": [
+        "Available numbers shown: 3, 4, 5, 7, 11-40",
+        "Missing numbers (already created): 1, 2, 6, 8, 9, 10",
+        "getAvailableNumbers() function at line 107-110 filters used numbers"
+      ],
+      "code_location": "/app/frontend/app/admin/index.tsx lines 107-110"
+    },
+    "FIX_1_AUTO_FILL_LABEL": {
+      "description": "After selecting number, Label field is auto-filled with 'Giornata X'",
+      "status": "PASSED",
+      "evidence": [
+        "After selecting 'Giornata 3', Label field shows 'Giornata 3'",
+        "Code at line 910 sets: label: `Giornata ${num}`"
+      ],
+      "code_location": "/app/frontend/app/admin/index.tsx line 910"
+    }
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✓ FIX 1: Inline number picker implemented correctly - no nested Modal, uses View with inlinePickerList style",
+    "✓ FIX 1: Number picker expands/collapses inline below 'Seleziona numero...' field",
+    "✓ FIX 1: Available numbers correctly filtered (1-40 minus already used)",
+    "✓ FIX 1: Label field auto-fills when number is selected",
+    "✓ FIX 1: ScrollView wrapper allows scrolling when inline list expands",
+    "✓ FIX 2: Back button uses router.canGoBack() with fallback to router.replace('/(tabs)/profile')",
+    "✓ FIX 2: hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} applied for better tap area"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only testing)",
+    "frontend": "100% (4/4 test scenarios passed)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123"
+  },
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Both Admin Console bug fixes (FIX 1: inline number picker, FIX 2: back button) verified working. The inline number picker shows available matchday numbers (1-40 minus already created) in an expandable list within the same modal. The back button successfully navigates from Admin Console to Profile page.",
+  "screenshots": [
+    ".screenshots/13_fresh_modal.png - Modal before expanding number picker",
+    ".screenshots/14_inline_list_test.png - Inline number list expanded with Giornata options",
+    ".screenshots/15_after_selection.png - After selecting Giornata 3, Label auto-filled, list collapsed",
+    ".screenshots/06_admin_before_back.png - Admin Console with back arrow visible",
+    ".screenshots/07_after_back.png - Profile page after clicking back arrow"
+  ]
+}
