@@ -876,14 +876,44 @@ export default function AdminConsole() {
             
             <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Numero *</Text>
             <TouchableOpacity
-              style={[s.formInput, { borderColor: colors.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
-              onPress={() => setShowNumberPicker(true)}
+              style={[s.formInput, { borderColor: showNumberPicker ? colors.accent : colors.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+              onPress={() => setShowNumberPicker(v => !v)}
+              activeOpacity={0.7}
             >
               <Text style={{ color: newMatchday.number ? colors.text : colors.textSecondary, fontSize: 15 }}>
                 {newMatchday.number ? `Giornata ${newMatchday.number}` : 'Seleziona numero...'}
               </Text>
-              <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+              <Ionicons name={showNumberPicker ? "chevron-up" : "chevron-down"} size={20} color={colors.accent} />
             </TouchableOpacity>
+            
+            {/* Inline Number List - shown inside this same Modal (no nested Modal) */}
+            {showNumberPicker && (
+              <View style={[s.inlinePickerList, { borderColor: colors.accent, backgroundColor: colors.background }]}>
+                {getAvailableNumbers().length === 0 ? (
+                  <Text style={[s.inlinePickerEmpty, { color: colors.textSecondary }]}>Tutti i numeri 1-40 sono già in uso</Text>
+                ) : (
+                  getAvailableNumbers().map((num) => (
+                    <TouchableOpacity
+                      key={num}
+                      style={[
+                        s.inlinePickerItem, 
+                        { borderBottomColor: colors.borderLight },
+                        newMatchday.number === String(num) && { backgroundColor: `${colors.accent}20` },
+                      ]}
+                      onPress={() => {
+                        setNewMatchday(p => ({ ...p, number: String(num), label: `Giornata ${num}` }));
+                        setShowNumberPicker(false);
+                      }}
+                    >
+                      <Text style={[s.inlinePickerItemText, { color: colors.text }]}>Giornata {num}</Text>
+                      {newMatchday.number === String(num) && (
+                        <Ionicons name="checkmark-circle" size={18} color={colors.accent} />
+                      )}
+                    </TouchableOpacity>
+                  ))
+                )}
+              </View>
+            )}
             
             <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Label (opzionale)</Text>
             <TextInput
