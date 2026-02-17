@@ -376,10 +376,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     ...shadows.card,
   },
-  logo: {
-    width: 180,
-    height: 80,
-  },
   
   /* ─── Form Card ─── */
   formCard: {
