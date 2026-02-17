@@ -61,7 +61,9 @@ export default function LiveScreen() {
 
       {/* Total Points */}
       <View style={[s.totalCard, { backgroundColor: colors.card, borderColor: colors.accent }]}>
-        <Text style={[s.totalLabel, { color: colors.textSecondary }]}>{t('provisional_points')}</Text>
+        <Text style={[s.totalLabel, { color: colors.textSecondary }]}>
+          {data?.status === 'COMPLETED' ? 'Punti Ufficiali' : t('provisional_points')}
+        </Text>
         <Text style={[s.totalPoints, { color: colors.accent }]}>{data?.total_provisional_points?.toFixed(1) || '0.0'}</Text>
         {data?.joker_applied && (
           <View style={s.jokerBadge}>
