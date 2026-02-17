@@ -1346,4 +1346,31 @@ const s = StyleSheet.create({
   dropdownStatusText: { fontSize: 12, fontWeight: '500' },
   currentBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   currentBadgeText: { fontSize: 9, fontWeight: '700', color: '#fff' },
+
+  // Inline number picker (no nested Modal needed)
+  inlinePickerList: {
+    borderWidth: 1.5,
+    borderRadius: 10,
+    marginBottom: 8,
+    maxHeight: 220,
+    overflow: 'hidden',
+  },
+  inlinePickerEmpty: {
+    fontSize: 13,
+    padding: 14,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  inlinePickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    borderBottomWidth: 1,
+  },
+  inlinePickerItemText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
 });
