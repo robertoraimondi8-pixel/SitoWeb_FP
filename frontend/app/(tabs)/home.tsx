@@ -217,10 +217,12 @@ export default function HomeScreen() {
         {data?.live && (
           <View style={styles.liveCard}>
             <View style={styles.liveHeader}>
-              <StatusBadge status="LIVE" label="LIVE" />
+              <StatusBadge status={data.matchday?.status || 'LIVE'} label={data.matchday?.status === 'COMPLETED' ? 'COMPLETATA' : 'LIVE'} />
             </View>
             <Text style={styles.liveScore}>{formatPoints(data.live.total_provisional)} pts</Text>
-            <Text style={styles.liveMeta}>Punti provvisori</Text>
+            <Text style={styles.liveMeta}>
+              {data.matchday?.status === 'COMPLETED' ? 'Punti ufficiali' : 'Punti provvisori'}
+            </Text>
           </View>
         )}
 
