@@ -65,14 +65,13 @@ export default function RegisterScreen() {
     setUsernameChecking(true);
     usernameDebounce.current = setTimeout(async () => {
       try {
-        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL || ''}/api/auth/username-available?username=${clean}`);
-        const data = await res.json();
+        const data = await apiCall(`/auth/username-available?username=${clean}`, { skipAuth: true });
         if (!data.available) {
           setErrors(p => ({ ...p, username: 'Username già in uso' }));
         } else {
           setErrors(p => ({ ...p, username: '' }));
         }
-      } catch { /* network error, ignore */ }
+      } catch { /* ignore */ }
       finally { setUsernameChecking(false); }
     }, 600);
   };
