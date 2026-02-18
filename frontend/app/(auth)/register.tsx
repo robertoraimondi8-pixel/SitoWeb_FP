@@ -89,6 +89,24 @@ export default function RegisterScreen() {
     return `${y}-${m}-${day}`;
   };
 
+  const openDobPicker = () => {
+    const d = dob || new Date(new Date().getFullYear() - 25, 5, 15);
+    setPickerDay(d.getDate());
+    setPickerMonth(d.getMonth() + 1);
+    setPickerYear(d.getFullYear());
+    setShowDobPicker(true);
+  };
+
+  const confirmDob = () => {
+    // Clamp day to valid range for the selected month/year
+    const maxDay = new Date(pickerYear, pickerMonth, 0).getDate();
+    const safeDay = Math.min(pickerDay, maxDay);
+    const d = new Date(pickerYear, pickerMonth - 1, safeDay);
+    setDob(d);
+    setErrors(p => ({ ...p, dob: '' }));
+    setShowDobPicker(false);
+  };
+
   const validate = () => {
     const e: FieldError = {};
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = 'Email non valida';
