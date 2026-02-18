@@ -14,7 +14,7 @@ import pytest
 import requests
 import random
 
-BASE_URL = "https://verify-join-flow.preview.emergentagent.com"
+BASE_URL = "https://auth-onboarding-4.preview.emergentagent.com"
 
 
 @pytest.fixture

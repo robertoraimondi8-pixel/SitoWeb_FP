@@ -13,7 +13,7 @@ import pytest
 import requests
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://verify-join-flow.preview.emergentagent.com"
+BASE_URL = "https://auth-onboarding-4.preview.emergentagent.com"
 
 
 @pytest.fixture

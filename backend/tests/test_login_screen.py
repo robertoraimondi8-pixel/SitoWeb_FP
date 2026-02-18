@@ -9,7 +9,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://verify-join-flow.preview.emergentagent.com"
+BASE_URL = "https://auth-onboarding-4.preview.emergentagent.com"
 
 
 class TestLoginEmailPassword:
