@@ -11,7 +11,6 @@ import { useTheme } from '../src/contexts/ThemeContext';
 import { useLeague } from '../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
 
 export default function OnboardingScreen() {
   const { t, i18n } = useTranslation();
