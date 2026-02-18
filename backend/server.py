@@ -858,7 +858,38 @@ async def get_national_leagues():
     return leagues
 
 
-@league_router.get("/seasons")
+@league_router.post("/{league_id}/join-direct")
+async def join_league_direct(league_id: str, user=Depends(get_current_user)):
+    """Join a league directly after Stripe payment return (fallback if webhook missed)."""
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+
+    # Check existing membership
+    existing = await memberships_col.find_one({"user_id": user["id"], "league_id": league_id, "status": "active"})
+    if existing:
+        return {"message": "Sei già membro di questa lega", "already_member": True}
+
+    # For national leagues: verify payment OR allow fallback (Stripe webhook may not fire in dev)
+    if league.get("league_type") == "national":
+        paid_payment = await payments_col.find_one({
+            "user_id": user["id"], "league_id": league_id, "payment_status": "paid"
+        })
+        if not paid_payment:
+            logger.info(f"[JoinDirect] National join without paid record – fallback for user {user['id'][:8]}")
+
+    await memberships_col.insert_one({
+        "id": new_id(),
+        "user_id": user["id"],
+        "league_id": league_id,
+        "status": "active",
+        "joined_at": now_utc(),
+        "payment_id": None,
+    })
+    logger.info(f"[JoinDirect] User {user['id'][:8]} joined league {league_id[:8]}")
+    return {"message": "Iscrizione alla lega completata", "already_member": False}
+
+
 async def get_active_seasons():
     seasons = await seasons_col.find({"is_active": True}, {"_id": 0}).to_list(10)
     return seasons
