@@ -330,12 +330,6 @@ async def resend_verification(body: dict):
     return {"message": "Nuovo link inviato. Controlla la tua email."}
 
 
-    """Generic response to avoid email enumeration."""
-    # In a real app, send email here. For now, always return success.
-    logger.info(f"Forgot password requested for: {req.email[:3]}***")
-    return {"message": "Se l'email è registrata, riceverai le istruzioni per reimpostare la password."}
-
-
 
 
 @auth_router.post("/login", response_model=TokenResponse)
