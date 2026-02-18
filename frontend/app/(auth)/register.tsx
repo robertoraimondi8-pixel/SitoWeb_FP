@@ -32,7 +32,7 @@ export default function RegisterScreen() {
   const { register } = useAuth();
 
   const [form, setForm] = useState({
-    email: '', firstName: '', lastName: '',
+    email: '', username: '', firstName: '', lastName: '',
     address: '', city: '', country: '', postalCode: '',
     password: '', confirmPassword: '',
   });
@@ -46,6 +46,8 @@ export default function RegisterScreen() {
   const [errors, setErrors] = useState<FieldError>({});
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [usernameChecking, setUsernameChecking] = useState(false);
+  const usernameDebounce = React.useRef<any>(null);
 
   const set = (key: string) => (val: string) => setForm(p => ({ ...p, [key]: val }));
 
