@@ -13,7 +13,6 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiCall } from '../../src/api/client';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { colors, spacing, borderRadius, shadows, typography } from '../../src/theme/designSystem';
