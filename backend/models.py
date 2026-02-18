@@ -16,9 +16,34 @@ def now_utc() -> str:
 # ===== AUTH MODELS =====
 class RegisterRequest(BaseModel):
     email: EmailStr
-    username: str = Field(min_length=3, max_length=30)
-    password: str = Field(min_length=6)
+    username: str = Field(min_length=2, max_length=50)
+    first_name: str = Field(min_length=1, max_length=50)
+    last_name: str = Field(min_length=1, max_length=50)
+    date_of_birth: str  # ISO date YYYY-MM-DD
+    address: str = Field(min_length=1, max_length=200)
+    city: str = Field(min_length=1, max_length=100)
+    country: str = Field(min_length=2, max_length=80)
+    postal_code: str = Field(min_length=1, max_length=20)
+    password: str = Field(min_length=8)
     language: str = Field(default="it")
+    accepted_privacy: bool = False
+    accepted_terms: bool = False
+
+
+class CompleteProfileRequest(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    postal_code: Optional[str] = None
+    accepted_privacy: Optional[bool] = None
+    accepted_terms: Optional[bool] = None
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
 
 
 class LoginRequest(BaseModel):
