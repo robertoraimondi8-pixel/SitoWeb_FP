@@ -251,8 +251,65 @@ async def register(req: RegisterRequest):
     )
 
 
-@auth_router.post("/forgot-password")
-async def forgot_password(req: ForgotPasswordRequest):
+@auth_router.get("/username-available")
+async def username_available(username: str):
+    """Check if username is available. Returns {available: bool}."""
+    if not username or len(username) < 3 or len(username) > 20:
+        return {"available": False, "reason": "Username deve essere tra 3 e 20 caratteri"}
+    import re
+    if not re.match(r'^[a-zA-Z0-9_]+$', username):
+        return {"available": False, "reason": "Solo lettere, numeri e underscore"}
+    existing = await users_col.find_one({"username": username})
+    return {"available": existing is None}
+
+
+@auth_router.post("/verify-email")
+async def verify_email_endpoint(body: dict):
+    """Verify email with token from link."""
+    token = body.get("token")
+    if not token:
+        raise HTTPException(400, "Token mancante")
+    user = await users_col.find_one({"email_verification_token": token}, {"_id": 0})
+    if not user:
+        raise HTTPException(400, "Token non valido o già utilizzato")
+    expiry = user.get("token_expiry")
+    if expiry:
+        from datetime import timezone as _tz
+        expiry_dt = datetime.fromisoformat(expiry.replace("Z", "+00:00")) if isinstance(expiry, str) else expiry
+        if datetime.now(_tz.utc) > expiry_dt.replace(tzinfo=_tz.utc) if expiry_dt.tzinfo is None else datetime.now(_tz.utc) > expiry_dt:
+            raise HTTPException(400, "Token scaduto. Richiedi un nuovo link di verifica.")
+    await users_col.update_one(
+        {"id": user["id"]},
+        {"$set": {"email_verified": True, "email_verification_token": None, "token_expiry": None}}
+    )
+    logger.info(f"[EmailVerify] Email verified for user {user['email'][:3]}***")
+    return {"message": "Email verificata con successo. Puoi accedere."}
+
+
+@auth_router.post("/resend-verification")
+async def resend_verification(body: dict):
+    """Resend email verification link."""
+    email = body.get("email")
+    if not email:
+        raise HTTPException(400, "Email richiesta")
+    user = await users_col.find_one({"email": email}, {"_id": 0})
+    if not user:
+        # Generic response for security
+        return {"message": "Se l'email è registrata, riceverai un nuovo link."}
+    if user.get("email_verified"):
+        return {"message": "Email già verificata."}
+    import secrets as _sec
+    vtoken = _sec.token_urlsafe(32)
+    expiry = (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
+    await users_col.update_one(
+        {"id": user["id"]},
+        {"$set": {"email_verification_token": vtoken, "token_expiry": expiry}}
+    )
+    # MOCK: log token (in production, send email)
+    logger.info(f"[EMAIL-VERIFY-RESEND] token={vtoken} for {email[:3]}*** — link: myapp://verify-email?token={vtoken}")
+    return {"message": "Nuovo link inviato. Controlla la tua email."}
+
+
     """Generic response to avoid email enumeration."""
     # In a real app, send email here. For now, always return success.
     logger.info(f"Forgot password requested for: {req.email[:3]}***")
