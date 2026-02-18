@@ -94,13 +94,12 @@ export default function SplashScreen() {
         method: 'POST',
         body: { session_id: sessionId },
       });
-      await AsyncStorage.setItem('access_token', res.access_token);
-      await AsyncStorage.setItem('refresh_token', res.refresh_token);
-      await AsyncStorage.setItem('user', JSON.stringify(res.user));
+      // Use loginWithToken — updates BOTH AsyncStorage AND in-memory context state
+      await loginWithToken(res.access_token, res.refresh_token, res.user);
       if (typeof window !== 'undefined') {
         window.history.replaceState(null, '', window.location.pathname);
       }
-      router.replace('/');
+      // Don't navigate — the route() useEffect will fire when isAuthenticated changes
     } catch (e) {
       router.replace('/(auth)/');
     }
