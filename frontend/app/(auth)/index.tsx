@@ -2,7 +2,7 @@
  * AuthLanding — schermata iniziale auth
  * Azioni: Registrati | Accedi | Continua con Google | Password dimenticata
  */
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   Image, Dimensions, Platform, ActivityIndicator,
@@ -17,7 +17,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiCall } from '../../src/api/client';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { colors, spacing, borderRadius, shadows, typography } from '../../src/theme/designSystem';
-import React, { useState } from 'react';
 
 const { width, height } = Dimensions.get('window');
 
