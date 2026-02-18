@@ -191,6 +191,22 @@ export default function RegisterScreen() {
             </Row>
           </Field>
 
+          <Field label="Username *" error={errors.username}>
+            <Row icon="at">
+              <TextInput
+                style={s.input}
+                placeholder="mariorossi99"
+                placeholderTextColor={colors.textMuted}
+                value={form.username}
+                onChangeText={handleUsernameChange}
+                autoCapitalize="none"
+                autoCorrect={false}
+                maxLength={20}
+              />
+              {usernameChecking && <ActivityIndicator size="small" color={colors.accent} />}
+            </Row>
+          </Field>
+
           <View style={s.row2}>
             <View style={{ flex: 1 }}>
               <Field label="Nome *" error={errors.firstName}>
