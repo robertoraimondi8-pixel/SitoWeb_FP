@@ -1,0 +1,115 @@
+{
+  "summary": "Email Gate Flow Testing Complete. Backend: 11/11 tests passed. Frontend: verify-email page UI working correctly with beta banner, token input, and resend button. ISSUE: Login routing after authentication not working properly - user stays on auth landing page after successful login.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Login → Home routing",
+        "issue": "After successful login, user stays on auth landing page (root /) instead of navigating to home. The login API succeeds (returns tokens) but the frontend routing via index.tsx doesn't redirect to /(tabs)/home",
+        "affected_selectors": ["router.replace('/')"],
+        "priority": "HIGH"
+      }
+    ],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_api_tests": {
+      "test_file": "/app/backend/tests/test_email_gate_flow.py",
+      "status": "ALL PASSED (11/11)",
+      "results": {
+        "test_login_marco_returns_email_verified_true": "PASSED - marco@test.com returns email_verified=True",
+        "test_login_admin_returns_email_verified_true": "PASSED - admin returns email_verified=True (legacy)",
+        "test_register_new_user_email_verified_false": "PASSED - new registration returns email_verified=False",
+        "test_login_unverified_user_returns_email_verified_false": "PASSED - unverified user login returns email_verified=False",
+        "test_verify_email_invalid_token": "PASSED - returns 400 for invalid token",
+        "test_verify_email_missing_token": "PASSED - returns 400 for missing token",
+        "test_resend_verification_for_unverified_user": "PASSED - resend works for unverified user",
+        "test_resend_verification_nonexistent_email": "PASSED - returns 200 for security (no enumeration)",
+        "test_verified_user_marco_can_access_home": "PASSED - verified user can call /api/home",
+        "test_admin_can_access_home": "PASSED - admin can call /api/home",
+        "test_unverified_user_can_call_api_home": "PASSED - backend allows call (frontend handles gate)"
+      }
+    },
+    "frontend_ui_tests": {
+      "verify_email_page": {
+        "status": "PASSED",
+        "elements_verified": [
+          "Logo present",
+          "Mail icon present",
+          "'Verifica email' title",
+          "Email address displayed from URL param",
+          "Beta banner with yellow background",
+          "'Versione beta — verifica simulata' title",
+          "Instructions for finding token in logs",
+          "'[EMAIL-VERIFY] token=...' code snippet",
+          "Token input field with placeholder 'Incolla il token dal log del server'",
+          "'Verifica Email' button (orange)",
+          "'Genera nuovo token' button",
+          "'Torna al Login' link"
+        ]
+      },
+      "genera_nuovo_token_button": {
+        "status": "PASSED",
+        "api_call": "POST /api/auth/resend-verification",
+        "response": "200 OK - 'Nuovo link inviato. Controlla la tua email.'",
+        "ui_feedback": "Green success banner displayed: 'Nuovo token generato. Controlla i log del server.'"
+      },
+      "registration_form": {
+        "status": "PASSED",
+        "fields_verified": ["Email", "Username", "Nome", "Cognome", "Data di nascita", "Indirizzo", "Città", "CAP", "Paese", "Password", "Ripeti password"]
+      },
+      "login_routing": {
+        "status": "ISSUE",
+        "issue": "After login, user stays on auth landing page instead of navigating to home/onboarding/verify-email based on gates"
+      }
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_email_gate_flow.py",
+    "/app/test_reports/pytest/email_gate_results.xml"
+  ],
+  "action_items": [
+    "INVESTIGATE: Login routing issue - after successful login, user stays on auth landing page. The issue is likely in index.tsx route() function or AuthContext state synchronization. The login API returns tokens successfully but isAuthenticated state may not be updating before routing runs.",
+    "Potential fix: Ensure isAuthenticated state updates BEFORE router.replace('/') is called in login.tsx, or add a delay/state check in index.tsx route() function"
+  ],
+  "critical_code_review_comments": [
+    "The email_verified gate logic in index.tsx is correct (line 70-77)",
+    "verify-email.tsx handleVerify correctly calls updateUser({email_verified: true}) then router.replace('/')",
+    "The beta banner implementation in verify-email.tsx is good with clear instructions",
+    "Issue: login.tsx calls router.replace('/') but the AuthContext state may not be updated yet when index.tsx route() runs"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_email_gate_flow.py"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 tests passed)",
+    "frontend": "80% (login routing issue)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123",
+    "user_verified_with_league": "marco@test.com / password123",
+    "user_verified_after_test": "uitest_7bbe3421@example.com / Password123!"
+  },
+  "seed_data_creation": "Created test users via registration during testing (uitest_*, verifytest_*). These users are now email_verified=True after verification tests.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Email gate backend is working correctly. verify-email page UI is correct with beta banner and token input. Login routing has an issue - investigate AuthContext state sync with router.replace('/') in login.tsx. The user might need to wait for state update before navigation.",
+  "mocked_api": {
+    "email_verification": "MOCKED - Token logged to backend console via logger.info('[EMAIL-VERIFY] token=...'), not sent via real email",
+    "resend_verification": "MOCKED - Returns success message but only logs new token to backend"
+  },
+  "rca_of_the_issue": {
+    "root_cause": "The login routing issue appears to be a timing problem between AuthContext state update and router.replace('/') navigation. When login.tsx calls router.replace('/'), the useAuth() context may not have updated isAuthenticated yet, causing index.tsx route() to see isAuthenticated=false and redirect to /(auth)/.",
+    "reproduction_steps": [
+      "Navigate to /(auth)/login",
+      "Enter credentials (marco@test.com / password123)",
+      "Click ACCEDI button",
+      "Observe: User stays on auth landing page instead of home"
+    ],
+    "potential_mitigation": "In login.tsx, await the login() promise completion and ensure state is updated before calling router.replace('/'). Alternatively, use a useEffect in index.tsx that watches isAuthenticated changes to trigger route() when auth state changes after login."
+  }
+}
