@@ -77,14 +77,15 @@ export default function SplashScreen() {
     }
 
     // GATE 2: Email verification (manual registrations)
+    // TODO: Riattivare quando si integra un servizio email reale (es. Resend)
     // Google emails are always considered verified (email_verified: true from backend)
-    if (storedUser?.email_verified === false) {
-      router.replace({
-        pathname: '/verify-email',
-        params: { email: storedUser.email ?? '' },
-      });
-      return;
-    }
+    // if (storedUser?.email_verified === false) {
+    //   router.replace({
+    //     pathname: '/verify-email',
+    //     params: { email: storedUser.email ?? '' },
+    //   });
+    //   return;
+    // }
 
     // GATE 3: First access — no leagues → onboarding choice screen
     try {
