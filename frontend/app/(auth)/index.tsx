@@ -22,7 +22,7 @@ const { width, height } = Dimensions.get('window');
 
 export default function AuthLanding() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { loginWithToken } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState('');
   const timeoutRef = useRef<any>(null);
