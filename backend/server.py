@@ -452,13 +452,27 @@ async def google_auth_session(request: Request):
     access = create_access_token(user_id, role)
     refresh = create_refresh_token(user_id)
     
+    # Check if profile needs completion (Google users miss many fields)
+    google_user = await users_col.find_one({"id": user_id}, {"_id": 0})
+    profile_completed = bool(google_user.get("profile_completed", False))
+    
     logger.info(f"[GoogleOAuth] SUCCESS: Tokens generated for user {username}")
     logger.info("[GoogleOAuth] === GOOGLE SESSION VERIFICATION COMPLETED ===")
     
     return TokenResponse(
         access_token=access,
         refresh_token=refresh,
-        user={"id": user_id, "email": email, "username": username, "role": role, "language": language}
+        user={
+            "id": user_id,
+            "email": email,
+            "username": username,
+            "role": role,
+            "language": language,
+            "profile_completed": profile_completed,
+            "email_verified": True,  # Google email is always verified
+            "accepted_privacy": google_user.get("accepted_privacy", False),
+            "accepted_terms": google_user.get("accepted_terms", False),
+        }
     )
 
 
