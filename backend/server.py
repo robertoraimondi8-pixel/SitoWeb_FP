@@ -201,12 +201,21 @@ async def register(req: RegisterRequest):
     if existing:
         raise HTTPException(400, "Email già registrata")
 
-    # Auto-generate username (first.last + 3 random digits)
-    import random as _random, string as _string
-    base_username = f"{req.first_name.lower()}.{req.last_name.lower()}"
-    base_username = ''.join(c for c in base_username if c.isalnum() or c == '.')
-    suffix = ''.join(_random.choices(_string.digits, k=3))
-    username = f"{base_username}{suffix}"
+    # Use user-provided username if present, otherwise auto-generate
+    import random as _random, string as _string, re as _re
+    if req.username:
+        # Validate format
+        if not _re.match(r'^[a-zA-Z0-9_]{3,20}$', req.username):
+            raise HTTPException(400, "Username non valido (3-20 caratteri: lettere, numeri, underscore)")
+        # Check uniqueness
+        if await users_col.find_one({"username": req.username}):
+            raise HTTPException(400, "Username già in uso")
+        username = req.username
+    else:
+        base_username = f"{req.first_name.lower()}.{req.last_name.lower()}"
+        base_username = ''.join(c for c in base_username if c.isalnum() or c == '.')
+        suffix = ''.join(_random.choices(_string.digits, k=3))
+        username = f"{base_username}{suffix}"
 
     import secrets as _secrets_reg
     vtoken = _secrets_reg.token_urlsafe(32)
