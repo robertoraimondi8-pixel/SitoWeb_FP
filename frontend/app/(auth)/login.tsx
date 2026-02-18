@@ -55,7 +55,12 @@ export default function LoginScreen() {
     setError('');
     try {
       await login(email.trim().toLowerCase(), password);
-      router.replace('/(tabs)/home');
+      // Navigate to root — let index.tsx apply all gates:
+      // profile_completed → /complete-profile
+      // email_verified == false → /verify-email
+      // no leagues → /onboarding
+      // else → /(tabs)/home
+      router.replace('/');
     } catch (e: any) {
       setError(e.message || 'Login failed');
     } finally {
