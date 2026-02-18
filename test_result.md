@@ -14,7 +14,99 @@
 # Main and testing agents must follow this exact format to maintain testing data. 
 # The testing data must be entered in yaml format Below is the data structure:
 # 
-## user_problem_statement: Implementazione flusso auth/onboarding completo: 1) Fix Google Login (usa loginWithToken nel login.tsx), 2) Username utente nella registrazione (AuthContext + backend), 3) Lega Nazionale persistente (join-direct in onboarding.tsx), 4) Schermata verifica email (verify-email.tsx creata).
+## user_problem_statement: Flusso auth/onboarding completo con gate email_verified: 1) Gate globale email_verified in index.tsx, 2) Tutti i login navigano a / (routing centralizzato), 3) verify-email.tsx con messaggio beta + campo token, 4) updateUser per aggiornare stato dopo verifica.
+
+## backend:
+  - task: "Email verification flow completo"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "POST /auth/verify-email e /auth/resend-verification funzionanti. Login ritorna email_verified:false/true correttamente"
+
+## frontend:
+  - task: "Gate globale email_verified in index.tsx"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/index.tsx"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Gate 2 aggiunto: se logged AND email_verified==false → /verify-email. Ordine: profile_completed → email_verified → leagues → home"
+
+  - task: "Routing centralizzato in index.tsx"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/(auth)/login.tsx, (auth)/index.tsx, app/index.tsx"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Tutti i login (email/Google) navigano a / - index.tsx gestisce tutti i gate. processGoogleSession usa loginWithToken"
+
+  - task: "verify-email.tsx redesign beta"
+    implemented: true
+    working: true
+    file: "frontend/app/verify-email.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Nuova UI: banner beta giallo, campo token, bottone Verifica, bottone Genera nuovo token. Usa updateUser per aggiornare email_verified in context dopo verifica"
+
+## metadata:
+  created_by: "main_agent"
+  version: "2.0"
+  test_sequence: 2
+  run_ui: true
+
+## test_plan:
+  current_focus:
+    - "Gate email_verified: registrazione → login → verify-email screen → inserisce token → home"
+    - "Utente già membro con lega: login diretto a home (no email gate, legacy verified)"
+    - "Utente Google: login → profilo incompleto → complete-profile → home (no email gate)"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "critical_first"
+
+## agent_communication:
+    - agent: "main"
+      message: |
+        Implementati tutti i fix del flusso auth/onboarding:
+        
+        ROUTING CENTRALIZZATO in index.tsx:
+        Gate 1: profile_completed==false → /complete-profile
+        Gate 2: email_verified==false → /verify-email (NUOVO)
+        Gate 3: no leagues → /onboarding  
+        else → /(tabs)/home
+        
+        TUTTI I LOGIN navigano a / (non a /home direttamente)
+        
+        SCHERMATA verify-email: banner beta + campo token + updateUser dopo verifica
+        
+        CREDENZIALI: admin@fantapronostic.com/admin123, marco@test.com/password123
+        API: https://verify-join-flow.preview.emergentagent.com/api
+        
+        TEST CASES CRITICI:
+        A. Registra nuovo utente → deve andare a /verify-email
+        B. Login con nuovo utente NON verificato → deve bloccare su /verify-email
+        C. Inserisce token nel campo → click Verifica → naviga a /onboarding (no leagues)
+        D. Login con marco@test.com (email_verified=true, ha lega) → va a /(tabs)/home
+        E. Utente admin (ha lega, verificato) → va a /(tabs)/home
+        
+        NOTA: Il token di verifica è nei log backend come: [EMAIL-VERIFY] token=XXX
 
 ## backend:
   - task: "Username nella registrazione"
