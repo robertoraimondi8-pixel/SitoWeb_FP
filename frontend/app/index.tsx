@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import { View, Image, StyleSheet, Animated, Platform, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../src/contexts/AuthContext';
 import { apiCall } from '../src/api/client';
 import { colors } from '../src/theme/designSystem';
