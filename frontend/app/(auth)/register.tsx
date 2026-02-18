@@ -51,6 +51,31 @@ export default function RegisterScreen() {
 
   const set = (key: string) => (val: string) => setForm(p => ({ ...p, [key]: val }));
 
+  // Username live availability check (debounced 600ms)
+  const handleUsernameChange = (val: string) => {
+    const clean = val.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 20);
+    setForm(p => ({ ...p, username: clean }));
+    setErrors(p => ({ ...p, username: '' }));
+    if (usernameDebounce.current) clearTimeout(usernameDebounce.current);
+    if (clean.length < 3) {
+      if (clean.length > 0) setErrors(p => ({ ...p, username: 'Min. 3 caratteri' }));
+      return;
+    }
+    setUsernameChecking(true);
+    usernameDebounce.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL || ''}/api/auth/username-available?username=${clean}`);
+        const data = await res.json();
+        if (!data.available) {
+          setErrors(p => ({ ...p, username: 'Username già in uso' }));
+        } else {
+          setErrors(p => ({ ...p, username: '' }));
+        }
+      } catch { /* network error, ignore */ }
+      finally { setUsernameChecking(false); }
+    }, 600);
+  };
+
   const formatDob = (d: Date | null) => {
     if (!d) return '';
     return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
