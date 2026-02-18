@@ -10,9 +10,6 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
-import * as AuthSession from 'expo-auth-session';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
