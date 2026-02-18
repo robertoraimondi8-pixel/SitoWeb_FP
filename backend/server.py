@@ -208,6 +208,10 @@ async def register(req: RegisterRequest):
     suffix = ''.join(_random.choices(_string.digits, k=3))
     username = f"{base_username}{suffix}"
 
+    import secrets as _secrets_reg
+    vtoken = _secrets_reg.token_urlsafe(32)
+    token_expiry = (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
+
     user_id = new_id()
     user = {
         "id": user_id,
@@ -227,9 +231,15 @@ async def register(req: RegisterRequest):
         "accepted_terms": req.accepted_terms,
         "consents_accepted_at": now_utc(),
         "profile_completed": True,
+        "email_verified": False,
+        "email_verification_token": vtoken,
+        "token_expiry": token_expiry,
         "created_at": now_utc(),
     }
     await users_col.insert_one(user)
+
+    # MOCK: log token (in production, send email)
+    logger.info(f"[EMAIL-VERIFY] token={vtoken} for {req.email[:3]}*** — link: myapp://verify-email?token={vtoken}")
 
     access = create_access_token(user_id, "user")
     refresh = create_refresh_token(user_id)
@@ -245,6 +255,7 @@ async def register(req: RegisterRequest):
             "role": "user",
             "language": req.language,
             "profile_completed": True,
+            "email_verified": False,
             "accepted_privacy": True,
             "accepted_terms": True,
         }
