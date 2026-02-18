@@ -268,85 +268,78 @@ export default function RegisterScreen() {
                   {dob ? formatDob(dob) : 'GG/MM/AAAA'}
                 </Text>
               </View>
-              <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
+              <Ionicons name={showDobPicker ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textSecondary} />
             </TouchableOpacity>
           </Field>
 
-          {/* Custom DOB Picker Modal — cross-platform (works on web too) */}
-          <Modal
-            visible={showDobPicker}
-            transparent
-            animationType="slide"
-            onRequestClose={() => setShowDobPicker(false)}
-          >
-            <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowDobPicker(false)}>
-              <TouchableOpacity style={s.pickerSheet} activeOpacity={1} onPress={e => e.stopPropagation()}>
-                <Text style={s.pickerTitle}>Seleziona data di nascita</Text>
+          {/* Inline DOB Picker — cross-platform, no Modal issues on web */}
+          {showDobPicker && (
+            <View style={s.pickerSheet}>
+              <Text style={s.pickerTitle}>Seleziona data di nascita</Text>
 
-                <View style={s.pickerColumns}>
-                  {/* ── Giorno ── */}
-                  <View style={s.pickerColWrap}>
-                    <Text style={s.pickerColLabel}>Giorno</Text>
-                    <ScrollView style={s.pickerCol} showsVerticalScrollIndicator={false}>
-                      {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
-                        <TouchableOpacity
-                          key={d}
-                          style={[s.pickerItem, pickerDay === d && s.pickerItemSel]}
-                          onPress={() => setPickerDay(d)}
-                        >
-                          <Text style={[s.pickerItemTxt, pickerDay === d && s.pickerItemTxtSel]}>
-                            {String(d).padStart(2, '0')}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-
-                  {/* ── Mese ── */}
-                  <View style={[s.pickerColWrap, { flex: 1.4 }]}>
-                    <Text style={s.pickerColLabel}>Mese</Text>
-                    <ScrollView style={s.pickerCol} showsVerticalScrollIndicator={false}>
-                      {['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'].map((m, i) => (
-                        <TouchableOpacity
-                          key={i}
-                          style={[s.pickerItem, pickerMonth === i + 1 && s.pickerItemSel]}
-                          onPress={() => setPickerMonth(i + 1)}
-                        >
-                          <Text style={[s.pickerItemTxt, pickerMonth === i + 1 && s.pickerItemTxtSel]}>{m}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-
-                  {/* ── Anno ── */}
-                  <View style={[s.pickerColWrap, { flex: 1.3 }]}>
-                    <Text style={s.pickerColLabel}>Anno</Text>
-                    <ScrollView style={s.pickerCol} showsVerticalScrollIndicator={false}>
-                      {Array.from({ length: 90 }, (_, i) => new Date().getFullYear() - 18 - i).map(y => (
-                        <TouchableOpacity
-                          key={y}
-                          style={[s.pickerItem, pickerYear === y && s.pickerItemSel]}
-                          onPress={() => setPickerYear(y)}
-                        >
-                          <Text style={[s.pickerItemTxt, pickerYear === y && s.pickerItemTxtSel]}>{y}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
+              <View style={s.pickerColumns}>
+                {/* ── Giorno ── */}
+                <View style={s.pickerColWrap}>
+                  <Text style={s.pickerColLabel}>Giorno</Text>
+                  <ScrollView style={s.pickerCol} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                      <TouchableOpacity
+                        key={d}
+                        style={[s.pickerItem, pickerDay === d && s.pickerItemSel]}
+                        onPress={() => setPickerDay(d)}
+                      >
+                        <Text style={[s.pickerItemTxt, pickerDay === d && s.pickerItemTxtSel]}>
+                          {String(d).padStart(2, '0')}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
                 </View>
 
-                {/* Actions */}
-                <View style={s.pickerActions}>
-                  <TouchableOpacity style={s.pickerCancelBtn} onPress={() => setShowDobPicker(false)}>
-                    <Text style={s.pickerCancelTxt}>Annulla</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={s.pickerConfirmBtn} onPress={confirmDob}>
-                    <Text style={s.pickerConfirmTxt}>Conferma</Text>
-                  </TouchableOpacity>
+                {/* ── Mese ── */}
+                <View style={[s.pickerColWrap, { flex: 1.4 }]}>
+                  <Text style={s.pickerColLabel}>Mese</Text>
+                  <ScrollView style={s.pickerCol} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                    {['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'].map((m, i) => (
+                      <TouchableOpacity
+                        key={i}
+                        style={[s.pickerItem, pickerMonth === i + 1 && s.pickerItemSel]}
+                        onPress={() => setPickerMonth(i + 1)}
+                      >
+                        <Text style={[s.pickerItemTxt, pickerMonth === i + 1 && s.pickerItemTxtSel]}>{m}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
                 </View>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          </Modal>
+
+                {/* ── Anno ── */}
+                <View style={[s.pickerColWrap, { flex: 1.3 }]}>
+                  <Text style={s.pickerColLabel}>Anno</Text>
+                  <ScrollView style={s.pickerCol} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                    {Array.from({ length: 90 }, (_, i) => new Date().getFullYear() - 18 - i).map(y => (
+                      <TouchableOpacity
+                        key={y}
+                        style={[s.pickerItem, pickerYear === y && s.pickerItemSel]}
+                        onPress={() => setPickerYear(y)}
+                      >
+                        <Text style={[s.pickerItemTxt, pickerYear === y && s.pickerItemTxtSel]}>{y}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              </View>
+
+              {/* Actions */}
+              <View style={s.pickerActions}>
+                <TouchableOpacity style={s.pickerCancelBtn} onPress={() => setShowDobPicker(false)}>
+                  <Text style={s.pickerCancelTxt}>Annulla</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={s.pickerConfirmBtn} onPress={confirmDob}>
+                  <Text style={s.pickerConfirmTxt}>Conferma</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
 
           {/* ── INDIRIZZO ── */}
           <Text style={s.sectionLabel}>Indirizzo</Text>
