@@ -11,6 +11,7 @@ interface User {
   first_name?: string;
   last_name?: string;
   profile_completed?: boolean;
+  email_verified?: boolean;
   accepted_privacy?: boolean;
   accepted_terms?: boolean;
 }
@@ -23,6 +24,7 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
+  loginWithToken: (accessToken: string, refreshToken: string, userData: User) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<boolean>;
   handleAuthError: (error: any) => Promise<void>;
