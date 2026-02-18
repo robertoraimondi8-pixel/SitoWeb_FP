@@ -122,6 +122,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const loginWithToken = useCallback(async (accessToken: string, refreshToken: string, userData: User) => {
+    // Save to BOTH AsyncStorage AND in-memory state (fixes Google OAuth routing issue)
+    await AsyncStorage.setItem('access_token', accessToken);
+    await AsyncStorage.setItem('refresh_token', refreshToken);
+    await AsyncStorage.setItem('user', JSON.stringify(userData));
+    setToken(accessToken);
+    setRefreshToken(refreshToken);
+    setUser(userData);
+    console.log('[Auth] loginWithToken: state updated, user:', userData.email, 'profile_completed:', userData.profile_completed);
+  }, []);
+
   const logout = useCallback(async () => {
     await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'user', 'onboarding_seen']);
     setToken(null);
