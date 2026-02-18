@@ -94,21 +94,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const register = useCallback(async (data: RegisterData) => {
+    const body: any = {
+      email: data.email,
+      first_name: data.firstName,
+      last_name: data.lastName,
+      date_of_birth: data.dateOfBirth,
+      address: data.address,
+      city: data.city,
+      country: data.country,
+      postal_code: data.postalCode,
+      password: data.password,
+      accepted_privacy: data.acceptedPrivacy,
+      accepted_terms: data.acceptedTerms,
+    };
+    if (data.username) body.username = data.username;
     const res = await apiCall('/auth/register', {
       method: 'POST',
-      body: {
-        email: data.email,
-        first_name: data.firstName,
-        last_name: data.lastName,
-        date_of_birth: data.dateOfBirth,
-        address: data.address,
-        city: data.city,
-        country: data.country,
-        postal_code: data.postalCode,
-        password: data.password,
-        accepted_privacy: data.acceptedPrivacy,
-        accepted_terms: data.acceptedTerms,
-      },
+      body,
       skipAuth: true,
     });
     await saveAuth(res.access_token, res.refresh_token, res.user);
