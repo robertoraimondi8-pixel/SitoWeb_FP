@@ -16,7 +16,7 @@ def now_utc() -> str:
 # ===== AUTH MODELS =====
 class RegisterRequest(BaseModel):
     email: EmailStr
-    username: str = Field(min_length=2, max_length=50)
+    username: Optional[str] = None  # auto-generated from first_name + last_name
     first_name: str = Field(min_length=1, max_length=50)
     last_name: str = Field(min_length=1, max_length=50)
     date_of_birth: str  # ISO date YYYY-MM-DD
