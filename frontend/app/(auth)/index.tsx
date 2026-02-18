@@ -48,12 +48,16 @@ export default function AuthLanding() {
           if (queryMatch) sessionId = queryMatch[1];
         }
         if (!sessionId) { setGoogleError('Sessione non valida. Riprova.'); setGoogleLoading(false); return; }
+        console.log('[Google] session_id found, calling backend...');
         const res = await apiCall('/auth/google/session', { method: 'POST', body: { session_id: sessionId }, skipAuth: true });
-        await AsyncStorage.setItem('access_token', res.access_token);
-        await AsyncStorage.setItem('refresh_token', res.refresh_token);
-        await AsyncStorage.setItem('user', JSON.stringify(res.user));
-        // Gate routing
-        if (res.user?.profile_completed === false) {
+        console.log('[Google] backend ok, user:', res.user?.email, 'profile_completed:', res.user?.profile_completed);
+        
+        // FIX: use loginWithToken to update BOTH AsyncStorage AND in-memory state
+        // Old code wrote only to AsyncStorage → AuthContext state stayed stale → routing failed
+        await loginWithToken(res.access_token, res.refresh_token, res.user);
+        console.log('[Google] loginWithToken done, navigating...');
+        
+        if (res.user?.profile_completed === false || !res.user?.accepted_privacy || !res.user?.accepted_terms) {
           router.replace('/complete-profile');
         } else {
           router.replace('/');
