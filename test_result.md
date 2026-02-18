@@ -14,7 +14,129 @@
 # Main and testing agents must follow this exact format to maintain testing data. 
 # The testing data must be entered in yaml format Below is the data structure:
 # 
-## user_problem_statement: Fix multiple UI/logic bugs: A) Punti Provvisori shown on COMPLETED matchdays (routing conflict [id].tsx vs [matchdayId].tsx - FIXED by deleting legacy file), B) Predictions tab shows wrong status for COMPLETED (save button hidden when completed), C) Giornate count wrong in Home (now filters only COMPLETED matchdays), D) Match times visible in predictions (sorted by start_time), E/F) Rankings league name duplicated (chip selector replaced with simple header for single league), G) Admin dropdown for matchday number 1-40 (already implemented), H) Admin card profile description (already implemented).
+## user_problem_statement: Implementazione flusso auth/onboarding completo: 1) Fix Google Login (usa loginWithToken nel login.tsx), 2) Username utente nella registrazione (AuthContext + backend), 3) Lega Nazionale persistente (join-direct in onboarding.tsx), 4) Schermata verifica email (verify-email.tsx creata).
+
+## backend:
+  - task: "Username nella registrazione"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Backend ora accetta username dalla request e lo salva se valido e disponibile; altrimenti auto-genera"
+
+  - task: "Email verification endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "POST /auth/verify-email e POST /auth/resend-verification testati e funzionanti"
+
+  - task: "National League join-direct"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "POST /leagues/{id}/join-direct testato: membership creata e appare in GET /leagues"
+
+## frontend:
+  - task: "Google Login usa loginWithToken"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/(auth)/login.tsx, frontend/app/(auth)/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "login.tsx aggiornato: loginWithToken sostituisce la scrittura diretta su AsyncStorage. Routing corretto verso /complete-profile o /(tabs)/home"
+
+  - task: "Username field in registrazione"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/(auth)/register.tsx, frontend/src/contexts/AuthContext.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "RegisterData interface aggiornata con username opzionale; register() ora invia username al backend"
+
+  - task: "Schermata verify-email"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/verify-email.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Creata verify-email.tsx: mostra email, bottone resend, bottone vai al login. Registrata in _layout.tsx"
+
+  - task: "National League join-direct da onboarding"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/onboarding.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "handleNational ora chiama /leagues/{id}/join-direct invece di checkout Stripe"
+
+## metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+
+## test_plan:
+  current_focus:
+    - "Google Login usa loginWithToken"
+    - "Username field in registrazione"
+    - "Schermata verify-email"
+    - "National League join-direct da onboarding"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+## agent_communication:
+    - agent: "main"
+      message: |
+        Ho implementato i seguenti fix:
+        1. login.tsx: loginWithToken al posto di AsyncStorage diretto nel Google Login
+        2. AuthContext.tsx: RegisterData ora ha username opzionale; register() lo invia al backend
+        3. backend/server.py: register endpoint usa username fornito dall'utente (con validazione) o auto-genera
+        4. verify-email.tsx: creata da zero con resend button e navigazione al login
+        5. _layout.tsx: aggiunto screen verify-email
+        6. onboarding.tsx: handleNational chiama join-direct (fix Lega Nazionale persistente)
+        
+        Credenziali test: admin@fantapronostic.com / admin123 | marco@test.com / password123
+        API base: https://verify-join-flow.preview.emergentagent.com/api
+        
+        Testare:
+        a) Flusso registrazione completo con username custom (poi verify-email screen)
+        b) Login con email/password
+        c) Onboarding: selezionare Lega Nazionale → deve apparire in "Le mie leghe"
+        d) Schermata verify-email: click "Rinvia" deve ritornare messaggio di successo
 
 ## user_problem_statement_orig: {problem_statement}
 ## backend:
