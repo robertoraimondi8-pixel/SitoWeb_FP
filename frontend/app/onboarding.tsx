@@ -52,19 +52,11 @@ export default function OnboardingScreen() {
   const handleNational = async (leagueId: string) => {
     setPayLoading(true);
     try {
-      const origin = process.env.EXPO_PUBLIC_BACKEND_URL || '';
-      const res = await apiCall('/payments/checkout', {
-        method: 'POST',
-        token,
-        body: { league_id: leagueId, origin_url: origin },
-      });
-      if (res.url) {
-        await WebBrowser.openBrowserAsync(res.url);
-        // After payment, refresh leagues and go home
-        if (token) await refreshLeagues(token);
-        router.replace('/(tabs)/home');
-      }
-    } catch (e: any) { Alert.alert(t('error'), e.message); }
+      await apiCall(`/leagues/${leagueId}/join-direct`, { method: 'POST', token });
+      // Refresh leagues and go home
+      if (token) await refreshLeagues(token);
+      router.replace('/(tabs)/home');
+    } catch (e: any) { Alert.alert('Errore', e.message); }
     finally { setPayLoading(false); }
   };
 
