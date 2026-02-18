@@ -157,8 +157,9 @@ export default function RegisterScreen() {
         acceptedPrivacy: true,
         acceptedTerms: true,
       });
-      // Go to email verification screen
-      router.replace({ pathname: '/verify-email', params: { email: form.email.trim().toLowerCase() } });
+      // TODO: Quando si integra email reale, rimandare a /verify-email
+      // router.replace({ pathname: '/verify-email', params: { email: form.email.trim().toLowerCase() } });
+      router.replace('/');
     } catch (e: any) {
       setSubmitError(e.message || 'Registrazione fallita. Riprova.');
     } finally {
