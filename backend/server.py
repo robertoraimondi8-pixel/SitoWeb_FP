@@ -178,20 +178,54 @@ async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
 # ========================================
 @auth_router.post("/register", response_model=TokenResponse)
 async def register(req: RegisterRequest):
-    existing = await users_col.find_one({"$or": [{"email": req.email}, {"username": req.username}]})
+    # Validate age >= 18
+    from datetime import date
+    try:
+        dob = datetime.strptime(req.date_of_birth, "%Y-%m-%d").date()
+        today = date.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        if age < 18:
+            raise HTTPException(400, "Devi avere almeno 18 anni per registrarti")
+    except ValueError:
+        raise HTTPException(400, "Formato data di nascita non valido (YYYY-MM-DD)")
+
+    # Validate consents
+    if not req.accepted_privacy:
+        raise HTTPException(400, "È necessario accettare la Privacy Policy")
+    if not req.accepted_terms:
+        raise HTTPException(400, "È necessario accettare i Termini e Condizioni")
+
+    # Check email uniqueness
+    existing = await users_col.find_one({"email": req.email})
     if existing:
-        if existing.get("email") == req.email:
-            raise HTTPException(400, "Email already registered")
-        raise HTTPException(400, "Username already taken")
+        raise HTTPException(400, "Email già registrata")
+
+    # Auto-generate username (first.last + 3 random digits)
+    import random as _random, string as _string
+    base_username = f"{req.first_name.lower()}.{req.last_name.lower()}"
+    base_username = ''.join(c for c in base_username if c.isalnum() or c == '.')
+    suffix = ''.join(_random.choices(_string.digits, k=3))
+    username = f"{base_username}{suffix}"
 
     user_id = new_id()
     user = {
         "id": user_id,
         "email": req.email,
-        "username": req.username,
+        "username": username,
+        "first_name": req.first_name,
+        "last_name": req.last_name,
+        "date_of_birth": req.date_of_birth,
+        "address": req.address,
+        "city": req.city,
+        "country": req.country,
+        "postal_code": req.postal_code,
         "password": hash_password(req.password),
         "role": "user",
         "language": req.language,
+        "accepted_privacy": req.accepted_privacy,
+        "accepted_terms": req.accepted_terms,
+        "consents_accepted_at": now_utc(),
+        "profile_completed": True,
         "created_at": now_utc(),
     }
     await users_col.insert_one(user)
@@ -201,8 +235,29 @@ async def register(req: RegisterRequest):
     return TokenResponse(
         access_token=access,
         refresh_token=refresh,
-        user={"id": user_id, "email": req.email, "username": req.username, "role": "user", "language": req.language}
+        user={
+            "id": user_id,
+            "email": req.email,
+            "username": username,
+            "first_name": req.first_name,
+            "last_name": req.last_name,
+            "role": "user",
+            "language": req.language,
+            "profile_completed": True,
+            "accepted_privacy": True,
+            "accepted_terms": True,
+        }
     )
+
+
+@auth_router.post("/forgot-password")
+async def forgot_password(req: ForgotPasswordRequest):
+    """Generic response to avoid email enumeration."""
+    # In a real app, send email here. For now, always return success.
+    logger.info(f"Forgot password requested for: {req.email[:3]}***")
+    return {"message": "Se l'email è registrata, riceverai le istruzioni per reimpostare la password."}
+
+
 
 
 @auth_router.post("/login", response_model=TokenResponse)
