@@ -33,6 +33,7 @@ interface AuthState {
 
 interface RegisterData {
   email: string;
+  username?: string;
   firstName: string;
   lastName: string;
   dateOfBirth: string;
