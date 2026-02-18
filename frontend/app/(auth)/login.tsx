@@ -159,14 +159,14 @@ export default function LoginScreen() {
           // Use loginWithToken to update BOTH AsyncStorage AND in-memory context state
           await loginWithToken(res.access_token, res.refresh_token, res.user);
           
-          console.log(`${LOG_PREFIX} Auth saved, navigating...`);
+          console.log(`${LOG_PREFIX} Auth saved, navigating to root for gate checks...`);
           
-          // Route based on profile completion
-          if (res.user?.profile_completed === false || !res.user?.accepted_privacy || !res.user?.accepted_terms) {
-            router.replace('/complete-profile');
-          } else {
-            router.replace('/(tabs)/home');
-          }
+          // Navigate to root — let index.tsx apply all gates:
+          // profile_completed == false → /complete-profile
+          // email_verified == false → /verify-email (Google emails are always verified)
+          // no leagues → /onboarding
+          // else → /(tabs)/home
+          router.replace('/');
         } catch (backendError: any) {
           console.log(`${LOG_PREFIX} Backend error: ${backendError.message}`);
           setGoogleError(backendError.message || 'Autenticazione fallita');
