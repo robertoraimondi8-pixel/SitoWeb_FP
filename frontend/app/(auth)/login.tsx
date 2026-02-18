@@ -28,7 +28,7 @@ const LOG_PREFIX = '[GoogleOAuth]';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
-  const { login } = useAuth();
+  const { login, loginWithToken } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
