@@ -8,6 +8,11 @@ interface User {
   username: string;
   role: string;
   language: string;
+  first_name?: string;
+  last_name?: string;
+  profile_completed?: boolean;
+  accepted_privacy?: boolean;
+  accepted_terms?: boolean;
 }
 
 interface AuthState {
@@ -17,10 +22,25 @@ interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, username: string, password: string, language: string) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<boolean>;
   handleAuthError: (error: any) => Promise<void>;
+  updateUser: (u: Partial<User>) => void;
+}
+
+interface RegisterData {
+  email: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  address: string;
+  city: string;
+  country: string;
+  postalCode: string;
+  password: string;
+  acceptedPrivacy: boolean;
+  acceptedTerms: boolean;
 }
 
 const AuthContext = createContext<AuthState>({} as AuthState);
