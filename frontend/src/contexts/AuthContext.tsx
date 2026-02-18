@@ -168,6 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         refresh,
         handleAuthError,
+        updateUser,
       }}
     >
       {children}
