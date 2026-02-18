@@ -31,6 +31,7 @@ from models import (
     LiveMatchData, LiveMatchdayResponse, LiveUpdateRequest,
     ConfirmMatchdayRequest, HomeResponse, CheckoutRequest, CheckoutResponse,
     AuditLogResponse, AdminSeasonUpdate, AdminMatchdayUpdate, ProfileUpdate,
+    CompleteProfileRequest, ForgotPasswordRequest,
     new_id, now_utc
 )
 from auth import (
