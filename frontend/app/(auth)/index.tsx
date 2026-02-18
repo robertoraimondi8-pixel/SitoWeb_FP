@@ -52,15 +52,15 @@ export default function AuthLanding() {
         console.log('[Google] backend ok, user:', res.user?.email, 'profile_completed:', res.user?.profile_completed);
         
         // FIX: use loginWithToken to update BOTH AsyncStorage AND in-memory state
-        // Old code wrote only to AsyncStorage → AuthContext state stayed stale → routing failed
         await loginWithToken(res.access_token, res.refresh_token, res.user);
-        console.log('[Google] loginWithToken done, navigating...');
+        console.log('[Google] loginWithToken done, navigating to root for gate checks...');
         
-        if (res.user?.profile_completed === false || !res.user?.accepted_privacy || !res.user?.accepted_terms) {
-          router.replace('/complete-profile');
-        } else {
-          router.replace('/');
-        }
+        // Navigate to root — let index.tsx apply all gates centrally:
+        // profile_completed == false → /complete-profile
+        // email_verified == false → /verify-email (Google = always verified)
+        // no leagues → /onboarding
+        // else → /(tabs)/home
+        router.replace('/');
       } else if (result.type === 'cancel' || result.type === 'dismiss') {
         setGoogleError(result.type === 'cancel' ? 'Login annullato' : '');
       } else {
