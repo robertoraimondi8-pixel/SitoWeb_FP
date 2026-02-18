@@ -90,6 +90,9 @@ export default function RegisterScreen() {
   const validate = () => {
     const e: FieldError = {};
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = 'Email non valida';
+    if (!form.username || form.username.length < 3) e.username = 'Username obbligatorio (min. 3 caratteri)';
+    else if (!/^[a-zA-Z0-9_]+$/.test(form.username)) e.username = 'Solo lettere, numeri e underscore';
+    else if (errors.username === 'Username già in uso') e.username = 'Username già in uso';
     if (!form.firstName.trim()) e.firstName = 'Nome obbligatorio';
     if (!form.lastName.trim()) e.lastName = 'Cognome obbligatorio';
     if (!dob) {
