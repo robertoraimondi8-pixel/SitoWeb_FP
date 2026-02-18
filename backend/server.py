@@ -349,6 +349,7 @@ async def login(req: LoginRequest):
             "role": user["role"],
             "language": user.get("language", "it"),
             "profile_completed": user.get("profile_completed", True),
+            "email_verified": user.get("email_verified", True),  # legacy users are considered verified
             "accepted_privacy": user.get("accepted_privacy", False),
             "accepted_terms": user.get("accepted_terms", False),
         }
