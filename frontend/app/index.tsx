@@ -1,17 +1,17 @@
 /**
  * SplashScreen + FirstAccessGate
- * Routing logic:
- *   unauthenticated        → /(auth)/
- *   authenticated, profile incomplete → /complete-profile
- *   authenticated, no leagues          → /onboarding
- *   authenticated, has leagues         → /(tabs)/home
+ * Routing logic (in order):
+ *   1. unauthenticated             → /(auth)/
+ *   2. profile incomplete          → /complete-profile
+ *   3. email_verified == false     → /verify-email
+ *   4. no leagues                  → /onboarding (scelta iniziale)
+ *   5. else                        → /(tabs)/home
  */
 import { useEffect, useState } from 'react';
 import { View, Image, StyleSheet, Animated, Platform, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/contexts/AuthContext';
 import { apiCall } from '../src/api/client';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../src/theme/designSystem';
 
 const { width } = Dimensions.get('window');
