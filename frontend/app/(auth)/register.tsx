@@ -125,6 +125,7 @@ export default function RegisterScreen() {
     try {
       await register({
         email: form.email.trim().toLowerCase(),
+        username: form.username,
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         dateOfBirth: dobIso(dob),
@@ -136,7 +137,8 @@ export default function RegisterScreen() {
         acceptedPrivacy: true,
         acceptedTerms: true,
       });
-      router.replace('/onboarding');
+      // Go to email verification screen
+      router.replace({ pathname: '/verify-email', params: { email: form.email.trim().toLowerCase() } });
     } catch (e: any) {
       setSubmitError(e.message || 'Registrazione fallita. Riprova.');
     } finally {
