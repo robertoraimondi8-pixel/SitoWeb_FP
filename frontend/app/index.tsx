@@ -49,8 +49,11 @@ export default function SplashScreen() {
   }, []);
 
   // Route once both splash and auth are ready
+  // Special case: if user is already authenticated (e.g. post-login redirect),
+  // skip the splash wait and route immediately.
   useEffect(() => {
-    if (!splashDone || isLoading) return;
+    if (isLoading) return;
+    if (!splashDone && !isAuthenticated) return; // Show splash only if NOT yet authenticated
     route();
   }, [splashDone, isLoading, isAuthenticated]);
 
