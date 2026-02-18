@@ -18,7 +18,7 @@ const { width } = Dimensions.get('window');
 const MIN_SPLASH_MS = 2000;
 
 export default function SplashScreen() {
-  const { isAuthenticated, isLoading, token, user } = useAuth();
+  const { isAuthenticated, isLoading, token, user, loginWithToken } = useAuth();
   const router = useRouter();
   const [splashDone, setSplashDone] = useState(false);
   const opacity = new Animated.Value(0);
