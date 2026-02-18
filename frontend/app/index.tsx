@@ -1,57 +1,80 @@
+/**
+ * SplashScreen + FirstAccessGate
+ * Routing logic:
+ *   unauthenticated        → /(auth)/
+ *   authenticated, profile incomplete → /complete-profile
+ *   authenticated, no leagues          → /onboarding
+ *   authenticated, has leagues         → /(tabs)/home
+ */
 import { useEffect, useState } from 'react';
+import { View, Image, StyleSheet, Animated, Platform, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
-import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { useAuth } from '../src/contexts/AuthContext';
 import { apiCall } from '../src/api/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { colors } from '../src/theme/designSystem';
 
-export default function Index() {
-  const { isAuthenticated, isLoading, token } = useAuth();
+const { width } = Dimensions.get('window');
+const MIN_SPLASH_MS = 2000;
+
+export default function SplashScreen() {
+  const { isAuthenticated, isLoading, token, user } = useAuth();
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
+  const [splashDone, setSplashDone] = useState(false);
+  const opacity = new Animated.Value(0);
 
+  // Animate logo in
   useEffect(() => {
-    handleRouting();
-  }, [isLoading, isAuthenticated, token]);
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
+    const t = setTimeout(() => setSplashDone(true), MIN_SPLASH_MS);
+    return () => clearTimeout(t);
+  }, []);
 
-  const handleRouting = async () => {
-    // Check for Google OAuth callback (session_id in URL hash)
+  // Google OAuth callback handling (web)
+  useEffect(() => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const hash = window.location.hash;
       if (hash && hash.includes('session_id=')) {
         const sessionId = hash.split('session_id=')[1]?.split('&')[0];
         if (sessionId) {
-          await processGoogleSession(sessionId);
+          processGoogleSession(sessionId);
           return;
         }
       }
     }
+  }, []);
 
-    if (isLoading) return;
+  // Route once both splash and auth are ready
+  useEffect(() => {
+    if (!splashDone || isLoading) return;
+    route();
+  }, [splashDone, isLoading, isAuthenticated]);
 
+  const route = async () => {
     if (!isAuthenticated) {
-      setChecking(false);
-      router.replace('/(auth)/login');
+      router.replace('/(auth)/');
       return;
     }
 
-    // Authenticated: check if user has leagues
+    // Profile completeness gate
+    if (user && user.profile_completed === false) {
+      router.replace('/complete-profile');
+      return;
+    }
+
+    // League gate
     try {
       const leagues = await apiCall('/leagues', { token });
       if (!leagues || leagues.length === 0) {
-        // Check if onboarding was already shown
-        const onboardingSeen = await AsyncStorage.getItem('onboarding_seen');
-        if (!onboardingSeen) {
-          setChecking(false);
-          router.replace('/onboarding');
-          return;
-        }
+        router.replace('/onboarding');
+        return;
       }
-    } catch (e) {
-      // If error checking leagues, go to home anyway
-    }
+    } catch (_) {}
 
-    setChecking(false);
     router.replace('/(tabs)/home');
   };
 
@@ -67,21 +90,32 @@ export default function Index() {
       if (typeof window !== 'undefined') {
         window.history.replaceState(null, '', window.location.pathname);
       }
-      // New Google user → onboarding
-      router.replace('/onboarding');
+      router.replace('/');
     } catch (e) {
-      console.error('Google auth error:', e);
-      router.replace('/(auth)/login');
+      router.replace('/(auth)/');
     }
   };
 
   return (
     <View style={s.container}>
-      <ActivityIndicator size="large" color="#F5A623" />
+      <Animated.Image
+        source={require('../assets/logo-full.png')}
+        style={[s.logo, { opacity }]}
+        resizeMode="contain"
+      />
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A', alignItems: 'center', justifyContent: 'center' },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    width: width * 0.65,
+    height: 180,
+  },
 });

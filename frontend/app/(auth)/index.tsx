@@ -1,0 +1,215 @@
+/**
+ * AuthLanding — schermata iniziale auth
+ * Azioni: Registrati | Accedi | Continua con Google | Password dimenticata
+ */
+import React, { useRef } from 'react';
+import {
+  View, Text, TouchableOpacity, StyleSheet,
+  Image, Dimensions, Platform, ActivityIndicator,
+  ScrollView,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { apiCall } from '../../src/api/client';
+import { useAuth } from '../../src/contexts/AuthContext';
+import { colors, spacing, borderRadius, shadows, typography } from '../../src/theme/designSystem';
+import React_1, { useState } from 'react';
+
+const { width, height } = Dimensions.get('window');
+
+export default function AuthLanding() {
+  const router = useRouter();
+  const { login } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState('');
+  const timeoutRef = useRef<any>(null);
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    setGoogleError('');
+    try {
+      const redirectUri = AuthSession.makeRedirectUri({ scheme: 'fantapronostic', path: 'auth/callback' });
+      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUri)}`;
+      timeoutRef.current = setTimeout(() => {
+        setGoogleError('Login non completato. Riprova.');
+        setGoogleLoading(false);
+      }, 15000);
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+      clearTimeout(timeoutRef.current);
+      if (result.type === 'success' && result.url) {
+        let sessionId: string | null = null;
+        const hashMatch = result.url.match(/#.*session_id=([^&]+)/);
+        if (hashMatch) sessionId = hashMatch[1];
+        if (!sessionId) {
+          const queryMatch = result.url.match(/[?&]session_id=([^&#]+)/);
+          if (queryMatch) sessionId = queryMatch[1];
+        }
+        if (!sessionId) { setGoogleError('Sessione non valida. Riprova.'); setGoogleLoading(false); return; }
+        const res = await apiCall('/auth/google/session', { method: 'POST', body: { session_id: sessionId }, skipAuth: true });
+        await AsyncStorage.setItem('access_token', res.access_token);
+        await AsyncStorage.setItem('refresh_token', res.refresh_token);
+        await AsyncStorage.setItem('user', JSON.stringify(res.user));
+        // Gate routing
+        if (res.user?.profile_completed === false) {
+          router.replace('/complete-profile');
+        } else {
+          router.replace('/');
+        }
+      } else if (result.type === 'cancel' || result.type === 'dismiss') {
+        setGoogleError(result.type === 'cancel' ? 'Login annullato' : '');
+      } else {
+        setGoogleError('Errore durante il login. Riprova.');
+      }
+    } catch (e: any) {
+      clearTimeout(timeoutRef.current);
+      setGoogleError(e.message || 'Errore di connessione');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={s.container} edges={['top', 'bottom']}>
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        {/* Hero Logo */}
+        <View style={s.heroSection}>
+          <Image
+            source={require('../../assets/logo-full.png')}
+            style={s.logo}
+            resizeMode="contain"
+          />
+          <Text style={s.tagline}>Il tuo fantasy football</Text>
+        </View>
+
+        {/* CTA Buttons */}
+        <View style={s.ctaSection}>
+          {/* Registrati */}
+          <TouchableOpacity
+            style={s.primaryBtn}
+            onPress={() => router.push('/(auth)/register')}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="person-add" size={20} color={colors.textInverse} />
+            <Text style={s.primaryBtnText}>Registrati</Text>
+          </TouchableOpacity>
+
+          {/* Accedi */}
+          <TouchableOpacity
+            style={s.secondaryBtn}
+            onPress={() => router.push('/(auth)/login')}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="log-in-outline" size={20} color={colors.accent} />
+            <Text style={s.secondaryBtnText}>Accedi</Text>
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={s.dividerRow}>
+            <View style={s.dividerLine} />
+            <Text style={s.dividerText}>oppure</Text>
+            <View style={s.dividerLine} />
+          </View>
+
+          {/* Google */}
+          {googleError ? (
+            <Text style={s.errorText}>{googleError}</Text>
+          ) : null}
+          <TouchableOpacity
+            style={s.googleBtn}
+            onPress={handleGoogleLogin}
+            disabled={googleLoading}
+            activeOpacity={0.85}
+          >
+            {googleLoading ? (
+              <ActivityIndicator color={colors.textSecondary} size="small" />
+            ) : (
+              <>
+                <View style={s.googleIcon}><Text style={s.googleG}>G</Text></View>
+                <Text style={s.googleBtnText}>Continua con Google</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          {/* Password dimenticata */}
+          <TouchableOpacity
+            style={s.forgotRow}
+            onPress={() => router.push('/(auth)/forgot-password')}
+          >
+            <Text style={s.forgotText}>Password dimenticata?</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Footer */}
+        <Text style={s.footer}>
+          Accedendo accetti i nostri{' '}
+          <Text style={s.footerLink}>Termini</Text>
+          {' '}e la{' '}
+          <Text style={s.footerLink}>Privacy Policy</Text>
+        </Text>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingBottom: spacing.xxl },
+  heroSection: { alignItems: 'center', paddingTop: height * 0.06, paddingBottom: spacing.xxxl },
+  logo: { width: width * 0.72, height: 190 },
+  tagline: { ...typography.bodyM, color: colors.textSecondary, marginTop: spacing.md },
+  ctaSection: { gap: spacing.md },
+  primaryBtn: {
+    height: 56,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.accent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+    ...shadows.button,
+  },
+  primaryBtnText: { fontSize: 17, fontWeight: '800', color: colors.textInverse, letterSpacing: 0.5 },
+  secondaryBtn: {
+    height: 56,
+    borderRadius: borderRadius.lg,
+    borderWidth: 2,
+    borderColor: colors.accent,
+    backgroundColor: colors.card,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+  },
+  secondaryBtnText: { fontSize: 17, fontWeight: '700', color: colors.accent },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: spacing.sm },
+  dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
+  dividerText: { marginHorizontal: spacing.lg, ...typography.meta, color: colors.textMuted },
+  errorText: { ...typography.bodyS, color: colors.error, textAlign: 'center' },
+  googleBtn: {
+    height: 56,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+  },
+  googleIcon: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: colors.background,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: colors.border,
+  },
+  googleG: { fontSize: 16, fontWeight: '800', color: '#4285F4' },
+  googleBtnText: { ...typography.bodyM, color: colors.textPrimary, fontWeight: '600' },
+  forgotRow: { alignItems: 'center', paddingVertical: spacing.sm },
+  forgotText: { ...typography.bodyM, color: colors.accent, fontWeight: '600' },
+  footer: { ...typography.meta, color: colors.textMuted, textAlign: 'center', marginTop: spacing.xxl },
+  footerLink: { color: colors.accent, fontWeight: '600' },
+});
