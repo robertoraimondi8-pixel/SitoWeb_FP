@@ -17,7 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiCall } from '../../src/api/client';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { colors, spacing, borderRadius, shadows, typography } from '../../src/theme/designSystem';
-import React_1, { useState } from 'react';
+import React, { useState } from 'react';
 
 const { width, height } = Dimensions.get('window');
 
