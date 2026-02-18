@@ -264,14 +264,25 @@ async def forgot_password(req: ForgotPasswordRequest):
 async def login(req: LoginRequest):
     user = await users_col.find_one({"email": req.email})
     if not user or not verify_password(req.password, user["password"]):
-        raise HTTPException(401, "Invalid email or password")
+        raise HTTPException(401, "Email o password non validi")
 
     access = create_access_token(user["id"], user["role"])
     refresh = create_refresh_token(user["id"])
     return TokenResponse(
         access_token=access,
         refresh_token=refresh,
-        user={"id": user["id"], "email": user["email"], "username": user["username"], "role": user["role"], "language": user.get("language", "it")}
+        user={
+            "id": user["id"],
+            "email": user["email"],
+            "username": user["username"],
+            "first_name": user.get("first_name", ""),
+            "last_name": user.get("last_name", ""),
+            "role": user["role"],
+            "language": user.get("language", "it"),
+            "profile_completed": user.get("profile_completed", True),
+            "accepted_privacy": user.get("accepted_privacy", False),
+            "accepted_terms": user.get("accepted_terms", False),
+        }
     )
 
 
