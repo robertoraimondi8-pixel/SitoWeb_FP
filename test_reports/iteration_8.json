@@ -1,0 +1,111 @@
+{
+  "summary": "Auth/Onboarding Flow Testing Complete. Backend: 13/13 tests passed. Frontend: All screens verified. CRITICAL FIX: Added missing Username field to registration form (was in code but not rendered in UI).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Onboarding",
+        "issues": ["'Benvenuto, !' shows empty username when accessing directly (not logged in) - expected but cosmetic"]
+      }
+    ]
+  },
+  "test_results": {
+    "backend_api_tests": {
+      "test_file": "/app/backend/tests/test_auth_verify_join.py",
+      "status": "ALL PASSED (13/13)",
+      "results": {
+        "test_register_with_custom_username": "PASSED - Username saved correctly in response",
+        "test_register_username_validation_format": "PASSED - Short username rejected",
+        "test_username_available_true": "PASSED - Returns available:true for unique username",
+        "test_username_available_false_existing": "PASSED - Returns available:false after user exists",
+        "test_username_too_short": "PASSED - Returns available:false with reason",
+        "test_resend_verification_existing_user": "PASSED - Returns Italian message",
+        "test_resend_verification_nonexistent_email": "PASSED - Returns 200 for security",
+        "test_login_marco_user": "PASSED - Login successful, returns tokens",
+        "test_login_invalid_credentials": "PASSED - Returns 401",
+        "test_get_national_leagues": "PASSED - Returns national league list",
+        "test_join_direct_national_league": "PASSED - Creates membership and visible in GET /api/leagues",
+        "test_join_direct_already_member": "PASSED - Returns already_member:true",
+        "test_home_shows_user_leagues": "PASSED - user_leagues array populated"
+      }
+    },
+    "frontend_ui_tests": {
+      "AuthLanding": {
+        "status": "PASSED",
+        "elements": ["Logo", "Registrati button", "Accedi button", "Continua con Google", "Password dimenticata?"]
+      },
+      "Registration_screen": {
+        "status": "PASSED (FIXED)",
+        "fix_applied": "Added missing Username field between Email and Nome",
+        "fields": ["Email", "Username (NEW)", "Nome", "Cognome", "Data di nascita", "Indirizzo", "Città", "CAP", "Paese", "Password", "Ripeti password", "Privacy Policy checkbox", "Termini checkbox"]
+      },
+      "Login_screen": {
+        "status": "PASSED",
+        "elements": ["Email input (data-testid='login-email-input')", "Password input (data-testid='login-password-input')", "ACCEDI button (data-testid='login-submit-btn')", "Google login button", "Forgot password link"],
+        "test_result": "Admin login successful - navigated to /home with 'Ciao, admin' greeting"
+      },
+      "Verify_email_screen": {
+        "status": "PASSED",
+        "url": "/verify-email?email=xxx",
+        "elements": ["Logo", "Mail icon", "'Controlla la tua email' title", "Email address highlighted", "'Rinvia email di verifica' button", "'Vai al Login' button"]
+      },
+      "Onboarding_screen": {
+        "status": "PASSED",
+        "elements": ["Welcome message", "Language selector (IT/EN)", "Lega Nazionale option (€20.00)", "Crea Lega Privata (GRATIS)", "Entra in una Lega"]
+      },
+      "Home_screen": {
+        "status": "PASSED",
+        "elements": ["Greeting 'Ciao, admin'", "GIORNATA card", "LA TUA LEGA · SINTESI (Posizione, Punti, Giornate, Totali)", "ULTIMI 5 chart", "CLASSIFICHE leaderboard", "Bottom tabs"]
+      }
+    }
+  },
+  "bugs_fixed": {
+    "missing_username_field": {
+      "file": "/app/frontend/app/(auth)/register.tsx",
+      "issue": "Username field was defined in form state but NO TextInput component was rendered in JSX between Email and Nome fields",
+      "fix": "Added Username field with label 'Username *', icon '@', placeholder 'mariorossi99', live availability check via handleUsernameChange",
+      "status": "FIXED"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_auth_verify_join.py",
+    "/app/test_reports/pytest/auth_verify_join_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Username field was missing from registration form UI - FIXED",
+    "All data-testid attributes properly set on login form elements",
+    "verify-email screen correctly displays email parameter",
+    "Backend properly validates and stores custom username"
+  ],
+  "updated_files": [
+    "/app/frontend/app/(auth)/register.tsx",
+    "/app/backend/tests/test_auth_verify_join.py"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "100% (6/6 screens verified)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123",
+    "user": "marco@test.com / password123"
+  },
+  "seed_data_creation": "None - used existing seed data. Test users created via registration tests are auto-cleaned or prefixed with unique IDs",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Auth Flow complete. Registration form now has Username field. Login works via data-testid selectors. Verify-email screen shows email from URL params. Onboarding shows 3 paths (National, Create Private, Join Private). Home shows user greeting, GIORNATA, SINTESI, ULTIMI 5, CLASSIFICHE.",
+  "mocked_api": {
+    "email_verification": "MOCKED - Token logged to backend console, not sent via real email",
+    "resend_verification": "MOCKED - Returns success message but only logs token"
+  },
+  "rca_of_the_issue": {
+    "root_cause": "The RegisterScreen component had form state including 'username' field and validation logic for username, but the JSX did not include a TextInput component for username between Email and Nome fields.",
+    "reproduction_steps": ["Navigate to /register", "Observe form fields - Email, Nome, Cognome... but NO Username field"],
+    "mitigation": "Added Field component with TextInput for username with: label 'Username *', icon 'at', placeholder 'mariorossi99', live availability checking via handleUsernameChange function"
+  }
+}
