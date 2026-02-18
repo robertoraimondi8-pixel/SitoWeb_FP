@@ -59,30 +59,36 @@ export default function SplashScreen() {
   }, [splashDone, isLoading, isAuthenticated]);
 
   const route = async () => {
-    if (!isAuthenticated) {
+    // Read directly from AsyncStorage — avoids React state stale-closure race condition
+    // (AsyncStorage is written synchronously in saveAuth before setState calls)
+    const accessToken = await AsyncStorage.getItem('access_token');
+    if (!accessToken) {
       router.replace('/(auth)/');
       return;
     }
 
+    const userStr = await AsyncStorage.getItem('user');
+    const storedUser: any = userStr ? JSON.parse(userStr) : null;
+
     // GATE 1: Profile completeness (Google users missing required fields)
-    if (user && user.profile_completed === false) {
+    if (storedUser?.profile_completed === false) {
       router.replace('/complete-profile');
       return;
     }
 
     // GATE 2: Email verification (manual registrations)
     // Google emails are always considered verified (email_verified: true from backend)
-    if (user && user.email_verified === false) {
+    if (storedUser?.email_verified === false) {
       router.replace({
         pathname: '/verify-email',
-        params: { email: user.email ?? '' },
+        params: { email: storedUser.email ?? '' },
       });
       return;
     }
 
     // GATE 3: First access — no leagues → onboarding choice screen
     try {
-      const leagues = await apiCall('/leagues', { token });
+      const leagues = await apiCall('/leagues', { token: accessToken });
       if (!leagues || leagues.length === 0) {
         router.replace('/onboarding');
         return;
