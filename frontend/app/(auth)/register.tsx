@@ -605,4 +605,53 @@ const s = StyleSheet.create({
     paddingVertical: 14, paddingHorizontal: spacing.md, borderBottomWidth: 1,
   },
   countryText: { ...typography.bodyM },
+  // DOB Picker Modal
+  pickerSheet: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    padding: spacing.xl, paddingBottom: spacing.xxxl,
+    maxHeight: '80%',
+  },
+  pickerTitle: {
+    ...typography.titleS, textAlign: 'center',
+    marginBottom: spacing.xl, color: colors.textPrimary,
+  },
+  pickerColumns: {
+    flexDirection: 'row', gap: spacing.sm,
+    marginBottom: spacing.xl,
+  },
+  pickerColWrap: { flex: 1, alignItems: 'center' },
+  pickerColLabel: {
+    ...typography.meta, color: colors.textSecondary,
+    fontWeight: '700', textTransform: 'uppercase',
+    letterSpacing: 0.5, marginBottom: spacing.sm,
+  },
+  pickerCol: {
+    height: 200, width: '100%',
+    borderWidth: 1, borderColor: colors.border,
+    borderRadius: borderRadius.md,
+  },
+  pickerItem: {
+    height: 44, alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: spacing.sm,
+  },
+  pickerItemSel: { backgroundColor: `${colors.accent}18` },
+  pickerItemTxt: { ...typography.bodyM, color: colors.textSecondary },
+  pickerItemTxtSel: { color: colors.accent, fontWeight: '700' },
+  pickerActions: {
+    flexDirection: 'row', gap: spacing.md,
+  },
+  pickerCancelBtn: {
+    flex: 1, height: 52, borderRadius: borderRadius.lg,
+    borderWidth: 1.5, borderColor: colors.border,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  pickerCancelTxt: { ...typography.bodyM, color: colors.textSecondary },
+  pickerConfirmBtn: {
+    flex: 1, height: 52, borderRadius: borderRadius.lg,
+    backgroundColor: colors.accent,
+    alignItems: 'center', justifyContent: 'center',
+    ...shadows.button,
+  },
+  pickerConfirmTxt: { fontSize: 16, fontWeight: '800', color: colors.textInverse },
 });
