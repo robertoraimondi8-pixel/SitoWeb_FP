@@ -60,13 +60,23 @@ export default function SplashScreen() {
       return;
     }
 
-    // Profile completeness gate
+    // GATE 1: Profile completeness (Google users missing required fields)
     if (user && user.profile_completed === false) {
       router.replace('/complete-profile');
       return;
     }
 
-    // League gate
+    // GATE 2: Email verification (manual registrations)
+    // Google emails are always considered verified (email_verified: true from backend)
+    if (user && user.email_verified === false) {
+      router.replace({
+        pathname: '/verify-email',
+        params: { email: user.email ?? '' },
+      });
+      return;
+    }
+
+    // GATE 3: First access — no leagues → onboarding choice screen
     try {
       const leagues = await apiCall('/leagues', { token });
       if (!leagues || leagues.length === 0) {
