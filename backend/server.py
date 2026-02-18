@@ -651,6 +651,57 @@ async def update_profile(req: ProfileUpdate, user=Depends(get_current_user)):
     return updated
 
 
+@user_router.post("/users/me/complete-profile")
+async def complete_profile(req: CompleteProfileRequest, user=Depends(get_current_user)):
+    """Complete missing profile fields (mandatory after Google OAuth or partial registration)."""
+    from datetime import date as _date
+    updates: dict = {}
+
+    if req.first_name is not None:
+        updates["first_name"] = req.first_name
+    if req.last_name is not None:
+        updates["last_name"] = req.last_name
+    if req.date_of_birth is not None:
+        try:
+            dob = datetime.strptime(req.date_of_birth, "%Y-%m-%d").date()
+            today = _date.today()
+            age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+            if age < 18:
+                raise HTTPException(400, "Devi avere almeno 18 anni")
+        except ValueError:
+            raise HTTPException(400, "Formato data di nascita non valido (YYYY-MM-DD)")
+        updates["date_of_birth"] = req.date_of_birth
+    if req.address is not None:
+        updates["address"] = req.address
+    if req.city is not None:
+        updates["city"] = req.city
+    if req.country is not None:
+        updates["country"] = req.country
+    if req.postal_code is not None:
+        updates["postal_code"] = req.postal_code
+    if req.accepted_privacy is True:
+        updates["accepted_privacy"] = True
+        updates["consents_accepted_at"] = now_utc()
+    if req.accepted_terms is True:
+        updates["accepted_terms"] = True
+
+    # Check if profile is now complete
+    current = {**user, **updates}
+    required_fields = ["first_name", "last_name", "date_of_birth", "address", "city", "country", "postal_code"]
+    is_complete = all(current.get(f) for f in required_fields) and current.get("accepted_privacy") and current.get("accepted_terms")
+    updates["profile_completed"] = is_complete
+
+    if updates:
+        await users_col.update_one({"id": user["id"]}, {"$set": updates})
+
+    updated = await users_col.find_one({"id": user["id"]}, {"_id": 0, "password": 0})
+    return {
+        "user": updated,
+        "profile_completed": is_complete,
+    }
+
+
+
 # ========================================
 # LEAGUE ROUTES
 # ========================================
