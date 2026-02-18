@@ -152,15 +152,17 @@ export default function LoginScreen() {
           
           console.log(`${LOG_PREFIX} Backend response: success, user: ${res.user?.username}`);
           
-          // Save auth data
-          await AsyncStorage.setItem('access_token', res.access_token);
-          await AsyncStorage.setItem('refresh_token', res.refresh_token);
-          await AsyncStorage.setItem('user', JSON.stringify(res.user));
+          // Use loginWithToken to update BOTH AsyncStorage AND in-memory context state
+          await loginWithToken(res.access_token, res.refresh_token, res.user);
           
-          console.log(`${LOG_PREFIX} Auth data saved, redirecting to home...`);
+          console.log(`${LOG_PREFIX} Auth saved, navigating...`);
           
-          // Navigate to home
-          router.replace('/(tabs)/home');
+          // Route based on profile completion
+          if (res.user?.profile_completed === false || !res.user?.accepted_privacy || !res.user?.accepted_terms) {
+            router.replace('/complete-profile');
+          } else {
+            router.replace('/(tabs)/home');
+          }
         } catch (backendError: any) {
           console.log(`${LOG_PREFIX} Backend error: ${backendError.message}`);
           setGoogleError(backendError.message || 'Autenticazione fallita');
