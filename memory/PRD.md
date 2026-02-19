@@ -179,16 +179,21 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 - Shows league name with trophy icon
 
 ### Bug Fixes (19 Feb 2026)
-- ✅ P0: Manual leagues now show only their own fixtures (not national)
-- ✅ P1: Creator Console button visible to league owner (owner_id in /api/home response)
+- ✅ P0: Manual leagues now show only their own fixtures (not national or other manual leagues)
+- ✅ P1: Creator Console button visible to league owner (is_owner flag in /api/home response)
 - ✅ P2: Redundant league list removed from home screen
+- ✅ FIX DEFINITIVO: Isolamento completo tra leghe manuali A e B con stesso matchday.number
+- ✅ FIX DEFINITIVO: /api/home restituisce matchday specifico per lega (manual vs national)
+- ✅ FIX DEFINITIVO: Permessi 403 per non-owner su endpoint Creator Console
 
 ## Changelog
 
-### 19 Feb 2026
-- Fixed: Manual leagues showing national fixtures (predictions.tsx passes league_id param)
-- Fixed: Creator Console not visible (backend /api/home returns owner_id)
-- Added: Test suite for multi-league bugs (/app/backend/tests/test_multi_league_bugs.py)
+### 19 Feb 2026 (Fix Definitivo)
+- Fixed: /api/home ora cerca matchday per league_id (manual) o season_id (national)
+- Fixed: Aggiunto is_owner e my_role nella risposta league
+- Fixed: Frontend predictions.tsx usa /api/leagues/{id}/fixtures come unico endpoint
+- Added: Test suite isolamento multi-lega (/app/backend/tests/test_multi_league_isolation.py)
+- Verified: 15/15 backend tests passati
 
 ### Previous Sessions
 - Implemented private league creation with configurable rules
