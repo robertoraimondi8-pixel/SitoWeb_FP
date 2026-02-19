@@ -59,7 +59,8 @@ async def create_indexes():
 
         # Matchdays
         await matchdays_col.create_index("id", unique=True)
-        await matchdays_col.create_index([("season_id", 1), ("number", 1)], unique=True)
+        # Include league_id to allow same matchday number across different leagues
+        await matchdays_col.create_index([("season_id", 1), ("number", 1), ("league_id", 1)], unique=True, name="season_id_number_league_id_unique")
 
         # Matches
         await matches_col.create_index("id", unique=True)
