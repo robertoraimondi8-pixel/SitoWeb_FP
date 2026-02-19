@@ -9,9 +9,29 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
+
+// ─── Mappa errori login → messaggi leggibili ─────────────────────────────────
+function mapLoginError(e: any): string {
+  const raw = (e?.message ?? String(e ?? '')).toLowerCase();
+  if (
+    raw.includes('401') || raw.includes('400') ||
+    raw.includes('invalid email') || raw.includes('invalid password') ||
+    raw.includes('incorrect') || raw.includes('not found') ||
+    raw.includes('user not found')
+  ) return 'Email o password errata';
+  if (
+    raw.includes('network') || raw.includes('fetch') ||
+    raw.includes('connection') || raw.includes('failed to fetch')
+  ) return 'Problema di connessione, riprova';
+  if (raw.includes('50') || raw.includes('server error') || raw.includes('internal')) {
+    return 'Errore del server, riprova tra poco';
+  }
+  return 'Errore durante il login. Riprova.';
+}
 
 // Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
