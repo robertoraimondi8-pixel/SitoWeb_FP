@@ -171,15 +171,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // IMPORTANTE: verifica che il token sia davvero assente in AsyncStorage prima di fare logout.
   // Questo evita logout falsi dovuti a race condition React state (token in AsyncStorage ma non ancora
   // aggiornato nel React state) che causano bounce alla schermata di login.
-  const handleAuthError = useCallback(async (error: any) => {
+  const handleAuthError = useCallback(async (error: any): Promise<boolean> => {
     if (isAuthError(error)) {
       const storedToken = await AsyncStorage.getItem('access_token');
       if (!storedToken) {
-        // Token davvero assente → logout reale
         await logout();
+        return true; // Logout reale → il chiamante deve redirigere
       }
-      // Se il token c'è in AsyncStorage, è una race condition temporanea → non fare logout
+      // Token ancora in AsyncStorage = race condition transitoria → non fare logout
     }
+    return false; // Nessun logout → il chiamante NON deve redirigere
   }, [logout]);
 
   return (
