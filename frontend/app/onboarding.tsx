@@ -23,6 +23,13 @@ export default function OnboardingScreen() {
   const [payLoading, setPayLoading] = useState(false);
   const [lang, setLang] = useState(i18n.language);
 
+  // Auth guard: se non autenticato, redirect alla schermata di auth
+  useEffect(() => {
+    if (!token) {
+      router.replace('/(auth)/');
+    }
+  }, [token, router]);
+
   useEffect(() => {
     (async () => {
       try {
