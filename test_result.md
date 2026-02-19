@@ -230,6 +230,167 @@
         c) Onboarding: selezionare Lega Nazionale → deve apparire in "Le mie leghe"
         d) Schermata verify-email: click "Rinvia" deve ritornare messaggio di successo
 
+user_problem_statement: |
+  Onboarding Screen "Esci" Button Testing on Mobile Viewport (390x844):
+  Test the "Esci" (logout) button implementation on /onboarding screen.
+  Requirements:
+  1. Discrete "Esci" button at TOP LEFT with logout icon and text "Esci"
+  2. Button in textSecondary color (grayish/muted), NOT bold or prominent
+  3. Three league cards visible (Lega Nazionale, Crea Lega, Unisciti)
+  4. Click button logs out and redirects to auth welcome screen
+  5. Gate: prevent unauthorized access to /onboarding
+
+backend: []
+
+frontend:
+  - task: "Onboarding Esci Button - UI & Styling"
+    implemented: true
+    working: true
+    file: "frontend/app/onboarding.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          ✅ VERIFIED: Onboarding "Esci" button UI and styling working correctly.
+          
+          BUTTON VERIFICATION:
+          - ✅ Button exists with testID="onboarding-logout-btn"
+          - ✅ Positioned at TOP-LEFT (24px from top, 24px from left)
+          - ✅ Text: "Esci" displayed correctly
+          - ✅ Color: rgb(100, 116, 139) = textSecondary (grayish/muted) ✓
+          - ✅ Font weight: 400 (not bold, discrete/muted style) ✓
+          - ✅ Font size: 16px
+          - ✅ Logout icon (log-out-outline) VISUALLY PRESENT in screenshots
+          
+          LAYOUT VERIFICATION:
+          - ✅ All three league cards visible below button:
+            * Lega Nazionale (National League)
+            * Crea Lega Privata (Create Private League)  
+            * Entra in una Lega (Join League)
+          - ✅ No structural changes to rest of screen
+          - ✅ Language selector intact
+          - ✅ Welcome message intact
+          
+          NOTE: Expo service restart was required to deploy code changes.
+
+  - task: "Onboarding Esci Button - Logout Functionality"
+    implemented: true
+    working: true
+    file: "frontend/app/onboarding.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          ✅ VERIFIED: Logout functionality working correctly.
+          
+          LOGOUT FLOW:
+          - ✅ Click "Esci" button triggers logout
+          - ✅ User is logged out from AuthContext
+          - ✅ Redirects to auth welcome screen (/(auth)/)
+          - ✅ Welcome screen shows "Registrati" and "Accedi" buttons
+          - ✅ User session cleared correctly
+          
+          TESTED WITH: email@email.com / Roberto95
+
+  - task: "Onboarding Route Protection Gate"
+    implemented: false
+    working: false
+    file: "frontend/app/onboarding.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: |
+          ❌ FAILED: Onboarding route is not protected from unauthorized access.
+          
+          ISSUE: Users can directly navigate to /onboarding URL without being logged in.
+          
+          ROOT CAUSE:
+          - index.tsx (root route) handles auth gates correctly
+          - BUT /onboarding route itself has no authentication check
+          - When user directly navigates to /onboarding URL, the onboarding.tsx component loads without checking auth state
+          
+          EXPECTED BEHAVIOR:
+          - Attempting to access /onboarding without valid auth token should redirect to /(auth)/
+          
+          ACTUAL BEHAVIOR:
+          - /onboarding page loads and displays content even without authentication
+          
+          FIX NEEDED:
+          Add useEffect in onboarding.tsx to check if user is authenticated:
+          ```
+          useEffect(() => {
+            if (!token || !user) {
+              router.replace('/(auth)/');
+            }
+          }, [token, user]);
+          ```
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 3
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Onboarding Route Protection Gate"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "testing"
+    message: |
+      ✅ ONBOARDING ESCI BUTTON TESTING COMPLETED (2/3 TESTS PASSED)
+      
+      SUMMARY:
+      1. ✅ UI & Styling: "Esci" button correctly implemented with proper styling
+      2. ✅ Logout Functionality: Button click logs out and redirects correctly
+      3. ❌ Route Protection: /onboarding accessible without authentication
+      
+      DETAILED FINDINGS:
+      
+      ✅ UI & STYLING (PASSED):
+      - Button positioned at top-left corner (24px, 24px)
+      - Text "Esci" with logout icon visible
+      - textSecondary color (rgb(100, 116, 139) - grayish/muted)
+      - Font weight 400 (not bold, discrete appearance)
+      - All three league cards remain visible below
+      - No layout issues or structural changes
+      
+      ✅ LOGOUT FUNCTIONALITY (PASSED):
+      - Clicking "Esci" successfully logs out user
+      - Redirects to auth welcome screen with "Registrati"/"Accedi"
+      - Session cleared properly
+      
+      ❌ ROUTE PROTECTION GATE (FAILED):
+      - Critical security issue: /onboarding URL can be accessed without login
+      - After logout, user can navigate back to /onboarding and see content
+      - index.tsx gates work only for root route, not direct URL access
+      
+      REQUIRED FIX:
+      Add authentication check in onboarding.tsx useEffect:
+      ```typescript
+      useEffect(() => {
+        if (!token || !user) {
+          router.replace('/(auth)/');
+        }
+      }, [token, user]);
+      ```
+      
+      NOTE: Expo service restart was required to deploy the "Esci" button code.
+      Testing was blocked initially because code changes weren't reflected in production
+      until after `sudo supervisorctl restart expo`.
+
 ## user_problem_statement_orig: {problem_statement}
 ## backend:
 ##   - task: "Task name"
