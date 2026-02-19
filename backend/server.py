@@ -744,6 +744,24 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         is_owner = active_league.get("owner_id") == user["id"] or active_league.get("created_by") == user["id"]
         league_response["is_owner"] = is_owner
 
+        # === DIAGNOSTIC LOG 2: /api/home ===
+        logger.info("=" * 60)
+        logger.info("[DIAG-2] /api/home RESPONSE")
+        logger.info(f"  user.id = {user['id']}")
+        logger.info(f"  user.email = {user.get('email')}")
+        logger.info(f"  league.id = {active_league.get('id')}")
+        logger.info(f"  league.name = {active_league.get('name')}")
+        logger.info(f"  league.match_source_type = {active_league.get('match_source_type')}")
+        logger.info(f"  league.owner_id = {active_league.get('owner_id')}")
+        logger.info(f"  league.created_by = {active_league.get('created_by')}")
+        logger.info(f"  my_membership = {my_membership}")
+        logger.info(f"  my_membership.role = {my_membership.get('role') if my_membership else 'NO_MEMBERSHIP'}")
+        logger.info(f"  CALCULATED is_owner = {is_owner}")
+        logger.info(f"  owner_id == user_id: {active_league.get('owner_id') == user['id']}")
+        logger.info(f"  created_by == user_id: {active_league.get('created_by') == user['id']}")
+        logger.info(f"  matchday_data = {matchday_data}")
+        logger.info("=" * 60)
+
     return {
         "matchday": matchday_data,
         "live": live_data,
