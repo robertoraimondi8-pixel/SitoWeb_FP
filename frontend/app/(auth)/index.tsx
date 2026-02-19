@@ -27,6 +27,7 @@ export default function AuthLanding() {
   const timeoutRef = useRef<any>(null);
 
   const handleGoogleLogin = async () => {
+    console.log('GOOGLE: start'); // LOG A
     setGoogleLoading(true);
     setGoogleError('');
     try {
@@ -38,6 +39,15 @@ export default function AuthLanding() {
       }, 15000);
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
       clearTimeout(timeoutRef.current);
+
+      // LOG B
+      console.log('GOOGLE: result', {
+        type: result.type,
+        hasUrl: result.type === 'success' ? !!result.url : false,
+        urlPreview: result.type === 'success' ? result.url?.slice(0, 80) : null,
+        error: (result as any).error ?? null,
+      });
+
       if (result.type === 'success' && result.url) {
         let sessionId: string | null = null;
         const hashMatch = result.url.match(/#.*session_id=([^&]+)/);
@@ -46,20 +56,32 @@ export default function AuthLanding() {
           const queryMatch = result.url.match(/[?&]session_id=([^&#]+)/);
           if (queryMatch) sessionId = queryMatch[1];
         }
+        console.log('GOOGLE: sessionId extracted?', !!sessionId); // LOG B extra
         if (!sessionId) { setGoogleError('Sessione non valida. Riprova.'); setGoogleLoading(false); return; }
-        console.log('[Google] session_id found, calling backend...');
+
+        console.log('GOOGLE: calling backend /api/auth/google'); // LOG C
         const res = await apiCall('/auth/google/session', { method: 'POST', body: { session_id: sessionId }, skipAuth: true });
-        console.log('[Google] backend ok, user:', res.user?.email, 'profile_completed:', res.user?.profile_completed);
-        
+
+        // LOG D
+        console.log('GOOGLE: backend status ok (no exception thrown)');
+        console.log('GOOGLE: has access_token', !!res?.access_token);
+
         // FIX: use loginWithToken to update BOTH AsyncStorage AND in-memory state
         await loginWithToken(res.access_token, res.refresh_token, res.user);
-        console.log('[Google] loginWithToken done, navigating to root for gate checks...');
-        
+
+        // LOG E
+        const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+        const savedToken = await AsyncStorage.getItem('access_token');
+        console.log('GOOGLE: token saved?', savedToken != null);
+
+        // LOG F
+        const leagues = res.user?.leagues_count ?? '?';
+        const noProfile = res.user?.profile_completed === false;
+        const targetRoute = noProfile ? '/complete-profile' : '/';
+        const reason = noProfile ? 'profile_incomplete' : 'checking_leagues_via_root';
+        console.log('GOOGLE: navigate to', targetRoute, 'reason:', reason);
+
         // Navigate to root — let index.tsx apply all gates centrally:
-        // profile_completed == false → /complete-profile
-        // email_verified == false → /verify-email (Google = always verified)
-        // no leagues → /onboarding
-        // else → /(tabs)/home
         router.replace('/');
       } else if (result.type === 'cancel' || result.type === 'dismiss') {
         setGoogleError(result.type === 'cancel' ? 'Login annullato' : '');
@@ -68,6 +90,7 @@ export default function AuthLanding() {
       }
     } catch (e: any) {
       clearTimeout(timeoutRef.current);
+      console.log('GOOGLE: CATCH error', e?.message); // LOG extra catch
       setGoogleError(e.message || 'Errore di connessione');
     } finally {
       setGoogleLoading(false);
