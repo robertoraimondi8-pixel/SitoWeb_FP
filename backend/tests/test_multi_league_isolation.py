@@ -315,7 +315,8 @@ class TestCreatorConsolePermissions:
                 "number": 99,
                 "label": "Non-owner Test",
                 "half": 1,
-                "first_kickoff": "2026-12-01T15:00:00"
+                "first_kickoff": "2026-12-01T15:00:00",
+                "season_id": "season-2024-2025"
             },
             headers={
                 "Authorization": f"Bearer {non_owner_token}",
