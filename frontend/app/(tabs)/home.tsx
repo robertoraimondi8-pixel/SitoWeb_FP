@@ -52,14 +52,8 @@ export default function HomeScreen() {
       }).start();
     } catch (e: any) {
       if (isAuthError(e)) {
-        // Prima di fare logout, verifica che il token NON esista davvero in AsyncStorage
-        // Questo evita logout falsi causati da race condition del React state
-        const storedToken = await AsyncStorage.getItem('access_token');
-        if (!storedToken) {
-          await handleAuthError(e);
-          router.replace('/(auth)/login');
-        }
-        // Se il token c'è in AsyncStorage, è un errore transitorio — non fare logout
+        const didLogout = await handleAuthError(e);
+        if (didLogout) router.replace('/(auth)/login');
         return;
       }
       console.error('Home fetch error:', e.message);
