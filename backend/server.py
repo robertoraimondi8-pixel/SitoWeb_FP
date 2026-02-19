@@ -912,14 +912,29 @@ async def create_league(req: LeagueCreate, user=Depends(get_current_user)):
     await leagues_col.insert_one(league)
 
     # Auto-join owner as admin
-    await memberships_col.insert_one({
+    membership_doc = {
         "id": new_id(),
         "user_id": user["id"],
         "league_id": league_id,
         "role": "admin",
         "status": "active",
         "joined_at": now_utc(),
-    })
+    }
+    await memberships_col.insert_one(membership_doc)
+
+    # === DIAGNOSTIC LOG 1: League Creation ===
+    logger.info("=" * 60)
+    logger.info("[DIAG-1] LEAGUE CREATION")
+    logger.info(f"  new_league.id = {league_id}")
+    logger.info(f"  new_league.name = {req.name}")
+    logger.info(f"  new_league.match_source_type = {req.match_source_type}")
+    logger.info(f"  new_league.owner_id = {user['id']}")
+    logger.info(f"  creator.user_id = {user['id']}")
+    logger.info(f"  creator.email = {user.get('email')}")
+    logger.info(f"  membership.role = {membership_doc['role']}")
+    logger.info(f"  membership.league_id = {membership_doc['league_id']}")
+    logger.info(f"  OWNER_ID == USER_ID: {league['owner_id'] == user['id']}")
+    logger.info("=" * 60)
 
     await log_audit(user["id"], user["username"], "CREATE", "league", league_id, {"name": req.name})
     league.pop("_id", None)
