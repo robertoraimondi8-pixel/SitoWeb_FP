@@ -50,19 +50,24 @@ export default function SplashScreen() {
   }, []);
 
   // Route once both splash and auth are ready
-  // Special case: if user is already authenticated (e.g. post-login redirect),
-  // skip the splash wait and route immediately.
   useEffect(() => {
-    if (isLoading) return;
-    if (!splashDone && !isAuthenticated) return; // Show splash only if NOT yet authenticated
+    // ── LOG PUNTO 3 ──────────────────────────────────────────────────────────
+    console.log('[DEBUG-3] index.tsx useEffect fired:',
+      'isLoading=', isLoading,
+      'isAuthenticated=', isAuthenticated,
+      'splashDone=', splashDone
+    );
+    if (isLoading) { console.log('[DEBUG-3] SKIP: isLoading=true'); return; }
+    if (!splashDone && !isAuthenticated) { console.log('[DEBUG-3] SKIP: splash not done + not auth'); return; }
+    console.log('[DEBUG-3] => chiamo route()');
     route();
   }, [splashDone, isLoading, isAuthenticated]);
 
   const route = async () => {
-    // Read directly from AsyncStorage — avoids React state stale-closure race condition
-    // (AsyncStorage is written synchronously in saveAuth before setState calls)
     const accessToken = await AsyncStorage.getItem('access_token');
+    console.log('[DEBUG-3] route(): storedTokenExists=', !!accessToken);
     if (!accessToken) {
+      console.log('[DEBUG-4] NAVIGATE -> /(auth)/ (no token in AsyncStorage)');
       router.replace('/(auth)/');
       return;
     }
@@ -72,30 +77,25 @@ export default function SplashScreen() {
 
     // GATE 1: Profile completeness (Google users missing required fields)
     if (storedUser?.profile_completed === false) {
+      console.log('[DEBUG-4] NAVIGATE -> /complete-profile (profile_completed=false)');
       router.replace('/complete-profile');
       return;
     }
 
-    // GATE 2: Email verification (manual registrations)
-    // TODO: Riattivare quando si integra un servizio email reale (es. Resend)
-    // Google emails are always considered verified (email_verified: true from backend)
-    // if (storedUser?.email_verified === false) {
-    //   router.replace({
-    //     pathname: '/verify-email',
-    //     params: { email: storedUser.email ?? '' },
-    //   });
-    //   return;
-    // }
+    // GATE 2: Email verification — disabilitato per beta
+    // if (storedUser?.email_verified === false) { ... }
 
-    // GATE 3: First access — no leagues → onboarding choice screen
+    // GATE 3: First access — no leagues → onboarding
     try {
       const leagues = await apiCall('/leagues', { token: accessToken });
       if (!leagues || leagues.length === 0) {
+        console.log('[DEBUG-4] NAVIGATE -> /onboarding (nessuna lega da index.tsx)');
         router.replace('/onboarding');
         return;
       }
     } catch (_) {}
 
+    console.log('[DEBUG-4] NAVIGATE -> /(tabs)/home (da index.tsx)');
     router.replace('/(tabs)/home');
   };
 
