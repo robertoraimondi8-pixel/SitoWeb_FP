@@ -133,6 +133,7 @@ export default function HomeScreen() {
       </View>
 
       {/* LEAGUE SWITCHER */}
+      {console.log('[DEBUG-HOME] data?.league:', !!data?.league, data?.league?.name)}
       {data?.league && (
         <View style={styles.leagueSwitcherWrap}>
           <TouchableOpacity
