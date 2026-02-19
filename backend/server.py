@@ -729,13 +729,20 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
                     "points": pts,
                 })
 
-    # Build league response with owner_id for frontend to check ownership
+    # Build league response with owner_id and my_role for frontend to check ownership
     league_response = None
     if active_league:
         league_response = {k: v for k, v in active_league.items() if k != "_id"}
         # Ensure owner_id is included for frontend ownership checks
         if "owner_id" not in league_response and "created_by" in active_league:
             league_response["owner_id"] = active_league["created_by"]
+        # Add user's role in this league
+        my_membership = membership_map.get(active_league["id"])
+        if my_membership:
+            league_response["my_role"] = my_membership.get("role", "member")
+        # Check if user is owner
+        is_owner = active_league.get("owner_id") == user["id"] or active_league.get("created_by") == user["id"]
+        league_response["is_owner"] = is_owner
 
     return {
         "matchday": matchday_data,
