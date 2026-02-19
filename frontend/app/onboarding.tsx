@@ -24,12 +24,14 @@ export default function OnboardingScreen() {
   const [payLoading, setPayLoading] = useState(false);
   const [lang, setLang] = useState(i18n.language);
 
-  // Auth guard: se non autenticato, redirect alla schermata di auth
+  // Auth guard: usa AsyncStorage (non React state) per evitare race condition
+  // React state può essere null al primo render anche se loginWithToken ha già salvato il token
   useEffect(() => {
-    if (!token) {
-      router.replace('/(auth)/');
-    }
-  }, [token, router]);
+    (async () => {
+      const tok = await AsyncStorage.getItem('access_token');
+      if (!tok) router.replace('/(auth)/');
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
