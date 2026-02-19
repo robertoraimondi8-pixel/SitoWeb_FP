@@ -201,8 +201,8 @@ export default function AdminConsole() {
       setModifiedMatches(new Set());
     } catch (e: any) {
       if (isAuthError(e)) {
-        await handleAuthError(e);
-        router.replace('/(auth)/login');
+        const didLogout = await handleAuthError(e);
+        if (didLogout) router.replace('/(auth)/login');
         return;
       }
       console.error(e);
