@@ -84,7 +84,7 @@ export default function AuthLanding() {
             style={s.logo}
             resizeMode="contain"
           />
-          <Text style={s.tagline}>Il tuo fantasy football</Text>
+          <Text style={s.tagline}>Pronostica. Vinci. Domina la classifica</Text>
         </View>
 
         {/* CTA Buttons */}
