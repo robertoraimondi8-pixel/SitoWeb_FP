@@ -147,9 +147,9 @@ class MatchdayCreate(BaseModel):
     season_id: str
     number: int
     label: Optional[str] = None
-    half: int = Field(ge=1, le=2)  # 1=andata, 2=ritorno
-    first_kickoff: str  # ISO datetime
-    status: str = "OPEN"  # OPEN, LOCKED, LIVE, COMPLETED
+    half: int = Field(ge=1, le=2)
+    first_kickoff: Optional[str] = None  # ISO datetime, nullable
+    status: str = "OPEN"
 
 
 class MatchdayResponse(BaseModel):
