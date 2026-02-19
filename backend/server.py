@@ -932,16 +932,30 @@ async def create_league(req: LeagueCreate, user=Depends(get_current_user)):
 
     await leagues_col.insert_one(league)
 
-    # Auto-join owner as admin
-    membership_doc = {
-        "id": new_id(),
+    # Auto-join owner with role="owner" (upsert per idempotenza)
+    existing_membership = await memberships_col.find_one({
         "user_id": user["id"],
-        "league_id": league_id,
-        "role": "admin",
-        "status": "active",
-        "joined_at": now_utc(),
-    }
-    await memberships_col.insert_one(membership_doc)
+        "league_id": league_id
+    })
+    
+    if existing_membership:
+        # Aggiorna a owner se già esiste
+        await memberships_col.update_one(
+            {"id": existing_membership["id"]},
+            {"$set": {"role": "owner", "status": "active"}}
+        )
+        membership_doc = {**existing_membership, "role": "owner"}
+    else:
+        # Crea nuova membership come owner
+        membership_doc = {
+            "id": new_id(),
+            "user_id": user["id"],
+            "league_id": league_id,
+            "role": "owner",
+            "status": "active",
+            "joined_at": now_utc(),
+        }
+        await memberships_col.insert_one(membership_doc)
 
     # === DIAGNOSTIC LOG 1: League Creation ===
     logger.info("=" * 60)
@@ -952,8 +966,8 @@ async def create_league(req: LeagueCreate, user=Depends(get_current_user)):
     logger.info(f"  new_league.owner_id = {user['id']}")
     logger.info(f"  creator.user_id = {user['id']}")
     logger.info(f"  creator.email = {user.get('email')}")
-    logger.info(f"  membership.role = {membership_doc['role']}")
-    logger.info(f"  membership.league_id = {membership_doc['league_id']}")
+    logger.info(f"  membership.role = {membership_doc.get('role')}")
+    logger.info(f"  membership.league_id = {membership_doc.get('league_id')}")
     logger.info(f"  OWNER_ID == USER_ID: {league['owner_id'] == user['id']}")
     logger.info("=" * 60)
 
