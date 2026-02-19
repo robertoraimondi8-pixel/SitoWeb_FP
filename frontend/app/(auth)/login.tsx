@@ -76,14 +76,11 @@ export default function LoginScreen() {
     setError('');
     try {
       console.log('[Login] Invio credenziali...');
-      await login(email.trim().toLowerCase(), password);
-      console.log('[Login] Token ricevuto e salvato in AsyncStorage');
-
-      // Leggo direttamente da AsyncStorage per evitare race condition React state
-      const accessToken = await AsyncStorage.getItem('access_token');
-      const userStr = await AsyncStorage.getItem('user');
-      const storedUser: any = userStr ? JSON.parse(userStr) : null;
-      console.log('[Login] Auth state caricato:', storedUser?.email, 'profile_completed:', storedUser?.profile_completed);
+      // login() ora restituisce { access_token, refresh_token, user }
+      const res = await login(email.trim().toLowerCase(), password);
+      const accessToken = res.access_token;
+      const storedUser = res.user;
+      console.log('[Login] Token ricevuto:', accessToken?.substring(0, 20), 'user:', storedUser?.email, 'profile_completed:', storedUser?.profile_completed);
 
       // GATE 1: profilo incompleto (utenti Google)
       if (storedUser?.profile_completed === false) {
@@ -98,7 +95,7 @@ export default function LoginScreen() {
       // GATE 3: nessuna lega → onboarding
       try {
         console.log('[Login] Controllo leghe...');
-        const leagues = await apiCall('/leagues', { token: accessToken ?? undefined });
+        const leagues = await apiCall('/leagues', { token: accessToken });
         if (!leagues || leagues.length === 0) {
           console.log('[Login] Nessuna lega → redirect /onboarding');
           router.replace('/onboarding');
