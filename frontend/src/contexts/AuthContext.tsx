@@ -91,6 +91,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       skipAuth: true,
     });
     await saveAuth(res.access_token, res.refresh_token, res.user);
+    // Return the full response so callers can use token/user immediately
+    // without depending on AsyncStorage re-read or React state timing
+    return res as { access_token: string; refresh_token: string; user: User };
   }, []);
 
   const register = useCallback(async (data: RegisterData) => {
