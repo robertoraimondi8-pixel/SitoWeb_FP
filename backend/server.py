@@ -386,6 +386,7 @@ async def google_auth_session(request: Request):
     Verifies session with Emergent, creates/updates user, returns JWT tokens."""
     import aiohttp
     
+    logger.info("HIT /api/auth/google")
     logger.info("[GoogleOAuth] === GOOGLE SESSION VERIFICATION STARTED ===")
     
     body = await request.json()
