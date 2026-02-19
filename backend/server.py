@@ -750,6 +750,18 @@ async def update_profile(req: ProfileUpdate, user=Depends(get_current_user)):
     return updated
 
 
+@user_router.patch("/profile/current-league")
+async def set_current_league(league_id: str = None, user=Depends(get_current_user)):
+    """Persiste la lega corrente selezionata dall'utente."""
+    from fastapi import Body
+    if league_id:
+        mem = await memberships_col.find_one({"user_id": user["id"], "league_id": league_id, "status": "active"})
+        if not mem:
+            raise HTTPException(403, "Non sei membro di questa lega")
+        await users_col.update_one({"id": user["id"]}, {"$set": {"current_league_id": league_id}})
+    return {"current_league_id": league_id}
+
+
 @user_router.post("/users/me/complete-profile")
 async def complete_profile(req: CompleteProfileRequest, user=Depends(get_current_user)):
     """Complete missing profile fields (mandatory after Google OAuth or partial registration)."""
