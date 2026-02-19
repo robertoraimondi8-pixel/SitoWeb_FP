@@ -158,8 +158,8 @@ export default function AdminConsole() {
       else if (data.length > 0) setSelectedSeason(data[0]);
     } catch (e: any) {
       if (isAuthError(e)) {
-        await handleAuthError(e);
-        router.replace('/(auth)/login');
+        const didLogout = await handleAuthError(e);
+        if (didLogout) router.replace('/(auth)/login');
         return;
       }
       setError(e.message || 'Errore caricamento seasons');
