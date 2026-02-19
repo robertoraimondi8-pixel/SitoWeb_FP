@@ -499,7 +499,7 @@ async def google_auth_session(request: Request):
 MATCHES_PER_MATCHDAY = 11
 
 @user_router.get("/home")
-async def get_home(league_id: Optional[str] = None, user=Depends(get_current_user)):
+async def get_home(league_id: str = None, user=Depends(get_current_user)):
     # Get active season
     season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
     if not season:
