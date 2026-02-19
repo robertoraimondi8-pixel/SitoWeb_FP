@@ -1043,10 +1043,13 @@ async def join_league(req: LeagueJoinRequest, user=Depends(get_current_user)):
 
 @league_router.get("/{league_id}/fixtures")
 async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
-    """Partite per una lega — national eredita dalla Nazionale, manual legge le proprie."""
+    """Partite per una lega — national eredita dalla Nazionale, manual/custom legge le proprie."""
     league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
     if not league:
         raise HTTPException(404, "Lega non trovata")
+
+    # "manual" e "custom" sono entrambi tipi di lega gestita manualmente
+    is_manual_league = league.get("match_source_type") in ("manual", "custom")
 
     # === DIAGNOSTIC LOG 4: Fixtures Query ===
     logger.info("=" * 60)
@@ -1054,8 +1057,9 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
     logger.info(f"  league_id requested = {league_id}")
     logger.info(f"  league.name = {league.get('name')}")
     logger.info(f"  league.match_source_type = {league.get('match_source_type')}")
+    logger.info(f"  is_manual_league = {is_manual_league}")
 
-    if league.get("match_source_type") == "national":
+    if not is_manual_league:
         source_id = league.get("source_league_id")
         if not source_id:
             nat = await leagues_col.find_one({"league_type": "national"}, {"_id": 0, "id": 1})
