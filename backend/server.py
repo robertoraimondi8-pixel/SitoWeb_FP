@@ -739,12 +739,40 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         # Ensure owner_id is included for frontend ownership checks
         if "owner_id" not in league_response and "created_by" in active_league:
             league_response["owner_id"] = active_league["created_by"]
-        # Add user's role in this league
-        my_membership = membership_map.get(active_league["id"])
-        if my_membership:
-            league_response["my_role"] = my_membership.get("role", "member")
-        # Check if user is owner
+        
+        # Check if user is owner (by owner_id or created_by)
         is_owner = active_league.get("owner_id") == user["id"] or active_league.get("created_by") == user["id"]
+        
+        # Get user's membership and role
+        my_membership = membership_map.get(active_league["id"])
+        my_role = my_membership.get("role", "player") if my_membership else None
+        
+        # AUTO-REPAIR: Se user è owner ma membership role non è owner/admin, correggi
+        if is_owner and my_membership and my_role not in ("owner", "admin"):
+            logger.info(f"[AUTO-REPAIR] Fixing membership role for owner {user['id']} in league {active_league['id']}")
+            await memberships_col.update_one(
+                {"id": my_membership["id"]},
+                {"$set": {"role": "owner"}}
+            )
+            my_role = "owner"
+            my_membership["role"] = "owner"
+        
+        # Se owner ma nessuna membership, creala
+        if is_owner and not my_membership:
+            logger.info(f"[AUTO-REPAIR] Creating missing membership for owner {user['id']} in league {active_league['id']}")
+            new_mem = {
+                "id": new_id(),
+                "user_id": user["id"],
+                "league_id": active_league["id"],
+                "role": "owner",
+                "status": "active",
+                "joined_at": now_utc(),
+            }
+            await memberships_col.insert_one(new_mem)
+            my_membership = new_mem
+            my_role = "owner"
+        
+        league_response["my_role"] = my_role
         league_response["is_owner"] = is_owner
 
         # === DIAGNOSTIC LOG 2: /api/home ===
@@ -758,11 +786,8 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         logger.info(f"  league.owner_id = {active_league.get('owner_id')}")
         logger.info(f"  league.created_by = {active_league.get('created_by')}")
         logger.info(f"  my_membership = {my_membership}")
-        logger.info(f"  my_membership.role = {my_membership.get('role') if my_membership else 'NO_MEMBERSHIP'}")
+        logger.info(f"  my_role = {my_role}")
         logger.info(f"  CALCULATED is_owner = {is_owner}")
-        logger.info(f"  owner_id == user_id: {active_league.get('owner_id') == user['id']}")
-        logger.info(f"  created_by == user_id: {active_league.get('created_by') == user['id']}")
-        logger.info(f"  matchday_data = {matchday_data}")
         logger.info("=" * 60)
 
     return {
