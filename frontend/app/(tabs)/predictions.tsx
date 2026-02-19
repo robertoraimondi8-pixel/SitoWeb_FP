@@ -119,13 +119,25 @@ export default function PredictionsScreen() {
         activeMatchday = matchdays[matchdays.length - 1];
       }
 
+      console.log('  activeMatchday =', activeMatchday?.id, activeMatchday?.label);
+      console.log('  activeMatchday.matches count =', activeMatchday?.matches?.length);
+      if (activeMatchday?.matches) {
+        activeMatchday.matches.forEach((m: any, i: number) => {
+          console.log(`    Match ${i}: ${m.home_team} vs ${m.away_team}, league_id=${m.league_id}`);
+        });
+      }
+
       if (!activeMatchday) {
+        console.log('  ERROR: No activeMatchday found');
         setLoading(false);
         return;
       }
 
       // Carica predictions per questa giornata
+      console.log('  Calling: /api/predictions/' + activeMatchday.id + '?league_id=' + leagueId);
       const predsRes = await apiCall(`/predictions/${activeMatchday.id}?league_id=${leagueId}`, { token });
+      console.log('  predsRes.predictions count =', predsRes.predictions?.length);
+      console.log('='.repeat(60));
       
       // Combina matchday info con matches dalla fixtures response
       const matchesForMatchday = activeMatchday.matches || [];
