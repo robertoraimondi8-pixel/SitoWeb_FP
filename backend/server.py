@@ -988,11 +988,13 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
             source_id = nat["id"] if nat else None
         source_league = await leagues_col.find_one({"id": source_id}, {"_id": 0}) if source_id else None
         season_id = source_league["season_id"] if source_league else league["season_id"]
+        matchdays = await matchdays_col.find({"season_id": season_id}, {"_id": 0}).sort("number", 1).to_list(100)
     else:
         source_id = league_id
         season_id = league["season_id"]
+        # Manual: query by league_id to avoid collision with national matchdays
+        matchdays = await matchdays_col.find({"league_id": league_id}, {"_id": 0}).sort("number", 1).to_list(100)
 
-    matchdays = await matchdays_col.find({"season_id": season_id}, {"_id": 0}).sort("number", 1).to_list(100)
     start_md = league.get("start_matchday", 1)
     end_md = league.get("end_matchday", 38)
     matchdays = [md for md in matchdays if start_md <= md.get("number", 0) <= end_md]
