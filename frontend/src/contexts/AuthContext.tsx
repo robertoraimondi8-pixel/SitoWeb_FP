@@ -27,7 +27,7 @@ interface AuthState {
   loginWithToken: (accessToken: string, refreshToken: string, userData: User) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<boolean>;
-  handleAuthError: (error: any) => Promise<void>;
+  handleAuthError: (error: any) => Promise<boolean>;
   updateUser: (u: Partial<User>) => void;
 }
 
