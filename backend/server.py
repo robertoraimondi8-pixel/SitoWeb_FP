@@ -24,7 +24,7 @@ from database import (
 from models import (
     RegisterRequest, LoginRequest, TokenResponse, RefreshRequest,
     UserResponse, SeasonCreate, SeasonResponse, LeagueCreate,
-    LeagueJoinRequest, LeagueResponse, MatchdayCreate, MatchdayResponse,
+    LeagueUpdateRequest, LeagueJoinRequest, LeagueResponse, MatchdayCreate, MatchdayResponse,
     MatchCreate, MatchUpdate, MatchResponse, PredictionInput,
     PredictionsBatchRequest, PredictionResponse, JokerSetRequest,
     JokerResponse, ScoreSummaryResponse, StandingEntry, StandingsResponse,
