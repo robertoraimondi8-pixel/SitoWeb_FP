@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 export default function OnboardingScreen() {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
-  const { token, user, handleAuthError } = useAuth();
+  const { token, user, logout, handleAuthError } = useAuth();
   const { refreshLeagues } = useLeague();
   const router = useRouter();
   const [nationalLeagues, setNationalLeagues] = useState<any[]>([]);
