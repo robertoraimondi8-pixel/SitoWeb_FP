@@ -165,13 +165,13 @@ class MatchdayResponse(BaseModel):
 
 # ===== MATCH =====
 class MatchCreate(BaseModel):
-    matchday_id: str
+    matchday_id: Optional[str] = None  # from path param in league console
     home_team: str
     away_team: str
-    competition: str  # e.g. "Serie A", "Champions League"
-    start_time: str  # ISO datetime
-    market_type: str  # "1X2", "GOAL_NOGOL", "OVER_UNDER_25", "EXACT_SCORE"
-    status: str = "scheduled"  # scheduled, live, finished, postponed, void, cancelled
+    competition: Optional[str] = ""
+    start_time: Optional[str] = None   # ISO datetime, nullable
+    market_type: str = "1X2"
+    status: str = "PENDING"
 
 
 class MatchUpdate(BaseModel):
