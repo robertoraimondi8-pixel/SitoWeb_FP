@@ -542,6 +542,58 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: |
+      ✅ GOOGLE LOGIN WEB FIX TESTING COMPLETED - FULLY WORKING
+      
+      TASK: Test Google login flow on web at https://login-bounce.preview.emergentagent.com
+      
+      === CRITICAL FINDING: FIX IS WORKING AFTER EXPO RESTART ===
+      
+      **INITIAL STATE (BEFORE RESTART):**
+      ❌ Console logs: NO "GOOGLE: start" or "web branch" logs appeared
+      ❌ Bundle check: New code NOT in production bundle
+      ❌ Navigation: Page did NOT redirect to auth.emergentagent.com
+      ❌ Root cause: Code changes were in source files but NOT deployed to web bundle
+      
+      **AFTER EXPO CACHE CLEAR + RESTART:**
+      ✅ Console logs: BOTH "GOOGLE: start" and "GOOGLE: web branch — redirect to auth, origin:" appeared
+      ✅ Bundle check: New code CONFIRMED in bundle (hasGoogleStart: true, hasWebBranch: true)
+      ✅ Navigation: Successfully redirected to https://auth.emergentagent.com/?redirect=https%3A%2F%2Flogin-bounce.preview.emergentagent.com
+      ✅ Platform.OS === 'web' branch executing correctly
+      
+      **CONSOLE OUTPUT CAPTURED (VERBATIM):**
+      ```
+      [log] GOOGLE: start
+      [log] GOOGLE: web branch — redirect to auth, origin: https://login-bounce.preview.emergentagent.com
+      ```
+      
+      **VERIFICATION CHECKLIST:**
+      1. Does 'GOOGLE: start' appear in console? ✅ YES
+      2. Does 'GOOGLE: web branch — redirect to auth, origin:' appear? ✅ YES  
+      3. Does browser redirect to https://auth.emergentagent.com? ✅ YES
+      
+      **TECHNICAL DETAILS:**
+      - Fix location: frontend/app/(auth)/index.tsx lines 34-41
+      - Web detection: if (Platform.OS === 'web')
+      - Redirect method: window.location.href = authUrl
+      - Redirect URL format: https://auth.emergentagent.com/?redirect=[encoded_origin]
+      - Callback handler: app/index.tsx lines 38-50 (processGoogleSession)
+      
+      **DEPLOYMENT NOTE:**
+      The fix was already in the code but required Expo service restart to deploy.
+      Commands used:
+      - rm -rf /app/frontend/.expo /app/frontend/node_modules/.cache /app/frontend/.metro-cache
+      - sudo supervisorctl restart expo
+      - Waited ~60s for rebuild
+      
+      **CONCLUSION:**
+      Google login on web is NOW FULLY FUNCTIONAL. The Platform.OS check correctly 
+      detects web environment and uses window.location.href instead of native APIs.
+      Previous issue (zero logs, no redirect) was caused by stale bundle, not code error.
+      
+      GOOGLE LOGIN WEB FIX: ✅ VERIFIED WORKING
+      
+  - agent: "testing"
+    message: |
       ✅ AUTH LANDING PAGE TAGLINE TESTING COMPLETED - ALL REQUIREMENTS MET
       
       SUMMARY:
