@@ -31,6 +31,16 @@ export default function AuthLanding() {
     setGoogleLoading(true);
     setGoogleError('');
     try {
+      // ── WEB: redirect diretto del browser, callback gestito da app/index.tsx ──
+      if (Platform.OS === 'web') {
+        const redirectUri = typeof window !== 'undefined' ? window.location.origin : '';
+        console.log('GOOGLE: web branch — redirect to auth, origin:', redirectUri);
+        const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUri)}`;
+        window.location.href = authUrl;
+        return; // pagina navigherà via, loading resta visibile
+      }
+
+      // ── NATIVE (iOS/Android): flow esistente con WebBrowser ──
       const redirectUri = AuthSession.makeRedirectUri({ scheme: 'fantapronostic', path: 'auth/callback' });
       const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUri)}`;
       timeoutRef.current = setTimeout(() => {
@@ -79,11 +89,9 @@ export default function AuthLanding() {
         let reason: string;
 
         if (!res.user?.username) {
-          // Utente Google nuovo senza username → completa profilo
           targetRoute = '/complete-profile';
           reason = 'no_username';
         } else {
-          // Controlla se l'utente ha già leghe
           try {
             const leagues = await apiCall('/leagues', { token: res.access_token });
             if (!leagues || leagues.length === 0) {
