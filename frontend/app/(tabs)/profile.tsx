@@ -12,18 +12,43 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
 import { SectionCard, PrimaryButton } from '../../src/components/ui';
 
+interface OwnedLeague {
+  id: string;
+  name: string;
+  match_source_type: string;
+}
+
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const { isDark, toggleTheme } = useTheme();
   const { user, token, logout, handleAuthError } = useAuth();
   const router = useRouter();
   const [leagueCount, setLeagueCount] = useState(0);
+  const [ownedLeagues, setOwnedLeagues] = useState<OwnedLeague[]>([]);
 
   useEffect(() => {
     (async () => {
       try {
         const p = await apiCall('/profile', { token });
         setLeagueCount(p.leagues_count);
+        
+        // Carica le leghe possedute dall'utente (owner/admin)
+        const homeData = await apiCall('/home', { token });
+        const userLeagues = homeData.user_leagues || [];
+        
+        // Filtra solo le leghe dove l'utente è owner
+        const owned: OwnedLeague[] = [];
+        for (const league of userLeagues) {
+          // Verifica se l'utente è owner di questa lega
+          if (league.owner_id === user?.id || league.created_by === user?.id) {
+            owned.push({
+              id: league.id,
+              name: league.name,
+              match_source_type: league.match_source_type || 'national',
+            });
+          }
+        }
+        setOwnedLeagues(owned);
       } catch (e: any) { 
         if (isAuthError(e)) {
           const didLogout = await handleAuthError(e);
@@ -33,7 +58,7 @@ export default function ProfileScreen() {
         console.error(e); 
       }
     })();
-  }, [token, handleAuthError, router]);
+  }, [token, handleAuthError, router, user?.id]);
 
   const switchLang = () => {
     const newLang = i18n.language === 'it' ? 'en' : 'it';
