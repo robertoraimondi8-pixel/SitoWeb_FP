@@ -344,39 +344,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* MY LEAGUES */}
-        {data?.user_leagues?.length > 0 && (
-          <SectionCard title="LE MIE LEGHE">
-            {data.user_leagues.map((league: any) => (
-              <View key={league.id} style={styles.leagueRow}>
-                <Ionicons 
-                  name={league.league_type === 'national' ? 'globe-outline' : 'shield-outline'} 
-                  size={20} 
-                  color={colors.primary} 
-                />
-                <Text style={styles.leagueText}>{league.name}</Text>
-              </View>
-            ))}
-            
-            <View style={styles.leagueActions}>
-              <PrimaryButton
-                title="Crea Lega"
-                variant="outline"
-                size="small"
-                onPress={() => router.push('/league/create')}
-                style={styles.leagueBtn}
-              />
-              <PrimaryButton
-                title="Unisciti"
-                variant="outline"
-                size="small"
-                onPress={() => router.push('/league/join')}
-                style={styles.leagueBtn}
-              />
-            </View>
-          </SectionCard>
-        )}
-
         {/* STATS PLACEHOLDER */}
         <SectionCard title="STATISTICHE">
           <View style={styles.statsPlaceholder}>
