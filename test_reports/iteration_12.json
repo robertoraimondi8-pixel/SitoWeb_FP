@@ -1,0 +1,73 @@
+{
+  "summary": "Completed testing of Multi-League Fixtures feature - Backend fully working, Frontend Creator Console working, League Switcher visible but session persistence issues affect direct navigation",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Home page direct navigation",
+        "issue": "Auth state not persisted - navigating directly to /home shows empty page. Only works after fresh login flow",
+        "affected_selectors": [],
+        "priority": "MEDIUM"
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_multi_league_fixtures.py",
+    "/app/test_reports/pytest/multi_league_fixtures_results.xml"
+  ],
+  "action_items": [
+    "Fix root _layout.tsx - remove league/create, league/join, league/join-private, league/list from Stack.Screen as they're now handled by league/_layout.tsx",
+    "Consider adding session persistence between direct URL navigations (AsyncStorage token check on page load)"
+  ],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_multi_league_fixtures.py",
+    "/app/frontend/app/league/_layout.tsx",
+    "/app/frontend/app/_layout.tsx",
+    "/app/frontend/app/(tabs)/home.tsx"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8 tests passed)",
+    "frontend": "85% - All features working but session persistence intermittent"
+  },
+  "test_credentials": "email@email.com / Roberto95, marco@test.com / password123",
+  "seed_data_creation": "Created TEST_* prefixed leagues during backend tests",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend Multi-League Fixtures feature fully tested with 8/8 passing. Frontend League Switcher visible after login, Creator Console at /league/{id}/manage works for both manual (shows form) and national (shows info message) leagues. Direct URL navigation has auth state issues.",
+  "features_tested": {
+    "1_national_league_fixtures": {
+      "status": "PASS",
+      "details": "GET /api/leagues/{id}/fixtures returns matchdays inherited from Nazionale"
+    },
+    "2_manual_league_fixtures": {
+      "status": "PASS",
+      "details": "GET /api/leagues/{id}/fixtures returns only own matchdays (1 matchday, 1 match after creation)"
+    },
+    "3_create_matchday_match": {
+      "status": "PASS",
+      "details": "POST /api/leagues/{id}/matchdays + POST matches works for creator. Non-owner gets 403"
+    },
+    "4_set_current_league": {
+      "status": "PASS",
+      "details": "PATCH /api/profile/current-league persists and /api/home returns the set league"
+    },
+    "5_home_league_list": {
+      "status": "PASS",
+      "details": "GET /api/home?league_id=X returns league + user_leagues array (26 leagues for test user)"
+    },
+    "6_frontend_league_switcher": {
+      "status": "PASS",
+      "details": "League switcher dropdown visible in home with trophy icon, league name, chevron-down when user has >1 league"
+    },
+    "7_frontend_creator_console": {
+      "status": "PASS",
+      "details": "Manual leagues show Giornate list with + Aggiungi button. National leagues show 'Questa lega usa le partite della Lega Nazionale' message"
+    }
+  }
+}
