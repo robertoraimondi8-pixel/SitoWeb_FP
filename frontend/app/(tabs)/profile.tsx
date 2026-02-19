@@ -167,7 +167,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Admin Console */}
+        {/* Admin Console - per admin globale */}
         {user?.role === 'admin' && (
           <View style={styles.adminCard}>
             <Text style={styles.adminTitle}>ADMIN CONSOLE</Text>
@@ -180,6 +180,52 @@ export default function ProfileScreen() {
               onPress={() => router.push('/admin')}
               style={styles.adminButton}
             />
+          </View>
+        )}
+
+        {/* Creator Console - per owner di leghe manuali */}
+        {ownedLeagues.length > 0 && (
+          <View style={styles.creatorCard}>
+            <Text style={styles.creatorTitle}>GESTISCI LE MIE LEGHE</Text>
+            <Text style={styles.creatorSubtitle}>Crea giornate e partite per le tue leghe</Text>
+            
+            {ownedLeagues.map((league) => {
+              const isManual = league.match_source_type === 'manual' || league.match_source_type === 'custom';
+              return (
+                <TouchableOpacity
+                  key={league.id}
+                  style={styles.leagueRow}
+                  onPress={() => {
+                    if (isManual) {
+                      router.push(`/admin/league?leagueId=${league.id}` as any);
+                    } else {
+                      // Per leghe nazionali, mostra alert
+                      alert('Questa lega usa le partite della Lega Nazionale (aggiornamento automatico).');
+                    }
+                  }}
+                  testID={`manage-league-${league.id}`}
+                >
+                  <View style={styles.leagueRowLeft}>
+                    <Ionicons 
+                      name={isManual ? "create-outline" : "globe-outline"} 
+                      size={20} 
+                      color={isManual ? colors.accent : colors.textMuted} 
+                    />
+                    <View>
+                      <Text style={styles.leagueRowName}>{league.name}</Text>
+                      <Text style={styles.leagueRowType}>
+                        {isManual ? 'Partite manuali' : 'Partite dalla Nazionale'}
+                      </Text>
+                    </View>
+                  </View>
+                  {isManual ? (
+                    <Ionicons name="chevron-forward" size={18} color={colors.accent} />
+                  ) : (
+                    <Ionicons name="lock-closed" size={16} color={colors.textMuted} />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
 
