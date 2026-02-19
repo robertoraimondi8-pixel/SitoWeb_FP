@@ -23,7 +23,9 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  
+  const [activeLeagueId, setActiveLeagueId] = useState<string | null>(null);
+  const [showLeagueSwitcher, setShowLeagueSwitcher] = useState(false);
+
   // Fade animation
   const fadeAnim = useState(new Animated.Value(0))[0];
 
@@ -31,17 +33,15 @@ export default function HomeScreen() {
     if (token) refreshLeagues(token);
   }, [token]);
 
-  const fetchHome = useCallback(async () => {
-    // Usa token da React state O da AsyncStorage (evita race condition dopo login)
+  const fetchHome = useCallback(async (overrideLeagueId?: string) => {
     const authToken = token || await AsyncStorage.getItem('access_token');
-    if (!authToken) {
-      setLoading(false);
-      return;
-    }
-    
+    if (!authToken) { setLoading(false); return; }
+    const leagueParam = overrideLeagueId || activeLeagueId;
     try {
-      const res = await apiCall('/home', { token: authToken });
+      const url = leagueParam ? `/home?league_id=${leagueParam}` : '/home';
+      const res = await apiCall(url, { token: authToken });
       setData(res);
+      if (res.league?.id) setActiveLeagueId(res.league.id);
       if (res.matchday?.countdown_seconds) setCountdown(res.matchday.countdown_seconds);
       
       // Fade in animation
