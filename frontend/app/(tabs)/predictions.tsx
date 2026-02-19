@@ -79,7 +79,9 @@ export default function PredictionsScreen() {
         } catch (_) { /* usa default se non disponibile */ }
       }
 
-      const res = await apiCall(`/predictions/${home.matchday.id}`, { token });
+      // Pass league_id to fetch correct matches for manual leagues
+      const leagueParam = home.league?.id ? `?league_id=${home.league.id}` : '';
+      const res = await apiCall(`/predictions/${home.matchday.id}${leagueParam}`, { token });
       setData(res);
 
       if (res.joker) {
