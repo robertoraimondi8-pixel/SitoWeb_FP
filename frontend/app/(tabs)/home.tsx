@@ -124,13 +124,86 @@ export default function HomeScreen() {
             <BrandLogo variant="wordmark" size="lg" />
           </View>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.headerButton}
           onPress={() => router.push('/league/list')}
         >
           <Ionicons name="people-outline" size={22} color={colors.primary} />
         </TouchableOpacity>
       </View>
+
+      {/* LEAGUE SWITCHER */}
+      {data?.league && (
+        <View style={styles.leagueSwitcherWrap}>
+          <TouchableOpacity
+            style={styles.leagueSwitcherBtn}
+            onPress={() => (data?.user_leagues?.length || 0) > 1 ? setShowLeagueSwitcher(true) : null}
+            activeOpacity={(data?.user_leagues?.length || 0) > 1 ? 0.7 : 1}
+          >
+            <Ionicons name="trophy-outline" size={16} color={colors.accent} />
+            <Text style={styles.leagueSwitcherText} numberOfLines={1}>{data.league.name}</Text>
+            {(data?.user_leagues?.length || 0) > 1 && (
+              <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
+            )}
+          </TouchableOpacity>
+          {data?.league?.owner_id === user?.id && data?.league?.match_source_type === 'manual' && (
+            <TouchableOpacity
+              style={styles.manageLgBtn}
+              onPress={() => router.push(`/league/${data.league.id}/manage` as any)}
+            >
+              <Ionicons name="settings-outline" size={15} color={colors.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {/* LEAGUE SWITCHER DROPDOWN MODAL */}
+      {showLeagueSwitcher && data?.user_leagues && (
+        <TouchableOpacity
+          style={styles.switcherOverlay}
+          activeOpacity={1}
+          onPress={() => setShowLeagueSwitcher(false)}
+        >
+          <View style={styles.switcherDropdown}>
+            <Text style={styles.switcherTitle}>Cambia Lega</Text>
+            {data.user_leagues.map((lg: any) => (
+              <TouchableOpacity
+                key={lg.id}
+                style={[
+                  styles.switcherItem,
+                  lg.id === activeLeagueId && styles.switcherItemActive,
+                ]}
+                onPress={async () => {
+                  setShowLeagueSwitcher(false);
+                  setActiveLeagueId(lg.id);
+                  // Persist preference
+                  const authToken = token || await AsyncStorage.getItem('access_token');
+                  if (authToken) {
+                    apiCall(`/profile/current-league?league_id=${lg.id}`, { method: 'PATCH', token: authToken }).catch(() => {});
+                  }
+                  setLoading(true);
+                  fetchHome(lg.id);
+                }}
+              >
+                <Ionicons
+                  name={lg.id === activeLeagueId ? 'trophy' : 'trophy-outline'}
+                  size={18}
+                  color={lg.id === activeLeagueId ? colors.accent : colors.textSecondary}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.switcherItemText, lg.id === activeLeagueId && { color: colors.accent }]}>
+                    {lg.name}
+                  </Text>
+                  <Text style={styles.switcherItemSub}>
+                    {lg.league_type === 'national' ? 'Lega Nazionale' : `${lg.member_count ?? ''} membri`}
+                  </Text>
+                </View>
+                {lg.id === activeLeagueId && <Ionicons name="checkmark" size={16} color={colors.accent} />}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      )}
 
       <Animated.ScrollView 
         style={{ opacity: fadeAnim }}
