@@ -528,7 +528,10 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
     # MATCHDAY LOGIC: Dipende dal tipo di lega
     matchday = None
     
-    if active_league and active_league.get("match_source_type") == "manual":
+    # "manual" e "custom" sono entrambi tipi di lega gestita manualmente
+    is_manual_league = active_league and active_league.get("match_source_type") in ("manual", "custom")
+    
+    if is_manual_league:
         # MANUAL LEAGUE: cerca matchday SOLO della lega manuale
         matchday = await matchdays_col.find_one(
             {"league_id": active_league["id"], "status": "OPEN"},
