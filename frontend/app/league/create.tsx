@@ -1,48 +1,99 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, ActivityIndicator, Share,
+  ScrollView, Switch, KeyboardAvoidingView, Platform,
+  ActivityIndicator, Share, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 
+const MATCHDAY_OPTIONS = Array.from({ length: 38 }, (_, i) => i + 1);
+const DEADLINE_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60];
+
+const DEFAULT_SCORING: Record<string, { enabled: boolean; points: number; label: string; desc: string }> = {
+  '1x2':         { enabled: true,  points: 1.0,  label: '1X2',            desc: 'Risultato finale (1/X/2)' },
+  'over_under':  { enabled: true,  points: 0.5,  label: 'Over/Under 2.5', desc: 'Totale goal >2.5 o <2.5' },
+  'goal_no_goal':{ enabled: true,  points: 0.5,  label: 'Goal/No Goal',   desc: 'Almeno un goal o zero goal' },
+  'exact_score': { enabled: true,  points: 4.0,  label: 'Risultato Esatto', desc: 'Punteggio finale preciso' },
+};
+
 export default function CreateLeagueScreen() {
-  const { t } = useTranslation();
   const { colors } = useTheme();
-  const { token } = useAuth();
+  const { token, handleAuthError } = useAuth();
   const { refreshLeagues } = useLeague();
   const router = useRouter();
-  const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [seasons, setSeasons] = useState<any[]>([]);
-  const [created, setCreated] = useState<any>(null);
+
+  const [seasons, setSeasons]     = useState<any[]>([]);
+  const [loading, setLoading]     = useState(false);
+  const [created, setCreated]     = useState<any>(null);
+  const [error, setError]         = useState('');
+
+  // Form fields
+  const [name, setName]             = useState('');
+  const [startMD, setStartMD]       = useState(1);
+  const [endMD, setEndMD]           = useState(38);
+  const [deadline, setDeadline]     = useState(0);
+  const [sourceType, setSourceType] = useState<'national' | 'custom'>('national');
+  const [scoring, setScoring]       = useState(DEFAULT_SCORING);
+
+  // Dropdown open state
+  const [showStart, setShowStart]     = useState(false);
+  const [showEnd, setShowEnd]         = useState(false);
+  const [showDeadline, setShowDeadline] = useState(false);
 
   useEffect(() => {
     apiCall('/leagues/seasons', { token }).then(setSeasons).catch(() => {});
   }, [token]);
 
+  const toggleMarket = (key: string) => {
+    setScoring(prev => ({ ...prev, [key]: { ...prev[key], enabled: !prev[key].enabled } }));
+  };
+
+  const setPoints = (key: string, val: string) => {
+    const n = parseFloat(val);
+    if (!isNaN(n) && n >= 0) {
+      setScoring(prev => ({ ...prev, [key]: { ...prev[key], points: n } }));
+    }
+  };
+
   const handleCreate = async () => {
-    if (!name.trim()) return;
+    setError('');
+    if (!name.trim() || name.trim().length < 3) { setError('Il nome deve avere almeno 3 caratteri'); return; }
+    if (endMD < startMD) { setError('La giornata finale deve essere ≥ giornata iniziale'); return; }
+    const seasonId = seasons[0]?.id;
+    if (!seasonId) { setError('Nessuna stagione attiva trovata'); return; }
+
+    const scoringConfig: Record<string, { enabled: boolean; points: number }> = {};
+    Object.entries(scoring).forEach(([k, v]) => {
+      scoringConfig[k] = { enabled: v.enabled, points: v.points };
+    });
+
     setLoading(true);
     try {
-      const seasonId = seasons[0]?.id;
-      if (!seasonId) return;
       const res = await apiCall('/leagues', {
         method: 'POST',
         token,
-        body: { name: name.trim(), season_id: seasonId },
+        body: {
+          name: name.trim(),
+          season_id: seasonId,
+          start_matchday: startMD,
+          end_matchday: endMD,
+          bet_deadline_minutes: deadline,
+          match_source_type: sourceType,
+          scoring_config: scoringConfig,
+          include_championship_predictions: false,
+        },
       });
       if (token) await refreshLeagues(token);
       setCreated(res);
     } catch (e: any) {
-      // Show error inline
-      setCreated(null);
+      if (isAuthError(e)) { const d = await handleAuthError(e); if (d) router.replace('/(auth)/login'); return; }
+      setError(e.message || 'Errore nella creazione');
     } finally {
       setLoading(false);
     }
@@ -52,16 +103,14 @@ export default function CreateLeagueScreen() {
     if (!created?.invite_code) return;
     try {
       await Share.share({
-        message: `${t('league_share_message')} ${created.name}\n${t('invite_code')}: ${created.invite_code}`,
+        message: `Unisciti alla mia lega FantaPronostic "${created.name}"!\nCodice invito: ${created.invite_code}`,
       });
-    } catch (e) { /* ignore */ }
+    } catch (_) {}
   };
 
-  const goHome = () => {
-    router.replace('/(tabs)/home');
-  };
+  const s = makeStyles(colors);
 
-  // Success state
+  // ── SUCCESS STATE ───────────────────────────────────────────────────────────
   if (created) {
     return (
       <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -69,68 +118,190 @@ export default function CreateLeagueScreen() {
           <View style={[s.successIcon, { backgroundColor: 'rgba(16,185,129,0.15)' }]}>
             <Ionicons name="checkmark-circle" size={56} color={colors.success} />
           </View>
-          <Text style={[s.successTitle, { color: colors.text }]}>{t('league_created_title')}</Text>
-          <Text style={[s.successDesc, { color: colors.textSecondary }]}>{t('league_created_desc')}</Text>
+          <Text style={[s.successTitle, { color: colors.text }]}>Lega Creata!</Text>
+          <Text style={[s.successDesc, { color: colors.textSecondary }]}>
+            Condividi il codice con i tuoi amici per invitarli.
+          </Text>
 
           <View style={[s.codeCard, { backgroundColor: colors.card, borderColor: colors.accent }]}>
-            <Text style={[s.codeLabel, { color: colors.textSecondary }]}>{t('invite_code')}</Text>
+            <Text style={[s.codeLabel, { color: colors.textSecondary }]}>CODICE INVITO</Text>
             <Text style={[s.codeValue, { color: colors.accent }]}>{created.invite_code}</Text>
           </View>
 
-          <TouchableOpacity
-            testID="share-code-btn"
-            style={[s.shareBtn, { backgroundColor: colors.accent }]}
-            onPress={handleShare}
-          >
+          <View style={[s.rulesCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[s.rulesTitle, { color: colors.text }]}>Regole configurate</Text>
+            <Text style={[s.rulesRow, { color: colors.textSecondary }]}>📅 Giornate: {created.start_matchday} → {created.end_matchday}</Text>
+            <Text style={[s.rulesRow, { color: colors.textSecondary }]}>⏱ Termine giocata: {created.bet_deadline_minutes} min prima</Text>
+            <Text style={[s.rulesRow, { color: colors.textSecondary }]}>🎯 Partite: {created.match_source_type === 'national' ? 'Lega Nazionale' : 'Scelte dal creatore'}</Text>
+          </View>
+
+          <TouchableOpacity style={[s.shareBtn, { backgroundColor: colors.accent }]} onPress={handleShare}>
             <Ionicons name="share-outline" size={20} color={colors.background} />
-            <Text style={[s.shareBtnText, { color: colors.background }]}>{t('share')}</Text>
+            <Text style={[s.shareBtnText, { color: colors.background }]}>Condividi codice</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            testID="go-home-btn"
-            style={[s.homeBtn, { borderColor: colors.border }]}
-            onPress={goHome}
-          >
-            <Text style={[s.homeBtnText, { color: colors.text }]}>{t('back_home')}</Text>
+          <TouchableOpacity style={[s.homeBtn, { borderColor: colors.border }]} onPress={() => router.replace('/(tabs)/home')}>
+            <Text style={[s.homeBtnText, { color: colors.text }]}>Vai alla Home</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 
+  // ── FORM ────────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        {/* Header */}
         <View style={s.header}>
-          <TouchableOpacity testID="back-btn" onPress={() => router.back()} style={s.backBtn}>
+          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[s.headerTitle, { color: colors.text }]}>{t('create_league')}</Text>
+          <Text style={[s.headerTitle, { color: colors.text }]}>Crea Nuova Lega</Text>
           <View style={s.backBtn} />
         </View>
 
-        <View style={s.content}>
-          <View style={[s.illustration, { backgroundColor: 'rgba(59,130,246,0.1)' }]}>
-            <Ionicons name="shield-checkmark" size={48} color={colors.info} />
-          </View>
+        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
-          <Text style={[s.desc, { color: colors.textSecondary }]}>
-            {t('onboarding_create_desc')}
-          </Text>
-
-          <View style={[s.inputWrap, { borderColor: colors.border, backgroundColor: colors.card }]}>
-            <Ionicons name="create-outline" size={20} color={colors.accent} />
+          {/* Nome */}
+          <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>NOME LEGA *</Text>
+          <View style={[s.inputWrap, { borderColor: name.length >= 3 ? colors.accent : colors.border, backgroundColor: colors.card }]}>
+            <Ionicons name="create-outline" size={18} color={colors.accent} />
             <TextInput
-              testID="league-name-input"
               style={[s.input, { color: colors.text }]}
-              placeholder={t('league_name')}
+              placeholder="Es. Champions Friends"
               placeholderTextColor={colors.textSecondary}
               value={name}
               onChangeText={setName}
               maxLength={40}
             />
+            <Text style={[s.charCount, { color: colors.textSecondary }]}>{name.length}/40</Text>
           </View>
 
+          {/* Giornate */}
+          <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>GIORNATE</Text>
+          <View style={s.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.fieldLabel, { color: colors.text }]}>Inizio</Text>
+              <TouchableOpacity
+                style={[s.dropdown, { backgroundColor: colors.card, borderColor: colors.border }]}
+                onPress={() => { setShowStart(!showStart); setShowEnd(false); setShowDeadline(false); }}
+              >
+                <Text style={[s.dropdownText, { color: colors.text }]}>Giornata {startMD}</Text>
+                <Ionicons name={showStart ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} />
+              </TouchableOpacity>
+              {showStart && (
+                <ScrollView style={[s.dropdownList, { backgroundColor: colors.card, borderColor: colors.border }]} nestedScrollEnabled>
+                  {MATCHDAY_OPTIONS.map(n => (
+                    <TouchableOpacity key={n} style={[s.dropdownItem, startMD === n && { backgroundColor: colors.accent + '22' }]}
+                      onPress={() => { setStartMD(n); setShowStart(false); if (endMD < n) setEndMD(n); }}>
+                      <Text style={[s.dropdownItemText, { color: startMD === n ? colors.accent : colors.text }]}>Giornata {n}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+            <View style={{ width: 12 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={[s.fieldLabel, { color: colors.text }]}>Fine</Text>
+              <TouchableOpacity
+                style={[s.dropdown, { backgroundColor: colors.card, borderColor: colors.border }]}
+                onPress={() => { setShowEnd(!showEnd); setShowStart(false); setShowDeadline(false); }}
+              >
+                <Text style={[s.dropdownText, { color: colors.text }]}>Giornata {endMD}</Text>
+                <Ionicons name={showEnd ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} />
+              </TouchableOpacity>
+              {showEnd && (
+                <ScrollView style={[s.dropdownList, { backgroundColor: colors.card, borderColor: colors.border }]} nestedScrollEnabled>
+                  {MATCHDAY_OPTIONS.filter(n => n >= startMD).map(n => (
+                    <TouchableOpacity key={n} style={[s.dropdownItem, endMD === n && { backgroundColor: colors.accent + '22' }]}
+                      onPress={() => { setEndMD(n); setShowEnd(false); }}>
+                      <Text style={[s.dropdownItemText, { color: endMD === n ? colors.accent : colors.text }]}>Giornata {n}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          </View>
+
+          {/* Deadline */}
+          <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>TERMINE ULTIMO GIOCATA</Text>
+          <TouchableOpacity
+            style={[s.dropdown, { backgroundColor: colors.card, borderColor: colors.border }]}
+            onPress={() => { setShowDeadline(!showDeadline); setShowStart(false); setShowEnd(false); }}
+          >
+            <Ionicons name="time-outline" size={18} color={colors.accent} />
+            <Text style={[s.dropdownText, { color: colors.text }]}>
+              {deadline === 0 ? 'Nessun limite (fino al fischio)' : `${deadline} minuti prima del fischio`}
+            </Text>
+            <Ionicons name={showDeadline ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} />
+          </TouchableOpacity>
+          {showDeadline && (
+            <View style={[s.dropdownList, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              {DEADLINE_OPTIONS.map(d => (
+                <TouchableOpacity key={d} style={[s.dropdownItem, deadline === d && { backgroundColor: colors.accent + '22' }]}
+                  onPress={() => { setDeadline(d); setShowDeadline(false); }}>
+                  <Text style={[s.dropdownItemText, { color: deadline === d ? colors.accent : colors.text }]}>
+                    {d === 0 ? 'Nessun limite' : `${d} minuti prima`}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {/* Source Type */}
+          <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>PARTITE DA PRONOSTICARE</Text>
+          <View style={s.row}>
+            {(['national', 'custom'] as const).map(type => (
+              <TouchableOpacity
+                key={type}
+                style={[s.sourceOption, { borderColor: sourceType === type ? colors.accent : colors.border, backgroundColor: sourceType === type ? colors.accent + '18' : colors.card }]}
+                onPress={() => setSourceType(type)}
+              >
+                <Ionicons name={type === 'national' ? 'flag-outline' : 'person-outline'} size={22} color={sourceType === type ? colors.accent : colors.textSecondary} />
+                <Text style={[s.sourceLabel, { color: sourceType === type ? colors.accent : colors.text }]}>
+                  {type === 'national' ? 'Lega Nazionale' : 'Scelte dal creatore'}
+                </Text>
+                <Text style={[s.sourceDesc, { color: colors.textSecondary }]}>
+                  {type === 'national' ? 'Partite della Serie A o campionato principale' : 'Il creatore inserisce le partite manualmente'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Scoring Config */}
+          <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>SISTEMA PUNTI</Text>
+          <View style={[s.scoringCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {Object.entries(scoring).map(([key, mkt]) => (
+              <View key={key} style={s.marketRow}>
+                <Switch
+                  value={mkt.enabled}
+                  onValueChange={() => toggleMarket(key)}
+                  trackColor={{ false: colors.border, true: colors.accent + '88' }}
+                  thumbColor={mkt.enabled ? colors.accent : colors.textSecondary}
+                />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[s.marketLabel, { color: mkt.enabled ? colors.text : colors.textSecondary }]}>{mkt.label}</Text>
+                  <Text style={[s.marketDesc, { color: colors.textSecondary }]}>{mkt.desc}</Text>
+                </View>
+                <View style={[s.ptsWrap, { borderColor: mkt.enabled ? colors.accent : colors.border, backgroundColor: colors.background }]}>
+                  <TextInput
+                    style={[s.ptsInput, { color: mkt.enabled ? colors.text : colors.textSecondary }]}
+                    value={String(mkt.points)}
+                    onChangeText={v => setPoints(key, v)}
+                    keyboardType="decimal-pad"
+                    editable={mkt.enabled}
+                    maxLength={4}
+                  />
+                  <Text style={[s.ptsSuffix, { color: colors.textSecondary }]}>pt</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          {error ? <Text style={[s.errorText, { color: colors.error || '#EF4444' }]}>{error}</Text> : null}
+
+          {/* Submit */}
           <TouchableOpacity
             testID="create-league-submit-btn"
             style={[s.btn, { backgroundColor: name.trim().length >= 3 ? colors.accent : colors.border }]}
@@ -140,34 +311,58 @@ export default function CreateLeagueScreen() {
             {loading ? (
               <ActivityIndicator color={colors.background} />
             ) : (
-              <Text style={[s.btnText, { color: colors.background }]}>{t('create').toUpperCase()}</Text>
+              <Text style={[s.btnText, { color: colors.background }]}>CREA LEGA</Text>
             )}
           </TouchableOpacity>
-        </View>
+
+          <View style={{ height: 32 }} />
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
+const makeStyles = (colors: any) => StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 12 },
   backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 20, fontWeight: '700' },
-  content: { flex: 1, padding: 24, alignItems: 'center' },
-  illustration: { width: 96, height: 96, borderRadius: 48, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  desc: { fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 32 },
-  inputWrap: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, height: 54, marginBottom: 24, width: '100%', gap: 10 },
+  scroll: { padding: 20, paddingBottom: 40 },
+  sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: 20, marginBottom: 8 },
+  fieldLabel: { fontSize: 13, fontWeight: '500', marginBottom: 4 },
+  inputWrap: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 12, paddingHorizontal: 14, height: 52, gap: 10, marginBottom: 4 },
   input: { flex: 1, fontSize: 16 },
-  btn: { width: '100%', height: 54, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  charCount: { fontSize: 11 },
+  row: { flexDirection: 'row', marginBottom: 4 },
+  dropdown: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, height: 48, gap: 8, marginBottom: 4 },
+  dropdownText: { flex: 1, fontSize: 15 },
+  dropdownList: { borderWidth: 1, borderRadius: 12, marginBottom: 8, maxHeight: 200, overflow: 'scroll' },
+  dropdownItem: { paddingVertical: 12, paddingHorizontal: 16 },
+  dropdownItemText: { fontSize: 14, fontWeight: '500' },
+  sourceOption: { flex: 1, borderWidth: 1.5, borderRadius: 12, padding: 14, alignItems: 'center', gap: 6 },
+  sourceLabel: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
+  sourceDesc: { fontSize: 11, textAlign: 'center', lineHeight: 15 },
+  scoringCard: { borderWidth: 1, borderRadius: 14, padding: 16, gap: 4, marginBottom: 4 },
+  marketRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' },
+  marketLabel: { fontSize: 14, fontWeight: '600' },
+  marketDesc: { fontSize: 11, marginTop: 2 },
+  ptsWrap: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, height: 36, minWidth: 72 },
+  ptsInput: { fontSize: 15, fontWeight: '700', flex: 1, textAlign: 'right' },
+  ptsSuffix: { fontSize: 12, marginLeft: 4 },
+  errorText: { fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 12, marginBottom: 4 },
+  btn: { height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
   btnText: { fontSize: 16, fontWeight: '800', letterSpacing: 1 },
+  // Success
   successContent: { flex: 1, padding: 32, alignItems: 'center', justifyContent: 'center' },
   successIcon: { width: 100, height: 100, borderRadius: 50, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
   successTitle: { fontSize: 26, fontWeight: '800', marginBottom: 8 },
-  successDesc: { fontSize: 15, textAlign: 'center', marginBottom: 32 },
-  codeCard: { width: '100%', padding: 20, borderRadius: 16, borderWidth: 2, alignItems: 'center', marginBottom: 24 },
-  codeLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
-  codeValue: { fontSize: 36, fontWeight: '900', letterSpacing: 4 },
+  successDesc: { fontSize: 15, textAlign: 'center', marginBottom: 24 },
+  codeCard: { width: '100%', padding: 20, borderRadius: 16, borderWidth: 2, alignItems: 'center', marginBottom: 20 },
+  codeLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
+  codeValue: { fontSize: 34, fontWeight: '900', letterSpacing: 4 },
+  rulesCard: { width: '100%', borderWidth: 1, borderRadius: 12, padding: 14, gap: 6, marginBottom: 20 },
+  rulesTitle: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
+  rulesRow: { fontSize: 13 },
   shareBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', height: 54, borderRadius: 14, marginBottom: 12 },
   shareBtnText: { fontSize: 16, fontWeight: '700' },
   homeBtn: { width: '100%', height: 48, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
