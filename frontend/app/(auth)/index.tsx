@@ -162,7 +162,14 @@ const s = StyleSheet.create({
   scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingBottom: spacing.xxl },
   heroSection: { alignItems: 'center', paddingTop: height * 0.06, paddingBottom: spacing.xxxl },
   logo: { width: width * 0.72, height: 190 },
-  tagline: { ...typography.bodyM, color: colors.textSecondary, marginTop: spacing.md },
+  tagline: {
+    fontSize: 18,
+    fontWeight: '500' as const,
+    lineHeight: 26,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
+    textAlign: 'center',
+  },
   ctaSection: { gap: spacing.md },
   primaryBtn: {
     height: 56,
