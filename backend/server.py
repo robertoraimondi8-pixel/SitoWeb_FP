@@ -713,6 +713,14 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
                     "points": pts,
                 })
 
+    # Build league response with owner_id for frontend to check ownership
+    league_response = None
+    if active_league:
+        league_response = {k: v for k, v in active_league.items() if k != "_id"}
+        # Ensure owner_id is included for frontend ownership checks
+        if "owner_id" not in league_response and "created_by" in active_league:
+            league_response["owner_id"] = active_league["created_by"]
+
     return {
         "matchday": matchday_data,
         "live": live_data,
@@ -721,7 +729,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         "last_5_performance": last_5_performance,
         "stats_preview": {"message": "Stats coming soon"},
         "user_leagues": [{k: v for k, v in l.items() if k != "_id"} for l in user_leagues],
-        "league": {k: v for k, v in (active_league or {}).items() if k != "_id"} if active_league else None,
+        "league": league_response,
     }
 
 
@@ -1155,12 +1163,28 @@ async def get_active_seasons():
 # PREDICTION ROUTES
 # ========================================
 @prediction_router.get("/{matchday_id}")
-async def get_predictions(matchday_id: str, user=Depends(get_current_user)):
+async def get_predictions(matchday_id: str, league_id: str = None, user=Depends(get_current_user)):
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
     if not matchday:
         raise HTTPException(404, "Matchday not found")
 
-    matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    # Determine which matches to fetch based on league type
+    match_query = {"matchday_id": matchday_id}
+    
+    # If league_id provided, check if it's a manual league
+    if league_id:
+        league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+        if league and league.get("match_source_type") == "manual":
+            # Manual league: fetch only matches created for this league
+            match_query["league_id"] = league_id
+    else:
+        # Fallback: check if matchday belongs to a manual league
+        if matchday.get("league_id"):
+            league = await leagues_col.find_one({"id": matchday["league_id"]}, {"_id": 0})
+            if league and league.get("match_source_type") == "manual":
+                match_query["league_id"] = matchday["league_id"]
+
+    matches = await matches_col.find(match_query, {"_id": 0}).to_list(20)
     preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
 
