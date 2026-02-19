@@ -155,3 +155,45 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 - Accent: #F5A623 (vibrant orange)
 - Card-based UI, minimal modern style
 - Official logo in login screen
+
+## Multi-League Feature ✅ (Feb 2026)
+
+### Private League Creation
+- Create leagues with unique invite code
+- Configure: name, logo, matchdays range, bet deadlines, scoring markets
+- Scoring markets: 1X2, Goal/No Goal, Over/Under, Exact Score (on/off toggles)
+- Rules locked after second member joins
+
+### Match Source Types
+- **National**: Inherits fixtures from national league
+- **Manual**: Creator manages own fixtures via Creator Console
+
+### Creator Console (/league/[id]/manage)
+- Add/edit/delete matchdays
+- Add/edit/delete matches per matchday
+- Only visible to manual league owners
+
+### League Switcher
+- Dropdown in home header to switch between user's leagues
+- Persists selection via PATCH /api/profile/current-league
+- Shows league name with trophy icon
+
+### Bug Fixes (19 Feb 2026)
+- ✅ P0: Manual leagues now show only their own fixtures (not national)
+- ✅ P1: Creator Console button visible to league owner (owner_id in /api/home response)
+- ✅ P2: Redundant league list removed from home screen
+
+## Changelog
+
+### 19 Feb 2026
+- Fixed: Manual leagues showing national fixtures (predictions.tsx passes league_id param)
+- Fixed: Creator Console not visible (backend /api/home returns owner_id)
+- Added: Test suite for multi-league bugs (/app/backend/tests/test_multi_league_bugs.py)
+
+### Previous Sessions
+- Implemented private league creation with configurable rules
+- Added manual vs national match source types
+- Created Creator Console for manual leagues
+- Implemented league switcher dropdown
+- Fixed login bounce bug
+- Fixed Google OAuth flow for web and native
