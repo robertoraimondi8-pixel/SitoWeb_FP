@@ -14,11 +14,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
 import { StatusBadge, PrimaryButton } from '../../src/components/ui';
 
-const MARKETS = [
-  { key: '1X2', label: '1X2', pts: '1 pt' },
-  { key: 'GOAL_NOGOL', label: 'GNG', pts: '0.5 pt' },
-  { key: 'OVER_UNDER_25', label: 'O/U', pts: '0.5 pt' },
-  { key: 'EXACT_SCORE', label: 'ES', pts: '4 pt' },
+const ALL_MARKETS = [
+  { key: '1X2',          configKey: '1x2',         label: '1X2', defaultPts: 1.0 },
+  { key: 'GOAL_NOGOL',   configKey: 'goal_no_goal', label: 'GNG', defaultPts: 0.5 },
+  { key: 'OVER_UNDER_25',configKey: 'over_under',   label: 'O/U', defaultPts: 0.5 },
+  { key: 'EXACT_SCORE',  configKey: 'exact_score',  label: 'ES',  defaultPts: 4.0 },
 ];
 
 const VALUE_OPTIONS: Record<string, string[]> = {
