@@ -1084,9 +1084,9 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
 
     result = []
     for md in matchdays:
-        if league.get("match_source_type") == "manual":
+        if is_manual_league:
             matches = await matches_col.find({"matchday_id": md["id"], "league_id": league_id}, {"_id": 0}).to_list(20)
-            logger.info(f"  MANUAL: Matches for matchday {md.get('number')}: {len(matches)}")
+            logger.info(f"  MANUAL/CUSTOM: Matches for matchday {md.get('number')}: {len(matches)}")
             for m in matches:
                 logger.info(f"    - {m.get('home_team')} vs {m.get('away_team')}, league_id={m.get('league_id')}")
         else:
@@ -1100,7 +1100,8 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
 def _require_league_admin(league: dict, user: dict):
     if league.get("owner_id") != user["id"]:
         raise HTTPException(403, "Solo il creatore della lega può gestire le partite")
-    if league.get("match_source_type") != "manual":
+    # "manual" e "custom" sono entrambi tipi di lega gestita manualmente
+    if league.get("match_source_type") not in ("manual", "custom"):
         raise HTTPException(400, "Questa lega usa le partite della Lega Nazionale")
 
 
