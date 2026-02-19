@@ -146,10 +146,11 @@ export default function HomeScreen() {
               <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
             )}
           </TouchableOpacity>
-          {data?.league?.owner_id === user?.id && data?.league?.match_source_type === 'manual' && (
+          {data?.league?.is_owner && data?.league?.match_source_type === 'manual' && (
             <TouchableOpacity
               style={styles.manageLgBtn}
               onPress={() => router.push(`/league/${data.league.id}/manage` as any)}
+              testID="manage-league-btn"
             >
               <Ionicons name="settings-outline" size={15} color={colors.textSecondary} />
             </TouchableOpacity>
