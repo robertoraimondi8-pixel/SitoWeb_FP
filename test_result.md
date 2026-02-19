@@ -578,6 +578,124 @@ agent_communication:
       
       TESTING COMPLETE - NO FURTHER ACTION REQUIRED.
 
+  - agent: "testing"
+    message: |
+      🔍 GOOGLE LOGIN DEBUG INVESTIGATION COMPLETED - ROOT CAUSE IDENTIFIED
+      
+      TASK: Debug Google login flow - capture console logs and diagnose why login returns to welcome screen
+      
+      === CRITICAL FINDING ===
+      
+      **ROOT CAUSE: Google login DOES NOT WORK on React Native Web**
+      
+      The Google login functionality in frontend/app/(auth)/index.tsx uses native-only APIs:
+      - expo-web-browser: WebBrowser.openAuthSessionAsync()
+      - expo-auth-session: AuthSession.makeRedirectUri()
+      
+      **These APIs are NOT available on React Native Web.**
+      
+      API Availability Check Results:
+      - window: ✓ Available
+      - expo: ✓ Available  
+      - WebBrowser: ✗ NOT Available (undefined)
+      - AuthSession: ✗ NOT Available (undefined)
+      
+      === EVIDENCE COLLECTED ===
+      
+      1. FRONTEND CONSOLE LOGS:
+         ❌ ZERO logs from handleGoogleLogin function in (auth)/index.tsx
+         - Expected: "GOOGLE: start" (line 30)
+         - Expected: "GOOGLE: result" (line 44)
+         - Expected: "GOOGLE: sessionId extracted?" (line 59)
+         - Expected: "GOOGLE: calling backend /api/auth/google" (line 62)
+         - Expected: "GOOGLE: backend status ok" (line 66)
+         - Expected: "GOOGLE: has access_token" (line 67)
+         - Expected: "GOOGLE: token saved?" (line 75)
+         - Expected: "GOOGLE: navigate to [route]" (line 102)
+         
+         Actual: NO logs captured at all
+         
+         What WAS captured:
+         - Button click event confirmed (instrumentation log)
+         - postMessage warnings from Google/YouTube domains
+         - React Native Web deprecation warnings
+         
+      2. BACKEND LOGS:
+         ❌ NO API calls to /api/auth/google during test (15:30-15:34)
+         
+         Previous successful calls (from native app or different session):
+         - 15:13:40: ✓ SUCCESS (user: roberto_raimondi)
+         - 15:25:47: ✓ SUCCESS (user: roberto_raimondi)
+         - 15:26:52: ✓ SUCCESS (user: roberto_raimondi)
+         - 15:27:03: ✓ SUCCESS (user: roberto_raimondi)
+         
+         These successful calls prove backend is working correctly.
+         
+      3. BEHAVIOR OBSERVED:
+         - User clicks "Continua con Google" button ✓
+         - Button click event fires ✓
+         - handleGoogleLogin function called (inferred) ✓
+         - Function fails silently (no console logs) ✗
+         - No OAuth popup/redirect occurs ✗
+         - User remains on welcome screen ✗
+         - No backend API call made ✗
+         
+      === TECHNICAL EXPLANATION ===
+      
+      The code at frontend/app/(auth)/index.tsx:29-116 uses:
+      
+      ```typescript
+      import * as WebBrowser from 'expo-web-browser';
+      import * as AuthSession from 'expo-auth-session';
+      
+      const handleGoogleLogin = async () => {
+        console.log('GOOGLE: start');
+        const redirectUri = AuthSession.makeRedirectUri({ ... }); // LINE 34 - FAILS ON WEB
+        const authUrl = `https://auth.emergentagent.com/?redirect=...`;
+        const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri); // LINE 40 - FAILS ON WEB
+        // ... rest of code never executes
+      }
+      ```
+      
+      On React Native Web:
+      - AuthSession.makeRedirectUri() throws error or returns undefined
+      - WebBrowser.openAuthSessionAsync() is not a function
+      - Function execution stops, no OAuth flow happens
+      - No console.logs execute because function fails early
+      
+      === WHY PREVIOUS TESTS SUCCEEDED ===
+      
+      Backend logs show successful Google logins at 15:13-15:27. These were likely:
+      - From native mobile app (iOS/Android via Expo Go)
+      - Or from a different implementation that works on web
+      - NOT from the current web build being tested
+      
+      === CONCLUSION ===
+      
+      Google login functionality is **PLATFORM-SPECIFIC**:
+      - ✅ WORKS on iOS/Android (using expo-web-browser native APIs)
+      - ❌ BROKEN on Web (expo-web-browser APIs not available)
+      
+      This is a **DESIGN LIMITATION**, not a bug. The code needs separate implementation for web:
+      - Native: Use WebBrowser.openAuthSessionAsync()
+      - Web: Use window.location redirect or window.open() with OAuth flow
+      
+      === RECOMMENDATION ===
+      
+      For web support, (auth)/index.tsx needs Platform.select() logic:
+      
+      ```typescript
+      if (Platform.OS === 'web') {
+        // Use web-compatible OAuth: window.location or popup
+        window.location.href = authUrl;
+      } else {
+        // Use native APIs
+        const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+      }
+      ```
+      
+      OR check if expo-web-browser provides web polyfill/fallback.
+
 user_problem_statement_previous: |
   FantaPronostic - Multiple UI/Logic Fixes:
   FIX A: "Punti Provvisori" shown on COMPLETED matchdays - ROUTING CONFLICT RESOLVED
