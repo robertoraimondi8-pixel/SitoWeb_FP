@@ -32,13 +32,15 @@ export default function HomeScreen() {
   }, [token]);
 
   const fetchHome = useCallback(async () => {
-    if (!token) {
+    // Usa token da React state O da AsyncStorage (evita race condition dopo login)
+    const authToken = token || await AsyncStorage.getItem('access_token');
+    if (!authToken) {
       setLoading(false);
       return;
     }
     
     try {
-      const res = await apiCall('/home', { token });
+      const res = await apiCall('/home', { token: authToken });
       setData(res);
       if (res.matchday?.countdown_seconds) setCountdown(res.matchday.countdown_seconds);
       
@@ -50,8 +52,14 @@ export default function HomeScreen() {
       }).start();
     } catch (e: any) {
       if (isAuthError(e)) {
-        await handleAuthError(e);
-        router.replace('/(auth)/login');
+        // Prima di fare logout, verifica che il token NON esista davvero in AsyncStorage
+        // Questo evita logout falsi causati da race condition del React state
+        const storedToken = await AsyncStorage.getItem('access_token');
+        if (!storedToken) {
+          await handleAuthError(e);
+          router.replace('/(auth)/login');
+        }
+        // Se il token c'è in AsyncStorage, è un errore transitorio — non fare logout
         return;
       }
       console.error('Home fetch error:', e.message);
