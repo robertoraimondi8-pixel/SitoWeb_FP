@@ -21,7 +21,8 @@ function mapLoginError(e: any): string {
     raw.includes('401') || raw.includes('400') ||
     raw.includes('invalid email') || raw.includes('invalid password') ||
     raw.includes('incorrect') || raw.includes('not found') ||
-    raw.includes('user not found')
+    raw.includes('user not found') ||
+    raw.includes('email o password') || raw.includes('non validi')
   ) return 'Email o password errata';
   if (
     raw.includes('network') || raw.includes('fetch') ||
