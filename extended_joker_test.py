@@ -9,7 +9,7 @@ import json
 from datetime import datetime, timezone, timedelta
 
 # Get backend URL from frontend env
-BACKEND_URL = "https://auth-onboarding-4.preview.emergentagent.com/api"
+BACKEND_URL = "https://login-bounce.preview.emergentagent.com/api"
 
 class ExtendedJollyTester:
     def __init__(self):

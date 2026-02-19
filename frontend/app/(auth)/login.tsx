@@ -14,6 +14,10 @@ import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 
+// Design System
+import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+import { BrandLogo } from '../../src/components/BrandLogo';
+
 // ─── Mappa errori login → messaggi leggibili ─────────────────────────────────
 function mapLoginError(e: any): string {
   const raw = (e?.message ?? String(e ?? '')).toLowerCase();
@@ -33,10 +37,6 @@ function mapLoginError(e: any): string {
   }
   return 'Errore durante il login. Riprova.';
 }
-
-// Design System
-import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
-import { BrandLogo } from '../../src/components/BrandLogo';
 
 const { width } = Dimensions.get('window');
 

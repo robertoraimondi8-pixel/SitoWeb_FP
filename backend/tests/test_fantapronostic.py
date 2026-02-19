@@ -12,7 +12,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://auth-onboarding-4.preview.emergentagent.com"
+BASE_URL = "https://login-bounce.preview.emergentagent.com"
 
 class TestHealth:
     """API health check"""

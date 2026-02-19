@@ -97,7 +97,7 @@
         SCHERMATA verify-email: banner beta + campo token + updateUser dopo verifica
         
         CREDENZIALI: admin@fantapronostic.com/admin123, marco@test.com/password123
-        API: https://auth-onboarding-4.preview.emergentagent.com/api
+        API: https://login-bounce.preview.emergentagent.com/api
         
         TEST CASES CRITICI:
         A. Registra nuovo utente → deve andare a /verify-email
@@ -222,7 +222,7 @@
         6. onboarding.tsx: handleNational chiama join-direct (fix Lega Nazionale persistente)
         
         Credenziali test: admin@fantapronostic.com / admin123 | marco@test.com / password123
-        API base: https://auth-onboarding-4.preview.emergentagent.com/api
+        API base: https://login-bounce.preview.emergentagent.com/api
         
         Testare:
         a) Flusso registrazione completo con username custom (poi verify-email screen)
