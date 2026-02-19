@@ -505,9 +505,10 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
     if not season:
         return HomeResponse()
 
-    # Get user leagues
+    # Get user leagues with membership info
     user_memberships = await memberships_col.find({"user_id": user["id"], "status": "active"}).to_list(100)
-    league_ids = [m["league_id"] for m in user_memberships]
+    membership_map = {m["league_id"]: m for m in user_memberships}
+    league_ids = list(membership_map.keys())
     user_leagues = []
     if league_ids:
         leagues = await leagues_col.find({"id": {"$in": league_ids}}, {"_id": 0}).to_list(100)
@@ -524,39 +525,54 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
     if not active_league and user_leagues:
         active_league = user_leagues[0]
 
-    # A) ADMIN CONFIGURABILE: Cerca current_matchday_id nella season
+    # MATCHDAY LOGIC: Dipende dal tipo di lega
     matchday = None
     
-    # Prima controlla se l'admin ha impostato un current_matchday_id
-    if season.get("current_matchday_id"):
+    if active_league and active_league.get("match_source_type") == "manual":
+        # MANUAL LEAGUE: cerca matchday SOLO della lega manuale
         matchday = await matchdays_col.find_one(
-            {"id": season["current_matchday_id"]},
+            {"league_id": active_league["id"], "status": "OPEN"},
             {"_id": 0}
         )
-    
-    # Se non c'è current_matchday_id o non esiste, usa logica standard
-    if not matchday:
-        # 1. Prima cerca l'UNICA giornata OPEN della stagione
-        matchday = await matchdays_col.find_one(
-            {"season_id": season["id"], "status": "OPEN"},
-            {"_id": 0}
-        )
-    
-    if not matchday:
-        # 2. Cerca l'ultima LOCKED o LIVE
-        matchday = await matchdays_col.find_one(
-            {"season_id": season["id"], "status": {"$in": ["LOCKED", "LIVE"]}},
-            {"_id": 0},
-            sort=[("number", -1)]
-        )
-    
-    if not matchday:
-        # 3. Fallback: ultima giornata qualsiasi
-        matchday = await matchdays_col.find_one(
-            {"season_id": season["id"]},
-            {"_id": 0},
-            sort=[("number", -1)]
-        )
+        if not matchday:
+            matchday = await matchdays_col.find_one(
+                {"league_id": active_league["id"], "status": {"$in": ["LOCKED", "LIVE"]}},
+                {"_id": 0},
+                sort=[("number", -1)]
+            )
+        if not matchday:
+            matchday = await matchdays_col.find_one(
+                {"league_id": active_league["id"]},
+                {"_id": 0},
+                sort=[("number", -1)]
+            )
+    else:
+        # NATIONAL LEAGUE: usa logica standard dalla stagione
+        if season.get("current_matchday_id"):
+            matchday = await matchdays_col.find_one(
+                {"id": season["current_matchday_id"]},
+                {"_id": 0}
+            )
+        
+        if not matchday:
+            matchday = await matchdays_col.find_one(
+                {"season_id": season["id"], "status": "OPEN", "league_id": {"$exists": False}},
+                {"_id": 0}
+            )
+        
+        if not matchday:
+            matchday = await matchdays_col.find_one(
+                {"season_id": season["id"], "status": {"$in": ["LOCKED", "LIVE"]}, "league_id": {"$exists": False}},
+                {"_id": 0},
+                sort=[("number", -1)]
+            )
+        
+        if not matchday:
+            matchday = await matchdays_col.find_one(
+                {"season_id": season["id"], "league_id": {"$exists": False}},
+                {"_id": 0},
+                sort=[("number", -1)]
+            )
 
     matchday_data = None
     live_data = None
