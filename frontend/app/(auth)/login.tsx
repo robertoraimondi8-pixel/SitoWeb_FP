@@ -75,43 +75,52 @@ export default function LoginScreen() {
     setLoading(true);
     setError('');
     try {
-      console.log('[Login] Invio credenziali...');
-      // login() ora restituisce { access_token, refresh_token, user }
+      // ── LOG PUNTO 1: risposta login ──────────────────────────────────────
+      console.log('[DEBUG-1] Chiamata login...');
       const res = await login(email.trim().toLowerCase(), password);
+      console.log('[DEBUG-1] status: OK (200)');
+      console.log('[DEBUG-1] access_token presente:', !!res.access_token);
+      console.log('[DEBUG-1] user.id presente:', !!res.user?.id);
+
       const accessToken = res.access_token;
       const storedUser = res.user;
-      console.log('[Login] Token ricevuto:', accessToken?.substring(0, 20), 'user:', storedUser?.email, 'profile_completed:', storedUser?.profile_completed);
+
+      // ── LOG PUNTO 2: verifica AsyncStorage dopo salvataggio ──────────────
+      const storedToken = await AsyncStorage.getItem('access_token');
+      console.log('[DEBUG-2] AsyncStorage.getItem("access_token") -> presente:', !!storedToken);
+      console.log('[DEBUG-2] key usata: "access_token"');
+      if (storedToken && accessToken) {
+        console.log('[DEBUG-2] token match (primi 15 char):', storedToken.substring(0,15) === accessToken.substring(0,15));
+      }
 
       // GATE 1: profilo incompleto (utenti Google)
       if (storedUser?.profile_completed === false) {
-        console.log('[Login] Redirect → /complete-profile');
+        console.log('[DEBUG-4] NAVIGATE -> /complete-profile (profile_completed=false)');
         router.replace('/complete-profile');
         return;
       }
 
-      // GATE 2: email verification (disabilitato per beta — riattivare con Resend)
+      // GATE 2: email verification (disabilitato per beta)
       // if (storedUser?.email_verified === false) { router.replace('/verify-email'); return; }
 
       // GATE 3: nessuna lega → onboarding
       try {
-        console.log('[Login] Controllo leghe...');
         const leagues = await apiCall('/leagues', { token: accessToken });
         if (!leagues || leagues.length === 0) {
-          console.log('[Login] Nessuna lega → redirect /onboarding');
+          console.log('[DEBUG-4] NAVIGATE -> /onboarding (nessuna lega)');
           router.replace('/onboarding');
           return;
         }
-      } catch (_) {
-        // se /leagues fallisce, manda comunque a onboarding
-        console.log('[Login] Errore /leagues, redirect /onboarding');
+      } catch (leagueErr: any) {
+        console.log('[DEBUG-4] NAVIGATE -> /onboarding (errore /leagues:', leagueErr?.message, ')');
         router.replace('/onboarding');
         return;
       }
 
-      console.log('[Login] Tutto ok → redirect /home');
+      console.log('[DEBUG-4] NAVIGATE -> /(tabs)/home (tutto ok)');
       router.replace('/(tabs)/home');
     } catch (e: any) {
-      console.log('[Login] Errore:', e?.message, e);
+      console.log('[DEBUG-1] ERRORE login:', e?.message);
       setError(mapLoginError(e));
     } finally {
       setLoading(false);
