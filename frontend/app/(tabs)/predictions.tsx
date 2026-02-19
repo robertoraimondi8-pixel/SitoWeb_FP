@@ -67,36 +67,84 @@ export default function PredictionsScreen() {
   const fetchData = useCallback(async () => {
     try {
       const home = await apiCall('/home', { token });
-      if (!home.matchday) { setLoading(false); return; }
-
-      // Carica scoring_config dalla lega attiva se disponibile
-      if (home.league?.id) {
-        try {
-          const leagueDetail = await apiCall(`/leagues/${home.league.id}`, { token });
-          if (leagueDetail?.scoring_config) {
-            setScoringConfig(leagueDetail.scoring_config);
-          }
-        } catch (_) { /* usa default se non disponibile */ }
+      if (!home.league?.id) { 
+        setLoading(false); 
+        return; 
       }
 
-      // Pass league_id to fetch correct matches for manual leagues
-      const leagueParam = home.league?.id ? `?league_id=${home.league.id}` : '';
-      const res = await apiCall(`/predictions/${home.matchday.id}${leagueParam}`, { token });
-      setData(res);
+      const leagueId = home.league.id;
 
-      if (res.joker) {
+      // Carica scoring_config dalla lega attiva
+      try {
+        const leagueDetail = await apiCall(`/leagues/${leagueId}`, { token });
+        if (leagueDetail?.scoring_config) {
+          setScoringConfig(leagueDetail.scoring_config);
+        }
+      } catch (_) { /* usa default se non disponibile */ }
+
+      // PUNTO UNICO DI VERITÀ: usa /api/leagues/{league_id}/fixtures
+      // Questo endpoint gestisce correttamente manual vs national
+      const fixturesRes = await apiCall(`/leagues/${leagueId}/fixtures`, { token });
+      
+      // Trova la giornata attiva (OPEN > LOCKED/LIVE > ultima)
+      let activeMatchday = null;
+      const matchdays = fixturesRes.matchdays || [];
+      
+      // 1. Prima cerca OPEN
+      activeMatchday = matchdays.find((md: any) => md.status === 'OPEN');
+      
+      // 2. Se non c'è OPEN, cerca l'ultima LOCKED o LIVE
+      if (!activeMatchday) {
+        activeMatchday = [...matchdays]
+          .reverse()
+          .find((md: any) => md.status === 'LOCKED' || md.status === 'LIVE');
+      }
+      
+      // 3. Fallback: ultima giornata
+      if (!activeMatchday && matchdays.length > 0) {
+        activeMatchday = matchdays[matchdays.length - 1];
+      }
+
+      if (!activeMatchday) {
+        setLoading(false);
+        return;
+      }
+
+      // Carica predictions per questa giornata
+      const predsRes = await apiCall(`/predictions/${activeMatchday.id}?league_id=${leagueId}`, { token });
+      
+      // Combina matchday info con matches dalla fixtures response
+      const matchesForMatchday = activeMatchday.matches || [];
+      
+      setData({
+        matchday: {
+          ...activeMatchday,
+          ...predsRes.matchday,
+        },
+        predictions: matchesForMatchday.map((m: any) => {
+          const predForMatch = predsRes.predictions?.find((p: any) => p.match?.id === m.id);
+          return {
+            match: m,
+            prediction: predForMatch?.prediction || null,
+            is_locked: predForMatch?.is_locked || false,
+          };
+        }),
+        joker: predsRes.joker,
+      });
+
+      if (predsRes.joker) {
         setJoker({
-          is_active: res.joker.is_active || false,
-          is_locked: res.joker.is_locked || false,
-          used_other_matchday: res.joker.used_other_matchday || false,
-          half: res.joker.half || 1,
+          is_active: predsRes.joker.is_active || false,
+          is_locked: predsRes.joker.is_locked || false,
+          used_other_matchday: predsRes.joker.used_other_matchday || false,
+          half: predsRes.joker.half || 1,
         });
       }
 
       const predMap: Record<string, MatchPred> = {};
-      res.predictions?.forEach((p: any) => {
-        const mid = p.match.id;
-        if (p.prediction) {
+      predsRes.predictions?.forEach((p: any) => {
+        const mid = p.match?.id;
+        if (mid && p.prediction) {
           const mt = p.prediction.market_type || p.match.market_type || '1X2';
           const val = p.prediction.prediction_value;
           let eh = '', ea = '';
