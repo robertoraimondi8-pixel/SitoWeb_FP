@@ -847,6 +847,13 @@ async def create_league(req: LeagueCreate, user=Depends(get_current_user)):
         "rules_locked": False,
         "created_at": now_utc(),
     }
+
+    # Auto-set source_league_id when inheriting from national league
+    if req.match_source_type == "national":
+        national = await leagues_col.find_one({"league_type": "national"}, {"_id": 0, "id": 1})
+        if national:
+            league["source_league_id"] = national["id"]
+
     await leagues_col.insert_one(league)
 
     # Auto-join owner as admin
