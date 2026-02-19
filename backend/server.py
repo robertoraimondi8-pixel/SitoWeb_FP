@@ -721,6 +721,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         "last_5_performance": last_5_performance,
         "stats_preview": {"message": "Stats coming soon"},
         "user_leagues": [{k: v for k, v in l.items() if k != "_id"} for l in user_leagues],
+        "league": {k: v for k, v in (active_league or {}).items() if k != "_id"} if active_league else None,
     }
 
 
