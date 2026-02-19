@@ -499,7 +499,7 @@ async def google_auth_session(request: Request):
 MATCHES_PER_MATCHDAY = 11
 
 @user_router.get("/home")
-async def get_home(user=Depends(get_current_user)):
+async def get_home(league_id: Optional[str] = None, user=Depends(get_current_user)):
     # Get active season
     season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
     if not season:
@@ -512,6 +512,17 @@ async def get_home(user=Depends(get_current_user)):
     if league_ids:
         leagues = await leagues_col.find({"id": {"$in": league_ids}}, {"_id": 0}).to_list(100)
         user_leagues = leagues
+
+    # Determine active league: use query param → user's current_league_id → first league
+    active_league = None
+    if league_id and league_id in league_ids:
+        active_league = next((l for l in user_leagues if l["id"] == league_id), None)
+    if not active_league:
+        saved_id = user.get("current_league_id")
+        if saved_id and saved_id in league_ids:
+            active_league = next((l for l in user_leagues if l["id"] == saved_id), None)
+    if not active_league and user_leagues:
+        active_league = user_leagues[0]
 
     # A) ADMIN CONFIGURABILE: Cerca current_matchday_id nella season
     matchday = None
