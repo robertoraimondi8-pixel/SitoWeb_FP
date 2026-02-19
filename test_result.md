@@ -480,6 +480,49 @@ agent_communication:
 #====================================================================================================
 
 user_problem_statement: |
+  Google Login Web Fix Testing:
+  Test Google login flow on web at https://login-bounce.preview.emergentagent.com
+  The fix adds Platform.OS === 'web' branch that redirects to https://auth.emergentagent.com/?redirect=[origin]
+  Verify: 1) Console logs appear (GOOGLE: start, GOOGLE: web branch), 2) Redirect to auth.emergentagent.com works
+
+backend: []
+
+frontend:
+  - task: "Google Login Web Platform Fix"
+    implemented: true
+    working: true
+    file: "frontend/app/(auth)/index.tsx"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          ✅ VERIFIED: Google login web fix fully functional after Expo restart.
+          
+          CONSOLE LOGS CAPTURED (verbatim):
+          - "GOOGLE: start" ✅
+          - "GOOGLE: web branch — redirect to auth, origin: https://login-bounce.preview.emergentagent.com" ✅
+          
+          NAVIGATION VERIFIED:
+          - Successfully redirected to: https://auth.emergentagent.com/?redirect=https%3A%2F%2Flogin-bounce.preview.emergentagent.com ✅
+          
+          BUNDLE VERIFICATION:
+          - New code confirmed in production bundle ✅
+          - hasGoogleStart: true ✅
+          - hasWebBranch: true ✅
+          
+          FIX DETAILS:
+          - Platform.OS === 'web' check working correctly
+          - window.location.href redirect functional
+          - Callback handling in app/index.tsx ready (processGoogleSession)
+          
+          DEPLOYMENT NOTE:
+          Code was present in source but NOT in bundle until Expo cache cleared and service restarted.
+          Commands: rm -rf .expo .metro-cache node_modules/.cache && supervisorctl restart expo
+
+user_problem_statement_previous: |
   Auth Landing Page Tagline Mobile Responsive Testing:
   Test the new tagline "Pronostica. Vinci. Domina la classifica" on auth landing page
   Viewports: iPhone SE (320x568) and iPhone 14 (390x844)
