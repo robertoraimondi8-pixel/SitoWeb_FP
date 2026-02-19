@@ -40,6 +40,11 @@ export default function OnboardingScreen() {
     })();
   }, [token, handleAuthError, router]);
 
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/(auth)/');
+  };
+
   const switchLang = (newLang: string) => {
     setLang(newLang);
     i18n.changeLanguage(newLang);
