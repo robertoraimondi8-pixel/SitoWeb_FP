@@ -792,6 +792,20 @@ async def complete_profile(req: CompleteProfileRequest, user=Depends(get_current
 # ========================================
 # LEAGUE ROUTES
 # ========================================
+DEFAULT_SCORING_CONFIG = {
+    "1x2": {"enabled": True, "points": 1.0},
+    "over_under": {"enabled": True, "points": 0.5},
+    "goal_no_goal": {"enabled": True, "points": 0.5},
+    "exact_score": {"enabled": True, "points": 4.0},
+}
+
+@league_router.get("/seasons")
+async def get_league_seasons(user=Depends(get_current_user)):
+    """Restituisce le stagioni attive per la creazione lega."""
+    seasons = await seasons_col.find({"is_active": True}, {"_id": 0}).to_list(10)
+    return seasons
+
+
 @league_router.get("")
 async def get_my_leagues(user=Depends(get_current_user)):
     memberships = await memberships_col.find({"user_id": user["id"], "status": "active"}).to_list(100)
@@ -806,8 +820,15 @@ async def get_my_leagues(user=Depends(get_current_user)):
 
 @league_router.post("")
 async def create_league(req: LeagueCreate, user=Depends(get_current_user)):
+    # Validate matchday range
+    if req.end_matchday < req.start_matchday:
+        raise HTTPException(400, "La giornata finale deve essere >= giornata iniziale")
+
     league_id = new_id()
     invite_code = generate_invite_code()
+
+    scoring = req.scoring_config or DEFAULT_SCORING_CONFIG
+
     league = {
         "id": league_id,
         "name": req.name,
@@ -815,15 +836,25 @@ async def create_league(req: LeagueCreate, user=Depends(get_current_user)):
         "season_id": req.season_id,
         "invite_code": invite_code,
         "owner_id": user["id"],
+        "created_by": user["id"],
+        "logo_url": req.logo_url,
+        "start_matchday": req.start_matchday,
+        "end_matchday": req.end_matchday,
+        "bet_deadline_minutes": req.bet_deadline_minutes,
+        "match_source_type": req.match_source_type,
+        "scoring_config": scoring,
+        "include_championship_predictions": req.include_championship_predictions,
+        "rules_locked": False,
         "created_at": now_utc(),
     }
     await leagues_col.insert_one(league)
 
-    # Auto-join owner
+    # Auto-join owner as admin
     await memberships_col.insert_one({
         "id": new_id(),
         "user_id": user["id"],
         "league_id": league_id,
+        "role": "admin",
         "status": "active",
         "joined_at": now_utc(),
     })
@@ -834,32 +865,82 @@ async def create_league(req: LeagueCreate, user=Depends(get_current_user)):
     return league
 
 
-@league_router.post("/join")
-async def join_league(req: LeagueJoinRequest, user=Depends(get_current_user)):
-    league = await leagues_col.find_one({"invite_code": req.invite_code}, {"_id": 0})
-    if not league:
-        raise HTTPException(404, "Invalid invite code")
-
-    existing = await memberships_col.find_one({"user_id": user["id"], "league_id": league["id"]})
-    if existing:
-        raise HTTPException(400, "Already a member of this league")
-
-    await memberships_col.insert_one({
-        "id": new_id(),
-        "user_id": user["id"],
-        "league_id": league["id"],
-        "status": "active",
-        "joined_at": now_utc(),
-    })
-    return {"message": "Joined league successfully", "league": league}
-
-
 @league_router.get("/national")
 async def get_national_leagues():
     leagues = await leagues_col.find({"league_type": "national"}, {"_id": 0}).to_list(10)
     for l in leagues:
         l["member_count"] = await memberships_col.count_documents({"league_id": l["id"], "status": "active"})
     return leagues
+
+
+@league_router.get("/{league_id}")
+async def get_league_detail(league_id: str, user=Depends(get_current_user)):
+    """Dettaglio singola lega — include scoring_config e regole."""
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    # Verify membership
+    mem = await memberships_col.find_one({"user_id": user["id"], "league_id": league_id, "status": "active"})
+    if not mem and league.get("league_type") != "national":
+        raise HTTPException(403, "Non sei membro di questa lega")
+    league["member_count"] = await memberships_col.count_documents({"league_id": league_id, "status": "active"})
+    # Ensure scoring_config fallback
+    if not league.get("scoring_config"):
+        league["scoring_config"] = DEFAULT_SCORING_CONFIG
+    return league
+
+
+@league_router.patch("/{league_id}")
+async def update_league(league_id: str, req: LeagueUpdateRequest, user=Depends(get_current_user)):
+    """Aggiorna impostazioni lega — bloccato se rules_locked=True."""
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    if league.get("owner_id") != user["id"]:
+        raise HTTPException(403, "Solo il creatore può modificare la lega")
+
+    # Fields locked once rules_locked=True
+    locked_fields = {"start_matchday", "end_matchday", "bet_deadline_minutes", "scoring_config", "include_championship_predictions", "match_source_type"}
+    if league.get("rules_locked", False):
+        incoming = {k for k, v in req.model_dump(exclude_none=True).items() if k in locked_fields}
+        if incoming:
+            raise HTTPException(403, f"Regole bloccate: impossibile modificare {', '.join(incoming)}")
+
+    updates = {k: v for k, v in req.model_dump(exclude_none=True).items()}
+    if updates:
+        await leagues_col.update_one({"id": league_id}, {"$set": updates})
+
+    updated = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    updated.pop("_id", None)
+    return updated
+
+
+@league_router.post("/join")
+async def join_league(req: LeagueJoinRequest, user=Depends(get_current_user)):
+    league = await leagues_col.find_one({"invite_code": req.invite_code}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Codice invito non valido")
+
+    existing = await memberships_col.find_one({"user_id": user["id"], "league_id": league["id"]})
+    if existing:
+        raise HTTPException(400, "Sei già membro di questa lega")
+
+    await memberships_col.insert_one({
+        "id": new_id(),
+        "user_id": user["id"],
+        "league_id": league["id"],
+        "role": "member",
+        "status": "active",
+        "joined_at": now_utc(),
+    })
+
+    # Lock rules when second member joins
+    member_count = await memberships_col.count_documents({"league_id": league["id"], "status": "active"})
+    if member_count > 1 and not league.get("rules_locked", False):
+        await leagues_col.update_one({"id": league["id"]}, {"$set": {"rules_locked": True}})
+        logger.info(f"[League] rules_locked=True for league {league['id'][:8]} (members: {member_count})")
+
+    return {"message": "Iscrizione completata", "league": league}
 
 
 @league_router.post("/{league_id}/join-direct")
