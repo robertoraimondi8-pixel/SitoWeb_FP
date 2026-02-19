@@ -425,6 +425,52 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textInverse,
   },
   
+  // Creator Card (per owner di leghe)
+  creatorCard: {
+    backgroundColor: colors.card,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    padding: spacing.xl,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    ...shadows.card,
+  },
+  creatorTitle: {
+    ...typography.sectionLabel,
+    color: colors.accent,
+  },
+  creatorSubtitle: {
+    ...typography.bodyS,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    marginBottom: spacing.lg,
+  },
+  leagueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  leagueRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    flex: 1,
+  },
+  leagueRowName: {
+    ...typography.bodyM,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  leagueRowType: {
+    ...typography.metaSmall,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  
   // Logout
   logoutBtn: { 
     flexDirection: 'row', 
