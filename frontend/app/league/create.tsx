@@ -264,7 +264,7 @@ export default function CreateLeagueScreen() {
                   {type === 'national' ? 'Lega Nazionale' : 'Scelte dal creatore'}
                 </Text>
                 <Text style={[s.sourceDesc, { color: colors.textSecondary }]}>
-                  {type === 'national' ? 'Partite della Serie A o campionato principale' : 'Il creatore inserisce le partite manualmente'}
+                  {type === 'national' ? 'Partite uguali alla Lega Nazionale' : 'Il creatore inserisce le partite manualmente'}
                 </Text>
               </TouchableOpacity>
             ))}
