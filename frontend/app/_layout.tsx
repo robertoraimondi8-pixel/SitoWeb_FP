@@ -23,6 +23,7 @@ export default function RootLayout() {
             <Stack.Screen name="league/join" options={{ presentation: 'modal' }} />
             <Stack.Screen name="league/join-private" options={{ presentation: 'modal' }} />
             <Stack.Screen name="league/list" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="league/[id]/manage" options={{ presentation: 'modal' }} />
           </Stack>
         </LeagueProvider>
       </AuthProvider>
