@@ -1181,6 +1181,26 @@ async def create_league_matchday(league_id: str, req: MatchdayCreate, user=Depen
     return matchday
 
 
+@league_router.put("/{league_id}/matchdays/{matchday_id}")
+async def update_league_matchday(league_id: str, matchday_id: str, req: dict, user=Depends(get_current_user)):
+    """Aggiorna lo status di una giornata per una lega manuale."""
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    _require_league_admin(league, user)
+    
+    updates = {}
+    if "status" in req:
+        updates["status"] = req["status"]
+    if "label" in req:
+        updates["label"] = req["label"]
+    
+    if updates:
+        await matchdays_col.update_one({"id": matchday_id, "league_id": league_id}, {"$set": updates})
+    
+    return await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+
+
 @league_router.delete("/{league_id}/matchdays/{matchday_id}")
 async def delete_league_matchday(league_id: str, matchday_id: str, user=Depends(get_current_user)):
     league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
