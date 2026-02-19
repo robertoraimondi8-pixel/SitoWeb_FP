@@ -319,6 +319,105 @@
 #====================================================================================================
 
 user_problem_statement: |
+  Auth Landing Page Tagline Mobile Responsive Testing:
+  Test the new tagline "Pronostica. Vinci. Domina la classifica" on auth landing page
+  Viewports: iPhone SE (320x568) and iPhone 14 (390x844)
+  Requirements: font-size >= 18px, centered, no ugly wrapping, no broken UI elements
+
+backend: []
+
+frontend:
+  - task: "Auth Landing Page Tagline - Mobile Responsive"
+    implemented: true
+    working: true
+    file: "frontend/app/(auth)/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          ✅ VERIFIED: Auth landing page tagline fully functional and responsive.
+          
+          TAGLINE TEXT: "Pronostica. Vinci. Domina la classifica"
+          
+          iPhone SE (320x568):
+          - ✅ Font size: 18px (meets requirement)
+          - ✅ Text alignment: center (meets requirement)
+          - ✅ Line wrapping: 2.00 lines - balanced and readable
+          - ✅ Text fits reasonably on smallest viewport
+          - Width: 280px, Height: 52px
+          
+          iPhone 14 (390x844):
+          - ✅ Font size: 18px (meets requirement)
+          - ✅ Text alignment: center (meets requirement)
+          - ✅ Line wrapping: 1.00 line - perfect single line display
+          - ✅ Text looks excellent on standard mobile
+          - Width: 302.8px, Height: 26px
+          
+          STYLING DETAILS:
+          - Font weight: 500
+          - Line height: 26px
+          - Color: rgb(100, 116, 139) - secondary text color
+          
+          UI INTEGRITY: All other elements intact (buttons, Google login, footer)
+          
+          NOTE: Required Expo service restart to apply code changes to production.
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Auth Landing Page Tagline - Mobile Responsive"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "testing"
+    message: |
+      ✅ AUTH LANDING PAGE TAGLINE TESTING COMPLETED - ALL REQUIREMENTS MET
+      
+      SUMMARY:
+      The new tagline "Pronostica. Vinci. Domina la classifica" has been successfully implemented
+      and tested on both mobile viewports. All requirements have been satisfied.
+      
+      DETAILED RESULTS:
+      
+      1. iPhone SE (320x568) - SMALLEST VIEWPORT:
+         ✅ Font size: 18px (exactly as required)
+         ✅ Text alignment: centered
+         ✅ Wrapping: 2 lines, balanced and readable
+         ✅ No ugly wrapping - text breaks naturally
+         ✅ All UI elements intact
+      
+      2. iPhone 14 (390x844) - STANDARD MOBILE:
+         ✅ Font size: 18px (exactly as required)
+         ✅ Text alignment: centered
+         ✅ Wrapping: Single line (perfect fit)
+         ✅ Looks excellent and professional
+         ✅ All UI elements intact
+      
+      OBSERVATIONS:
+      - On the smallest viewport (iPhone SE 320px), the tagline wraps to 2 balanced lines
+      - On standard mobile (iPhone 14 390px), the tagline fits perfectly on 1 line
+      - The text is larger than normal body text as required
+      - Centering is perfect on both viewports
+      - No other elements were broken or moved
+      - Old tagline "Il tuo fantasy football" has been completely replaced
+      
+      TECHNICAL NOTE:
+      The changes were already in the code but required an Expo service restart to deploy
+      to the production environment. After restart, all tests passed successfully.
+      
+      TESTING COMPLETE - NO FURTHER ACTION REQUIRED.
+
+user_problem_statement_previous: |
   FantaPronostic - Multiple UI/Logic Fixes:
   FIX A: "Punti Provvisori" shown on COMPLETED matchdays - ROUTING CONFLICT RESOLVED
     - Deleted legacy /app/live/[id].tsx (used wrong API /live/matchday/)
