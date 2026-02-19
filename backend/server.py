@@ -1045,6 +1045,13 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
     if not league:
         raise HTTPException(404, "Lega non trovata")
 
+    # === DIAGNOSTIC LOG 4: Fixtures Query ===
+    logger.info("=" * 60)
+    logger.info("[DIAG-4] /api/leagues/{league_id}/fixtures")
+    logger.info(f"  league_id requested = {league_id}")
+    logger.info(f"  league.name = {league.get('name')}")
+    logger.info(f"  league.match_source_type = {league.get('match_source_type')}")
+
     if league.get("match_source_type") == "national":
         source_id = league.get("source_league_id")
         if not source_id:
@@ -1053,11 +1060,16 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
         source_league = await leagues_col.find_one({"id": source_id}, {"_id": 0}) if source_id else None
         season_id = source_league["season_id"] if source_league else league["season_id"]
         matchdays = await matchdays_col.find({"season_id": season_id}, {"_id": 0}).sort("number", 1).to_list(100)
+        logger.info(f"  NATIONAL MODE: query matchdays by season_id={season_id}")
     else:
         source_id = league_id
         season_id = league["season_id"]
         # Manual: query by league_id to avoid collision with national matchdays
         matchdays = await matchdays_col.find({"league_id": league_id}, {"_id": 0}).sort("number", 1).to_list(100)
+        logger.info(f"  MANUAL MODE: query matchdays by league_id={league_id}")
+        logger.info(f"  Matchdays found: {len(matchdays)}")
+        for md in matchdays:
+            logger.info(f"    - matchday.id={md.get('id')}, number={md.get('number')}, league_id={md.get('league_id')}")
 
     start_md = league.get("start_matchday", 1)
     end_md = league.get("end_matchday", 38)
@@ -1067,10 +1079,14 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
     for md in matchdays:
         if league.get("match_source_type") == "manual":
             matches = await matches_col.find({"matchday_id": md["id"], "league_id": league_id}, {"_id": 0}).to_list(20)
+            logger.info(f"  MANUAL: Matches for matchday {md.get('number')}: {len(matches)}")
+            for m in matches:
+                logger.info(f"    - {m.get('home_team')} vs {m.get('away_team')}, league_id={m.get('league_id')}")
         else:
             matches = await matches_col.find({"matchday_id": md["id"]}, {"_id": 0}).to_list(20)
         result.append({**md, "matches": matches})
 
+    logger.info("=" * 60)
     return {"league_id": league_id, "source_league_id": source_id, "matchdays": result}
 
 
