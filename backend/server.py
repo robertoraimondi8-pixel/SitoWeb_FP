@@ -630,7 +630,7 @@ async def get_home(league_id: Optional[str] = None, user=Depends(get_current_use
     last_5_performance = []
     
     if user_leagues:
-        first_league = user_leagues[0]
+        first_league = active_league or user_leagues[0]
         
         # Get ALL members of the league for ranking calculation
         league_members = await memberships_col.find(
