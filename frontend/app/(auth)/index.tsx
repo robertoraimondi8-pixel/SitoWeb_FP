@@ -66,7 +66,7 @@ export default function AuthLanding() {
         console.log('GOOGLE: backend status ok (no exception thrown)');
         console.log('GOOGLE: has access_token', !!res?.access_token);
 
-        // FIX: use loginWithToken to update BOTH AsyncStorage AND in-memory state
+        // 1. Salva auth state (AsyncStorage + React state in-memory)
         await loginWithToken(res.access_token, res.refresh_token, res.user);
 
         // LOG E
@@ -74,15 +74,33 @@ export default function AuthLanding() {
         const savedToken = await AsyncStorage.getItem('access_token');
         console.log('GOOGLE: token saved?', savedToken != null);
 
-        // LOG F
-        const leagues = res.user?.leagues_count ?? '?';
-        const noProfile = res.user?.profile_completed === false;
-        const targetRoute = noProfile ? '/complete-profile' : '/';
-        const reason = noProfile ? 'profile_incomplete' : 'checking_leagues_via_root';
-        console.log('GOOGLE: navigate to', targetRoute, 'reason:', reason);
+        // 2. Determina destinazione direttamente — NO router.replace('/')
+        let targetRoute: string;
+        let reason: string;
 
-        // Navigate to root — let index.tsx apply all gates centrally:
-        router.replace('/');
+        if (!res.user?.username) {
+          // Utente Google nuovo senza username → completa profilo
+          targetRoute = '/complete-profile';
+          reason = 'no_username';
+        } else {
+          // Controlla se l'utente ha già leghe
+          try {
+            const leagues = await apiCall('/leagues', { token: res.access_token });
+            if (!leagues || leagues.length === 0) {
+              targetRoute = '/onboarding';
+              reason = 'no_leagues';
+            } else {
+              targetRoute = '/(tabs)/home';
+              reason = 'has_leagues';
+            }
+          } catch (_) {
+            targetRoute = '/onboarding';
+            reason = 'leagues_check_failed';
+          }
+        }
+
+        console.log('GOOGLE: navigate to', targetRoute, 'reason:', reason); // LOG F
+        router.replace(targetRoute as any);
       } else if (result.type === 'cancel' || result.type === 'dismiss') {
         setGoogleError(result.type === 'cancel' ? 'Login annullato' : '');
       } else {
