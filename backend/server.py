@@ -950,6 +950,144 @@ async def join_league(req: LeagueJoinRequest, user=Depends(get_current_user)):
     return {"message": "Iscrizione completata", "league": league}
 
 
+@league_router.get("/{league_id}/fixtures")
+async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
+    """Partite per una lega — national eredita dalla Nazionale, manual legge le proprie."""
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+
+    if league.get("match_source_type") == "national":
+        source_id = league.get("source_league_id")
+        if not source_id:
+            nat = await leagues_col.find_one({"league_type": "national"}, {"_id": 0, "id": 1})
+            source_id = nat["id"] if nat else None
+        source_league = await leagues_col.find_one({"id": source_id}, {"_id": 0}) if source_id else None
+        season_id = source_league["season_id"] if source_league else league["season_id"]
+    else:
+        source_id = league_id
+        season_id = league["season_id"]
+
+    matchdays = await matchdays_col.find({"season_id": season_id}, {"_id": 0}).sort("number", 1).to_list(100)
+    start_md = league.get("start_matchday", 1)
+    end_md = league.get("end_matchday", 38)
+    matchdays = [md for md in matchdays if start_md <= md.get("number", 0) <= end_md]
+
+    result = []
+    for md in matchdays:
+        if league.get("match_source_type") == "manual":
+            matches = await matches_col.find({"matchday_id": md["id"], "league_id": league_id}, {"_id": 0}).to_list(20)
+        else:
+            matches = await matches_col.find({"matchday_id": md["id"]}, {"_id": 0}).to_list(20)
+        result.append({**md, "matches": matches})
+
+    return {"league_id": league_id, "source_league_id": source_id, "matchdays": result}
+
+
+def _require_league_admin(league: dict, user: dict):
+    if league.get("owner_id") != user["id"]:
+        raise HTTPException(403, "Solo il creatore della lega può gestire le partite")
+    if league.get("match_source_type") != "manual":
+        raise HTTPException(400, "Questa lega usa le partite della Lega Nazionale")
+
+
+@league_router.get("/{league_id}/matchdays")
+async def get_league_matchdays(league_id: str, user=Depends(get_current_user)):
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    mem = await memberships_col.find_one({"user_id": user["id"], "league_id": league_id, "status": "active"})
+    if not mem:
+        raise HTTPException(403, "Non sei membro di questa lega")
+    matchdays = await matchdays_col.find({"league_id": league_id}, {"_id": 0}).sort("number", 1).to_list(50)
+    for md in matchdays:
+        md["match_count"] = await matches_col.count_documents({"matchday_id": md["id"]})
+    return matchdays
+
+
+@league_router.post("/{league_id}/matchdays")
+async def create_league_matchday(league_id: str, req: MatchdayCreate, user=Depends(get_current_user)):
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    _require_league_admin(league, user)
+    md_id = new_id()
+    matchday = {
+        "id": md_id,
+        "league_id": league_id,
+        "season_id": req.season_id or league["season_id"],
+        "number": req.number,
+        "label": req.label or f"Giornata {req.number}",
+        "half": req.half,
+        "first_kickoff": req.first_kickoff,
+        "status": "OPEN",
+        "created_at": now_utc(),
+    }
+    await matchdays_col.insert_one(matchday)
+    matchday.pop("_id", None)
+    return matchday
+
+
+@league_router.delete("/{league_id}/matchdays/{matchday_id}")
+async def delete_league_matchday(league_id: str, matchday_id: str, user=Depends(get_current_user)):
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    _require_league_admin(league, user)
+    await matches_col.delete_many({"matchday_id": matchday_id})
+    await matchdays_col.delete_one({"id": matchday_id, "league_id": league_id})
+    return {"message": "Giornata eliminata"}
+
+
+@league_router.get("/{league_id}/matchdays/{matchday_id}/matches")
+async def get_league_matchday_matches(league_id: str, matchday_id: str, user=Depends(get_current_user)):
+    mem = await memberships_col.find_one({"user_id": user["id"], "league_id": league_id, "status": "active"})
+    if not mem:
+        raise HTTPException(403, "Non sei membro")
+    return await matches_col.find({"matchday_id": matchday_id, "league_id": league_id}, {"_id": 0}).to_list(20)
+
+
+@league_router.post("/{league_id}/matchdays/{matchday_id}/matches")
+async def create_league_match(league_id: str, matchday_id: str, req: MatchCreate, user=Depends(get_current_user)):
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    _require_league_admin(league, user)
+    match_id = new_id()
+    match = {
+        "id": match_id, "matchday_id": matchday_id, "league_id": league_id,
+        "home_team": req.home_team, "away_team": req.away_team,
+        "competition": req.competition, "start_time": req.start_time,
+        "market_type": req.market_type, "status": req.status,
+        "home_score": None, "away_score": None, "created_at": now_utc(),
+    }
+    await matches_col.insert_one(match)
+    match.pop("_id", None)
+    return match
+
+
+@league_router.patch("/{league_id}/matchdays/{matchday_id}/matches/{match_id}")
+async def update_league_match(league_id: str, matchday_id: str, match_id: str, req: MatchUpdate, user=Depends(get_current_user)):
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    _require_league_admin(league, user)
+    updates = {k: v for k, v in req.model_dump(exclude_none=True).items()}
+    if updates:
+        await matches_col.update_one({"id": match_id, "matchday_id": matchday_id}, {"$set": updates})
+    return await matches_col.find_one({"id": match_id}, {"_id": 0})
+
+
+@league_router.delete("/{league_id}/matchdays/{matchday_id}/matches/{match_id}")
+async def delete_league_match(league_id: str, matchday_id: str, match_id: str, user=Depends(get_current_user)):
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    _require_league_admin(league, user)
+    await matches_col.delete_one({"id": match_id, "matchday_id": matchday_id, "league_id": league_id})
+    return {"message": "Partita eliminata"}
+
+
 @league_router.post("/{league_id}/join-direct")
 async def join_league_direct(league_id: str, user=Depends(get_current_user)):
     """Join a league directly after Stripe payment return (fallback if webhook missed)."""
