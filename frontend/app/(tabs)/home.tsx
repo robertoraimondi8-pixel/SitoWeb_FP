@@ -134,7 +134,7 @@ export default function HomeScreen() {
 
       {/* LEAGUE SWITCHER */}
       {data?.league && (
-        <View style={styles.leagueSwitcherWrap} data-testid="league-switcher-wrap">
+        <View style={styles.leagueSwitcherWrap}>
           <TouchableOpacity
             style={styles.leagueSwitcherBtn}
             onPress={() => (data?.user_leagues?.length || 0) > 1 ? setShowLeagueSwitcher(true) : null}
