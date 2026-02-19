@@ -1261,6 +1261,39 @@ async def delete_league_match(league_id: str, matchday_id: str, match_id: str, u
     return {"message": "Partita eliminata"}
 
 
+@league_router.put("/{league_id}/matches/{match_id}")
+async def update_league_match_simple(league_id: str, match_id: str, req: dict, user=Depends(get_current_user)):
+    """Aggiorna una partita (risultato, status) - semplificato senza matchday_id nel path."""
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    _require_league_admin(league, user)
+    
+    updates = {}
+    if "home_score" in req:
+        updates["home_score"] = req["home_score"]
+    if "away_score" in req:
+        updates["away_score"] = req["away_score"]
+    if "status" in req:
+        updates["status"] = req["status"]
+    
+    if updates:
+        await matches_col.update_one({"id": match_id, "league_id": league_id}, {"$set": updates})
+    
+    return await matches_col.find_one({"id": match_id}, {"_id": 0})
+
+
+@league_router.delete("/{league_id}/matches/{match_id}")
+async def delete_league_match_simple(league_id: str, match_id: str, user=Depends(get_current_user)):
+    """Elimina una partita - semplificato senza matchday_id nel path."""
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    _require_league_admin(league, user)
+    await matches_col.delete_one({"id": match_id, "league_id": league_id})
+    return {"message": "Partita eliminata"}
+
+
 @league_router.post("/{league_id}/join-direct")
 async def join_league_direct(league_id: str, user=Depends(get_current_user)):
     """Join a league directly after Stripe payment return (fallback if webhook missed)."""
