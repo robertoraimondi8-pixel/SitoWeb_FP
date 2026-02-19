@@ -92,10 +92,39 @@ class SeasonResponse(BaseModel):
 
 
 # ===== LEAGUE =====
+class ScoringMarket(BaseModel):
+    enabled: bool = True
+    points: float
+
+class ScoringConfig(BaseModel):
+    one_x_two: ScoringMarket = ScoringMarket(enabled=True, points=1.0)
+    over_under: ScoringMarket = ScoringMarket(enabled=True, points=0.5)
+    goal_no_goal: ScoringMarket = ScoringMarket(enabled=True, points=0.5)
+    exact_score: ScoringMarket = ScoringMarket(enabled=True, points=4.0)
+
 class LeagueCreate(BaseModel):
-    name: str
-    league_type: str = Field(default="private")  # "national" or "private"
+    name: str = Field(min_length=3, max_length=40)
+    league_type: str = Field(default="private")
     season_id: str
+    # Extended config fields
+    logo_url: Optional[str] = None
+    start_matchday: int = Field(default=1, ge=1, le=38)
+    end_matchday: int = Field(default=38, ge=1, le=38)
+    bet_deadline_minutes: int = Field(default=0, ge=0, le=60)
+    match_source_type: str = Field(default="national")  # "national" | "custom"
+    scoring_config: Optional[Dict[str, Any]] = None
+    include_championship_predictions: bool = False
+
+
+class LeagueUpdateRequest(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=3, max_length=40)
+    logo_url: Optional[str] = None
+    start_matchday: Optional[int] = Field(default=None, ge=1, le=38)
+    end_matchday: Optional[int] = Field(default=None, ge=1, le=38)
+    bet_deadline_minutes: Optional[int] = Field(default=None, ge=0, le=60)
+    match_source_type: Optional[str] = None
+    scoring_config: Optional[Dict[str, Any]] = None
+    include_championship_predictions: Optional[bool] = None
 
 
 class LeagueJoinRequest(BaseModel):
