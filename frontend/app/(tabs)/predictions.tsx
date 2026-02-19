@@ -300,6 +300,29 @@ export default function PredictionsScreen() {
   }
 
   if (!data?.matchday) {
+    // Empty state per lega manuale senza partite
+    if (leagueInfo?.isManual) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Ionicons name="football-outline" size={48} color={colors.textMuted} />
+          <Text style={styles.emptyText}>Nessuna partita ancora.</Text>
+          <Text style={[styles.emptyText, { fontSize: 14, marginTop: 8 }]}>
+            {leagueInfo.isOwner 
+              ? 'Aggiungi le partite nella sezione Gestisci Lega.' 
+              : 'Il creatore deve aggiungere le partite.'}
+          </Text>
+          {leagueInfo.isOwner && leagueInfo.id && (
+            <TouchableOpacity 
+              style={[styles.saveBtn, { marginTop: 20, width: 200 }]}
+              onPress={() => router.push(`/league/${leagueInfo.id}/manage` as any)}
+            >
+              <Text style={styles.saveBtnText}>Aggiungi partite</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      );
+    }
+    // Empty state standard
     return (
       <View style={styles.loadingContainer}>
         <Ionicons name="calendar-outline" size={48} color={colors.textMuted} />
