@@ -1,0 +1,110 @@
+{
+  "summary": "Private League Creation Feature Testing Complete. Backend: 7/7 tests passed (100%). Frontend: UI elements verified correctly. Main issue found: Auth token timing issue when navigating directly to /league/create causes 'Nessuna stagione attiva trovata' error. Backend APIs fully functional.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Direct navigation to /league/create",
+        "issue": "When navigating directly to /league/create URL after login, the seasons API call sometimes returns 401 because auth token is not yet available in useAuth() context. Shows 'Nessuna stagione attiva trovata' error.",
+        "affected_selectors": [],
+        "priority": "MEDIUM",
+        "workaround": "Navigate to create page via app navigation (from onboarding/home) rather than direct URL"
+      }
+    ],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_api_tests": {
+      "test_file": "/app/backend/tests/test_league_creation.py",
+      "status": "ALL PASSED (7/7)",
+      "results": {
+        "test_get_active_seasons": "PASSED - GET /api/leagues/seasons returns active season 'Serie A 2024-2025'",
+        "test_create_league_with_full_config": "PASSED - POST /api/leagues creates league with all fields (scoring_config, start_matchday, end_matchday, bet_deadline_minutes, match_source_type, invite_code, rules_locked=false)",
+        "test_get_league_detail": "PASSED - GET /api/leagues/{id} returns league details with scoring_config",
+        "test_update_league_when_rules_unlocked": "PASSED - PATCH /api/leagues/{id} updates when rules_locked=false",
+        "test_join_league_and_rules_lock": "PASSED - POST /api/leagues/join with invite_code works, auto-locks rules when member_count > 1",
+        "test_update_fails_when_rules_locked": "PASSED - PATCH returns 403 when rules_locked=true",
+        "test_join_with_invalid_code": "PASSED - POST /api/leagues/join returns 404 for invalid invite_code"
+      }
+    },
+    "frontend_ui_tests": {
+      "create_league_form": {
+        "status": "PASSED",
+        "elements_verified": [
+          "Header 'Crea Nuova Lega'",
+          "NOME LEGA input with placeholder 'Es. Champions Friends' and char counter (0/40)",
+          "GIORNATE section with Inizio (Giornata 1) and Fine (Giornata 38) dropdowns",
+          "TERMINE ULTIMO GIOCATA dropdown with options (0, 5, 10, 15, 20, 30, 45, 60 minutes)",
+          "PARTITE DA PRONOSTICARE with 'Lega Nazionale' and 'Scelte dal creatore' options",
+          "SISTEMA PUNTI section with 4 markets: 1X2 (1pt), Over/Under 2.5 (0.5pt), Goal/No Goal (0.5pt), Risultato Esatto (4pt)",
+          "Toggle switches for enabling/disabling each market",
+          "Point input fields for each market",
+          "CREA LEGA button with data-testid='create-league-submit-btn'"
+        ]
+      },
+      "join_private_page": {
+        "status": "PASSED",
+        "elements_verified": [
+          "Header 'Entra con Codice'",
+          "Key icon illustration",
+          "Description text for entering invite code",
+          "Code input field with data-testid='join-code-input' and placeholder 'XXXXXXXX'",
+          "ENTRA button with data-testid='join-submit-btn'",
+          "Back button with data-testid='back-btn'",
+          "Auto-uppercase conversion on code input"
+        ]
+      },
+      "login_flow": {
+        "status": "PASSED",
+        "elements_verified": [
+          "Login with email@email.com / Roberto95 works",
+          "Navigation to /(tabs)/home after successful login"
+        ]
+      }
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_league_creation.py",
+    "/app/test_reports/pytest/league_creation_results.xml"
+  ],
+  "action_items": [
+    "INVESTIGATE: Auth token timing issue in /league/create - useAuth() token may be null on first render causing seasons API 401. Consider: 1) Add loading state while token loads, 2) Retry API call when token becomes available, 3) Guard route with auth check before rendering form"
+  ],
+  "critical_code_review_comments": [
+    "The create.tsx useEffect depends on [token] but if token is initially undefined, the API call fires and fails. Consider adding a check: if (!token) return; in the useEffect before calling apiCall",
+    "Backend APIs are well implemented with proper validation and auto-lock mechanism for rules_locked",
+    "Frontend form has good UX with real-time validation (name length, matchday range)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_league_creation.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 tests passed)",
+    "frontend": "85% (UI correct, auth timing issue on direct navigation)"
+  },
+  "test_credentials": {
+    "user1": "email@email.com / Roberto95",
+    "user2": "marco@test.com / password123"
+  },
+  "seed_data_creation": "Created multiple TEST_* leagues during backend testing (TEST_Liga_Privata_*, TEST_Detail_*, TEST_Update_*, TEST_Join_*, TEST_Locked_*). Active season 'Serie A 2024-2025' already exists in DB.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Private league creation feature is fully working via backend APIs. Frontend UI is correct. Issue: Direct URL navigation to /league/create may fail to load seasons due to auth timing. Navigate through app instead. Backend test file at /app/backend/tests/test_league_creation.py covers all API endpoints.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  },
+  "rca_of_the_issue": {
+    "root_cause": "The create.tsx component calls apiCall('/leagues/seasons', { token }) in useEffect([token]). When navigating directly to the URL, the AuthContext may not have loaded the token from AsyncStorage yet, causing the API call to fire with undefined/null token resulting in 401 Unauthorized.",
+    "reproduction_steps": [
+      "Login via /login page",
+      "After successful login, navigate directly to /league/create via URL bar",
+      "Observe 'Nessuna stagione attiva trovata' error"
+    ],
+    "potential_mitigation": "Add guard in useEffect: if (!token) return; before API call, OR add isLoading check from AuthContext to show spinner until auth state is ready"
+  }
+}
