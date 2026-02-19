@@ -67,12 +67,24 @@ export default function PredictionsScreen() {
   const fetchData = useCallback(async () => {
     try {
       const home = await apiCall('/home', { token });
+      
+      // === DIAGNOSTIC LOG 3: Frontend Predictions ===
+      console.log('='.repeat(60));
+      console.log('[DIAG-3] PREDICTIONS SCREEN');
+      console.log('  home.league =', home.league);
+      console.log('  home.league.id =', home.league?.id);
+      console.log('  home.league.match_source_type =', home.league?.match_source_type);
+      console.log('  home.league.is_owner =', home.league?.is_owner);
+      console.log('  home.league.my_role =', home.league?.my_role);
+      
       if (!home.league?.id) { 
+        console.log('  ERROR: No league.id, exiting');
         setLoading(false); 
         return; 
       }
 
       const leagueId = home.league.id;
+      console.log('  Using leagueId =', leagueId);
 
       // Carica scoring_config dalla lega attiva
       try {
@@ -84,7 +96,9 @@ export default function PredictionsScreen() {
 
       // PUNTO UNICO DI VERITÀ: usa /api/leagues/{league_id}/fixtures
       // Questo endpoint gestisce correttamente manual vs national
+      console.log('  Calling: /api/leagues/' + leagueId + '/fixtures');
       const fixturesRes = await apiCall(`/leagues/${leagueId}/fixtures`, { token });
+      console.log('  fixturesRes.matchdays count =', fixturesRes.matchdays?.length);
       
       // Trova la giornata attiva (OPEN > LOCKED/LIVE > ultima)
       let activeMatchday = null;
