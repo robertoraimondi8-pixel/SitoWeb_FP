@@ -79,6 +79,15 @@ export default function PredictionsScreen() {
       console.log('  home.league.is_owner =', home.league?.is_owner);
       console.log('  home.league.my_role =', home.league?.my_role);
       
+      // Salva info lega per empty state
+      const isManualLeague = home.league?.match_source_type === 'manual' || home.league?.match_source_type === 'custom';
+      const isOwnerOrAdmin = home.league?.is_owner || ['owner', 'admin'].includes(home.league?.my_role);
+      setLeagueInfo({
+        id: home.league?.id || '',
+        isManual: isManualLeague,
+        isOwner: isOwnerOrAdmin,
+      });
+      
       if (!home.league?.id) { 
         console.log('  ERROR: No league.id, exiting');
         setLoading(false); 
