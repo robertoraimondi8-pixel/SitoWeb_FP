@@ -83,6 +83,20 @@ export default function OnboardingScreen() {
   return (
     <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+
+        {/* Top bar — pulsante Esci */}
+        <View style={s.topBar}>
+          <TouchableOpacity
+            testID="onboarding-logout-btn"
+            style={s.logoutBtn}
+            onPress={handleLogout}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="log-out-outline" size={18} color={colors.textSecondary} />
+            <Text style={[s.logoutText, { color: colors.textSecondary }]}>Esci</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Header */}
         <View style={s.headerSection}>
           <Image
