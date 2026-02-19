@@ -55,13 +55,6 @@ export default function CreateLeagueScreen() {
     setScoring(prev => ({ ...prev, [key]: { ...prev[key], enabled: !prev[key].enabled } }));
   };
 
-  const setPoints = (key: string, val: string) => {
-    const n = parseFloat(val);
-    if (!isNaN(n) && n >= 0) {
-      setScoring(prev => ({ ...prev, [key]: { ...prev[key], points: n } }));
-    }
-  };
-
   const handleCreate = async () => {
     setError('');
     if (!name.trim() || name.trim().length < 3) { setError('Il nome deve avere almeno 3 caratteri'); return; }
