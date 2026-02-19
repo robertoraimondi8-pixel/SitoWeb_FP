@@ -285,16 +285,8 @@ export default function CreateLeagueScreen() {
                   <Text style={[s.marketLabel, { color: mkt.enabled ? colors.text : colors.textSecondary }]}>{mkt.label}</Text>
                   <Text style={[s.marketDesc, { color: colors.textSecondary }]}>{mkt.desc}</Text>
                 </View>
-                <View style={[s.ptsWrap, { borderColor: mkt.enabled ? colors.accent : colors.border, backgroundColor: colors.background }]}>
-                  <TextInput
-                    style={[s.ptsInput, { color: mkt.enabled ? colors.text : colors.textSecondary }]}
-                    value={String(mkt.points)}
-                    onChangeText={v => setPoints(key, v)}
-                    keyboardType="decimal-pad"
-                    editable={mkt.enabled}
-                    maxLength={4}
-                  />
-                  <Text style={[s.ptsSuffix, { color: colors.textSecondary }]}>pt</Text>
+                <View style={[s.ptsBadge, { backgroundColor: mkt.enabled ? colors.accent + '18' : colors.border + '40', borderColor: mkt.enabled ? colors.accent + '55' : 'transparent' }]}>
+                  <Text style={[s.ptsBadgeText, { color: mkt.enabled ? colors.accent : colors.textSecondary }]}>{mkt.points} pt</Text>
                 </View>
               </View>
             ))}
