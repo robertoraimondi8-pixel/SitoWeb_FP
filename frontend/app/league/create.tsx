@@ -47,6 +47,7 @@ export default function CreateLeagueScreen() {
   const [showDeadline, setShowDeadline] = useState(false);
 
   useEffect(() => {
+    if (!token) return;
     apiCall('/leagues/seasons', { token }).then(setSeasons).catch(() => {});
   }, [token]);
 
