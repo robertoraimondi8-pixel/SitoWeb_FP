@@ -53,11 +53,32 @@ export default function PredictionsScreen() {
   const [preds, setPreds] = useState<Record<string, MatchPred>>({});
   const [joker, setJoker] = useState<JokerState>({ is_active: false, is_locked: false, used_other_matchday: false, half: 1 });
   const [jokerLoading, setJokerLoading] = useState(false);
+  // scoring_config dalla lega attiva (filtra mercati e punti)
+  const [scoringConfig, setScoringConfig] = useState<Record<string, { enabled: boolean; points: number }> | null>(null);
+
+  // Mercati visibili filtrati per scoring_config
+  const MARKETS = scoringConfig
+    ? ALL_MARKETS.filter(m => scoringConfig[m.configKey]?.enabled !== false).map(m => ({
+        ...m,
+        pts: `${scoringConfig[m.configKey]?.points ?? m.defaultPts} pt`,
+      }))
+    : ALL_MARKETS.map(m => ({ ...m, pts: `${m.defaultPts} pt` }));
 
   const fetchData = useCallback(async () => {
     try {
       const home = await apiCall('/home', { token });
       if (!home.matchday) { setLoading(false); return; }
+
+      // Carica scoring_config dalla lega attiva se disponibile
+      if (home.league?.id) {
+        try {
+          const leagueDetail = await apiCall(`/leagues/${home.league.id}`, { token });
+          if (leagueDetail?.scoring_config) {
+            setScoringConfig(leagueDetail.scoring_config);
+          }
+        } catch (_) { /* usa default se non disponibile */ }
+      }
+
       const res = await apiCall(`/predictions/${home.matchday.id}`, { token });
       setData(res);
 
