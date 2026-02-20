@@ -121,17 +121,25 @@ export default function PredictionsScreen() {
         console.log('  Using paramMatchdayId:', paramMatchdayId, '-> found:', !!activeMatchday);
       }
 
-      // Fallback: logica standard (OPEN > LOCKED/LIVE > ultima)
+      // Fallback: preferisci l'ultima OPEN per numero (la più recente),
+      // poi LOCKED/LIVE più recente, poi l'ultima giornata
       if (!activeMatchday) {
-        activeMatchday = matchdays.find((md: any) => md.status === 'OPEN');
-        if (!activeMatchday) {
-          activeMatchday = [...matchdays]
-            .reverse()
-            .find((md: any) => md.status === 'LOCKED' || md.status === 'LIVE');
+        const openMatchdays = matchdays.filter((md: any) => md.status === 'OPEN');
+        if (openMatchdays.length > 0) {
+          // Prendi quella con il numero più alto (la più recente)
+          activeMatchday = openMatchdays.reduce((max: any, md: any) =>
+            (md.number > max.number ? md : max), openMatchdays[0]);
         }
-        if (!activeMatchday && matchdays.length > 0) {
-          activeMatchday = matchdays[matchdays.length - 1];
+      }
+      if (!activeMatchday) {
+        const lockedLive = matchdays.filter((md: any) => md.status === 'LOCKED' || md.status === 'LIVE');
+        if (lockedLive.length > 0) {
+          activeMatchday = lockedLive.reduce((max: any, md: any) =>
+            (md.number > max.number ? md : max), lockedLive[0]);
         }
+      }
+      if (!activeMatchday && matchdays.length > 0) {
+        activeMatchday = matchdays[matchdays.length - 1];
       }
 
       console.log('  activeMatchday =', activeMatchday?.id, activeMatchday?.label);
