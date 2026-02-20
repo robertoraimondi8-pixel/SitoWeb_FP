@@ -913,6 +913,16 @@ export default function LeagueAdminConsole() {
                 value={newMatch.away_team}
                 onChangeText={(t) => setNewMatch(p => ({ ...p, away_team: t }))}
               />
+
+              <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Campionato</Text>
+              <TextInput
+                style={[s.formInput, { color: colors.text, borderColor: colors.border }]}
+                placeholder="Es: Serie A"
+                placeholderTextColor={colors.textSecondary}
+                value={newMatch.competition}
+                onChangeText={(t) => setNewMatch(p => ({ ...p, competition: t }))}
+                maxLength={60}
+              />
               
               <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Data e Ora *</Text>
               <View style={s.dateTimeRow}>
@@ -948,21 +958,6 @@ export default function LeagueAdminConsole() {
                   <Text style={[s.donePickerBtnText, { color: colors.background }]}>Fatto</Text>
                 </TouchableOpacity>
               )}
-              
-              <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Tipo Mercato</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-                {MARKET_TYPES.map((mt) => (
-                  <TouchableOpacity
-                    key={mt}
-                    style={[s.chip, { borderColor: colors.border }, newMatch.market_type === mt && { backgroundColor: colors.accent, borderColor: colors.accent }]}
-                    onPress={() => setNewMatch(p => ({ ...p, market_type: mt }))}
-                  >
-                    <Text style={[s.chipText, { color: colors.text }, newMatch.market_type === mt && { color: colors.background }]}>
-                      {mt}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
               
               <View style={s.modalBtns}>
                 <TouchableOpacity
