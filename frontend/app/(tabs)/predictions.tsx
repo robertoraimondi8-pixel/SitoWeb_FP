@@ -294,7 +294,7 @@ export default function PredictionsScreen() {
       }
 
       const res = await apiCall(`/predictions/${data.matchday.id}`, {
-        method: 'POST', token, body: { predictions },
+        method: 'POST', token, body: { predictions, league_id: leagueId },
       });
 
       if (res.errors?.length > 0) {
