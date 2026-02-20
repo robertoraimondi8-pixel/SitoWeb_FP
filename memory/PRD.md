@@ -200,6 +200,13 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 - **Fix** (`server.py`): Per leghe non-manuali, `user_matchdays_played = len(distinct matchday_id from predictions where user_id=X AND league_id=Y)`. Per leghe manuali: mantiene `total_completed_in_season`.
 - **Risultato**: Desylega (nuova lega) mostra GIORNATE = 0. Dopo che desiree inserisce i suoi pronostici, il contatore aumenterà correttamente.
 
+### 20 Feb 2026 - Bugfix: Scoring e Home per Leghe Nazionali Private (rollup completo)
+- **Root Cause completo**: `completed_matchdays_docs` usava solo matchday stagionali (no `league_id`), escludendo matchday di altre leghe. Query mancava del pattern `$or [league_id = X OR no league_id]`.
+- **Fix home**: `completed_matchdays_docs` ora usa predictions.distinct per trovare matchday realmente giocati. Tutti i filtri usano `$or` per retrocompatibilità.
+- **Risultato**: Desylega post-Giornata10 → GIORNATE=1, PUNTI=6.0, RANK=#1, last_5=[{md:10, pts:6.0}]. Zero regressioni su leghe manuali.
+
+
+
 ### 20 Feb 2026 - Bugfix: Isolamento Completo Dati Leghe Nazionali Private (league_id in predictions)
 - **Root Cause**: Le predictions non avevano `league_id`, quindi standings/matchdays, standings/weekly, standings/total e home/last_5 mostravano dati storici della lega nazionale per tutte le leghe private di tipo national.
 - **Fix 1** (`models.py`): Aggiunto `league_id: Optional[str] = None` a `PredictionsBatchRequest`.
