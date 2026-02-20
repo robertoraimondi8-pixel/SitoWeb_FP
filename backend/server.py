@@ -1375,8 +1375,13 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
             source_id = nat["id"] if nat else None
         source_league = await leagues_col.find_one({"id": source_id}, {"_id": 0}) if source_id else None
         season_id = source_league["season_id"] if source_league else league["season_id"]
-        matchdays = await matchdays_col.find({"season_id": season_id}, {"_id": 0}).sort("number", 1).to_list(100)
-        logger.info(f"  NATIONAL MODE: query matchdays by season_id={season_id}")
+        # CRITICAL: filter only national matchdays (league_id absent/null) to exclude manual-league matchdays
+        # that may share the same season_id
+        matchdays = await matchdays_col.find(
+            {"season_id": season_id, "$or": [{"league_id": {"$exists": False}}, {"league_id": None}]},
+            {"_id": 0}
+        ).sort("number", 1).to_list(100)
+        logger.info(f"  NATIONAL MODE: query matchdays by season_id={season_id} (national-only filter)")
     else:
         source_id = league_id
         season_id = league["season_id"]
@@ -1399,7 +1404,8 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
             for m in matches:
                 logger.info(f"    - {m.get('home_team')} vs {m.get('away_team')}, league_id={m.get('league_id')}")
         else:
-            matches = await matches_col.find({"matchday_id": md["id"]}, {"_id": 0}).to_list(20)
+            # National-type league: use _match_source_query to exclude manual-league matches
+            matches = await matches_col.find(_match_source_query(md["id"], None), {"_id": 0}).to_list(20)
         result.append({**md, "matches": matches})
 
     logger.info("=" * 60)
@@ -2650,12 +2656,13 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
     if not matchday:
         raise HTTPException(404, "Matchday not found")
 
-    # Use matchday's own league_id for match isolation (manual/custom leagues store league_id on matches)
-    matchday_league_id = matchday.get("league_id") or league_id
-    match_query: dict = {"matchday_id": matchday_id}
-    if matchday_league_id:
-        match_query["league_id"] = matchday_league_id
-    matches = await matches_col.find(match_query, {"_id": 0}).to_list(20)
+    # Use _match_source_query for correct data isolation:
+    # - manual matchday (has league_id) → filter by that league_id
+    # - national matchday (no league_id) → filter to matches without league_id
+    matches = await matches_col.find(
+        _match_source_query(matchday_id, matchday.get("league_id")),
+        {"_id": 0}
+    ).to_list(20)
 
     # Filter predictions by league_id for data isolation (fallback for old predictions without league_id)
     pred_query: dict = {"user_id": user["id"], "matchday_id": matchday_id}
