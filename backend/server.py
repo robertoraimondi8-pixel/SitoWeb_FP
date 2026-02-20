@@ -321,18 +321,34 @@ async def recalculate_user_total_standings(user_id: str, league_id: str):
     total_matches = sum(s.get("valid_matches", 0) for s in summaries)
     matchdays_played = len(summaries)
     
-    # Upsert standings cache
-    await standings_cache_col.update_one(
-        {"user_id": user_id, "league_id": league_id, "type": "total"},
-        {"$set": {
+    # Upsert standings cache con id univoco
+    existing = await standings_cache_col.find_one(
+        {"user_id": user_id, "league_id": league_id, "type": "total"}
+    )
+    
+    if existing:
+        await standings_cache_col.update_one(
+            {"id": existing["id"]},
+            {"$set": {
+                "total_points": total_points,
+                "correct_matches": total_correct,
+                "valid_matches": total_matches,
+                "matchdays_played": matchdays_played,
+                "updated_at": now_utc(),
+            }}
+        )
+    else:
+        await standings_cache_col.insert_one({
+            "id": new_id(),
+            "user_id": user_id,
+            "league_id": league_id,
+            "type": "total",
             "total_points": total_points,
             "correct_matches": total_correct,
             "valid_matches": total_matches,
             "matchdays_played": matchdays_played,
             "updated_at": now_utc(),
-        }},
-        upsert=True
-    )
+        })
     
     logger.info(f"[STANDINGS] Updated total for user {user_id} in league {league_id}: {total_points} pts")
 
