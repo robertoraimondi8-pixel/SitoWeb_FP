@@ -830,21 +830,32 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         ).to_list(1000)
         league_member_ids = [m["user_id"] for m in league_members]
         
-        # Get only COMPLETED matchday IDs for this season
-        # This is the single source of truth for BOTH "GIORNATE" count AND "ULTIMI 5"
-        completed_matchdays_docs = await matchdays_col.find(
-            {"season_id": season["id"], "status": "COMPLETED"},
-            {"_id": 0, "id": 1}
-        ).to_list(100)
+        # Get only COMPLETED matchday IDs for THIS LEAGUE
+        # IMPORTANTE: filtrare per league_id se lega manuale
+        is_manual_league = first_league.get("match_source_type") in ("manual", "custom")
+        
+        if is_manual_league:
+            # Lega manuale: matchdays con league_id = questa lega
+            completed_matchdays_docs = await matchdays_col.find(
+                {"league_id": first_league["id"], "status": "COMPLETED"},
+                {"_id": 0, "id": 1, "number": 1}
+            ).sort("number", -1).to_list(100)
+            logger.info(f"[HOME] last5 league_id={first_league['id']}, source=manual, matchdays_completed={len(completed_matchdays_docs)}")
+        else:
+            # Lega nazionale: matchdays dalla stagione senza league_id
+            completed_matchdays_docs = await matchdays_col.find(
+                {"season_id": season["id"], "status": "COMPLETED", "league_id": {"$exists": False}},
+                {"_id": 0, "id": 1, "number": 1}
+            ).sort("number", -1).to_list(100)
+            logger.info(f"[HOME] last5 league_id={first_league['id']}, source=national, matchdays_completed={len(completed_matchdays_docs)}")
+        
         completed_md_ids = [m["id"] for m in completed_matchdays_docs]
         # GIORNATE = number of COMPLETED matchdays in season (same dataset as last_5_performance)
         total_completed_in_season = len(completed_md_ids)
 
-        # Aggregate total points for all members (only COMPLETED matchdays)
-        # NOTE: do NOT use $sum:1 here for matchdays_played — user may lack a score_summary
-        # for some matchdays (0 pts), but those still count as "played" in the season.
+        # Aggregate total points for all members (only COMPLETED matchdays) - FILTRATO PER LEAGUE_ID
         all_totals = await score_summaries_col.aggregate([
-            {"$match": {"user_id": {"$in": league_member_ids}, "matchday_id": {"$in": completed_md_ids}}},
+            {"$match": {"user_id": {"$in": league_member_ids}, "matchday_id": {"$in": completed_md_ids}, "league_id": first_league["id"]}},
             {"$group": {"_id": "$user_id", "total": {"$sum": "$total_points"}}},
             {"$sort": {"total": -1}},
         ]).to_list(1000)
