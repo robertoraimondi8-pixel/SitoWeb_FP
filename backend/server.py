@@ -1767,7 +1767,10 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
                 "locked": False,
                 "created_at": ts,
                 "updated_at": ts,
-            })
+            }
+            if pred_league_id:
+                doc["league_id"] = pred_league_id
+            await predictions_col.insert_one(doc)
         saved.append({"match_id": p.match_id, "market_type": p.market_type, "value": p.prediction_value})
 
     return {"saved_count": len(saved), "saved": saved, "errors": errors}
