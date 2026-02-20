@@ -195,6 +195,13 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 - Added: Test suite isolamento multi-lega (/app/backend/tests/test_multi_league_isolation.py)
 - Verified: 15/15 backend tests passati
 
+### 20 Feb 2026 - Feature: Predictions Completeness Validation
+- **Frontend**: Bottone "Conferma Pronostici" disabilitato fino a quando non tutte le partite hanno un pronostico
+- **Frontend**: Progress bar `completedCount/totalCount partite` nel footer della pagina Pronostici
+- **Frontend**: Titolo bottone dinamico: "Completa tutti i pronostici" quando incompleto, "Salva Pronostici" quando completo
+- **Backend**: `POST /api/predictions/{matchday_id}` restituisce HTTP 422 con `PREDICTIONS_INCOMPLETE` se non tutte le partite (non ancora iniziate) hanno un pronostico
+- **Backend**: Logica cumulativa: controlla sia i pronostici nel payload sia quelli già salvati nel DB
+
 ### Previous Sessions
 - Implemented private league creation with configurable rules
 - Added manual vs national match source types
