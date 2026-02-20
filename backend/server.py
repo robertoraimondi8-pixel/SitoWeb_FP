@@ -1279,11 +1279,20 @@ async def delete_league_match(league_id: str, matchday_id: str, match_id: str, u
 
 @league_router.put("/{league_id}/matches/{match_id}")
 async def update_league_match_simple(league_id: str, match_id: str, req: dict, user=Depends(get_current_user)):
-    """Aggiorna una partita (risultato, status) - semplificato senza matchday_id nel path."""
+    """Aggiorna una partita (risultato, status) - semplificato senza matchday_id nel path.
+    Se status diventa 'finished', ricalcola i punti per tutti i pronostici di quella partita.
+    """
     league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
     if not league:
         raise HTTPException(404, "Lega non trovata")
     _require_league_admin(league, user)
+    
+    # Get current match to check for status change
+    match = await matches_col.find_one({"id": match_id, "league_id": league_id}, {"_id": 0})
+    if not match:
+        raise HTTPException(404, "Partita non trovata")
+    
+    old_status = match.get("status")
     
     updates = {}
     if "home_score" in req:
@@ -1295,6 +1304,14 @@ async def update_league_match_simple(league_id: str, match_id: str, req: dict, u
     
     if updates:
         await matches_col.update_one({"id": match_id, "league_id": league_id}, {"$set": updates})
+    
+    # Se status cambia a 'finished' o risultato viene aggiornato, ricalcola punti
+    new_status = updates.get("status", old_status)
+    has_result = (updates.get("home_score") is not None or match.get("home_score") is not None)
+    
+    if new_status == "finished" and has_result:
+        # Ricalcola punti per tutti i pronostici di questa partita
+        await recalculate_match_predictions(match_id, league_id)
     
     return await matches_col.find_one({"id": match_id}, {"_id": 0})
 
