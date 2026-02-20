@@ -1659,6 +1659,35 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
         raise HTTPException(400, "Matchday is completed, cannot modify predictions")
 
     now = server_now()
+
+    # Validate completeness: all unlocked matches must have predictions (new or already saved)
+    all_matchday_matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(100)
+    unlocked_match_ids = set()
+    for m in all_matchday_matches:
+        try:
+            start = datetime.fromisoformat(m["start_time"].replace("Z", "+00:00"))
+            if now < start:
+                unlocked_match_ids.add(m["id"])
+        except Exception:
+            pass
+
+    if unlocked_match_ids:
+        # Already saved predictions for this matchday
+        existing_preds = await predictions_col.find(
+            {"user_id": user["id"], "matchday_id": matchday_id}, {"_id": 0}
+        ).to_list(100)
+        existing_pred_match_ids = {p["match_id"] for p in existing_preds}
+        incoming_match_ids = {p.match_id for p in req.predictions}
+        covered_ids = existing_pred_match_ids | incoming_match_ids
+        missing = unlocked_match_ids - covered_ids
+        if missing:
+            raise HTTPException(422, detail={
+                "code": "PREDICTIONS_INCOMPLETE",
+                "message": f"Devi inserire un pronostico per tutte le {len(unlocked_match_ids)} partite",
+                "completed": len(covered_ids & unlocked_match_ids),
+                "required": len(unlocked_match_ids),
+            })
+
     saved = []
     errors = []
 
