@@ -893,9 +893,16 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             user_matchdays_played = total_completed_in_season
         else:
             # Conta DISTINCT matchday_id dalle predictions di questo utente per questa lega
+            # Fallback: include anche predictions senza league_id (retrocompatibilità)
             user_played_md_ids = await predictions_col.distinct(
-                "matchday_id", {"user_id": user["id"], "league_id": first_league["id"]}
+                "matchday_id",
+                {
+                    "user_id": user["id"],
+                    "$or": [{"league_id": first_league["id"]}, {"league_id": {"$exists": False}}]
+                }
             )
+            # Filtra solo ai matchday nazionali della stagione (evita cross-lega)
+            user_played_md_ids = [mid for mid in user_played_md_ids if mid in completed_md_ids or mid in {m["id"] for m in completed_matchdays_docs}]
             user_matchdays_played = len(user_played_md_ids)
         
         for i, t in enumerate(all_totals):
