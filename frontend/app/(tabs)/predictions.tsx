@@ -320,34 +320,28 @@ export default function PredictionsScreen() {
   }
 
   if (!data?.matchday) {
-    // Empty state per lega manuale senza partite
-    if (leagueInfo?.isManual) {
-      return (
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="football-outline" size={48} color={colors.textMuted} />
-          <Text style={styles.emptyText}>Nessuna partita ancora.</Text>
-          <Text style={[styles.emptyText, { fontSize: 14, marginTop: 8 }]}>
-            {leagueInfo.isOwner 
-              ? 'Aggiungi le partite nella sezione Gestisci Lega.' 
-              : 'Il creatore deve aggiungere le partite.'}
+          <Ionicons name="calendar-outline" size={48} color={colors.textMuted} />
+          <Text style={[styles.emptyText, { fontWeight: '700', fontSize: 16, textAlign: 'center' }]}>
+            Nessuna giornata disponibile per questa lega
           </Text>
-          {leagueInfo.isOwner && leagueInfo.id && (
-            <TouchableOpacity 
-              style={[styles.saveBtn, { marginTop: 20, width: 200 }]}
+          {leagueInfo?.isOwner ? (
+            <TouchableOpacity
+              data-testid="crea-giornata-btn"
+              style={[styles.saveBtn, { marginTop: 20, width: 240, height: 52, borderRadius: 26, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }]}
               onPress={() => router.push(`/league/${leagueInfo.id}/manage` as any)}
             >
-              <Text style={styles.saveBtnText}>Aggiungi partite</Text>
+              <Text style={[styles.saveBtnText, { color: '#fff', fontWeight: '700' }]}>Crea la prima giornata</Text>
             </TouchableOpacity>
+          ) : (
+            <Text style={[styles.emptyText, { fontSize: 14, marginTop: 8, textAlign: 'center', paddingHorizontal: 24 }]}>
+              Chiedi all'admin di creare una giornata
+            </Text>
           )}
         </View>
-      );
-    }
-    // Empty state standard
-    return (
-      <View style={styles.loadingContainer}>
-        <Ionicons name="calendar-outline" size={48} color={colors.textMuted} />
-        <Text style={styles.emptyText}>{t('no_data')}</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
