@@ -3007,6 +3007,7 @@ async def admin_create_matchday(req: MatchdayCreate, admin=Depends(require_admin
         "half": req.half,
         "first_kickoff": req.first_kickoff,
         "status": req.status,
+        "league_id": NATIONAL_LEAGUE_ID,   # Admin console manages only national league
         "created_at": now_utc(),
     }
     await matchdays_col.insert_one(md)
@@ -3049,10 +3050,12 @@ async def admin_update_matchday(matchday_id: str, req: AdminMatchdayUpdate, admi
 
 async def _calculate_matchday_scores(matchday_id: str, admin: dict):
     """Helper function to calculate and store scores for all users with predictions."""
-    matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0, "league_id": 1})
+    md_league_id = matchday.get("league_id") if matchday else NATIONAL_LEAGUE_ID
+    matches = await matches_col.find(_match_source_query(matchday_id, md_league_id), {"_id": 0}).to_list(20)
     matches_dict = {m["id"]: m for m in matches}
 
-    # Get all predictions for this matchday
+    # Get all predictions for this matchday (all leagues that played it)
     all_preds = await predictions_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(10000)
 
     # Group by user
