@@ -926,6 +926,13 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             if is_manual_league:
                 score_filter = {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]}
             else:
+                # Per leghe nazionali private: solo giornate dove l'utente ha giocato
+                # (ha predictions per quella giornata) - evita di mostrare giornate storiche pre-lega
+                has_predictions = await predictions_col.count_documents(
+                    {"user_id": user["id"], "matchday_id": md["id"]},
+                )
+                if has_predictions == 0:
+                    continue  # Salta giornate non giocate
                 score_filter = {"user_id": user["id"], "matchday_id": md["id"]}
             score = await score_summaries_col.find_one(score_filter, {"_id": 0, "total_points": 1})
             pts = score.get("total_points", 0.0) if score else 0.0
