@@ -94,7 +94,11 @@ export default function HomeScreen() {
   const getCtaConfig = (status: string) => {
     switch (status?.toUpperCase()) {
       case 'OPEN':
-        return { icon: 'create-outline' as const, label: 'INSERISCI PRONOSTICI', route: '/(tabs)/predictions' };
+        return { 
+          icon: 'create-outline' as const, 
+          label: 'INSERISCI PRONOSTICI', 
+          route: `/(tabs)/predictions?league_id=${data?.league?.id || ''}&matchday_id=${data?.matchday?.id || ''}` 
+        };
       case 'LIVE':
         return { icon: 'pulse' as const, label: 'SEGUI LIVE', route: `/live/${data?.matchday?.id}` };
       case 'COMPLETED':
