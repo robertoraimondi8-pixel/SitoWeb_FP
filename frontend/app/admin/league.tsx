@@ -364,7 +364,7 @@ export default function LeagueAdminConsole() {
       });
       Alert.alert('Fatto!', 'Partita aggiunta');
       setShowAddMatch(false);
-    setNewMatch({ home_team: '', away_team: '', market_type: '1X2', competition: competitionName || 'Lega Privata' });
+    setNewMatch({ home_team: '', away_team: '', market_type: '1X2', competition: '' });
       setMatchDate(getDefaultDate());
       await loadMatches(selectedMatchday.id);
     } catch (e: any) {
