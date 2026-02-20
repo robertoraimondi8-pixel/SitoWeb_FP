@@ -164,6 +164,7 @@ export default function LeagueAdminConsole() {
       }
       
       setLeague(data);
+      setCompetitionName(data.competition_name || '');
     } catch (e: any) {
       if (isAuthError(e)) {
         const didLogout = await handleAuthError(e);
@@ -318,6 +319,24 @@ export default function LeagueAdminConsole() {
     } finally {
       setActionLoading(false);
       setShowStatusPicker(false);
+    }
+  };
+
+  // === COMPETITION NAME ===
+  const saveCompetitionName = async () => {
+    if (!league) return;
+    setSavingCompetition(true);
+    try {
+      await apiCall(`/leagues/${league.id}`, {
+        method: 'PATCH',
+        token,
+        body: { competition_name: competitionName.trim() },
+      });
+      Alert.alert('Salvato!', 'Nome campionato aggiornato');
+    } catch (e: any) {
+      Alert.alert('Errore', e.message || 'Impossibile salvare');
+    } finally {
+      setSavingCompetition(false);
     }
   };
 
