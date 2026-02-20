@@ -46,6 +46,7 @@ export default function PredictionsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { token, handleAuthError } = useAuth();
+  const { league_id: paramLeagueId, matchday_id: paramMatchdayId } = useLocalSearchParams<{ league_id?: string; matchday_id?: string }>();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
