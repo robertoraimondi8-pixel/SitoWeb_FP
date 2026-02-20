@@ -2630,7 +2630,12 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
         raise HTTPException(404, "Matchday not found")
 
     matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
-    preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+
+    # Filter predictions by league_id for data isolation (fallback for old predictions without league_id)
+    pred_query: dict = {"user_id": user["id"], "matchday_id": matchday_id}
+    if league_id:
+        pred_query["$or"] = [{"league_id": league_id}, {"league_id": {"$exists": False}}]
+    preds = await predictions_col.find(pred_query, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
     
     # Get joker for this matchday
