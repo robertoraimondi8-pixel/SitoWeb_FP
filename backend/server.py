@@ -1219,6 +1219,9 @@ async def delete_league_matchday(league_id: str, matchday_id: str, user=Depends(
     return {"message": "Giornata eliminata"}
 
 
+MAX_MATCHES_PER_MATCHDAY = 10
+
+
 @league_router.get("/{league_id}/matchdays/{matchday_id}/matches")
 async def get_league_matchday_matches(league_id: str, matchday_id: str, user=Depends(get_current_user)):
     mem = await memberships_col.find_one({"user_id": user["id"], "league_id": league_id, "status": "active"})
@@ -1233,6 +1236,12 @@ async def create_league_match(league_id: str, matchday_id: str, req: MatchCreate
     if not league:
         raise HTTPException(404, "Lega non trovata")
     _require_league_admin(league, user)
+    
+    # Check limit: max 10 matches per matchday
+    current_count = await matches_col.count_documents({"matchday_id": matchday_id, "league_id": league_id})
+    if current_count >= MAX_MATCHES_PER_MATCHDAY:
+        raise HTTPException(400, f"Limite massimo di {MAX_MATCHES_PER_MATCHDAY} partite per giornata raggiunto")
+    
     match_id = new_id()
     match = {
         "id": match_id, "matchday_id": matchday_id, "league_id": league_id,
