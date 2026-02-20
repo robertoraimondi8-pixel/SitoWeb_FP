@@ -1967,9 +1967,25 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
             sort=[("number", -1)]
         )
 
-    # Aggregate total points and matchdays per user FILTRATI PER LEAGUE_ID
+    # Aggregate total points and matchdays per user
+    # Per leghe manuali: filtra per league_id (score_summaries hanno league_id)
+    # Per leghe nazionali/private nazionali: NO filtro league_id (admin_confirm non salva league_id)
+    is_national_type = league_doc.get("match_source_type") not in ("manual", "custom")
+    if is_national_type:
+        # Per leghe nazionali: filtra per matchday_id (solo giornate della stagione nazionale)
+        national_md_ids = []
+        if season:
+            national_mds = await matchdays_col.find(
+                {"season_id": season["id"], "league_id": {"$exists": False}},
+                {"_id": 0, "id": 1}
+            ).to_list(200)
+            national_md_ids = [m["id"] for m in national_mds]
+        standings_match = {"user_id": {"$in": member_user_ids}, "matchday_id": {"$in": national_md_ids}} if national_md_ids else {"user_id": {"$in": member_user_ids}, "league_id": None}
+    else:
+        standings_match = {"user_id": {"$in": member_user_ids}, "league_id": league_id}
+
     pipeline = [
-        {"$match": {"user_id": {"$in": member_user_ids}, "league_id": league_id}},
+        {"$match": standings_match},
         {"$group": {
             "_id": "$user_id", 
             "total_points": {"$sum": "$total_points"}, 
