@@ -89,6 +89,27 @@ def server_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _match_source_query(matchday_id: str, source_league_id: str | None) -> dict:
+    """
+    Build match query for correct data isolation.
+
+    Match source logic:
+    - Manual/custom league  → matches have league_id = source_league_id
+    - National-type league  → matches belong to the national league and have NO league_id
+                             (or league_id is null/absent)
+
+    IMPORTANT: this is separate from predictions/standings which always filter
+    by the *current* private league_id.
+    """
+    if source_league_id:
+        return {"matchday_id": matchday_id, "league_id": source_league_id}
+    # National league matches have no league_id stored
+    return {
+        "matchday_id": matchday_id,
+        "$or": [{"league_id": {"$exists": False}}, {"league_id": None}],
+    }
+
+
 # B) FUNZIONE CENTRALIZZATA CALCOLO PUNTI GIORNATA
 async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
     """
