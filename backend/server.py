@@ -280,7 +280,44 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
             upsert=True
         )
     
-    logger.info(f"[SCORING] Recalculated scores for {len(user_points)} users in matchday {matchday_id}")
+    # 5. RICALCOLO STANDINGS TOTALI per la lega
+    # Per ogni utente che ha partecipato, ricalcola il totale punti di TUTTE le sue giornate in questa lega
+    for user_id in user_points.keys():
+        await recalculate_user_total_standings(user_id, league_id)
+    
+    logger.info(f"[SCORING] Recalculated scores for {len(user_points)} users in matchday {matchday_id}, standings updated")
+
+
+async def recalculate_user_total_standings(user_id: str, league_id: str):
+    """
+    Ricalcola il totale punti di un utente per una specifica lega.
+    Somma tutti i score_summaries per quella lega.
+    """
+    # Get all score_summaries for this user in this league
+    summaries = await score_summaries_col.find(
+        {"user_id": user_id, "league_id": league_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    total_points = sum(s.get("total_points", 0) for s in summaries)
+    total_correct = sum(s.get("correct_matches", 0) for s in summaries)
+    total_matches = sum(s.get("valid_matches", 0) for s in summaries)
+    matchdays_played = len(summaries)
+    
+    # Upsert standings cache
+    await standings_cache_col.update_one(
+        {"user_id": user_id, "league_id": league_id, "type": "total"},
+        {"$set": {
+            "total_points": total_points,
+            "correct_matches": total_correct,
+            "valid_matches": total_matches,
+            "matchdays_played": matchdays_played,
+            "updated_at": now_utc(),
+        }},
+        upsert=True
+    )
+    
+    logger.info(f"[STANDINGS] Updated total for user {user_id} in league {league_id}: {total_points} pts")
 
 
 # ========================================
