@@ -106,6 +106,11 @@ export default function PredictionsScreen() {
         if (leagueDetail?.scoring_config) {
           setScoringConfig(leagueDetail.scoring_config);
         }
+        if (leagueDetail?.competition_name) {
+          setCompetitionName(leagueDetail.competition_name);
+        } else {
+          setCompetitionName(leagueDetail?.name || '');
+        }
       } catch (_) { /* usa default se non disponibile */ }
 
       // PUNTO UNICO DI VERITÀ: usa /api/leagues/{league_id}/fixtures
@@ -476,7 +481,7 @@ export default function PredictionsScreen() {
                     <Text style={styles.matchNum}>{idx + 1}</Text>
                   </View>
                   <View style={styles.matchMeta}>
-                    <Text style={styles.competition}>{m.competition}</Text>
+                    <Text style={styles.competition}>{competitionName || m.competition}</Text>
                     {m.start_time && (
                       <Text style={styles.matchTime}>{formatMatchTime(m.start_time)}</Text>
                     )}
