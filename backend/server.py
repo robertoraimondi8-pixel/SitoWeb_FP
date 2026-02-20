@@ -933,9 +933,14 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             if is_manual_league:
                 score_filter = {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]}
             else:
-                # Lega nazionale privata: solo giornate dove l'utente ha predictions con league_id = questa lega
+                # Lega nazionale privata: predictions con league_id = questa lega OPPURE senza league_id
+                # (fallback per retrocompatibilità con predictions create prima dell'introduzione di league_id)
                 has_predictions = await predictions_col.count_documents(
-                    {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]},
+                    {
+                        "user_id": user["id"],
+                        "matchday_id": md["id"],
+                        "$or": [{"league_id": first_league["id"]}, {"league_id": {"$exists": False}}]
+                    }
                 )
                 if has_predictions == 0:
                     continue  # Salta: questa giornata non è stata giocata per questa lega
