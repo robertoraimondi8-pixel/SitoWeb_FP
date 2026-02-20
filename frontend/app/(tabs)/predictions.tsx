@@ -97,6 +97,7 @@ export default function PredictionsScreen() {
 
       const leagueId = home.league.id;
       console.log('  Using leagueId =', leagueId);
+      console.log('  paramMatchdayId =', paramMatchdayId);
 
       // Carica scoring_config dalla lega attiva
       try {
@@ -107,28 +108,30 @@ export default function PredictionsScreen() {
       } catch (_) { /* usa default se non disponibile */ }
 
       // PUNTO UNICO DI VERITÀ: usa /api/leagues/{league_id}/fixtures
-      // Questo endpoint gestisce correttamente manual vs national
       console.log('  Calling: /api/leagues/' + leagueId + '/fixtures');
       const fixturesRes = await apiCall(`/leagues/${leagueId}/fixtures`, { token });
       console.log('  fixturesRes.matchdays count =', fixturesRes.matchdays?.length);
       
-      // Trova la giornata attiva (OPEN > LOCKED/LIVE > ultima)
-      let activeMatchday = null;
       const matchdays = fixturesRes.matchdays || [];
-      
-      // 1. Prima cerca OPEN
-      activeMatchday = matchdays.find((md: any) => md.status === 'OPEN');
-      
-      // 2. Se non c'è OPEN, cerca l'ultima LOCKED o LIVE
-      if (!activeMatchday) {
-        activeMatchday = [...matchdays]
-          .reverse()
-          .find((md: any) => md.status === 'LOCKED' || md.status === 'LIVE');
+      let activeMatchday = null;
+
+      // Se passato matchday_id via route params, usalo direttamente
+      if (paramMatchdayId) {
+        activeMatchday = matchdays.find((md: any) => md.id === paramMatchdayId);
+        console.log('  Using paramMatchdayId:', paramMatchdayId, '-> found:', !!activeMatchday);
       }
-      
-      // 3. Fallback: ultima giornata
-      if (!activeMatchday && matchdays.length > 0) {
-        activeMatchday = matchdays[matchdays.length - 1];
+
+      // Fallback: logica standard (OPEN > LOCKED/LIVE > ultima)
+      if (!activeMatchday) {
+        activeMatchday = matchdays.find((md: any) => md.status === 'OPEN');
+        if (!activeMatchday) {
+          activeMatchday = [...matchdays]
+            .reverse()
+            .find((md: any) => md.status === 'LOCKED' || md.status === 'LIVE');
+        }
+        if (!activeMatchday && matchdays.length > 0) {
+          activeMatchday = matchdays[matchdays.length - 1];
+        }
       }
 
       console.log('  activeMatchday =', activeMatchday?.id, activeMatchday?.label);
