@@ -364,7 +364,7 @@ export default function LeagueAdminConsole() {
       });
       Alert.alert('Fatto!', 'Partita aggiunta');
       setShowAddMatch(false);
-      setNewMatch({ home_team: '', away_team: '', market_type: '1X2', competition: 'Lega Privata' });
+    setNewMatch({ home_team: '', away_team: '', market_type: '1X2', competition: competitionName || 'Lega Privata' });
       setMatchDate(getDefaultDate());
       await loadMatches(selectedMatchday.id);
     } catch (e: any) {
@@ -530,6 +530,44 @@ export default function LeagueAdminConsole() {
             <Text style={[s.errorBannerText, { color: colors.error }]}>{error}</Text>
           </View>
         ) : null}
+
+        {/* SECTION: Impostazioni Campionato */}
+        <View style={[s.section, { backgroundColor: colors.card }]}>
+          <View style={s.sectionHeader}>
+            <Text style={[s.sectionTitle, { color: colors.accent }]}>
+              <Ionicons name="trophy" size={16} /> CAMPIONATO
+            </Text>
+          </View>
+          <Text style={[s.label, { color: colors.textSecondary, marginBottom: 6 }]}>
+            Nome campionato (es. Serie A)
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <TextInput
+              style={[s.input, { flex: 1, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
+              value={competitionName}
+              onChangeText={setCompetitionName}
+              placeholder="es. Serie A"
+              placeholderTextColor={colors.textMuted}
+              editable={!league.rules_locked}
+              maxLength={60}
+            />
+            <TouchableOpacity
+              style={[s.addBtn, { backgroundColor: league.rules_locked ? colors.textMuted : colors.accent, paddingHorizontal: 16 }]}
+              onPress={saveCompetitionName}
+              disabled={savingCompetition || league.rules_locked}
+            >
+              {savingCompetition
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Text style={[s.addBtnText, { color: '#fff' }]}>Salva</Text>
+              }
+            </TouchableOpacity>
+          </View>
+          {league.rules_locked && (
+            <Text style={[s.hint, { color: colors.textMuted, marginTop: 4 }]}>
+              Bloccato: altri membri hanno già aderito
+            </Text>
+          )}
+        </View>
 
         {/* SECTION: Matchdays */}
         <View style={[s.section, { backgroundColor: colors.card }]}>
