@@ -1713,6 +1713,9 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
     if len(match_ids_in_payload) != len(set(match_ids_in_payload)):
         raise HTTPException(400, "Duplicate match_id in payload — only 1 market per match allowed")
 
+    # league_id associata a queste predictions (per isolamento dati nelle leghe private nazionali)
+    pred_league_id = req.league_id if req.league_id else None
+
     for p in req.predictions:
         match = await matches_col.find_one({"id": p.match_id, "matchday_id": matchday_id}, {"_id": 0})
         if not match:
@@ -1740,16 +1743,19 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
         ts = now_utc()
         if existing:
             # Overwrite: change market + value (only 1 market per match guaranteed)
+            update_fields = {
+                "market_type": p.market_type,
+                "prediction_value": p.prediction_value,
+                "updated_at": ts,
+            }
+            if pred_league_id:
+                update_fields["league_id"] = pred_league_id
             await predictions_col.update_one(
                 {"user_id": user["id"], "match_id": p.match_id},
-                {"$set": {
-                    "market_type": p.market_type,
-                    "prediction_value": p.prediction_value,
-                    "updated_at": ts,
-                }}
+                {"$set": update_fields}
             )
         else:
-            await predictions_col.insert_one({
+            doc = {
                 "id": new_id(),
                 "user_id": user["id"],
                 "match_id": p.match_id,
