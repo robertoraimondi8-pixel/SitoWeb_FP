@@ -1362,10 +1362,25 @@ async def update_league_matchday(league_id: str, matchday_id: str, req: dict, us
     
     # Se status cambia a COMPLETED, ricalcola tutti i punteggi
     new_status = updates.get("status")
-    if new_status == "COMPLETED" and old_status != "COMPLETED":
+    if new_status == "COMPLETED":
+        logger.info(f"[SCORING] Matchday {matchday_id} marked COMPLETED, triggering recalculation...")
         await recalculate_matchday_scores(matchday_id, league_id)
     
     return await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+
+
+@league_router.post("/{league_id}/matchdays/{matchday_id}/recalculate")
+async def force_recalculate_matchday(league_id: str, matchday_id: str, user=Depends(get_current_user)):
+    """Forza il ricalcolo dei punteggi per una giornata - utile per debug o fix."""
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    _require_league_admin(league, user)
+    
+    logger.info(f"[SCORING] Manual recalculation triggered for matchday {matchday_id} in league {league_id}")
+    await recalculate_matchday_scores(matchday_id, league_id)
+    
+    return {"message": "Ricalcolo completato", "matchday_id": matchday_id, "league_id": league_id}
 
 
 @league_router.delete("/{league_id}/matchdays/{matchday_id}")
