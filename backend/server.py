@@ -2021,14 +2021,41 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
 
 
 @standings_router.get("/matchdays")
-async def get_available_matchdays(user=Depends(get_current_user)):
-    """Lista giornate disponibili per la classifica settimanale."""
+async def get_available_matchdays(league_id: str = None, user=Depends(get_current_user)):
+    """Lista giornate disponibili per la classifica settimanale - filtrate per lega."""
+    
+    # Se league_id specificato, filtra per quella lega
+    if league_id:
+        league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+        if league:
+            is_manual = league.get("match_source_type") in ("manual", "custom")
+            if is_manual:
+                # Lega manuale: matchdays con league_id = questa lega
+                matchdays = await matchdays_col.find(
+                    {"league_id": league_id},
+                    {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}
+                ).sort("number", -1).to_list(50)
+                return matchdays
+            else:
+                # Lega nazionale: matchdays dalla source_league_id o dalla stagione
+                source_league_id = league.get("source_league_id")
+                if source_league_id:
+                    source_league = await leagues_col.find_one({"id": source_league_id}, {"_id": 0})
+                    if source_league:
+                        season_id = source_league.get("season_id")
+                        matchdays = await matchdays_col.find(
+                            {"season_id": season_id, "league_id": {"$exists": False}},
+                            {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}
+                        ).sort("number", -1).to_list(50)
+                        return matchdays
+    
+    # Fallback: matchdays dalla stagione attiva (senza league_id = nazionali)
     season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
     if not season:
         return []
     
     matchdays = await matchdays_col.find(
-        {"season_id": season["id"]},
+        {"season_id": season["id"], "league_id": {"$exists": False}},
         {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}
     ).sort("number", -1).to_list(50)
     
