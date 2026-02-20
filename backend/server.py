@@ -2084,11 +2084,25 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
     members = await memberships_col.find({"league_id": league_id, "status": "active"}).to_list(1000)
     member_user_ids = [m["user_id"] for m in members]
 
-    # Get predictions to count exact scores and 1X2 correct
+    # Get predictions filtrate per questa lega
+    # Per leghe nazionali private: usa predictions.league_id = league_id
+    # Per leghe manuali: usa predictions.matchday_id (i matchday sono già unici per lega)
+    is_manual = league_doc.get("match_source_type") in ("manual", "custom")
+    if is_manual:
+        pred_filter = {"matchday_id": matchday_id, "user_id": {"$in": member_user_ids}}
+    else:
+        # Lega nazionale privata: solo predictions con league_id = questa lega
+        pred_filter = {"matchday_id": matchday_id, "user_id": {"$in": member_user_ids}, "league_id": league_id}
+
     all_preds = await predictions_col.find(
-        {"matchday_id": matchday_id, "user_id": {"$in": member_user_ids}},
+        pred_filter,
         {"_id": 0}
     ).to_list(10000)
+
+    # Per leghe nazionali private: includi solo utenti che hanno giocato questa giornata per questa lega
+    if not is_manual:
+        users_who_played = {p["user_id"] for p in all_preds}
+        member_user_ids = [uid for uid in member_user_ids if uid in users_who_played]
 
     # Group predictions by user and count types
     user_pred_stats = {}
