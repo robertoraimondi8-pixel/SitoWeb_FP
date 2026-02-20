@@ -14,7 +14,7 @@ import pytest
 import requests
 import random
 
-BASE_URL = "https://league-creator-5.preview.emergentagent.com"
+BASE_URL = "https://scoring-engine-10.preview.emergentagent.com"
 
 
 @pytest.fixture

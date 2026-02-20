@@ -9,7 +9,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://league-creator-5.preview.emergentagent.com"
+BASE_URL = "https://scoring-engine-10.preview.emergentagent.com"
 
 
 class TestLoginEmailPassword:

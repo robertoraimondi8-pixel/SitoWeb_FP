@@ -12,7 +12,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://league-creator-5.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://scoring-engine-10.preview.emergentagent.com')
 TEST_LEAGUE_ID = "72952cf4-899e-480e-845c-7001c1bf8ebf"  # Test Owner Role (manual league)
 
 # Test credentials
