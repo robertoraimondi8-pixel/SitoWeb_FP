@@ -638,11 +638,34 @@ export default function PredictionsScreen() {
               <Text style={styles.savedText}>{t('save_success')}</Text>
             </View>
           )}
+          {/* Progress indicator: mostra completamento solo in modalità OPEN */}
+          {isOpen && (
+            <View style={styles.progressRow}>
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: editableCount > 0
+                        ? `${(completedEditableCount / editableCount) * 100}%` as any
+                        : '0%',
+                      backgroundColor: allComplete ? colors.success : colors.accent,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={[styles.progressLabel, allComplete && styles.progressLabelComplete]}>
+                {completedEditableCount}/{editableCount} partite
+              </Text>
+            </View>
+          )}
           <PrimaryButton
-            title={t('save_predictions')}
-            icon="checkmark-circle"
+            testID="confirm-predictions-btn"
+            title={allComplete || !isOpen ? t('save_predictions') : `Completa tutti i pronostici`}
+            icon={allComplete || !isOpen ? 'checkmark-circle' : 'alert-circle'}
             onPress={handleSave}
             loading={saving}
+            disabled={saving || (isOpen && !allComplete)}
             style={styles.saveBtn}
           />
         </View>
