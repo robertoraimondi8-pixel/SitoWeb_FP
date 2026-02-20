@@ -869,9 +869,16 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         # GIORNATE = number of COMPLETED matchdays in season (same dataset as last_5_performance)
         total_completed_in_season = len(completed_md_ids)
 
-        # Aggregate total points for all members (only COMPLETED matchdays) - FILTRATO PER LEAGUE_ID
+        # Aggregate total points for all members (only COMPLETED matchdays)
+        # Per leghe manuali: filtra per league_id (score_summaries hanno league_id)
+        # Per leghe nazionali/nazionali private: NO filtro league_id (admin_confirm non salva league_id)
+        if is_manual_league:
+            totals_match = {"user_id": {"$in": league_member_ids}, "matchday_id": {"$in": completed_md_ids}, "league_id": first_league["id"]}
+        else:
+            totals_match = {"user_id": {"$in": league_member_ids}, "matchday_id": {"$in": completed_md_ids}}
+
         all_totals = await score_summaries_col.aggregate([
-            {"$match": {"user_id": {"$in": league_member_ids}, "matchday_id": {"$in": completed_md_ids}, "league_id": first_league["id"]}},
+            {"$match": totals_match},
             {"$group": {"_id": "$user_id", "total": {"$sum": "$total_points"}}},
             {"$sort": {"total": -1}},
         ]).to_list(1000)
@@ -910,18 +917,17 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             "total_points": user_total_points,
         }
         
-        # Last 5 Performance - usa completed_matchdays_docs già filtrati per league_id
-        # completed_matchdays_docs è già ordinato DESC per number e filtrato correttamente
-        # (per league_id se manuale, per season_id se nazionale)
+        # Last 5 Performance - usa completed_matchdays_docs già filtrati
         last_5_matchdays = list(completed_matchdays_docs[:5])
         last_5_matchdays.reverse()  # ASC order (oldest first) per display
 
         for md in last_5_matchdays:
-            # Filtra anche score_summaries per league_id per isolamento completo
-            score = await score_summaries_col.find_one(
-                {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]},
-                {"_id": 0, "total_points": 1}
-            )
+            # Per leghe manuali filtra per league_id; per nazionali NO (admin_confirm non salva league_id)
+            if is_manual_league:
+                score_filter = {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]}
+            else:
+                score_filter = {"user_id": user["id"], "matchday_id": md["id"]}
+            score = await score_summaries_col.find_one(score_filter, {"_id": 0, "total_points": 1})
             pts = score.get("total_points", 0.0) if score else 0.0
             last_5_performance.append({
                 "matchday_number": md["number"],
