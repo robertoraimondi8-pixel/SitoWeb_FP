@@ -787,8 +787,8 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         lock_time = first_kickoff - timedelta(seconds=60)
         countdown_seconds = max(0, int((lock_time - now).total_seconds()))
 
-        # C) Count only relevant matches using source isolation
-        _md_source_lid = active_league["id"] if is_manual_league else None
+        # C) Count only relevant matches using source isolation (dopo migrazione: NATIONAL_LEAGUE_ID esplicito)
+        _md_source_lid = active_league["id"] if is_manual_league else NATIONAL_LEAGUE_ID
         match_count = await matches_col.count_documents(_match_source_query(matchday["id"], _md_source_lid))
         total_matches = max(match_count, MATCHES_PER_MATCHDAY)  # Mai mostrare 0/0
         
