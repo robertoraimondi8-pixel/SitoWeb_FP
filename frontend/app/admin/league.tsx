@@ -108,7 +108,7 @@ export default function LeagueAdminConsole() {
     home_team: '', 
     away_team: '', 
     market_type: '1X2',
-    competition: 'Lega Privata',
+    competition: '',
   });
   const [matchDate, setMatchDate] = useState(getDefaultDate());
   const [showMatchDatePicker, setShowMatchDatePicker] = useState(false);
