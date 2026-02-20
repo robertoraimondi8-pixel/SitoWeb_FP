@@ -691,12 +691,15 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
 
     if matchday:
         now = server_now()
-        # Handle None first_kickoff
+        # Handle None or invalid first_kickoff
         first_kickoff_str = matchday.get("first_kickoff")
-        if first_kickoff_str:
-            first_kickoff = datetime.fromisoformat(first_kickoff_str.replace("Z", "+00:00"))
-        else:
-            # Default to 1 hour from now if no kickoff time
+        try:
+            if first_kickoff_str and len(first_kickoff_str) > 10:
+                first_kickoff = datetime.fromisoformat(first_kickoff_str.replace("Z", "+00:00"))
+            else:
+                # Default to 1 hour from now if no kickoff time or invalid
+                first_kickoff = now + timedelta(hours=1)
+        except (ValueError, TypeError):
             first_kickoff = now + timedelta(hours=1)
         
         lock_time = first_kickoff - timedelta(seconds=60)
