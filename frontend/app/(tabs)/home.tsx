@@ -250,16 +250,19 @@ export default function HomeScreen() {
             )}
 
             <PrimaryButton
-              title="INSERISCI PRONOSTICI"
-              icon="create-outline"
+              testID="matchday-cta-btn"
+              title={ctaConfig?.label ?? 'INSERISCI PRONOSTICI'}
+              icon={(ctaConfig?.icon ?? 'create-outline') as any}
               onPress={() => {
                 const leagueId = data?.league?.id || '';
                 const matchdayId = data?.matchday?.id;
+                // Per tutti gli stati: naviga alla pagina pronostici (anche COMPLETED mostra i risultati)
                 const url = matchdayId
                   ? `/(tabs)/predictions?league_id=${leagueId}&matchday_id=${matchdayId}`
                   : `/(tabs)/predictions?league_id=${leagueId}`;
                 router.push(url as any);
               }}
+              disabled={!data?.matchday}
               style={styles.ctaButton}
             />
           </View>
