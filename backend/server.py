@@ -174,6 +174,115 @@ async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
     }
 
 
+async def recalculate_match_predictions(match_id: str, league_id: str):
+    """
+    Ricalcola i punti per tutti i pronostici di una specifica partita.
+    Chiamato quando una partita viene marcata 'finished' con risultato.
+    """
+    match = await matches_col.find_one({"id": match_id}, {"_id": 0})
+    if not match or match.get("home_score") is None:
+        return
+    
+    matchday_id = match.get("matchday_id")
+    preds = await predictions_col.find({"match_id": match_id}).to_list(1000)
+    
+    for pred in preds:
+        pts, is_correct = calculate_match_points(
+            pred.get("prediction_value"),
+            pred.get("market_type", match.get("market_type", "1X2")),
+            match.get("home_score"),
+            match.get("away_score"),
+            "finished"
+        )
+        await predictions_col.update_one(
+            {"id": pred["id"]},
+            {"$set": {"points": pts, "is_correct": is_correct}}
+        )
+    
+    logger.info(f"[SCORING] Recalculated {len(preds)} predictions for match {match_id}")
+
+
+async def recalculate_matchday_scores(matchday_id: str, league_id: str):
+    """
+    Ricalcola TUTTI i punteggi per una giornata quando viene marcata COMPLETED.
+    - Per ogni partita finished: calcola punti per ogni pronostico
+    - Aggiorna score_summaries per ogni utente
+    - Aggiorna standings per la lega
+    """
+    logger.info(f"[SCORING] Starting full recalculation for matchday {matchday_id} league {league_id}")
+    
+    # 1. Get all matches for this matchday (filter by league_id)
+    matches = await matches_col.find({"matchday_id": matchday_id, "league_id": league_id}, {"_id": 0}).to_list(100)
+    matches_dict = {m["id"]: m for m in matches}
+    
+    # 2. Get all predictions for this matchday
+    match_ids = [m["id"] for m in matches]
+    if not match_ids:
+        logger.info(f"[SCORING] No matches found for matchday {matchday_id}")
+        return
+    
+    preds = await predictions_col.find({"match_id": {"$in": match_ids}}).to_list(10000)
+    
+    # 3. Calculate points for each prediction
+    user_points = {}  # user_id -> {base_points, matches_correct, matches_total}
+    
+    for pred in preds:
+        match = matches_dict.get(pred.get("match_id"))
+        if not match or match.get("home_score") is None:
+            continue
+        
+        pts, is_correct = calculate_match_points(
+            pred.get("prediction_value"),
+            pred.get("market_type", match.get("market_type", "1X2")),
+            match.get("home_score"),
+            match.get("away_score"),
+            "finished"
+        )
+        
+        # Update prediction
+        await predictions_col.update_one(
+            {"id": pred["id"]},
+            {"$set": {"points": pts, "is_correct": is_correct}}
+        )
+        
+        user_id = pred.get("user_id")
+        if user_id not in user_points:
+            user_points[user_id] = {"base_points": 0, "matches_correct": 0, "matches_total": 0}
+        
+        user_points[user_id]["matches_total"] += 1
+        if is_correct:
+            user_points[user_id]["base_points"] += pts
+            user_points[user_id]["matches_correct"] += 1
+    
+    # 4. Update score_summaries for each user
+    for user_id, points_data in user_points.items():
+        # Check joker
+        joker = await joker_usages_col.find_one({"user_id": user_id, "matchday_id": matchday_id}, {"_id": 0})
+        joker_active = joker is not None and joker.get("is_active", False)
+        
+        base_points = points_data["base_points"]
+        joker_bonus = base_points if joker_active else 0
+        total_points = base_points + joker_bonus
+        
+        # Upsert score_summary
+        await score_summaries_col.update_one(
+            {"user_id": user_id, "matchday_id": matchday_id},
+            {"$set": {
+                "league_id": league_id,
+                "base_points": base_points,
+                "joker_bonus": joker_bonus,
+                "total_points": total_points,
+                "joker_active": joker_active,
+                "valid_matches": points_data["matches_total"],
+                "correct_matches": points_data["matches_correct"],
+                "updated_at": now_utc(),
+            }},
+            upsert=True
+        )
+    
+    logger.info(f"[SCORING] Recalculated scores for {len(user_points)} users in matchday {matchday_id}")
+
+
 # ========================================
 # AUTH ROUTES
 # ========================================
