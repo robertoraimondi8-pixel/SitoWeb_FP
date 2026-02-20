@@ -922,17 +922,16 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         last_5_matchdays.reverse()  # ASC order (oldest first) per display
 
         for md in last_5_matchdays:
-            # Per leghe manuali filtra per league_id; per nazionali NO (admin_confirm non salva league_id)
+            # Per leghe manuali filtra per league_id; per nazionali filtra per predictions.league_id
             if is_manual_league:
                 score_filter = {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]}
             else:
-                # Per leghe nazionali private: solo giornate dove l'utente ha giocato
-                # (ha predictions per quella giornata) - evita di mostrare giornate storiche pre-lega
+                # Lega nazionale privata: solo giornate dove l'utente ha predictions con league_id = questa lega
                 has_predictions = await predictions_col.count_documents(
-                    {"user_id": user["id"], "matchday_id": md["id"]},
+                    {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]},
                 )
                 if has_predictions == 0:
-                    continue  # Salta giornate non giocate
+                    continue  # Salta: questa giornata non è stata giocata per questa lega
                 score_filter = {"user_id": user["id"], "matchday_id": md["id"]}
             score = await score_summaries_col.find_one(score_filter, {"_id": 0, "total_points": 1})
             pts = score.get("total_points", 0.0) if score else 0.0
