@@ -887,9 +887,16 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         entries = []
         user_rank = None
         user_total_points = 0.0
-        # GIORNATE = total completed matchdays in season (same source as last_5_performance)
-        # Not from score_summaries count (user may have 0 pts on a matchday = no score doc)
-        user_matchdays_played = total_completed_in_season
+        # GIORNATE = per leghe manuali: giornate completate della lega
+        #            per leghe nazionali private: giornate dove l'utente ha predictions con league_id = questa lega
+        if is_manual_league:
+            user_matchdays_played = total_completed_in_season
+        else:
+            # Conta DISTINCT matchday_id dalle predictions di questo utente per questa lega
+            user_played_md_ids = await predictions_col.distinct(
+                "matchday_id", {"user_id": user["id"], "league_id": first_league["id"]}
+            )
+            user_matchdays_played = len(user_played_md_ids)
         
         for i, t in enumerate(all_totals):
             # Check if this is the current user
