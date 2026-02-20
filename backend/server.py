@@ -1993,8 +1993,13 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
     is_national_type = league_doc.get("match_source_type") not in ("manual", "custom")
     if is_national_type:
         # Trova matchday_ids dove questa lega ha effettivamente predictions
+        # Fallback: includi anche predictions senza league_id (retrocompatibilità pre-fix)
         league_played_md_ids = await predictions_col.distinct(
-            "matchday_id", {"league_id": league_id, "user_id": {"$in": member_user_ids}}
+            "matchday_id",
+            {
+                "$or": [{"league_id": league_id}, {"league_id": {"$exists": False}}],
+                "user_id": {"$in": member_user_ids}
+            }
         )
         if not league_played_md_ids:
             # Nessuna giornata giocata: restituisci standings vuota con solo i membri
