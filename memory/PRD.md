@@ -195,6 +195,17 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 - Added: Test suite isolamento multi-lega (/app/backend/tests/test_multi_league_isolation.py)
 - Verified: 15/15 backend tests passati
 
+### 20 Feb 2026 - Bugfix: Isolamento Completo Dati Leghe Nazionali Private (league_id in predictions)
+- **Root Cause**: Le predictions non avevano `league_id`, quindi standings/matchdays, standings/weekly, standings/total e home/last_5 mostravano dati storici della lega nazionale per tutte le leghe private di tipo national.
+- **Fix 1** (`models.py`): Aggiunto `league_id: Optional[str] = None` a `PredictionsBatchRequest`.
+- **Fix 2** (`server.py` - `save_predictions`): Ogni prediction viene salvata con `league_id` quando passato nel body POST.
+- **Fix 3** (`server.py` - `get_available_matchdays`): Per leghe nazionali private, restituisce solo matchday con `predictions.league_id = current_league_id`.
+- **Fix 4** (`server.py` - `get_weekly_standings`): Filtra predictions per `league_id` e mostra solo utenti che hanno giocato per questa lega.
+- **Fix 5** (`server.py` - `get_total_standings`): Usa `predictions.distinct('matchday_id', {league_id: X})` per determinare matchday giocati.
+- **Fix 6** (`server.py` - `home/last_5_performance`): Salta giornate senza `predictions.league_id = current_league_id`.
+- **Fix 7** (`predictions.tsx`): Frontend ora passa `league_id` nel body del POST `/api/predictions/{matchday_id}`.
+- **Risultato**: Una lega nuova parte da 0. Ogni lega vede solo le proprie giornate giocate.
+
 ### 20 Feb 2026 - Bugfix: Data Isolation for National-type Private Leagues
 - **Root Cause**: `admin_confirm_matchday` creates score_summaries WITHOUT `league_id`. Queries for national-type private leagues incorrectly filtered by `league_id = private_league_id`, finding nothing.
 - **Fix 1** (`/api/home` - `last_5_performance`): For national-type leagues, skip matchdays where user has no predictions (prevents historical national matchday "leakage").
