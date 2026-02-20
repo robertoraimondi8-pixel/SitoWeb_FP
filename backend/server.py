@@ -2629,7 +2629,12 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
     if not matchday:
         raise HTTPException(404, "Matchday not found")
 
-    matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    # Use matchday's own league_id for match isolation (manual/custom leagues store league_id on matches)
+    matchday_league_id = matchday.get("league_id") or league_id
+    match_query: dict = {"matchday_id": matchday_id}
+    if matchday_league_id:
+        match_query["league_id"] = matchday_league_id
+    matches = await matches_col.find(match_query, {"_id": 0}).to_list(20)
 
     # Filter predictions by league_id for data isolation (fallback for old predictions without league_id)
     pred_query: dict = {"user_id": user["id"], "matchday_id": matchday_id}
