@@ -1355,13 +1355,13 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
             source_id = nat["id"] if nat else None
         source_league = await leagues_col.find_one({"id": source_id}, {"_id": 0}) if source_id else None
         season_id = source_league["season_id"] if source_league else league["season_id"]
-        # CRITICAL: filter only national matchdays (league_id absent/null) to exclude manual-league matchdays
+        # CRITICAL: filter only national matchdays (league_id == NATIONAL_LEAGUE_ID) to exclude manual-league matchdays
         # that may share the same season_id
         matchdays = await matchdays_col.find(
-            {"season_id": season_id, "$or": [{"league_id": {"$exists": False}}, {"league_id": None}]},
+            {"season_id": season_id, "league_id": NATIONAL_LEAGUE_ID},
             {"_id": 0}
         ).sort("number", 1).to_list(100)
-        logger.info(f"  NATIONAL MODE: query matchdays by season_id={season_id} (national-only filter)")
+        logger.info(f"  NATIONAL MODE: query matchdays by season_id={season_id} league_id=NATIONAL_LEAGUE_ID")
     else:
         source_id = league_id
         season_id = league["season_id"]
@@ -1384,8 +1384,8 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
             for m in matches:
                 logger.info(f"    - {m.get('home_team')} vs {m.get('away_team')}, league_id={m.get('league_id')}")
         else:
-            # National-type league: use _match_source_query to exclude manual-league matches
-            matches = await matches_col.find(_match_source_query(md["id"], None), {"_id": 0}).to_list(20)
+            # National-type league: use _match_source_query with NATIONAL_LEAGUE_ID
+            matches = await matches_col.find(_match_source_query(md["id"], NATIONAL_LEAGUE_ID), {"_id": 0}).to_list(20)
         result.append({**md, "matches": matches})
 
     logger.info("=" * 60)
@@ -2641,10 +2641,10 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
         {"_id": 0}
     ).to_list(20)
 
-    # Filter predictions by league_id for data isolation (fallback for old predictions without league_id)
+    # Filter predictions by league_id for strict isolation (no fallbacks after migration)
     pred_query: dict = {"user_id": user["id"], "matchday_id": matchday_id}
     if league_id:
-        pred_query["$or"] = [{"league_id": league_id}, {"league_id": {"$exists": False}}]
+        pred_query["league_id"] = league_id
     preds = await predictions_col.find(pred_query, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
     
@@ -2968,9 +2968,9 @@ async def admin_set_current_matchday(season_id: str, matchday_id: str, admin=Dep
     matchday = await matchdays_col.find_one({"id": matchday_id, "season_id": season_id})
     if not matchday:
         raise HTTPException(404, "Matchday not found in this season")
-    # Only national matchdays (no league_id) can be the season current matchday
-    if matchday.get("league_id"):
-        raise HTTPException(400, "Solo le giornate della Lega Nazionale (senza league_id) possono essere impostate come giornata corrente della stagione.")
+    # Only national matchdays (league_id == NATIONAL_LEAGUE_ID) can be the season current matchday
+    if matchday.get("league_id") != NATIONAL_LEAGUE_ID:
+        raise HTTPException(400, "Solo le giornate della Lega Nazionale possono essere impostate come giornata corrente della stagione.")
     
     await seasons_col.update_one(
         {"id": season_id}, 
