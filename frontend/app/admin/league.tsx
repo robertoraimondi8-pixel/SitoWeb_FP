@@ -584,10 +584,17 @@ export default function LeagueAdminConsole() {
                   style={[s.addBtn, { backgroundColor: colors.accent }]}
                   onPress={() => setShowAddMatch(true)}
                 >
-                <Ionicons name="add" size={18} color={colors.background} />
-                <Text style={[s.addBtnText, { color: colors.background }]}>Aggiungi</Text>
-              </TouchableOpacity>
+                  <Ionicons name="add" size={18} color={colors.background} />
+                  <Text style={[s.addBtnText, { color: colors.background }]}>Aggiungi</Text>
+                </TouchableOpacity>
+              )}
             </View>
+            
+            {matches.length >= 10 && (
+              <Text style={[s.limitWarning, { color: colors.accent }]}>
+                Hai raggiunto il limite massimo di 10 partite per questa giornata.
+              </Text>
+            )}
             
             {matches.length === 0 ? (
               <Text style={[s.emptyText, { color: colors.textSecondary }]}>
