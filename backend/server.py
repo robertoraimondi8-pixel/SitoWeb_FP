@@ -910,27 +910,24 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             "total_points": user_total_points,
         }
         
-        # Last 5 Performance - Get last 5 COMPLETED matchdays
-        if season:
-            last_5_matchdays = await matchdays_col.find(
-                {"season_id": season["id"], "status": "COMPLETED"},
-                {"_id": 0, "id": 1, "number": 1}
-            ).sort("number", -1).limit(5).to_list(5)
-            
-            # Reverse to have ASC order (oldest first)
-            last_5_matchdays.reverse()
-            
-            for md in last_5_matchdays:
-                # Get user's score for this matchday
-                score = await score_summaries_col.find_one(
-                    {"user_id": user["id"], "matchday_id": md["id"]},
-                    {"_id": 0, "total_points": 1}
-                )
-                pts = score.get("total_points", 0.0) if score else 0.0
-                last_5_performance.append({
-                    "matchday_number": md["number"],
-                    "points": pts,
-                })
+        # Last 5 Performance - usa completed_matchdays_docs già filtrati per league_id
+        # completed_matchdays_docs è già ordinato DESC per number e filtrato correttamente
+        # (per league_id se manuale, per season_id se nazionale)
+        last_5_matchdays = list(completed_matchdays_docs[:5])
+        last_5_matchdays.reverse()  # ASC order (oldest first) per display
+
+        for md in last_5_matchdays:
+            # Filtra anche score_summaries per league_id per isolamento completo
+            score = await score_summaries_col.find_one(
+                {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]},
+                {"_id": 0, "total_points": 1}
+            )
+            pts = score.get("total_points", 0.0) if score else 0.0
+            last_5_performance.append({
+                "matchday_number": md["number"],
+                "points": pts,
+            })
+        logger.info(f"[HOME] last5 league={first_league['id']}, md_ids={[m['id'] for m in last_5_matchdays]}, pts={[r['points'] for r in last_5_performance]}")
 
     # Build league response with owner_id and my_role for frontend to check ownership
     league_response = None
