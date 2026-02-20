@@ -1002,6 +1002,7 @@ const s = StyleSheet.create({
   chipText: { fontSize: 13, fontWeight: '600' },
   
   emptyText: { fontSize: 14, fontStyle: 'italic', padding: 8, textAlign: 'center' },
+  limitWarning: { fontSize: 13, fontWeight: '600', textAlign: 'center', marginBottom: 12, padding: 8 },
   
   dropdownSelector: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1.5, borderRadius: 12, marginBottom: 12, gap: 10 },
   dropdownText: { flex: 1, fontSize: 15, fontWeight: '600' },
