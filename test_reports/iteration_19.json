@@ -1,0 +1,51 @@
+{
+  "summary": "Backend testing: league_id isolation in predictions for national-type private leagues. All 14 new tests + 15 regression tests passed (29 total). Key fix verified: predictions now store league_id to isolate data per league. Desylega starts from 0 and correctly shows data only after user saves predictions with league_id. Ilio manual league regression confirmed unchanged.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_league_id_in_predictions.py",
+    "/app/test_reports/pytest/league_id_predictions_results.xml",
+    "/app/backend/tests/test_national_league_home_standings.py"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: POST /api/predictions/{matchday_id} with league_id in body → prediction document saved with league_id field (server.py line 1750-1771). Both insert and update branches correctly save pred_league_id.",
+    "VERIFIED: GET /api/standings/matchdays?league_id=desylega_id → returns [] for Desylega before any predictions (server.py line 2206-2210: distinct('matchday_id', {'league_id': league_id}) returns empty list → returns []).",
+    "VERIFIED: After saving prediction with league_id=desylega_id → standings/matchdays returns the matchday (distinct query finds it). After cleanup (MongoDB delete) → returns [] again.",
+    "VERIFIED: GET /api/standings/total?league_id=desylega_id → 0 pts, 0 matchdays_played for Desylega with no predictions (server.py line 1987-2013: early return with empty standings when league_played_md_ids is empty).",
+    "VERIFIED: GET /api/standings/weekly/{matchday_id}?league_id=desylega_id → only users with predictions for that league shown (server.py line 2116-2128: filters pred by league_id, then filters member_user_ids to only those who played).",
+    "VERIFIED: GET /api/home last_5_performance=[] for Desylega user with no predictions (server.py line 929-934: skips matchday if predictions.league_id = league_id count is 0).",
+    "VERIFIED: ilio manual league regression unchanged: last_5=[{md:1,0},{md:2,0},{md:3,4},{md:4,2}], total=6.0pts, standings/matchdays=4 matchdays."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_league_id_in_predictions.py"
+  ],
+  "success_rate": {
+    "backend": "100% (29/29 tests passed: 14 new + 15 regression)",
+    "frontend": "N/A - backend only testing requested"
+  },
+  "test_credentials": {
+    "national_private_league_user": "desiree@raimondi.it / Roberto95",
+    "desylega_id": "788c822f-325d-4934-87a6-cf989ff68c3e",
+    "manual_league_user": "ilio@raimondi.it / password123",
+    "manual_league_id": "1762173a-31fe-463b-9668-d757114f440b"
+  },
+  "seed_data_creation": "Created and deleted test prediction for Desylega (user: desiree@raimondi.it, matchday: 4b8c8080-b3db-4376-b790-ee0e20e3c8d1, match: d696aed5-e51e-4f3f-afb2-9b4a25b1924d). DB cleaned up via pymongo in test teardown.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Bug fix for league_id isolation in predictions fully verified (iteration_19). The fix: predictions now store league_id (saved in server.py save_predictions function). standings/matchdays, standings/total, standings/weekly, and home last_5_performance all filter using predictions.league_id for national-type private leagues. E2E flow tested: save prediction with league_id → verify matchday appears → delete prediction → verify [] again. All regression tests (ilio manual league) still pass. Test files: test_league_id_in_predictions.py (14 tests) and test_national_league_home_standings.py (15 tests).",
+  "rca_of_the_issue": {
+    "bug": "National-type private leagues (Desylega) showed historical national matchdays in standings/matchdays even though the league had no user predictions. A new national-type private league should start from 0.",
+    "root_cause": "The standings/matchdays, standings/total, standings/weekly, and home last_5_performance endpoints had no way to know which national matchdays were played FOR a specific private league. All national matchday data was shared globally.",
+    "fix": "predictions documents now store league_id when passed in the POST body. All standings/home endpoints filter by predictions.league_id=current_league_id for national-type leagues. This creates data isolation per private league.",
+    "test_matchday_for_desylega": "4b8c8080-b3db-4376-b790-ee0e20e3c8d1 (match: d696aed5-e51e-4f3f-afb2-9b4a25b1924d, start_time 2026-04-01)",
+    "verified_fixed": true
+  }
+}
