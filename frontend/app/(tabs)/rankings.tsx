@@ -46,14 +46,16 @@ export default function RankingsScreen() {
   useEffect(() => {
     (async () => {
       try {
-        const [ls, mds] = await Promise.all([
-          apiCall('/leagues', { token }),
-          apiCall('/standings/matchdays', { token }),
-        ]);
+        const ls = await apiCall('/leagues', { token });
         setLeagues(ls);
-        setMatchdays(mds);
-        if (ls.length > 0) setSelectedLeague(ls[0].id);
-        if (mds.length > 0) setSelectedMatchday(mds[0]);
+        if (ls.length > 0) {
+          const firstLeagueId = ls[0].id;
+          setSelectedLeague(firstLeagueId);
+          // Carica matchdays filtrati per la lega
+          const mds = await apiCall(`/standings/matchdays?league_id=${firstLeagueId}`, { token });
+          setMatchdays(mds);
+          if (mds.length > 0) setSelectedMatchday(mds[0]);
+        }
       } catch (e: any) { 
         if (isAuthError(e)) {
           const didLogout = await handleAuthError(e);
@@ -64,6 +66,19 @@ export default function RankingsScreen() {
       }
     })();
   }, [token, handleAuthError]);
+
+  // Ricarica matchdays quando cambia la lega selezionata
+  useEffect(() => {
+    if (!selectedLeague) return;
+    (async () => {
+      try {
+        const mds = await apiCall(`/standings/matchdays?league_id=${selectedLeague}`, { token });
+        setMatchdays(mds);
+        if (mds.length > 0) setSelectedMatchday(mds[0]);
+        else setSelectedMatchday(null);
+      } catch (e: any) { console.error(e); }
+    })();
+  }, [selectedLeague, token]);
 
   const fetchStandings = useCallback(async () => {
     if (!selectedLeague) { setLoading(false); return; }
