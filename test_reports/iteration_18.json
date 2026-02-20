@@ -1,0 +1,47 @@
+{
+  "summary": "Backend fix verified: national-type private league (Desylega) home & standings now correct. last_5_performance=[] when user has no predictions (no historical matchday leak). Standings shows 0 pts/matchdays for user without predictions. Regression confirmed: ilio's manual league data unchanged (last_5: [{md:1,pts:0},{md:2,pts:0},{md:3,pts:4},{md:4,pts:2}], total=6.0).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_national_league_home_standings.py",
+    "/app/test_reports/pytest/national_league_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: server.py lines 929-935 - for national-type leagues, last_5_performance skips matchdays where user has no predictions (has_predictions == 0 → continue). This prevents historical national matchdays from leaking into private league home view.",
+    "VERIFIED: server.py lines 1973-1985 - get_total_standings uses national matchday IDs (not league_id filter) for national-type leagues, correctly aggregating score_summaries that were created without league_id by admin_confirm_matchday.",
+    "VERIFIED: Desy (national-type, no predictions) → last_5_performance=[], total_points=0, matchdays_played=0 in standings.",
+    "VERIFIED: ilio (manual league) → last_5=[{md:1,0},{md:2,0},{md:3,4},{md:4,2}], total=6.0 points in standings. No regression."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_national_league_home_standings.py"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 tests passed)",
+    "frontend": "N/A - backend only testing requested"
+  },
+  "test_credentials": {
+    "national_private_league_user": "desiree@raimondi.it / Roberto95",
+    "desylega_id": "788c822f-325d-4934-87a6-cf989ff68c3e",
+    "manual_league_user": "ilio@raimondi.it / password123",
+    "manual_league_id": "1762173a-31fe-463b-9668-d757114f440b"
+  },
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Bug fix for national-type private league home/standings fully verified. Key fix: (1) GET /api/home last_5_performance for national-type leagues now skips matchdays where user has no predictions (prevents historical national matchday leak). (2) GET /api/standings/total for national-type leagues queries score_summaries by national matchday IDs (not league_id, since admin_confirm_matchday creates summaries without league_id). Both Desylega (national-type, no predictions) and ilio's manual league (4 matchdays, 6.0 pts) are correct. Test file: /app/backend/tests/test_national_league_home_standings.py",
+  "rca_of_the_issue": {
+    "bug": "National-type private leagues (like Desylega) showed wrong data: last_5_performance showed historical national matchdays the user never played, and total standings showed 0 pts/giornate for everyone.",
+    "root_cause": "admin_confirm_matchday creates score_summaries WITHOUT league_id. The old queries used league_id filter (e.g., {user_id, matchday_id, league_id: desylega_id}) which found no docs since summaries have no league_id. This caused: (a) last_5 to fall back to reading ALL national completed matchdays regardless of user participation; (b) standings to show 0 pts for everyone.",
+    "fix": "(a) last_5: for national-type leagues, check if user has predictions for each completed matchday; skip if 0. (b) standings: for national-type leagues, query score_summaries by matchday_id IN [national_md_ids] WITHOUT league_id filter.",
+    "reproduction": "1. Create national-type private league (desiree@raimondi.it/Desylega). 2. GET /api/home?league_id=788c822f-... → before fix: last_5 showed historical national matchdays. After fix: last_5=[].",
+    "verified_fixed": true
+  }
+}
