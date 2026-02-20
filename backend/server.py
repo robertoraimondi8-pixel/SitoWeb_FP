@@ -1865,9 +1865,9 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
             sort=[("number", -1)]
         )
 
-    # Aggregate total points and matchdays per user
+    # Aggregate total points and matchdays per user FILTRATI PER LEAGUE_ID
     pipeline = [
-        {"$match": {"user_id": {"$in": member_user_ids}}},
+        {"$match": {"user_id": {"$in": member_user_ids}, "league_id": league_id}},
         {"$group": {
             "_id": "$user_id", 
             "total_points": {"$sum": "$total_points"}, 
