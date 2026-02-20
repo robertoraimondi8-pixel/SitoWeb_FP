@@ -1978,18 +1978,42 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
 
     # Aggregate total points and matchdays per user
     # Per leghe manuali: filtra per league_id (score_summaries hanno league_id)
-    # Per leghe nazionali/private nazionali: NO filtro league_id (admin_confirm non salva league_id)
+    # Per leghe nazionali private: usa predictions.league_id per identificare matchday giocati
     is_national_type = league_doc.get("match_source_type") not in ("manual", "custom")
     if is_national_type:
-        # Per leghe nazionali: filtra per matchday_id (solo giornate della stagione nazionale)
-        national_md_ids = []
-        if season:
-            national_mds = await matchdays_col.find(
-                {"season_id": season["id"], "league_id": {"$exists": False}},
-                {"_id": 0, "id": 1}
-            ).to_list(200)
-            national_md_ids = [m["id"] for m in national_mds]
-        standings_match = {"user_id": {"$in": member_user_ids}, "matchday_id": {"$in": national_md_ids}} if national_md_ids else {"user_id": {"$in": member_user_ids}, "league_id": None}
+        # Trova matchday_ids dove questa lega ha effettivamente predictions
+        league_played_md_ids = await predictions_col.distinct(
+            "matchday_id", {"league_id": league_id, "user_id": {"$in": member_user_ids}}
+        )
+        if not league_played_md_ids:
+            # Nessuna giornata giocata: restituisci standings vuota con solo i membri
+            entries = []
+            for uid in member_user_ids:
+                u = await users_col.find_one({"id": uid}, {"_id": 0, "password": 0})
+                entries.append({
+                    "user_id": uid,
+                    "username": u["username"] if u else "Unknown",
+                    "total_points": 0,
+                    "current_week_points": 0,
+                    "matchdays_played": 0,
+                    "jolly_used": 0,
+                    "created_at": "",
+                    "is_current_user": uid == user["id"],
+                    "rank": None,
+                })
+            for i, e in enumerate(entries):
+                e["rank"] = i + 1
+            my_pos = next((e for e in entries if e["is_current_user"]), None)
+            return {
+                "league_id": league_id,
+                "league_name": league_doc["name"],
+                "standings_type": "total",
+                "entries": entries,
+                "my_position": my_pos,
+                "current_matchday": current_matchday["number"] if current_matchday else None,
+            }
+        # Usa score_summaries filtrati per i matchday giocati da questa lega (no league_id filter)
+        standings_match = {"user_id": {"$in": member_user_ids}, "matchday_id": {"$in": league_played_md_ids}}
     else:
         standings_match = {"user_id": {"$in": member_user_ids}, "league_id": league_id}
 
