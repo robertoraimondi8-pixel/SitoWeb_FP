@@ -119,6 +119,7 @@ class LeagueCreate(BaseModel):
 class LeagueUpdateRequest(BaseModel):
     name: Optional[str] = Field(default=None, min_length=3, max_length=40)
     logo_url: Optional[str] = None
+    competition_name: Optional[str] = Field(default=None, max_length=60)
     start_matchday: Optional[int] = Field(default=None, ge=1, le=38)
     end_matchday: Optional[int] = Field(default=None, ge=1, le=38)
     bet_deadline_minutes: Optional[int] = Field(default=None, ge=0, le=60)

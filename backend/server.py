@@ -1234,7 +1234,7 @@ async def update_league(league_id: str, req: LeagueUpdateRequest, user=Depends(g
         raise HTTPException(403, "Solo il creatore può modificare la lega")
 
     # Fields locked once rules_locked=True
-    locked_fields = {"start_matchday", "end_matchday", "bet_deadline_minutes", "scoring_config", "include_championship_predictions", "match_source_type"}
+    locked_fields = {"start_matchday", "end_matchday", "bet_deadline_minutes", "scoring_config", "include_championship_predictions", "match_source_type", "competition_name"}
     if league.get("rules_locked", False):
         incoming = {k for k, v in req.model_dump(exclude_none=True).items() if k in locked_fields}
         if incoming:
