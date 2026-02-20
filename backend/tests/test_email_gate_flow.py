@@ -16,7 +16,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://multi-league-beta.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fixture-hub-5.preview.emergentagent.com')
 
 
 class TestEmailVerifiedFieldInLogin:

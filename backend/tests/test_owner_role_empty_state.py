@@ -12,7 +12,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://multi-league-beta.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://fixture-hub-5.preview.emergentagent.com')
 TEST_LEAGUE_ID = "72952cf4-899e-480e-845c-7001c1bf8ebf"  # Test Owner Role (manual league)
 
 # Test credentials

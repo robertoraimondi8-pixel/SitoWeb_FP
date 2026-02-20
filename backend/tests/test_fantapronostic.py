@@ -12,7 +12,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://multi-league-beta.preview.emergentagent.com"
+BASE_URL = "https://fixture-hub-5.preview.emergentagent.com"
 
 class TestHealth:
     """API health check"""
