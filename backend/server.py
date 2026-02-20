@@ -881,13 +881,12 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             ).sort("number", -1).to_list(100)
             logger.info(f"[HOME] last5 league_id={first_league['id']}, source=manual, matchdays_completed={len(completed_matchdays_docs)}")
         else:
-            # Lega nazionale privata: usa i matchday dove i membri hanno DAVVERO giocato
-            # (predictions con league_id = questa lega OPPURE senza league_id - retrocompatibilità)
+            # Lega nazionale privata: usa predictions con league_id = questa lega (isolamento diretto)
             played_md_ids_for_home = await predictions_col.distinct(
                 "matchday_id",
                 {
                     "user_id": {"$in": league_member_ids},
-                    "$or": [{"league_id": first_league["id"]}, {"league_id": {"$exists": False}}]
+                    "league_id": first_league["id"]
                 }
             )
             if played_md_ids_for_home:
@@ -927,12 +926,11 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             user_matchdays_played = total_completed_in_season
         else:
             # Conta DISTINCT matchday_id dalle predictions di questo utente per questa lega
-            # Fallback: include anche predictions senza league_id (retrocompatibilità)
             user_played_md_ids = await predictions_col.distinct(
                 "matchday_id",
                 {
                     "user_id": user["id"],
-                    "$or": [{"league_id": first_league["id"]}, {"league_id": {"$exists": False}}]
+                    "league_id": first_league["id"]
                 }
             )
             # Filtra solo ai matchday nazionali della stagione (evita cross-lega)
@@ -974,18 +972,8 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             if is_manual_league:
                 score_filter = {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]}
             else:
-                # Lega nazionale privata: predictions con league_id = questa lega OPPURE senza league_id
-                # (fallback per retrocompatibilità con predictions create prima dell'introduzione di league_id)
-                has_predictions = await predictions_col.count_documents(
-                    {
-                        "user_id": user["id"],
-                        "matchday_id": md["id"],
-                        "$or": [{"league_id": first_league["id"]}, {"league_id": {"$exists": False}}]
-                    }
-                )
-                if has_predictions == 0:
-                    continue  # Salta: questa giornata non è stata giocata per questa lega
-                score_filter = {"user_id": user["id"], "matchday_id": md["id"]}
+                # Lega nazionale privata: predictions con league_id = questa lega
+                score_filter = {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]}
             score = await score_summaries_col.find_one(score_filter, {"_id": 0, "total_points": 1})
             pts = score.get("total_points", 0.0) if score else 0.0
             last_5_performance.append({
