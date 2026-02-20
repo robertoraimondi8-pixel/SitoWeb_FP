@@ -280,7 +280,7 @@ export default function HomeScreen() {
 
         {/* LAST 5 PERFORMANCE */}
         {Array.isArray(data?.last_5_performance) && data.last_5_performance.length > 0 && (
-          <SectionCard title="ULTIMI 5">
+          <SectionCard title="ULTIMI 5 RISULTATI">
             <LastFiveIndicator data={data.last_5_performance} />
           </SectionCard>
         )}
