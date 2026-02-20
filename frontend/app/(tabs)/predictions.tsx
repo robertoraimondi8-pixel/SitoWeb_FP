@@ -1024,4 +1024,32 @@ const styles = StyleSheet.create({
   saveBtn: {
     height: 52,
   },
+  // Progress bar
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.md,
+  },
+  progressBarTrack: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.border,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  progressLabel: {
+    ...typography.meta,
+    color: colors.textSecondary,
+    fontWeight: '700',
+    minWidth: 70,
+    textAlign: 'right',
+  },
+  progressLabelComplete: {
+    color: colors.success,
+  },
 });
