@@ -56,6 +56,7 @@ export default function PredictionsScreen() {
   const [jokerLoading, setJokerLoading] = useState(false);
   // scoring_config dalla lega attiva (filtra mercati e punti)
   const [scoringConfig, setScoringConfig] = useState<Record<string, { enabled: boolean; points: number }> | null>(null);
+  const [competitionName, setCompetitionName] = useState<string>('');
   // Info lega attiva per empty state
   const [leagueInfo, setLeagueInfo] = useState<{ id: string; isManual: boolean; isOwner: boolean } | null>(null);
 
