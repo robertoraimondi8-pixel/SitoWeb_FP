@@ -481,7 +481,7 @@ export default function PredictionsScreen() {
                     <Text style={styles.matchNum}>{idx + 1}</Text>
                   </View>
                   <View style={styles.matchMeta}>
-                    <Text style={styles.competition}>{competitionName || m.competition}</Text>
+                    <Text style={styles.competition}>{m.competition || m.league_name}</Text>
                     {m.start_time && (
                       <Text style={styles.matchTime}>{formatMatchTime(m.start_time)}</Text>
                     )}
