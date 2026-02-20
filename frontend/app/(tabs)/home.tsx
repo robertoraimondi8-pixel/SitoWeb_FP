@@ -232,7 +232,7 @@ export default function HomeScreen() {
             </Text>
             
             <Text style={styles.matchdayMeta}>
-              {data.matchday.my_predictions_count}/{Math.max(data.matchday.total_matches, 11)} partite
+              {data.matchday.my_predictions_count}/{Math.min(data.matchday.total_matches || 0, 10)} partite
             </Text>
 
             {data.matchday.status === 'OPEN' && countdown > 0 && (
