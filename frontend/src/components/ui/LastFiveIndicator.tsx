@@ -40,8 +40,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
+    alignSelf: 'center',
   },
   item: {
     alignItems: 'center',
