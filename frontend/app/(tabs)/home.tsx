@@ -254,13 +254,21 @@ export default function HomeScreen() {
               title={ctaConfig?.label ?? 'INSERISCI PRONOSTICI'}
               icon={(ctaConfig?.icon ?? 'create-outline') as any}
               onPress={() => {
+                if (!data?.matchday) return;
                 const leagueId = data?.league?.id || '';
                 const matchdayId = data?.matchday?.id;
-                // Per tutti gli stati: naviga alla pagina pronostici (anche COMPLETED mostra i risultati)
-                const url = matchdayId
-                  ? `/(tabs)/predictions?league_id=${leagueId}&matchday_id=${matchdayId}`
-                  : `/(tabs)/predictions?league_id=${leagueId}`;
-                router.push(url as any);
+                const status = data?.matchday?.status?.toUpperCase();
+
+                if (status === 'COMPLETED' || status === 'LIVE') {
+                  // Naviga alla schermata risultati/live
+                  router.push(`/live/${matchdayId}?league_id=${leagueId}` as any);
+                } else {
+                  // Naviga al form pronostici
+                  const url = matchdayId
+                    ? `/(tabs)/predictions?league_id=${leagueId}&matchday_id=${matchdayId}`
+                    : `/(tabs)/predictions?league_id=${leagueId}`;
+                  router.push(url as any);
+                }
               }}
               disabled={!data?.matchday}
               style={styles.ctaButton}
