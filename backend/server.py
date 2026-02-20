@@ -2164,17 +2164,18 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
                 ).sort("number", -1).to_list(50)
                 return matchdays
             else:
-                # Lega nazionale: matchdays dalla source_league_id o dalla stagione
-                source_league_id = league.get("source_league_id")
-                if source_league_id:
-                    source_league = await leagues_col.find_one({"id": source_league_id}, {"_id": 0})
-                    if source_league:
-                        season_id = source_league.get("season_id")
-                        matchdays = await matchdays_col.find(
-                            {"season_id": season_id, "league_id": {"$exists": False}},
-                            {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}
-                        ).sort("number", -1).to_list(50)
-                        return matchdays
+                # Lega nazionale privata: restituisce SOLO matchday dove esistono predictions
+                # con league_id = questo league_id (la lega ha effettivamente giocato quella giornata)
+                played_md_ids = await predictions_col.distinct(
+                    "matchday_id", {"league_id": league_id}
+                )
+                if not played_md_ids:
+                    return []  # Lega nuova: nessuna giornata giocata ancora
+                matchdays = await matchdays_col.find(
+                    {"id": {"$in": played_md_ids}},
+                    {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}
+                ).sort("number", -1).to_list(50)
+                return matchdays
     
     # Fallback: matchdays dalla stagione attiva (senza league_id = nazionali)
     season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
