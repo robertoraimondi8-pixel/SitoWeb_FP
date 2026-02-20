@@ -751,9 +751,13 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             )
     else:
         # NATIONAL LEAGUE: usa logica standard dalla stagione
+        # CRITICAL: current_matchday_id must be a national matchday (no league_id) — skip manual league matchdays
         if season.get("current_matchday_id"):
             matchday = await matchdays_col.find_one(
-                {"id": season["current_matchday_id"]},
+                {
+                    "id": season["current_matchday_id"],
+                    "$or": [{"league_id": {"$exists": False}}, {"league_id": None}],
+                },
                 {"_id": 0}
             )
         
