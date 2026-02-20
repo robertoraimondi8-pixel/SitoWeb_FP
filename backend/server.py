@@ -3150,10 +3150,14 @@ async def admin_list_matches(matchday_id: str = None, admin=Depends(require_admi
 
 @admin_router.post("/matches")
 async def admin_create_match(req: MatchCreate, admin=Depends(require_admin)):
+    # Lookup the matchday to inherit its league_id
+    matchday = await matchdays_col.find_one({"id": req.matchday_id}, {"_id": 0, "league_id": 1})
+    match_league_id = matchday.get("league_id", NATIONAL_LEAGUE_ID) if matchday else NATIONAL_LEAGUE_ID
     match_id = new_id()
     match = {
         "id": match_id,
         "matchday_id": req.matchday_id,
+        "league_id": match_league_id,   # inherit from matchday (national or custom)
         "home_team": req.home_team,
         "away_team": req.away_team,
         "competition": req.competition,
