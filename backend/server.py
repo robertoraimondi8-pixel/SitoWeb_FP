@@ -1665,11 +1665,15 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
     unlocked_match_ids = set()
     for m in all_matchday_matches:
         try:
-            start = datetime.fromisoformat(m["start_time"].replace("Z", "+00:00"))
-            if now < start:
+            if m.get("start_time"):
+                start = datetime.fromisoformat(m["start_time"].replace("Z", "+00:00"))
+                if now < start:
+                    unlocked_match_ids.add(m["id"])
+            else:
+                # Nessun start_time: considerata aperta per pronostici
                 unlocked_match_ids.add(m["id"])
         except Exception:
-            pass
+            unlocked_match_ids.add(m["id"])
 
     if unlocked_match_ids:
         # Already saved predictions for this matchday
