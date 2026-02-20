@@ -26,6 +26,8 @@ interface League {
   match_source_type: string;
   owner_id: string;
   season_id: string;
+  competition_name?: string;
+  rules_locked?: boolean;
 }
 
 interface Matchday {
@@ -64,6 +66,10 @@ export default function LeagueAdminConsole() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  
+  // Competition name settings
+  const [competitionName, setCompetitionName] = useState('');
+  const [savingCompetition, setSavingCompetition] = useState(false);
   
   // Data
   const [league, setLeague] = useState<League | null>(null);
