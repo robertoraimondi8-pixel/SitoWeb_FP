@@ -781,16 +781,26 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         
         my_predictions = await predictions_col.count_documents({"user_id": user["id"], "matchday_id": matchday["id"]})
 
+        # Per matchday COMPLETED: carica punti da score_summaries (fonte autorevole)
+        my_points = None
+        if matchday["status"] == "COMPLETED":
+            ss = await score_summaries_col.find_one(
+                {"user_id": user["id"], "matchday_id": matchday["id"]},
+                {"_id": 0, "total_points": 1}
+            )
+            my_points = ss.get("total_points") if ss else 0.0
+
         matchday_data = {
             "id": matchday["id"],
             "number": matchday["number"],
-            "label": matchday.get("label") or f"Giornata {matchday['number']}",  # Fix: no "Test Matchday"
+            "label": matchday.get("label") or f"Giornata {matchday['number']}",
             "status": matchday["status"],
             "first_kickoff": matchday["first_kickoff"],
             "countdown_seconds": countdown_seconds,
-            "total_matches": total_matches,  # C) Sempre almeno 11
-            "matches_loaded": match_count,  # Quanti match reali sono caricati
+            "total_matches": total_matches,
+            "matches_loaded": match_count,
             "my_predictions_count": my_predictions,
+            "my_points": my_points,  # Punti ufficiali (solo se COMPLETED, fonte: score_summaries)
         }
 
         # Live data if matchday is LIVE
