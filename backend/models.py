@@ -209,7 +209,7 @@ class PredictionInput(BaseModel):
 
 class PredictionsBatchRequest(BaseModel):
     predictions: List[PredictionInput]
-    league_id: Optional[str] = None  # Lega per cui si inviano i pronostici (per isolamento dati)
+    league_id: str  # Required after DB migration: all predictions must have explicit league_id
 
 
 class PredictionResponse(BaseModel):
