@@ -1299,11 +1299,17 @@ async def create_league_matchday(league_id: str, req: MatchdayCreate, user=Depen
 
 @league_router.put("/{league_id}/matchdays/{matchday_id}")
 async def update_league_matchday(league_id: str, matchday_id: str, req: dict, user=Depends(get_current_user)):
-    """Aggiorna lo status di una giornata per una lega manuale."""
+    """Aggiorna lo status di una giornata per una lega manuale.
+    Se status diventa COMPLETED, ricalcola tutti i punteggi.
+    """
     league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
     if not league:
         raise HTTPException(404, "Lega non trovata")
     _require_league_admin(league, user)
+    
+    # Get current matchday to check for status change
+    matchday = await matchdays_col.find_one({"id": matchday_id, "league_id": league_id}, {"_id": 0})
+    old_status = matchday.get("status") if matchday else None
     
     updates = {}
     if "status" in req:
@@ -1313,6 +1319,11 @@ async def update_league_matchday(league_id: str, matchday_id: str, req: dict, us
     
     if updates:
         await matchdays_col.update_one({"id": matchday_id, "league_id": league_id}, {"$set": updates})
+    
+    # Se status cambia a COMPLETED, ricalcola tutti i punteggi
+    new_status = updates.get("status")
+    if new_status == "COMPLETED" and old_status != "COMPLETED":
+        await recalculate_matchday_scores(matchday_id, league_id)
     
     return await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
 
