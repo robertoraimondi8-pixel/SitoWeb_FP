@@ -239,3 +239,10 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 - Implemented league switcher dropdown
 - Fixed login bounce bug
 - Fixed Google OAuth flow for web and native
+
+### 20 Feb 2026 - Bugfix: CTA Home sempre "INSERISCI PRONOSTICI" ignorando stato COMPLETED
+- **Root Cause**: `getCtaConfig` (corretto) non veniva usato. Il bottone era hardcoded a "INSERISCI PRONOSTICI".
+- **Fix frontend** (`home.tsx`): PrimaryButton ora usa `ctaConfig.label` e `ctaConfig.icon` basati su `matchday.status`.
+- **Fix frontend** (`home.tsx`): Per COMPLETED, mostra `my_points pts` invece di `predictions_count/total partite`.
+- **Fix backend** (`server.py`): Aggiunto `my_points` in `matchday_data` (da score_summaries, solo se COMPLETED).
+- **Risultato**: COMPLETED → "VEDI RISULTATI" | OPEN → "INSERISCI PRONOSTICI" | LIVE → "SEGUI LIVE". Punti mostrati dalla fonte autoritativa (score_summaries).
