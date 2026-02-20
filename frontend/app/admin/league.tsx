@@ -572,12 +572,18 @@ export default function LeagueAdminConsole() {
           <View style={[s.section, { backgroundColor: colors.card }]}>
             <View style={s.sectionHeader}>
               <Text style={[s.sectionTitle, { color: colors.accent }]}>
-                <Ionicons name="list" size={16} /> PARTITE ({matches.length})
+                <Ionicons name="list" size={16} /> PARTITE ({matches.length}/10)
               </Text>
-              <TouchableOpacity
-                style={[s.addBtn, { backgroundColor: colors.accent }]}
-                onPress={() => setShowAddMatch(true)}
-              >
+              {matches.length >= 10 ? (
+                <View style={[s.addBtn, { backgroundColor: colors.border }]}>
+                  <Ionicons name="lock-closed" size={14} color={colors.textMuted} />
+                  <Text style={[s.addBtnText, { color: colors.textMuted }]}>Max 10</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={[s.addBtn, { backgroundColor: colors.accent }]}
+                  onPress={() => setShowAddMatch(true)}
+                >
                 <Ionicons name="add" size={18} color={colors.background} />
                 <Text style={[s.addBtnText, { color: colors.background }]}>Aggiungi</Text>
               </TouchableOpacity>
