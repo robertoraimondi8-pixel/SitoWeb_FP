@@ -16,9 +16,9 @@ export const LastFiveIndicator: React.FC<LastFiveIndicatorProps> = ({ data }) =>
 
   return (
     <View style={styles.container}>
-      <View style={styles.row}>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', flexWrap: 'wrap' }}>
         {data.map((item) => (
-          <View key={item.matchday_number} style={styles.item}>
+          <View key={item.matchday_number} style={{ alignItems: 'center', marginHorizontal: 8, marginBottom: 4 }}>
             <View style={[
               styles.circle,
               { backgroundColor: getPerformanceColor(item.points) }
