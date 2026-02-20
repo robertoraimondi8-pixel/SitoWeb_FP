@@ -214,36 +214,49 @@ export default function HomeScreen() {
         }
       >
         {/* MATCHDAY CARD */}
-        {data?.matchday && (
+        {data?.league && (
           <View style={styles.matchdayCard}>
-            <View style={styles.matchdayHeader}>
-              <Text style={styles.sectionLabel}>GIORNATA</Text>
-              <StatusBadge status={data.matchday.status} label={getStatusLabel(data.matchday.status)} />
-            </View>
-            
-            <Text style={styles.matchdayTitle}>
-              {data.matchday.label || `Giornata ${data.matchday.number}`}
-            </Text>
-            
-            <Text style={styles.matchdayMeta}>
-              {data.matchday.my_predictions_count}/{Math.min(data.matchday.total_matches || 0, 10)} partite
-            </Text>
+            {data?.matchday ? (
+              <>
+                <View style={styles.matchdayHeader}>
+                  <Text style={styles.sectionLabel}>GIORNATA</Text>
+                  <StatusBadge status={data.matchday.status} label={getStatusLabel(data.matchday.status)} />
+                </View>
+                
+                <Text style={styles.matchdayTitle}>
+                  {data.matchday.label || `Giornata ${data.matchday.number}`}
+                </Text>
+                
+                <Text style={styles.matchdayMeta}>
+                  {data.matchday.my_predictions_count}/{Math.min(data.matchday.total_matches || 0, 10)} partite
+                </Text>
 
-            {data.matchday.status === 'OPEN' && countdown > 0 && (
-              <View style={styles.countdownContainer}>
-                <Ionicons name="time-outline" size={18} color={colors.accent} />
-                <Text style={styles.countdownText}>{formatCountdown(countdown)}</Text>
+                {data.matchday.status === 'OPEN' && countdown > 0 && (
+                  <View style={styles.countdownContainer}>
+                    <Ionicons name="time-outline" size={18} color={colors.accent} />
+                    <Text style={styles.countdownText}>{formatCountdown(countdown)}</Text>
+                  </View>
+                )}
+              </>
+            ) : (
+              <View style={styles.matchdayHeader}>
+                <Text style={styles.sectionLabel}>GIORNATA</Text>
               </View>
             )}
 
-            {ctaConfig && (
-              <PrimaryButton
-                title={ctaConfig.label}
-                icon={ctaConfig.icon}
-                onPress={() => router.push(ctaConfig.route as any)}
-                style={styles.ctaButton}
-              />
-            )}
+            <PrimaryButton
+              title="INSERISCI PRONOSTICI"
+              icon="create-outline"
+              onPress={() => {
+                const leagueId = data?.league?.id || '';
+                const matchdayId = data?.matchday?.id;
+                const url = matchdayId
+                  ? `/(tabs)/predictions?league_id=${leagueId}&matchday_id=${matchdayId}`
+                  : `/(tabs)/predictions?league_id=${leagueId}`;
+                router.push(url as any);
+              }}
+              style={styles.ctaButton}
+            />
           </View>
         )}
 
