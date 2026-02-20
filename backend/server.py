@@ -264,10 +264,29 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
         joker_bonus = base_points if joker_active else 0
         total_points = base_points + joker_bonus
         
-        # Upsert score_summary
-        await score_summaries_col.update_one(
-            {"user_id": user_id, "matchday_id": matchday_id},
-            {"$set": {
+        # Upsert score_summary con id univoco
+        existing_summary = await score_summaries_col.find_one(
+            {"user_id": user_id, "matchday_id": matchday_id, "league_id": league_id}
+        )
+        
+        if existing_summary:
+            await score_summaries_col.update_one(
+                {"id": existing_summary["id"]},
+                {"$set": {
+                    "base_points": base_points,
+                    "joker_bonus": joker_bonus,
+                    "total_points": total_points,
+                    "joker_active": joker_active,
+                    "valid_matches": points_data["matches_total"],
+                    "correct_matches": points_data["matches_correct"],
+                    "updated_at": now_utc(),
+                }}
+            )
+        else:
+            await score_summaries_col.insert_one({
+                "id": new_id(),
+                "user_id": user_id,
+                "matchday_id": matchday_id,
                 "league_id": league_id,
                 "base_points": base_points,
                 "joker_bonus": joker_bonus,
@@ -276,9 +295,7 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
                 "valid_matches": points_data["matches_total"],
                 "correct_matches": points_data["matches_correct"],
                 "updated_at": now_utc(),
-            }},
-            upsert=True
-        )
+            })
     
     # 5. RICALCOLO STANDINGS TOTALI per la lega
     # Per ogni utente che ha partecipato, ricalcola il totale punti di TUTTE le sue giornate in questa lega
