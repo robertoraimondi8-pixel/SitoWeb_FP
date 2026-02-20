@@ -195,6 +195,13 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 - Added: Test suite isolamento multi-lega (/app/backend/tests/test_multi_league_isolation.py)
 - Verified: 15/15 backend tests passati
 
+### 20 Feb 2026 - Bugfix: Data Isolation for National-type Private Leagues
+- **Root Cause**: `admin_confirm_matchday` creates score_summaries WITHOUT `league_id`. Queries for national-type private leagues incorrectly filtered by `league_id = private_league_id`, finding nothing.
+- **Fix 1** (`/api/home` - `last_5_performance`): For national-type leagues, skip matchdays where user has no predictions (prevents historical national matchday "leakage").
+- **Fix 2** (`/api/home` - `all_totals`): For national-type leagues, aggregate score_summaries by `matchday_id IN [national_md_ids]` instead of `league_id` filter.
+- **Fix 3** (`/api/standings/total`): For national-type leagues, use national matchday IDs (not `league_id`) in the aggregation pipeline.
+- **Regression confirmed**: Manual leagues (ilio@raimondi.it) continue to work correctly with `league_id` filter.
+
 ### 20 Feb 2026 - Feature: Predictions Completeness Validation
 - **Frontend**: Bottone "Conferma Pronostici" disabilitato fino a quando non tutte le partite hanno un pronostico
 - **Frontend**: Progress bar `completedCount/totalCount partite` nel footer della pagina Pronostici
