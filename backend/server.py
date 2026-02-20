@@ -2162,15 +2162,12 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
     # Per leghe nazionali private: usa predictions.league_id = league_id
     # Per leghe manuali: usa predictions.matchday_id (i matchday sono già unici per lega)
     is_manual = league_doc.get("match_source_type") in ("manual", "custom")
-    if is_manual:
-        pred_filter = {"matchday_id": matchday_id, "user_id": {"$in": member_user_ids}}
-    else:
-        # Lega nazionale privata: predictions con league_id = questa lega OPPURE senza league_id (retrocompat)
-        pred_filter = {
-            "matchday_id": matchday_id,
-            "user_id": {"$in": member_user_ids},
-            "$or": [{"league_id": league_id}, {"league_id": {"$exists": False}}]
-        }
+    # Dopo la migrazione: ogni prediction ha league_id esplicito — query diretta senza fallback
+    pred_filter = {
+        "matchday_id": matchday_id,
+        "user_id": {"$in": member_user_ids},
+        "league_id": league_id,
+    }
 
     all_preds = await predictions_col.find(pred_filter, {"_id": 0}).to_list(10000)
 
@@ -2261,10 +2258,11 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
                 ).to_list(1000)
                 member_ids_snap = [m["user_id"] for m in league_members_snap]
 
+                # Lega nazionale privata: matchday dove i membri hanno predictions con league_id = questo
                 played_md_ids = await predictions_col.distinct(
                     "matchday_id",
                     {
-                        "$or": [{"league_id": league_id}, {"league_id": {"$exists": False}}],
+                        "league_id": league_id,
                         "user_id": {"$in": member_ids_snap}
                     }
                 )
@@ -2276,13 +2274,13 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
                 ).sort("number", -1).to_list(50)
                 return matchdays
     
-    # Fallback: matchdays dalla stagione attiva (senza league_id = nazionali)
+    # Fallback: matchdays dalla stagione attiva (nazionali = league_id == NATIONAL_LEAGUE_ID)
     season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
     if not season:
         return []
     
     matchdays = await matchdays_col.find(
-        {"season_id": season["id"], "league_id": {"$exists": False}},
+        {"season_id": season["id"], "league_id": NATIONAL_LEAGUE_ID},
         {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}
     ).sort("number", -1).to_list(50)
     
