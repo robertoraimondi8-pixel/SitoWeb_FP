@@ -53,6 +53,7 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
 
   return (
     <TouchableOpacity
+      testID={testID}
       style={[
         styles.button,
         { 
