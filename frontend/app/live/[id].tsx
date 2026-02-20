@@ -30,7 +30,7 @@ interface LiveMatch {
 export default function LiveScreen() {
   const { colors } = useTheme();
   const { token, handleAuthError } = useAuth();
-  const params = useLocalSearchParams<{ id: string }>();
+  const params = useLocalSearchParams<{ id: string; league_id?: string }>();
   
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +45,8 @@ export default function LiveScreen() {
   const fetchLiveData = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
     try {
-      const res = await apiCall(`/live/${params.id}`, { token });
+      const leagueParam = params.league_id ? `?league_id=${params.league_id}` : '';
+      const res = await apiCall(`/live/${params.id}${leagueParam}`, { token });
       
       // Check for score changes and trigger animation
       if (data?.matches) {
