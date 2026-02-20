@@ -263,6 +263,23 @@ export default function PredictionsScreen() {
 
   const handleSave = async () => {
     if (!data?.matchday) return;
+
+    // Validate completeness before saving
+    const editableItems = data.predictions?.filter((item: any) => !item.is_locked) || [];
+    const editableCount = editableItems.length;
+    const completedCount = editableItems.filter((item: any) => {
+      const pred = preds[item.match.id];
+      return pred && pred.value;
+    }).length;
+
+    if (isOpen && completedCount < editableCount) {
+      Alert.alert(
+        'Pronostici incompleti',
+        `Devi inserire un pronostico per tutte le partite.\n${completedCount}/${editableCount} completate.`
+      );
+      return;
+    }
+
     setSaving(true);
     setSaved(false);
     try {
