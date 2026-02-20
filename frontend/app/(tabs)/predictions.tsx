@@ -370,7 +370,16 @@ export default function PredictionsScreen() {
 
   const predCount = Object.values(preds).filter(p => p.value).length;
   const totalMatches = data.predictions?.length || 0;
-  
+
+  // Completamento pronostici: solo partite ancora modificabili (non locked individualmente)
+  const editableItems = data.predictions?.filter((item: any) => !item.is_locked) || [];
+  const editableCount = editableItems.length;
+  const completedEditableCount = editableItems.filter((item: any) => {
+    const pred = preds[item.match.id];
+    return pred && pred.value;
+  }).length;
+  const allComplete = editableCount > 0 && completedEditableCount === editableCount;
+
   // Get status info
   const matchdayStatus = data.matchday?.status || 'OPEN';
   const isOpen = matchdayStatus === 'OPEN';
