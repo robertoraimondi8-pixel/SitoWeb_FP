@@ -195,6 +195,11 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 - Added: Test suite isolamento multi-lega (/app/backend/tests/test_multi_league_isolation.py)
 - Verified: 15/15 backend tests passati
 
+### 20 Feb 2026 - Bugfix: GIORNATE contatore errato in home per leghe nazionali private
+- **Root Cause**: `user_matchdays_played` usava `total_completed_in_season` (6 giornate nazionali completate) invece delle giornate dove l'utente ha predictions per questa lega specifica.
+- **Fix** (`server.py`): Per leghe non-manuali, `user_matchdays_played = len(distinct matchday_id from predictions where user_id=X AND league_id=Y)`. Per leghe manuali: mantiene `total_completed_in_season`.
+- **Risultato**: Desylega (nuova lega) mostra GIORNATE = 0. Dopo che desiree inserisce i suoi pronostici, il contatore aumenterà correttamente.
+
 ### 20 Feb 2026 - Bugfix: Isolamento Completo Dati Leghe Nazionali Private (league_id in predictions)
 - **Root Cause**: Le predictions non avevano `league_id`, quindi standings/matchdays, standings/weekly, standings/total e home/last_5 mostravano dati storici della lega nazionale per tutte le leghe private di tipo national.
 - **Fix 1** (`models.py`): Aggiunto `league_id: Optional[str] = None` a `PredictionsBatchRequest`.
