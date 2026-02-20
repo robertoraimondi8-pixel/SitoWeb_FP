@@ -2995,6 +2995,9 @@ async def admin_set_current_matchday(season_id: str, matchday_id: str, admin=Dep
     matchday = await matchdays_col.find_one({"id": matchday_id, "season_id": season_id})
     if not matchday:
         raise HTTPException(404, "Matchday not found in this season")
+    # Only national matchdays (no league_id) can be the season current matchday
+    if matchday.get("league_id"):
+        raise HTTPException(400, "Solo le giornate della Lega Nazionale (senza league_id) possono essere impostate come giornata corrente della stagione.")
     
     await seasons_col.update_one(
         {"id": season_id}, 
