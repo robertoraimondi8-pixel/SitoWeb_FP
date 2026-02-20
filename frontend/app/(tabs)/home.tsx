@@ -425,16 +425,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.accent,
   },
-  manageLgBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
   switcherOverlay: {
     position: 'absolute',
     top: 0,
