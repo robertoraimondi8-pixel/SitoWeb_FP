@@ -858,11 +858,22 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             ).sort("number", -1).to_list(100)
             logger.info(f"[HOME] last5 league_id={first_league['id']}, source=manual, matchdays_completed={len(completed_matchdays_docs)}")
         else:
-            # Lega nazionale: matchdays dalla stagione senza league_id
-            completed_matchdays_docs = await matchdays_col.find(
-                {"season_id": season["id"], "status": "COMPLETED", "league_id": {"$exists": False}},
-                {"_id": 0, "id": 1, "number": 1}
-            ).sort("number", -1).to_list(100)
+            # Lega nazionale privata: usa i matchday dove i membri hanno DAVVERO giocato
+            # (predictions con league_id = questa lega OPPURE senza league_id - retrocompatibilità)
+            played_md_ids_for_home = await predictions_col.distinct(
+                "matchday_id",
+                {
+                    "user_id": {"$in": league_member_ids},
+                    "$or": [{"league_id": first_league["id"]}, {"league_id": {"$exists": False}}]
+                }
+            )
+            if played_md_ids_for_home:
+                completed_matchdays_docs = await matchdays_col.find(
+                    {"id": {"$in": played_md_ids_for_home}, "status": "COMPLETED"},
+                    {"_id": 0, "id": 1, "number": 1}
+                ).sort("number", -1).to_list(100)
+            else:
+                completed_matchdays_docs = []
             logger.info(f"[HOME] last5 league_id={first_league['id']}, source=national, matchdays_completed={len(completed_matchdays_docs)}")
         
         completed_md_ids = [m["id"] for m in completed_matchdays_docs]
