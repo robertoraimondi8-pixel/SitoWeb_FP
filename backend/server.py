@@ -2126,13 +2126,14 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
     if is_manual:
         pred_filter = {"matchday_id": matchday_id, "user_id": {"$in": member_user_ids}}
     else:
-        # Lega nazionale privata: solo predictions con league_id = questa lega
-        pred_filter = {"matchday_id": matchday_id, "user_id": {"$in": member_user_ids}, "league_id": league_id}
+        # Lega nazionale privata: predictions con league_id = questa lega OPPURE senza league_id (retrocompat)
+        pred_filter = {
+            "matchday_id": matchday_id,
+            "user_id": {"$in": member_user_ids},
+            "$or": [{"league_id": league_id}, {"league_id": {"$exists": False}}]
+        }
 
-    all_preds = await predictions_col.find(
-        pred_filter,
-        {"_id": 0}
-    ).to_list(10000)
+    all_preds = await predictions_col.find(pred_filter, {"_id": 0}).to_list(10000)
 
     # Per leghe nazionali private: includi solo utenti che hanno giocato questa giornata per questa lega
     if not is_manual:
