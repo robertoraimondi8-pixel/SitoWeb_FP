@@ -42,12 +42,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     flexWrap: 'wrap',
-    gap: 12,
-    width: '100%',
   },
   item: {
     alignItems: 'center',
     width: 52,
+    marginHorizontal: 8,
   },
   circle: {
     width: 44,
