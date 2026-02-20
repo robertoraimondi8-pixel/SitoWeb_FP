@@ -685,6 +685,8 @@ async def google_auth_session(request: Request):
 # ========================================
 # Costante: ogni giornata ha sempre 11 partite
 MATCHES_PER_MATCHDAY = 11
+# National league ID — after DB migration, all national records carry this explicit league_id
+NATIONAL_LEAGUE_ID = "f1373417-43aa-4043-b6a2-125873181c95"
 
 @user_router.get("/home")
 async def get_home(league_id: str = None, user=Depends(get_current_user)):
