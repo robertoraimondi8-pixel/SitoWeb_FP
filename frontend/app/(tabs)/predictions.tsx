@@ -206,9 +206,17 @@ export default function PredictionsScreen() {
       console.error(e); 
     }
     finally { setLoading(false); }
-  }, [token, handleAuthError, router]);
+  }, [token, handleAuthError, router, paramMatchdayId]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  // useFocusEffect: rifetch ogni volta che la schermata Pronostici ottiene il focus
+  // (risolve lo stale state quando si naviga da Home dopo aver creato una nuova giornata)
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      setPreds({});
+      fetchData();
+    }, [fetchData])
+  );
 
   const setMarket = (matchId: string, market: string) => {
     setPreds(prev => ({
