@@ -113,8 +113,24 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 - Integrate Stripe for joining National League
 - Re-enable email verification
 - Implement Push Notifications
-- Integrate live sports data API
 - Refactor server.py into modular routes
+
+### 11. API-Football Integration (Feb 21, 2026)
+- **Provider**: API-Sports (v3.football.api-sports.io)
+- **Client**: `/app/backend/apifootball.py` — async httpx client with in-memory TTL cache
+- **Env var**: `APIFOOTBALL_API_KEY` in `backend/.env`
+- **Cache TTL**: Leagues 15min, Fixtures 5min, Live: no cache
+- **Admin Endpoints** (require admin auth):
+  - `GET /api/admin/real-fixtures/leagues` — Top 5 leagues (Serie A, PL, LaLiga, Bundesliga, Ligue 1)
+  - `GET /api/admin/real-fixtures/search?league=&season=&from=&to=` — Search real fixtures
+  - `POST /api/admin/real-fixtures/import` — Import fixtures as matches (body: league_id, matchday_id, fixture_ids[])
+- **Match fields added**: `external_provider`, `external_fixture_id` (indexed, sparse)
+- **Background scheduler**: Every 60s refreshes imported matches with status `live`/`scheduled`
+- **Auto-complete**: When all matches in a matchday are finished, auto-sets COMPLETED and calculates scores
+- **Error handling**: Proper 502 errors for API-Football issues (suspended key, rate limits)
+- **Duplicate protection**: Won't re-import already-imported fixture IDs
+- **Status mapping**: API-Football status → internal (1H/2H/HT → live, FT/AET → finished, NS → scheduled, PST → postponed)
+- **NOTE**: API key may be suspended due to quota — user needs to check dashboard.api-football.com
 
 ## Credentials
 - SUPER_ADMIN: admin@fantapronostic.com / admin123
