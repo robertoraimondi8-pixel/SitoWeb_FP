@@ -428,9 +428,9 @@ export default function PredictionsScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.headerTitle}>
-            {data.matchday.label || `${t('matchday')} ${data.matchday.number}`}
+            {data.matchday.label || `${t('predictions.matchday_prefix')} ${data.matchday.number}`}
           </Text>
-          <Text style={styles.predCounter}>{predCount}/{totalMatches} {t('matches')}</Text>
+          <Text style={styles.predCounter}>{predCount}/{totalMatches} {t('predictions.matches_label')}</Text>
         </View>
         <StatusBadge status={matchdayStatus} label={getStatusLabel()} />
       </View>
@@ -547,7 +547,7 @@ export default function PredictionsScreen() {
                         <Text style={styles.lockedPredValue}>{selectedValue}</Text>
                       </View>
                     ) : (
-                      <Text style={styles.lockedEmpty}>{t('no_predictions')}</Text>
+                      <Text style={styles.lockedEmpty}>{t('predictions.no_prediction')}</Text>
                     )}
                   </View>
                 ) : (
@@ -643,7 +643,7 @@ export default function PredictionsScreen() {
           {saved && (
             <View style={styles.savedBanner}>
               <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-              <Text style={styles.savedText}>{t('save_success')}</Text>
+              <Text style={styles.savedText}>{t('predictions.saved_success')}</Text>
             </View>
           )}
           {/* Progress indicator: mostra completamento solo in modalità OPEN */}
