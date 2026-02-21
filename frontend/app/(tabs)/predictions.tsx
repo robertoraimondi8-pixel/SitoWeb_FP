@@ -276,8 +276,8 @@ export default function PredictionsScreen() {
 
     if (isOpen && completedCount < editableCount) {
       Alert.alert(
-        'Pronostici incompleti',
-        `Devi inserire un pronostico per tutte le partite.\n${completedCount}/${editableCount} completate.`
+        t('predictions.title'),
+        t('predictions.completed_of', { done: completedCount, total: editableCount })
       );
       return;
     }
