@@ -3471,7 +3471,7 @@ async def admin_v3_transition(matchday_id: str, body: dict, user=Depends(get_cur
         if results_count < match_count:
             raise HTTPException(400, f"Impossibile completare: risultati inseriti {results_count}/{match_count}. Inserisci tutti i risultati prima di completare.")
 
-    # OPEN → LOCKED: auto-lock delle altre giornate OPEN nella stessa stagione
+    # OPEN: auto-lock altre giornate OPEN + aggiorna current_matchday_id della stagione
     if target_status == "OPEN":
         season_id = matchday.get("season_id")
         if season_id:
@@ -3479,6 +3479,12 @@ async def admin_v3_transition(matchday_id: str, body: dict, user=Depends(get_cur
                 {"season_id": season_id, "league_id": league_id, "id": {"$ne": matchday_id}, "status": "OPEN"},
                 {"$set": {"status": "LOCKED"}}
             )
+            # Aggiorna current_matchday_id nella stagione
+            await seasons_col.update_one(
+                {"id": season_id},
+                {"$set": {"current_matchday_id": matchday_id}}
+            )
+            logger.info(f"[ADMIN_V3] Season {season_id} current_matchday_id → {matchday_id}")
 
     # Esegui transizione
     await matchdays_col.update_one({"id": matchday_id}, {"$set": {"status": target_status}})
