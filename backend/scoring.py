@@ -56,8 +56,9 @@ def calculate_match_points(
     if match_status in ("void", "postponed", "cancelled"):
         return (0.0, None)
 
-    # Match must be finished to calculate
-    if match_status != "finished":
+    # Match must be finished or live to calculate points
+    # "live" matches get provisional points; "finished" matches get final points
+    if match_status not in ("finished", "live"):
         return (0.0, None)
 
     if home_score is None or away_score is None:
