@@ -135,7 +135,7 @@ export default function AuthLanding() {
             style={s.logo}
             resizeMode="contain"
           />
-          <Text style={s.tagline}>Pronostica. Vinci. Domina la classifica</Text>
+          <Text style={s.tagline}>{t('auth.tagline')}</Text>
         </View>
 
         {/* CTA Buttons */}
@@ -147,7 +147,7 @@ export default function AuthLanding() {
             activeOpacity={0.85}
           >
             <Ionicons name="person-add" size={20} color={colors.textInverse} />
-            <Text style={s.primaryBtnText}>Registrati</Text>
+            <Text style={s.primaryBtnText}>{t('register')}</Text>
           </TouchableOpacity>
 
           {/* Accedi */}
