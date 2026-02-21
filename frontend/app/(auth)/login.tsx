@@ -284,8 +284,8 @@ export default function LoginScreen() {
 
           {/* Form Card */}
           <View style={styles.formCard}>
-            <Text style={styles.welcomeTitle}>Bentornato!</Text>
-            <Text style={styles.welcomeSubtitle}>Accedi per continuare</Text>
+            <Text style={styles.welcomeTitle}>{t('auth.welcome_back')}</Text>
+            <Text style={styles.welcomeSubtitle}>{t('auth.sign_in_continue')}</Text>
 
             {error ? (
               <View style={styles.errorBanner}>
@@ -337,7 +337,7 @@ export default function LoginScreen() {
 
             {/* Forgot Password */}
             <TouchableOpacity testID="forgot-password-btn" style={styles.forgotRow} onPress={() => router.push('/(auth)/forgot-password')}>
-              <Text style={styles.forgotText}>Password dimenticata?</Text>
+              <Text style={styles.forgotText}>{t('forgot_password')}</Text>
             </TouchableOpacity>
 
             {/* Login Button */}
