@@ -817,8 +817,14 @@ export default function AdminConsoleV3() {
                   <Text style={[s.dateTimeBtnText, { color: colors.text }]}>{selectedDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</Text>
                 </TouchableOpacity>
               </View>
-              {showDatePicker && <DateTimePicker value={selectedDate} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={onDateChange} minimumDate={new Date()} />}
-              {showTimePicker && <DateTimePicker value={selectedDate} mode="time" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={onTimeChange} is24Hour />}
+              {showDatePicker && (isWeb
+                ? <WebDateTimePicker value={selectedDate} mode="date" onChange={d => { setSelectedDate(d); if (isWeb) setShowDatePicker(false); }} minimumDate={new Date()} />
+                : <DateTimePicker value={selectedDate} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={onDateChange} minimumDate={new Date()} />
+              )}
+              {showTimePicker && (isWeb
+                ? <WebDateTimePicker value={selectedDate} mode="time" onChange={d => { setSelectedDate(d); if (isWeb) setShowTimePicker(false); }} />
+                : <DateTimePicker value={selectedDate} mode="time" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={onTimeChange} is24Hour />
+              )}
               {Platform.OS === 'ios' && (showDatePicker || showTimePicker) && (
                 <TouchableOpacity style={[s.donePickerBtn, { backgroundColor: colors.accent }]} onPress={() => { setShowDatePicker(false); setShowTimePicker(false); }}>
                   <Text style={[s.donePickerBtnText, { color: colors.background }]}>Fatto</Text>
