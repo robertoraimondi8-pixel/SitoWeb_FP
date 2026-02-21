@@ -1,142 +1,157 @@
 <analysis>**original_problem_statement**:
-The user's initial goal was to build a private league creation and management system. This session focused on resolving bugs and adding significant new features following a major Admin Console v3 refactor from a previous session.
+The user's primary goal for this session was to integrate a live sports data feed (API-Football) to automate match creation and result updates. This involved several backend and frontend tasks. Additionally, the user reported multiple bugs throughout the session that required immediate attention.
 
-The user's requests addressed in this session were:
-1.  **Bug Fixes**:
-    *   Correct the inconsistent LIVE mode behavior on the home page.
-    *   Fix the calculation of provisional points, which were not updating during LIVE matches.
-    *   Resolve issues where Ultimi 5 pronostici (Last 5 predictions) and Classifica settimanale (Weekly ranking) were not showing correct data.
-2.  **UI/UX Improvements**:
-    *   Remove the mercato (market type) section from all match creation flows.
-    *   Remove a redundant Tipo Mercato chip group from the league admin console.
-    *   Relocate the LIVE provisional points box higher on the home screen for better visibility.
-    *   Remove confusing sub-text (X esatti • Y 1X2) from the weekly rankings display.
-3.  **Infrastructure**:
-    *   Fix the failing Expo Go preview tunnel to allow testing on a physical device.
-4.  **Code Quality & Features**:
-    *   Perform a comprehensive End-to-End (E2E) test of the entire application.
-    *   Refactor the entire frontend codebase to remove all  types and replace them with strict TypeScript interfaces.
-    *   Implement a multi-language internationalization (i18n) system supporting Italian, English, and Spanish, with persistence and a language selector in the user's profile.
+The user's requests were:
+1.  **API Integration**: Integrate API-Football with a server-side client, caching, and background job for live score updates. Create admin endpoints to search and import real-world fixtures.
+2.  **Admin UI**: Build a new UI section in the admin console for admins to use the new import functionality without manual API calls.
+3.  **Expo Go Bug**: The user reported that the Expo Go mobile preview was not working, preventing testing on a physical device. This was a recurring issue.
+4.  **Live Sync Scheduler**: Make the live update scheduler configurable via an environment variable and add a circuit breaker to prevent the API key from being suspended due to excessive calls.
+5.  **Admin UI Bug**: A date/time picker in the admin console was not working on the web version.
+6.  **Live Sync Data Bug**: The live update scheduler was not correctly detecting when matches started or updating their scores.
+7.  **Feature Enhancements**:
+    *   Fetch and display team logos for all imported matches.
+    *   Display the elapsed time (e.g., ) for live matches.
+    *   Display the kickoff time for matches that have not yet started on a live matchday.
+8.  **i18n Cleanup**: The user found multiple internationalization bugs, including mixed-language strings on several screens, missing translations, and incorrect fallback behavior.
 
 **User's preferred language**: Italiano
 
 **what currently exists?**
-The application is a full-stack sports prediction platform with a React Native (Expo) frontend, FastAPI backend, and MongoDB.
-
-In this session, the agent successfully addressed all user requests. Key accomplishments include:
-*   Fixed critical backend bugs in  and  related to LIVE matchday logic and provisional point calculation.
-*   Completed multiple UI fixes across , , and admin components to align with user requests.
-*   Executed a massive frontend refactor, creating a  file and eliminating all  types from the codebase for improved type safety.
-*   Successfully implemented a complete internationalization (i18n) framework using , with language files, persistence via AsyncStorage/localStorage, and a functional language switcher in the UI.
-*   Temporarily resolved a persistent Expo Go tunnel failure, though it remains unstable, forcing a switch to the more reliable web-based preview as the primary development environment.
+The application has been significantly enhanced with a new API-Football integration. This includes:
+*   A new backend API client in  for interacting with API-Football, complete with caching.
+*   New admin API endpoints () to list leagues, search for fixtures, and import them into the application's database.
+*   A background scheduler in  that automatically updates the status and scores of live matches. The scheduler is now configurable via an environment variable () and includes a circuit breaker to protect the API quota.
+*   A new Importa partite reali UI component in the admin console, allowing administrators to import matches directly from the UI.
+*   The live match display on the home page and the predictions screen have been updated to show team logos, elapsed time for live games, and kickoff times for upcoming games.
+*   A bug with the web version of the date-time picker in the admin console has been fixed.
 
 **Last working item**:
--   Last item agent was working: Implementing a multi-language (i18n) system for Italian, English, and Spanish. This involved creating the configuration, translation files, migrating several key screens (Home, Profile, Rankings, Predictions) to use the new system, adding a language selector, and debugging SSR compatibility issues.
--   Status: USER VERIFICATION PENDING
--   Agent Testing Done: Y (Agent verified functionality via interactive clicks and screenshots).
+-   Last item agent was working: The user reported several internationalization (i18n) bugs, including hardcoded English strings (My Leagues), incorrect translations on confirmation dialogs, and inconsistent text on the post-registration screen. The agent had just begun investigating the relevant files (, locale  files, and various  components) to diagnose and fix these issues.
+-   Status: IN PROGRESS
+-   Agent Testing Done: N
 -   Which testing method agent to use? frontend testing agent
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
-There are no outstanding issues or tasks from the agent's perspective. All user requests from this session have been completed. The next step is for the user to verify the latest i18n implementation.
+-   **Issue 1: i18n Bugs and Inconsistencies (P0)**
+    -   Description: The user has identified multiple UI screens where the language is incorrect or strings are hardcoded, breaking the multi-language experience. The Spanish flag is also missing from the language selector. The fallback language should be Italian, not English.
+    -   Next debug checklist:
+        1.  Globally search the  directory for hardcoded strings like My Leagues, Confirm Predictions, etc.
+        2.  Replace all hardcoded strings with  from the  hook.
+        3.  Update the translation files () with the new keys.
+        4.  Verify the fallback language in  is set to .
+        5.  Add the Spanish flag to the language selector UI in  and potentially .
+        6.  Manually test the onboarding, profile, and prediction submission flows to confirm all text is correctly translated.
+    -   Status: IN PROGRESS
+    -   Is recurring issue? N
+
+-   **Issue 2: Unstable Expo Go Tunnel (P1)**
+    -   Description: The  tunnel required for the Expo Go mobile app preview consistently fails to start in the Kubernetes environment, producing  errors or timeouts. This prevents the user from testing on a physical mobile device.
+    -   Attempted fixes: The agent tried switching supervisor config to , setting the hostname manually, and removing environment variables. All attempts failed, confirming it's an infrastructure limitation.
+    -   Next debug checklist: This issue is blocked pending a fix from the Emergent support team. The agent has already provided the user with the Job ID and a message to send to support. The next agent should ask the user for any updates from the support team. In the meantime, all frontend development must continue using the web preview.
+    -   Status: BLOCKED
+    -   Is recurring issue? Y
 
 **In progress Task List**:
-None.
+None. The current work is categorized as a high-priority bug fix.
 
 **Upcoming and Future Tasks**
+-   **Upcoming Tasks**:
+    -   **Add Refresh Results Button (P1)**: Add a button to the Admin Console UI that triggers the  endpoint, allowing an admin to manually force an update of live scores.
 -   **Future Tasks**:
     -   Implement Championship Winner Predictions Feature.
     -   Integrate Stripe for joining the National League.
     -   Re-enable email verification.
     -   Implement Push Notifications.
-    -   Integrate a live sports data API for results.
 
 **Completed work in this session**
--   **Feature: Multi-language Support (i18n)**: Implemented a persistent, user-configurable language system for IT/EN/ES. (Files: , , , etc.)
--   **Refactor: Full TypeScript Type Safety**: Removed all instances of  from the frontend codebase and established strict type interfaces. (Files: , and virtually all  files).
--   **Bug Fix: LIVE Mode & Provisional Scoring**: Corrected backend logic to prioritize LIVE matchdays on the home screen and to calculate provisional points correctly during live games. (Files: , ).
--   **Bug Fix: Home Page Data Display**: Fixed bugs preventing Last 5 Predictions and Weekly Ranking from showing correct data for all league types. (Files: , ).
--   **UI Fixes**:
-    -   Removed market type selectors and displays from all admin/league creator UIs.
-    -   Moved the LIVE points summary box higher on the home screen.
-    -   Cleaned up text in the weekly ranking display.
--   **Infrastructure: Expo Tunnel Workaround**: Diagnosed and temporarily fixed the Expo Go tunnel issue, but ultimately reverted to the more stable web preview mode.
--   **Testing: E2E Validation**: Performed a full end-to-end test of all major application flows.
-
-**Earlier issues found/mentioned but not fixed**
--   **Issue 1: Redundant settings/gear icon**: This was mentioned in the previous handoff. The agent searched for it during this session but could not find it, suggesting it was fixed in a prior, un-noted change. **Status: Likely Resolved**.
--   **Issue 2: Linter parsing errors**: The major TypeScript refactoring has likely resolved all existing linting issues. **Status: Likely Resolved**.
+-   **Feature: API-Football Integration**: Implemented backend client (), admin API endpoints for import, and a configurable background scheduler with a circuit breaker for live updates ().
+-   **Feature: Admin UI for Fixture Import**: Created a new React component () and integrated it into the admin console () to allow searching and importing real matches.
+-   **Feature: Enhanced Live Match UI**: Updated the Home and Predictions screens to display team logos, live elapsed match time, and kickoff times for scheduled games (, ).
+-   **Bug Fix: Live Sync Logic**: Corrected the background scheduler to properly detect when  matches become  and start updating their scores.
+-   **Bug Fix: Web DateTime Picker**: Fixed the admin console's date/time picker on web by conditionally rendering native HTML inputs ().
+-   **Infrastructure: Expo Go Troubleshooting**: Diagnosed the Expo Go tunnel failure as a platform-level issue and provided the user with clear instructions to contact support.
 
 **Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork**: Linter/Parsing Errors.
--   **Recurrence count**: 5+
--   **Status**: RESOLVED (Addressed by the full TypeScript refactoring).
+-   **Issue recurrence in previous fork**: Expo Go Tunnel Failure.
+-   **Recurrence count**: 2+
+-   **Status**: BLOCKED (on Emergent platform support).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Internationalization (i18n)**: Using , , and  to create a multi-language experience. Persistence is handled with  (native) and  (web).
--   **Expo Web SSR (Server-Side Rendering)**: Debugging and resolving SSR-related crashes () by conditionally using browser-specific APIs and avoiding top-level imports of native modules like .
--   **Strict TypeScript Refactoring**: Systematically eliminating  types to improve code quality, maintainability, and developer experience by leveraging explicit interfaces.
--   **Expo Preview Modes**: Actively managing and debugging Expo's preview server, switching between  (for Expo Go on devices) and  (for browser preview) to maintain a working development environment despite infrastructure instability.
+-   **Third-Party API Integration**: Building a dedicated client () to interface with an external REST API, including header-based authentication.
+-   **Background Tasks**: Using FastAPI's  to run a recurring job for live data synchronization without blocking the main server thread.
+-   **Caching**: Using  to implement a time-to-live cache for API responses to reduce redundant calls and respect API quotas.
+-   **Circuit Breaker Pattern**: Implementing a simple, stateful circuit breaker in the backend to automatically pause API calls after repeated failures (e.g., 4xx errors), preventing API key suspension.
+-   **Platform-Specific Rendering**: Using  in React Native to render different components (e.g., native HTML inputs) for the web build to fix compatibility issues.
 
 **key DB schema**
--   No changes were made to the database schema in this session.
+-   **matches** collection: This was implicitly updated. Matches imported from API-Football now contain the following new fields:
+    -   
+    -   
+    -   
+    -   
+    -    (minutes of the match)
 
 **All files of reference**
--   
--   
--   
--   
--   
--   
--   
+*    (Core logic for APIs and scheduler)
+*    (New API client)
+*    (Admin console main page)
+*    (New UI component)
+*    (Live match display)
+*    (Predictions list display)
+*    (Core i18n configuration, needs review)
+*    (Contains i18n bugs)
 
 **Areas that need refactoring**:
--    remains a large monolithic file. It could be broken down into smaller, domain-specific route files (e.g., , ) for better long-term maintainability.
+-    has grown even larger with the addition of the API-Football endpoints and scheduler logic. It should be broken down into smaller files under a  or  directory to improve maintainability.
 
 **key api endpoints**
--   : Logic was modified to correctly prioritize matchdays ( >  > ) and to fix data aggregation for home page summaries.
+-   : Imports selected real-world fixtures into a matchday.
+-   : Searches for real-world fixtures from API-Football.
+-   : Fetches the main supported football leagues.
+-   : Manually triggers the live score update process.
+-   : Modified to return team logos and elapsed match time.
 
 **Critical Info for New Agent**
--   **Expo Preview is in WEB MODE**: The  tunnel for Expo Go is highly unstable in this environment. The application preview is reliably served in web mode. Use the standard preview URL for all frontend testing. If the user insists on using Expo Go, you may need to re-attempt fixing the tunnel configuration in .
--   **i18n System is Live**: The entire frontend UI is being translated. Any new text-based components or labels MUST use the  hook and have corresponding key-value pairs in all three locale files ().
--   **Frontend is Strictly Typed**: The codebase is now free of . All new code must adhere to the strict types and interfaces defined in .
-
-**documents and test reports created in this job**
--   
+-   **PRIORITY 1**: Fix the i18n bugs reported by the user. This is the current active task.
+-   **Expo Go Tunnel is BROKEN**: Do not attempt to use  mode. The issue is platform-related and has been escalated to support by the user. All frontend work must be verified using the web preview.
+-   **API-Football Quota**: The user's API key has a limited quota. The live sync is disabled by default (). When testing, enable it, but be mindful of the call frequency. The circuit breaker is in place as a safeguard.
+-   **Manual Refresh Endpoint**: A manual trigger for the live sync exists at . This is very useful for debugging without waiting for the scheduler interval.
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **(LATEST)** User provided detailed specifications to implement a multi-language (i18n) system. **(Status: COMPLETED, pending user verification)**
-9.  User requested a full TypeScript refactor to remove all  types from the frontend codebase. **(Status: COMPLETED)**
-8.  User reported that the Expo Go app was not opening and provided a screenshot of the QR code screen. **(Status: RESOLVED)**
-7.  User provided screenshots and requested three UI fixes: remove a Tipo Mercato selector, move the LIVE points box higher on the home screen, and remove sub-text from the weekly rankings. **(Status: COMPLETED)**
-6.  User requested a full E2E test, reported two new bugs (Ultimi 5 pronostici & Classifica settimanale not updating), and requested one UI change (remove mercato). **(Status: COMPLETED)**
-5.  User reported that provisional points were not being calculated and displayed during LIVE matches. **(Status: COMPLETED)**
-4.  User asked for confirmation that a previously reported bug was fixed. **(Status: COMPLETED)**
-3.  User confirmed that the agent should prioritize fixing bugs over other tasks. **(Status: COMPLETED)**
+10. **(LATEST)** User reported multiple i18n bugs (mixed languages, missing translations/flags) and requested a full cleanup. (Status: **IN PROGRESS**)
+9.  User asked if the Expo tunnel was open, confirming it's still not working for them. (Status: **RESOLVED - EXPLAINED**)
+8.  User confirmed they can see the team logos. (Status: **COMPLETED**)
+7.  User reported that logos were not visible on live matches. (Status: **RESOLVED**)
+6.  User asked if team logos could be fetched from the API. (Status: **RESOLVED**)
+5.  User reported that live scores were not updating for a match that had started. (Status: **RESOLVED**)
+4.  User confirmed their API key was working and asked if the live sync was active and how it works. (Status: **RESOLVED**)
+3.  User requested to make the live sync configurable and fix a date-picker bug on the web admin console. (Status: **COMPLETED**)
+2.  User requested to build the UI for the fixture import feature in the Admin Console. (Status: **COMPLETED**)
+1.  User reported the Expo Go preview was not working. (Status: **RESOLVED - EXPLAINED, BLOCKED**)
 
 **Project Health Check:**
 -   **Broken**:
-    -   The Expo Go tunnel () is unstable and frequently fails. The application is functional using the  mode workaround, but this prevents testing on a physical mobile device via the Expo Go app.
+    -   **Expo Go Tunnel**: The  tunnel for testing on physical devices via the Expo Go app is non-functional due to a known limitation in the Kubernetes environment. This is blocked on platform support.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
--   **Stripe (Payments)** — requires User API Key. Not yet integrated.
--   **Emergent-managed Google Auth** — Integrated and functional.
+-   **API-Football (API-Sports)**: Integrated for live sports data (fixtures, results). Requires a user-provided API key set in the  environment variable.
+-   **Stripe (Payments)**: Not yet integrated.
+-   **Emergent-managed Google Auth**: Integrated and functional.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES. An E2E test was performed.
--   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: 
--   **Known regressions**: None identified in this session.
+-   **Testing agent used after significant changes**: YES, but earlier in the session. The latest UI features (import UI, logos, live time) were tested manually by the agent.
+-   **Test files created**: None in this session.
+-   **Known regressions**: None.
 
 **Credentials to test flow:**
+-   **System Admin**:  / 
 -   **League Owner (Manual)**:  / 
 -   **League Owner (National type)**:  / 
--   **System Admin**:  / 
--   **Private League Member**:  / 
 
 **What agent forgot to execute**
--   The agent successfully addressed all tasks and bugs requested by the user during this session.</analysis>
+-   The agent suggested adding a Refresh Results button to the admin UI to correspond with the manual refresh API endpoint but did not implement it. This has been added to the Upcoming Tasks.</analysis>
