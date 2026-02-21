@@ -253,23 +253,19 @@ export default function AdminConsoleV3() {
 
   const deleteMatchday = async () => {
     if (!selectedMatchday || !selectedLeague) return;
-    Alert.alert('Elimina Giornata', 'Sei sicuro? Verranno eliminati anche partite, pronostici e punteggi.', [
-      { text: 'Annulla', style: 'cancel' },
-      { text: 'Elimina', style: 'destructive', onPress: async () => {
-        setActionLoading(true);
-        try {
-          const endpoint = selectedLeague._is_national
-            ? `/admin/matchdays/${selectedMatchday.id}`
-            : `/leagues/${selectedLeague.id}/matchdays/${selectedMatchday.id}`;
-          await apiCall(endpoint, { method: 'DELETE', token });
-          Alert.alert('Fatto!', 'Giornata eliminata');
-          setSelectedMatchday(null); setMatches([]);
-          await loadMatchdays(selectedLeague.id);
-        } catch (e: any) {
-          Alert.alert('Errore', e.message || 'Errore eliminazione');
-        } finally { setActionLoading(false); }
-      }},
-    ]);
+    if (!(await showConfirm('Elimina Giornata', 'Sei sicuro? Verranno eliminati anche partite, pronostici e punteggi.'))) return;
+    setActionLoading(true);
+    try {
+      const endpoint = selectedLeague._is_national
+        ? `/admin/matchdays/${selectedMatchday.id}`
+        : `/leagues/${selectedLeague.id}/matchdays/${selectedMatchday.id}`;
+      await apiCall(endpoint, { method: 'DELETE', token });
+      showAlert('Fatto!', 'Giornata eliminata');
+      setSelectedMatchday(null); setMatches([]);
+      await loadMatchdays(selectedLeague.id);
+    } catch (e: any) {
+      showAlert('Errore', e.message || 'Errore eliminazione');
+    } finally { setActionLoading(false); }
   };
 
   // === MATCH CRUD ===
