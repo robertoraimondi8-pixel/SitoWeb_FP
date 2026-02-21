@@ -388,14 +388,14 @@ export default function LoginScreen() {
               {googleLoading ? (
                 <View style={styles.googleLoadingRow}>
                   <ActivityIndicator color={colors.textSecondary} size="small" />
-                  <Text style={styles.googleLoadingText}>Attendere...</Text>
+                  <Text style={styles.googleLoadingText}>{t('auth.loading_google')}</Text>
                 </View>
               ) : (
                 <>
                   <View style={styles.googleIconWrap}>
                     <Text style={styles.googleG}>G</Text>
                   </View>
-                  <Text style={styles.googleBtnText}>Continua con Google</Text>
+                  <Text style={styles.googleBtnText}>{t('continue_with_google')}</Text>
                 </>
               )}
             </TouchableOpacity>
