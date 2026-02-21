@@ -9,6 +9,8 @@ import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+import { PredictionsData, Matchday, PredictionEntry, MatchItem, getErrorMessage } from '../../src/types/api';
+import type { Href } from 'expo-router';
 
 // Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
@@ -47,7 +49,7 @@ export default function PredictionsScreen() {
   const router = useRouter();
   const { token, handleAuthError } = useAuth();
   const { league_id: paramLeagueId, matchday_id: paramMatchdayId } = useLocalSearchParams<{ league_id?: string; matchday_id?: string }>();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<PredictionsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -123,24 +125,24 @@ export default function PredictionsScreen() {
 
       // Se passato matchday_id via route params, usalo direttamente
       if (paramMatchdayId) {
-        activeMatchday = matchdays.find((md: any) => md.id === paramMatchdayId);
+        activeMatchday = matchdays.find((md: Matchday) => md.id === paramMatchdayId);
         console.log('  Using paramMatchdayId:', paramMatchdayId, '-> found:', !!activeMatchday);
       }
 
       // Fallback: preferisci l'ultima OPEN per numero (la più recente),
       // poi LOCKED/LIVE più recente, poi l'ultima giornata
       if (!activeMatchday) {
-        const openMatchdays = matchdays.filter((md: any) => md.status === 'OPEN');
+        const openMatchdays = matchdays.filter((md: Matchday) => md.status === 'OPEN');
         if (openMatchdays.length > 0) {
           // Prendi quella con il numero più alto (la più recente)
-          activeMatchday = openMatchdays.reduce((max: any, md: any) =>
+          activeMatchday = openMatchdays.reduce((max: Matchday, md: Matchday) =>
             (md.number > max.number ? md : max), openMatchdays[0]);
         }
       }
       if (!activeMatchday) {
-        const lockedLive = matchdays.filter((md: any) => md.status === 'LOCKED' || md.status === 'LIVE');
+        const lockedLive = matchdays.filter((md: Matchday) => md.status === 'LOCKED' || md.status === 'LIVE');
         if (lockedLive.length > 0) {
-          activeMatchday = lockedLive.reduce((max: any, md: any) =>
+          activeMatchday = lockedLive.reduce((max: Matchday, md: Matchday) =>
             (md.number > max.number ? md : max), lockedLive[0]);
         }
       }
@@ -151,7 +153,7 @@ export default function PredictionsScreen() {
       console.log('  activeMatchday =', activeMatchday?.id, activeMatchday?.label);
       console.log('  activeMatchday.matches count =', activeMatchday?.matches?.length);
       if (activeMatchday?.matches) {
-        activeMatchday.matches.forEach((m: any, i: number) => {
+        activeMatchday.matches.forEach((m: MatchItem, i: number) => {
           console.log(`    Match ${i}: ${m.home_team} vs ${m.away_team}, league_id=${m.league_id}`);
         });
       }
@@ -176,8 +178,8 @@ export default function PredictionsScreen() {
           ...activeMatchday,
           ...predsRes.matchday,
         },
-        predictions: matchesForMatchday.map((m: any) => {
-          const predForMatch = predsRes.predictions?.find((p: any) => p.match?.id === m.id);
+        predictions: matchesForMatchday.map((m: MatchItem) => {
+          const predForMatch = predsRes.predictions?.find((p: { match?: { id: string } }) => p.match?.id === m.id);
           return {
             match: m,
             prediction: predForMatch?.prediction || null,
@@ -197,7 +199,7 @@ export default function PredictionsScreen() {
       }
 
       const predMap: Record<string, MatchPred> = {};
-      predsRes.predictions?.forEach((p: any) => {
+      predsRes.predictions?.forEach((p: { match?: { id: string } }) => {
         const mid = p.match?.id;
         if (mid && p.prediction) {
           const mt = p.prediction.market_type || p.match.market_type || '1X2';
@@ -265,9 +267,9 @@ export default function PredictionsScreen() {
     if (!data?.matchday) return;
 
     // Validate completeness before saving
-    const editableItems = data.predictions?.filter((item: any) => !item.is_locked) || [];
+    const editableItems = data.predictions?.filter((item: PredictionEntry) => !item.is_locked) || [];
     const editableCount = editableItems.length;
-    const completedCount = editableItems.filter((item: any) => {
+    const completedCount = editableItems.filter((item: PredictionEntry) => {
       const pred = preds[item.match.id];
       return pred && pred.value;
     }).length;
@@ -298,7 +300,7 @@ export default function PredictionsScreen() {
       });
 
       if (res.errors?.length > 0) {
-        const lockErrors = res.errors.filter((e: any) => e.error.includes('locked'));
+        const lockErrors = res.errors.filter((e: { error: string }) => e.error.includes('locked'));
         if (lockErrors.length > 0) {
           Alert.alert('Info', `${res.saved_count} salvati. ${lockErrors.length} match già iniziati.`);
         }
@@ -354,7 +356,7 @@ export default function PredictionsScreen() {
             <TouchableOpacity
               data-testid="crea-giornata-btn"
               style={[styles.saveBtn, { marginTop: 20, width: 240, height: 52, borderRadius: 26, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }]}
-              onPress={() => router.push(`/league/${leagueInfo.id}/manage` as any)}
+              onPress={() => router.push(`/league/${leagueInfo.id}/manage` as Href)}
             >
               <Text style={[styles.saveBtnText, { color: '#fff', fontWeight: '700' }]}>Crea la prima giornata</Text>
             </TouchableOpacity>
@@ -372,9 +374,9 @@ export default function PredictionsScreen() {
   const totalMatches = data.predictions?.length || 0;
 
   // Completamento pronostici: solo partite ancora modificabili (non locked individualmente)
-  const editableItems = data.predictions?.filter((item: any) => !item.is_locked) || [];
+  const editableItems = data.predictions?.filter((item: PredictionEntry) => !item.is_locked) || [];
   const editableCount = editableItems.length;
-  const completedEditableCount = editableItems.filter((item: any) => {
+  const completedEditableCount = editableItems.filter((item: PredictionEntry) => {
     const pred = preds[item.match.id];
     return pred && pred.value;
   }).length;
@@ -481,7 +483,7 @@ export default function PredictionsScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           {/* Sort matches by start_time */}
-          {[...(data.predictions || [])].sort((a: any, b: any) => {
+          {[...(data.predictions || [])].sort((a: PredictionEntry, b: PredictionEntry) => {
             const ta = a.match?.start_time ? new Date(a.match.start_time).getTime() : 0;
             const tb = b.match?.start_time ? new Date(b.match.start_time).getTime() : 0;
             return ta - tb;
