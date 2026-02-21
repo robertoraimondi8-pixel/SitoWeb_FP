@@ -3713,11 +3713,20 @@ async def real_fixtures_import(req: ImportFixturesRequest, admin=Depends(require
 # LIVE FIXTURES BACKGROUND SCHEDULER
 # ========================================
 _live_task: Optional[asyncio.Task] = None
-LIVE_REFRESH_INTERVAL = 60  # seconds
+LIVE_SYNC_ENABLED = os.environ.get("APIFOOTBALL_LIVE_SYNC_ENABLED", "false").lower() == "true"
+LIVE_REFRESH_INTERVAL = int(os.environ.get("APIFOOTBALL_LIVE_INTERVAL", "180"))  # seconds (default 3min)
+
+# Circuit breaker state
+_circuit_open_until: float = 0  # timestamp when circuit breaker resets
+CIRCUIT_BREAKER_COOLDOWN = 3600  # 60 min pause on 429/403/suspended
 
 
 async def _live_fixtures_loop():
     """Background loop: update imported matches that are currently live."""
+    if not LIVE_SYNC_ENABLED:
+        logger.info("[LIVE-REFRESH] Sync disabled (APIFOOTBALL_LIVE_SYNC_ENABLED=false)")
+        return
+    logger.info(f"[LIVE-REFRESH] Sync enabled, interval={LIVE_REFRESH_INTERVAL}s")
     while True:
         try:
             await asyncio.sleep(LIVE_REFRESH_INTERVAL)
@@ -3730,12 +3739,20 @@ async def _live_fixtures_loop():
 
 async def _refresh_live_fixtures():
     """Fetch live scores from API-Football for imported matches with status 'live' or 'scheduled'."""
-    # Find all matches that are imported and currently live or scheduled (might have started)
+    global _circuit_open_until
+
+    # Circuit breaker check
+    if time.time() < _circuit_open_until:
+        remaining = int(_circuit_open_until - time.time())
+        logger.info(f"[LIVE-REFRESH] Circuit breaker open, skipping ({remaining}s remaining)")
+        return
+
+    # Only fetch matches that are actually live (not all scheduled)
     live_matches = await matches_col.find(
         {
             "external_provider": "api-football",
             "external_fixture_id": {"$exists": True},
-            "status": {"$in": ["live", "scheduled"]},
+            "status": "live",
         },
         {"_id": 0}
     ).to_list(200)
@@ -3752,6 +3769,11 @@ async def _refresh_live_fixtures():
         try:
             fx = await client.get_fixture_by_id(fid)
         except Exception as e:
+            err_msg = str(e).lower()
+            if "429" in err_msg or "403" in err_msg or "suspended" in err_msg or "rate" in err_msg:
+                _circuit_open_until = time.time() + CIRCUIT_BREAKER_COOLDOWN
+                logger.warning(f"[LIVE-REFRESH] Circuit breaker OPEN for {CIRCUIT_BREAKER_COOLDOWN}s due to: {e}")
+                return
             logger.warning(f"[LIVE-REFRESH] Failed to fetch fixture {fid}: {e}")
             continue
 
