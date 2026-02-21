@@ -57,6 +57,7 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 
 ## Completed Bug Fixes (Feb 21, 2026)
 - Fixed LIVE mode inconsistency: /api/home now prioritizes LIVE > OPEN > LOCKED (was OPEN > LOCKED|LIVE combined)
+- Fixed provisional points not showing during LIVE: scoring.py now calculates points for "live" status matches (was only "finished")
 - Fixed "Completa e Calcola" button (Alert.alert web incompatibility)
 - Fixed incorrect active matchday on home page
 - Fixed admin access for national-type league owners
