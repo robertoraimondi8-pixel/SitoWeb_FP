@@ -55,7 +55,14 @@ class APIFootballClient:
     async def _get(self, endpoint: str, params: dict = None) -> Dict[str, Any]:
         resp = await self._client.get(endpoint, params=params or {})
         resp.raise_for_status()
-        return resp.json()
+        data = resp.json()
+        # Check for API-level errors (suspended account, rate limit, etc.)
+        errors = data.get("errors", {})
+        if errors:
+            error_msg = "; ".join(f"{k}: {v}" for k, v in errors.items()) if isinstance(errors, dict) else str(errors)
+            logger.error(f"[API-Football] API error: {error_msg}")
+            raise Exception(f"API-Football error: {error_msg}")
+        return data
 
     # ------------------------------------------------------------------
     async def get_top_leagues(self) -> List[Dict[str, Any]]:
