@@ -164,20 +164,27 @@ export default function AdminConsoleV3() {
     setRefreshing(false);
   }, [selectedLeague]);
 
+  // === Helper: cross-platform confirm/alert ===
+  const showAlert = (title: string, message: string) => {
+    if (Platform.OS === 'web') { window.alert(`${title}: ${message}`); }
+    else { Alert.alert(title, message); }
+  };
+  const showConfirm = (title: string, message: string): Promise<boolean> => {
+    if (Platform.OS === 'web') return Promise.resolve(window.confirm(`${title}\n${message}`));
+    return new Promise((resolve) => {
+      Alert.alert(title, message, [
+        { text: 'Annulla', style: 'cancel', onPress: () => resolve(false) },
+        { text: 'Conferma', onPress: () => resolve(true) },
+      ]);
+    });
+  };
+
   // === TRANSITION ===
   const doTransition = async (targetStatus: string) => {
     if (!selectedMatchday || !selectedLeague) return;
     const label = STATUS_LABELS[targetStatus] || targetStatus;
     if (targetStatus === 'COMPLETED') {
-      const ok = Platform.OS === 'web'
-        ? window.confirm('Completare la giornata e calcolare i punteggi?')
-        : await new Promise<boolean>((resolve) => {
-            Alert.alert('Conferma', 'Completare la giornata e calcolare i punteggi?', [
-              { text: 'Annulla', style: 'cancel', onPress: () => resolve(false) },
-              { text: 'Conferma', onPress: () => resolve(true) },
-            ]);
-          });
-      if (!ok) return;
+      if (!(await showConfirm('Conferma', 'Completare la giornata e calcolare i punteggi?'))) return;
     }
 
     setActionLoading(true);
