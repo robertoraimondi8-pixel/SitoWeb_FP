@@ -224,7 +224,7 @@ export default function AdminConsoleV3() {
   };
 
   const createMatchday = async () => {
-    if (!selectedLeague || !newMatchday.number) { Alert.alert('Errore', 'Seleziona il numero'); return; }
+    if (!selectedLeague || !newMatchday.number) { showAlert('Errore', 'Seleziona il numero'); return; }
     setActionLoading(true);
     try {
       const num = parseInt(newMatchday.number, 10);
@@ -241,13 +241,13 @@ export default function AdminConsoleV3() {
         status: 'DRAFT',
       };
       await apiCall(endpoint, { method: 'POST', token, body });
-      Alert.alert('Fatto!', 'Giornata creata');
+      showAlert('Fatto!', 'Giornata creata');
       setShowCreateMatchday(false);
       setNewMatchday({ number: '', label: '' });
       setSelectedDate(getDefaultDate());
       await loadMatchdays(selectedLeague.id);
     } catch (e: any) {
-      Alert.alert('Errore', e.message || 'Impossibile creare');
+      showAlert('Errore', e.message || 'Impossibile creare');
     } finally { setActionLoading(false); }
   };
 
