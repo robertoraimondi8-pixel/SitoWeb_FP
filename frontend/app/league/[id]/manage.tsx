@@ -8,6 +8,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../../../src/contexts/AuthContext';
 import { useTheme } from '../../../src/contexts/ThemeContext';
 import { apiCall, isAuthError } from '../../../src/api/client';
+import { LeagueDetail, getErrorMessage } from '../../../src/types/api';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function LeagueManageScreen() {
