@@ -3853,6 +3853,17 @@ async def _check_auto_complete_matchday(matchday_id: str):
         })
 
 
+@fixtures_router.post("/refresh-live")
+async def real_fixtures_refresh_live(admin=Depends(require_admin)):
+    """Manually trigger a live refresh of imported matches."""
+    try:
+        await _refresh_live_fixtures()
+        return {"status": "ok", "message": "Live refresh completato"}
+    except Exception as e:
+        raise HTTPException(502, f"Errore refresh: {e}")
+
+
+
 # ========================================
 # SEED ENDPOINT
 # ========================================
