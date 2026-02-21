@@ -430,6 +430,7 @@ const s = StyleSheet.create({
   scoreCol: { paddingHorizontal: 12, minWidth: 70, alignItems: 'center' },
   score: { fontSize: 20, fontWeight: '800' },
   vs: { fontSize: 12 },
+  schedTime: { fontSize: 14, fontWeight: '700' },
   
   // Prediction row
   predRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTopWidth: 1 },
