@@ -543,7 +543,7 @@ export default function AdminConsoleV3() {
                   >
                     <Ionicons name="trash-outline" size={18} color={colors.error} />
                     <Text style={[s.deleteBtnText, { color: colors.error }]}>Elimina Giornata</Text>
-                  </Pressable>
+                  </TouchableOpacity>
                 )}
               </View>
             </View>
