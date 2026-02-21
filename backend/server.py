@@ -3798,6 +3798,11 @@ async def _refresh_live_fixtures():
             updates["away_score"] = fx["away_goals"]
         if new_status != m["status"]:
             updates["status"] = new_status
+        # Save logos if missing
+        if fx.get("home_logo") and not m.get("home_logo"):
+            updates["home_logo"] = fx["home_logo"]
+        if fx.get("away_logo") and not m.get("away_logo"):
+            updates["away_logo"] = fx["away_logo"]
 
         if updates:
             await matches_col.update_one({"id": m["id"]}, {"$set": updates})
