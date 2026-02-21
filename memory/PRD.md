@@ -47,6 +47,8 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 ### 7. Admin Console v3 (NEW - Feb 2026)
 **Unified console replacing old separate national/private admin pages.**
 
+**Bug Fix (21 Feb)**: `Alert.alert` callback-based confirmation on React Native Web never resolves Promise, blocking all transition actions. Fixed by using React Native `Modal` for feedback and removing pre-confirmation dialogs.
+
 #### Backend Endpoints:
 - `GET /api/admin/v3/leagues` — Role-based league listing (SUPER_ADMIN sees all + national, LEAGUE_ADMIN sees owned only)
 - `GET /api/admin/v3/matchdays?league_id=X` — Enriched matchdays with match_count, results_count, predictions_user_count, auto-lock check
