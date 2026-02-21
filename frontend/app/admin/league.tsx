@@ -688,7 +688,7 @@ export default function LeagueAdminConsole() {
                       </View>
                       
                       <Text style={[s.matchMeta, { color: colors.textSecondary }]}>
-                        {match.market_type} {isModified && '• Modificato'}
+                        {isModified && 'Modificato'}
                       </Text>
                     </View>
                   );
