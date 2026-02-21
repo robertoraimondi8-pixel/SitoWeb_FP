@@ -379,16 +379,34 @@ const styles = StyleSheet.create({
     marginLeft: spacing.xl + 36 + spacing.md,
   },
   
-  langChip: { 
-    paddingHorizontal: spacing.md, 
-    paddingVertical: spacing.xs, 
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.primary,
+  langSection: {
+    marginTop: spacing.sm,
   },
-  langChipText: { 
-    ...typography.meta,
+  langOptions: {
+    flexDirection: 'row' as const,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  langOption: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    alignItems: 'center' as const,
+  },
+  langOptionActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  langOptionText: {
+    ...typography.bodyM,
+    color: colors.textSecondary,
+    fontWeight: '600' as const,
+  },
+  langOptionTextActive: {
     color: colors.textInverse,
-    fontWeight: '700',
   },
   
   // Admin Card
