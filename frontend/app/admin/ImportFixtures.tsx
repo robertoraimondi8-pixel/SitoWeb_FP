@@ -111,10 +111,10 @@ export default function ImportFixtures({ leagueId, matchdayId, matchdayLabel, cu
       if (data.length > 0) setSelectedApiLeague(data[0]);
     } catch (e: unknown) {
       const msg = (e as Error).message || '';
-      if (msg.includes('suspended') || msg.includes('API-Football')) {
+      if (msg.includes('suspended') || msg.includes('API-Football') || msg.includes('502') || msg.includes('503')) {
         setError('Dati calcio temporaneamente non disponibili. La quota API potrebbe essere esaurita.');
       } else {
-        setError('Errore caricamento campionati');
+        setError(`Errore caricamento campionati: ${msg}`);
       }
     } finally {
       setLoadingLeagues(false);
