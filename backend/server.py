@@ -3580,6 +3580,243 @@ async def admin_score_summaries(matchday_id: str, admin=Depends(require_admin)):
 
 
 # ========================================
+# REAL FIXTURES (API-Football) ENDPOINTS
+# ========================================
+from apifootball import APIFootballClient, map_api_status
+
+_apifootball_client: Optional[APIFootballClient] = None
+
+def _get_apifootball() -> APIFootballClient:
+    global _apifootball_client
+    if _apifootball_client is None:
+        key = os.environ.get("APIFOOTBALL_API_KEY", "")
+        if not key:
+            raise HTTPException(503, "API-Football key not configured")
+        _apifootball_client = APIFootballClient(key)
+    return _apifootball_client
+
+
+@fixtures_router.get("/leagues")
+async def real_fixtures_leagues(admin=Depends(require_admin)):
+    """Top 5 leagues with current season."""
+    client = _get_apifootball()
+    leagues = await client.get_top_leagues()
+    return leagues
+
+
+@fixtures_router.get("/search")
+async def real_fixtures_search(
+    league: int = Query(..., description="API-Football league ID"),
+    season: int = Query(..., description="Season year, e.g. 2025"),
+    date_from: Optional[str] = Query(None, alias="from", description="YYYY-MM-DD"),
+    date_to: Optional[str] = Query(None, alias="to", description="YYYY-MM-DD"),
+    admin=Depends(require_admin),
+):
+    """Search real fixtures from API-Football."""
+    client = _get_apifootball()
+    fixtures = await client.search_fixtures(league, season, date_from, date_to)
+    return fixtures
+
+
+class ImportFixturesRequest(BaseModel):
+    league_id: str          # Our internal league_id (national)
+    matchday_id: str        # Our internal matchday_id
+    fixture_ids: List[int]  # API-Football fixture IDs to import
+
+
+@fixtures_router.post("/import")
+async def real_fixtures_import(req: ImportFixturesRequest, admin=Depends(require_admin)):
+    """Import real fixtures as matches into our DB (max 10 per matchday)."""
+    if len(req.fixture_ids) > MAX_MATCHES_PER_MATCHDAY:
+        raise HTTPException(400, f"Massimo {MAX_MATCHES_PER_MATCHDAY} partite per giornata")
+
+    # Verify league and matchday exist
+    league = await leagues_col.find_one({"id": req.league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    matchday = await matchdays_col.find_one({"id": req.matchday_id}, {"_id": 0})
+    if not matchday:
+        raise HTTPException(404, "Giornata non trovata")
+
+    # Check existing match count
+    existing = await matches_col.count_documents({
+        "matchday_id": req.matchday_id, "league_id": req.league_id
+    })
+    if existing + len(req.fixture_ids) > MAX_MATCHES_PER_MATCHDAY:
+        raise HTTPException(400, f"Superato il limite di {MAX_MATCHES_PER_MATCHDAY} partite (già {existing} presenti)")
+
+    # Check for duplicate external_fixture_id
+    already_imported = await matches_col.find(
+        {"external_fixture_id": {"$in": req.fixture_ids}},
+        {"_id": 0, "external_fixture_id": 1}
+    ).to_list(100)
+    already_set = {m["external_fixture_id"] for m in already_imported}
+
+    client = _get_apifootball()
+    imported = []
+    skipped = []
+
+    for fid in req.fixture_ids:
+        if fid in already_set:
+            skipped.append({"fixture_id": fid, "reason": "already_imported"})
+            continue
+
+        fx = await client.get_fixture_by_id(fid)
+        if not fx:
+            skipped.append({"fixture_id": fid, "reason": "not_found"})
+            continue
+
+        match_id = new_id()
+        match = {
+            "id": match_id,
+            "matchday_id": req.matchday_id,
+            "league_id": req.league_id,
+            "home_team": fx["home_team"],
+            "away_team": fx["away_team"],
+            "competition": fx.get("league_name", ""),
+            "start_time": fx["date"],
+            "market_type": "1X2",
+            "status": map_api_status(fx.get("status_short", "NS")),
+            "home_score": fx.get("home_goals"),
+            "away_score": fx.get("away_goals"),
+            "external_provider": "api-football",
+            "external_fixture_id": fx["fixture_id"],
+            "created_at": now_utc(),
+        }
+        await matches_col.insert_one(match)
+        match.pop("_id", None)
+        imported.append(match)
+
+    await log_audit(admin["id"], admin["username"], "IMPORT_FIXTURES", "match", req.matchday_id, {
+        "imported_count": len(imported),
+        "skipped_count": len(skipped),
+        "fixture_ids": req.fixture_ids,
+    })
+
+    return {
+        "imported": len(imported),
+        "skipped": len(skipped),
+        "matches": imported,
+        "skipped_details": skipped,
+    }
+
+
+# ========================================
+# LIVE FIXTURES BACKGROUND SCHEDULER
+# ========================================
+_live_task: Optional[asyncio.Task] = None
+LIVE_REFRESH_INTERVAL = 60  # seconds
+
+
+async def _live_fixtures_loop():
+    """Background loop: update imported matches that are currently live."""
+    while True:
+        try:
+            await asyncio.sleep(LIVE_REFRESH_INTERVAL)
+            await _refresh_live_fixtures()
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            logger.error(f"[LIVE-REFRESH] Error: {e}")
+
+
+async def _refresh_live_fixtures():
+    """Fetch live scores from API-Football for imported matches with status 'live' or 'scheduled'."""
+    # Find all matches that are imported and currently live or scheduled (might have started)
+    live_matches = await matches_col.find(
+        {
+            "external_provider": "api-football",
+            "external_fixture_id": {"$exists": True},
+            "status": {"$in": ["live", "scheduled"]},
+        },
+        {"_id": 0}
+    ).to_list(200)
+
+    if not live_matches:
+        return
+
+    client = _get_apifootball()
+    updated_count = 0
+    finished_matchday_ids = set()
+
+    for m in live_matches:
+        fid = m["external_fixture_id"]
+        try:
+            fx = await client.get_fixture_by_id(fid)
+        except Exception as e:
+            logger.warning(f"[LIVE-REFRESH] Failed to fetch fixture {fid}: {e}")
+            continue
+
+        if not fx:
+            continue
+
+        new_status = map_api_status(fx.get("status_short", "NS"))
+        updates = {}
+
+        if fx.get("home_goals") is not None:
+            updates["home_score"] = fx["home_goals"]
+        if fx.get("away_goals") is not None:
+            updates["away_score"] = fx["away_goals"]
+        if new_status != m["status"]:
+            updates["status"] = new_status
+
+        if updates:
+            await matches_col.update_one({"id": m["id"]}, {"$set": updates})
+            updated_count += 1
+            logger.info(f"[LIVE-REFRESH] Updated {m['home_team']} vs {m['away_team']}: {updates}")
+
+            # If match just finished, recalculate predictions
+            if new_status == "finished" and m["status"] != "finished":
+                await recalculate_match_predictions(m["id"], m["league_id"])
+                finished_matchday_ids.add(m["matchday_id"])
+
+    # Check if all matches in a matchday are finished → auto-complete
+    for md_id in finished_matchday_ids:
+        await _check_auto_complete_matchday(md_id)
+
+    if updated_count > 0:
+        logger.info(f"[LIVE-REFRESH] Updated {updated_count} matches")
+
+
+async def _check_auto_complete_matchday(matchday_id: str):
+    """If all imported matches in a matchday are finished, set matchday status to COMPLETED and calculate scores."""
+    matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+    if not matchday or matchday.get("status") == "COMPLETED":
+        return
+
+    all_matches = await matches_col.find(
+        {"matchday_id": matchday_id},
+        {"_id": 0, "status": 1}
+    ).to_list(20)
+
+    if not all_matches:
+        return
+
+    # Check: all matches must be finished (or void/postponed)
+    terminal_statuses = {"finished", "void", "postponed", "cancelled"}
+    all_done = all(m["status"] in terminal_statuses for m in all_matches)
+
+    if all_done:
+        logger.info(f"[AUTO-COMPLETE] All matches finished for matchday {matchday_id} — auto-completing")
+        await matchdays_col.update_one({"id": matchday_id}, {"$set": {"status": "COMPLETED"}})
+
+        # Create a fake admin dict for score calculation
+        system_admin = {"id": "system", "username": "system-auto"}
+        await _calculate_matchday_scores(matchday_id, system_admin)
+
+        await audit_logs_col.insert_one({
+            "id": new_id(),
+            "admin_id": "system",
+            "admin_username": "system-auto",
+            "action": "AUTO_COMPLETE",
+            "entity_type": "matchday",
+            "entity_id": matchday_id,
+            "details": {"reason": "all_matches_finished_via_api_football"},
+            "created_at": now_utc(),
+        })
+
+
+# ========================================
 # SEED ENDPOINT
 # ========================================
 @app.post("/api/seed")
@@ -3601,16 +3838,31 @@ app.include_router(standings_router)
 app.include_router(live_router)
 app.include_router(payment_router)
 app.include_router(admin_router)
+app.include_router(fixtures_router)
 
 
 @app.on_event("startup")
 async def startup():
+    global _live_task
     await create_indexes()
-    logger.info("FantaPronostic API started - indexes created")
+    # Add index for external_fixture_id
+    await matches_col.create_index("external_fixture_id", sparse=True)
+    # Start live-refresh background task
+    _live_task = asyncio.create_task(_live_fixtures_loop())
+    logger.info("FantaPronostic API started - indexes created - live refresh started")
 
 
 @app.on_event("shutdown")
 async def shutdown():
+    global _live_task, _apifootball_client
+    if _live_task:
+        _live_task.cancel()
+        try:
+            await _live_task
+        except asyncio.CancelledError:
+            pass
+    if _apifootball_client:
+        await _apifootball_client.close()
     from database import client
     client.close()
 
