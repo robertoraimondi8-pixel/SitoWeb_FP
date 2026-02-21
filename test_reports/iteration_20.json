@@ -1,0 +1,59 @@
+{
+  "summary": "Admin Console v3 testing completed. Backend: 19/19 tests passed. Frontend: All key features verified via Playwright. League selector with national at top, enriched matchday stats (partite/risultati/pronostici), state flow indicator (BOZZA→APERTA→BLOCCATA→LIVE→COMPLETATA), transition buttons, recalculate button for SUPER_ADMIN, role-based access (league owners see only owned leagues).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_admin_v3_console.py",
+    "/app/test_reports/pytest/admin_v3_console_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: GET /api/admin/v3/leagues - Super admin sees national league + all private leagues. League owner sees only owned leagues with role in ['owner', 'admin'].",
+    "VERIFIED: GET /api/admin/v3/matchdays - Returns enriched data: match_count, results_count, predictions_user_count. Auto-lock check on OPEN matchdays past kickoff.",
+    "VERIFIED: POST /api/admin/matchday/{id}/transition - Validates state transitions (DRAFT→OPEN→LOCKED→LIVE→COMPLETED), prevents skipping/backwards, checks match count (1-10), validates results on COMPLETED.",
+    "VERIFIED: POST /api/admin/matchday/{id}/recalculate - Only SUPER_ADMIN can recalculate, only on COMPLETED matchdays.",
+    "VERIFIED: Frontend Admin Console v3 - League selector shows national at top with NAZIONALE badge, matchday dropdown shows stats with status badges, state flow indicator with 5 states, transition buttons based on current state.",
+    "VERIFIED: Italian labels throughout - Console Admin, GIORNATE, PARTITE, STATO GIORNATA, BOZZA/APERTA/BLOCCATA/LIVE/COMPLETATA, Ricalcola Giornata, Segna come In Corso, etc.",
+    "VERIFIED: League owner (Ilio) sees 'GESTISCI LE MIE LEGHE' section on profile, can access admin console, sees only owned leagues (no NAZIONALE badge)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_admin_v3_console.py"
+  ],
+  "success_rate": {
+    "backend": "100% (19/19 tests passed)",
+    "frontend": "100% (all UI features verified)"
+  },
+  "test_credentials": {
+    "SUPER_ADMIN": "admin@fantapronostic.com / admin123",
+    "LEAGUE_OWNER_MANUAL": "ilio@raimondi.it / password123",
+    "NATIONAL_LEAGUE_ID": "f1373417-43aa-4043-b6a2-125873181c95"
+  },
+  "seed_data_creation": "None - used existing data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Admin Console v3 fully tested and working. Backend endpoints: GET /api/admin/v3/leagues, GET /api/admin/v3/matchdays, POST /api/admin/matchday/{id}/transition, POST /api/admin/matchday/{id}/recalculate. Frontend at /admin. Key features: league selector with national at top, enriched matchday stats, state flow indicator, transition buttons, recalculate for SUPER_ADMIN on COMPLETED. Role-based: super admin sees all leagues + national; league owners see only owned leagues. All Italian labels verified.",
+  "features_tested": {
+    "backend": [
+      "GET /api/admin/v3/leagues - role-based league listing (SUPER_ADMIN vs LEAGUE_OWNER)",
+      "GET /api/admin/v3/matchdays - enriched matchdays with match_count, results_count, predictions_user_count",
+      "POST /api/admin/matchday/{id}/transition - state validation (no skip, no backward), match count validation (1-10), results validation for COMPLETED",
+      "POST /api/admin/matchday/{id}/recalculate - SUPER_ADMIN only, COMPLETED only"
+    ],
+    "frontend": [
+      "Admin console loads with league selector showing national league at top",
+      "Matchday dropdown shows stats (partite, risultati, pronostici) with status badges",
+      "State flow indicator shows correct progress (dots and lines)",
+      "Transition button shows correct action based on current state",
+      "COMPLETED matchday shows 'Ricalcola Giornata' for SUPER_ADMIN only",
+      "League admin (owner of private league) can access admin console and see only owned leagues",
+      "All UI labels in Italian (Console Admin, GIORNATE, PARTITE, etc.)"
+    ]
+  }
+}
