@@ -1,158 +1,119 @@
-# FantaPronostic - PRD (Product Requirements Document)
+# FantaPronostic - PRD
 
-## Overview
-FantaPronostic is a football prediction platform mobile app built with Expo React Native (frontend) and FastAPI + MongoDB (backend).
+## Problem Statement
+Fantasy sports prediction app for Italian football leagues. Users predict match outcomes (1/X/2), earn points, compete in private or national leagues. Admins manage seasons, matchdays, matches. Supports real-world match data via API-Football integration.
 
-## Architecture
-- **Frontend**: Expo React Native with TypeScript, expo-router, i18n (IT/EN), Zustand
-- **Backend**: FastAPI (Python) with MongoDB, JWT auth
-- **Admin Console v3**: Unified admin console at `/admin` — replaces old separate national/private admin consoles
-- **Expo Preview**: Runs in `--web` mode (not tunnel) for K8s compatibility
+## App Architecture
+- **Frontend**: React Native / Expo (web + mobile)
+- **Backend**: FastAPI + Python
+- **Database**: MongoDB
+- **Auth**: JWT-based custom auth + Emergent Google OAuth
 
-## Features Implemented
+## Core User Personas
+1. **Player**: Joins leagues, submits predictions, views standings
+2. **League Owner**: Creates private leagues, manages matchdays/matches for their leagues
+3. **Super Admin**: Full control - seasons, national leagues, API data imports, system config
 
-### 1. Authentication
-- Email + Password (register/login)
-- Google OAuth via Emergent Auth
-- JWT access + refresh tokens
-- Role-based access: user / admin / superadmin
+## Implemented Features (Completed)
 
-### 2. Home Hub
-- Dynamic matchday card (OPEN/LOCKED/LIVE/COMPLETED)
-- Countdown to first_kickoff
-- CTA for predictions or live view
-- Rankings preview, user leagues, statistics
-- **Matchday priority: LIVE > OPEN > LOCKED > current_matchday_id > latest**
-- **Ultimi 5 risultati**: Shows real points for all league types (national filter fix applied)
+### Authentication & Onboarding (Complete)
+- JWT login/register, Google OAuth (Emergent-managed)
+- Onboarding flow: choose National League or create/join private league
+- Multi-language support (IT/EN/ES) via react-i18next
+- Language selector in onboarding + profile screens
 
-### 3. Predictions
-- Max 10 matches per matchday
-- Market type: Always 1X2 (market selector removed from UI)
-- Lock per match at start_time
-- Batch save
+### Home Screen (Complete)
+- Active matchday card with prediction progress
+- Live match scores with team logos + elapsed time
+- Kickoff times for upcoming matches
+- League summary (position, points, last 5 results)
+- Countdown timer to next matchday
 
-### 4. Joker System
-- 1 Joker per matchday, doubles points
+### Predictions Screen (Complete)
+- 1/X/2 prediction input per match
+- Joker feature (double points for one match)
+- Match lock logic (prevents editing after kickoff)
+- Team logo display
 
-### 5. Scoring Engine
-- Automatic calculation on matchday COMPLETED
-- **Live provisional points**: calculated during LIVE status
-- score_summaries per user per matchday per league
-- Standing recalculation across all matchdays
+### Rankings Screen (Complete)
+- Total and weekly standings per league
 
-### 6. League System
-- Private leagues with invite codes
-- National league (NATIONAL_LEAGUE_ID = f1373417-43aa-4043-b6a2-125873181c95)
-- Strict data isolation via mandatory league_id
+### Profile Screen (Complete)
+- My Leagues section (national + private)
+- Settings (dark/light mode)
+- Language selector (IT/EN/ES)
+- Admin Console shortcut (for admins/owners)
+- Logout
 
-### 7. Admin Console v3
-- Unified console replacing old separate admin pages
-- Backend endpoints: /api/admin/v3/leagues, /api/admin/v3/matchdays, /api/admin/matchday/{id}/transition
-- Guided state flow: DRAFT > OPEN > LOCKED > LIVE > COMPLETED
-- Role-based: SUPER_ADMIN vs LEAGUE_ADMIN
-- **"Tipo Mercato" removed** from match creation UI (always defaults to 1X2)
-- All UI in Italian
+### Admin Console (Complete)
+- League/matchday/match management
+- Match result editing + score saving
+- Matchday status transitions (DRAFT → OPEN → LOCKED → LIVE → COMPLETED)
+- Score recalculation
+- **API-Football Import**: Search and import real fixtures from API-Football
+- **Refresh Live Results**: Manual trigger for live score updates (POST /api/admin/real-fixtures/refresh-live)
 
-### 8. Live Screen
-- Polling every 60s for live matchdays
-- Per-match points display with outcome indicators
-- Joker bonus display
-- **Provisional points calculated during LIVE** (not just COMPLETED)
+### API-Football Integration (Complete)
+- Backend client (`apifootball.py`) with TTL caching
+- Admin endpoints: search fixtures, list leagues, import fixtures, refresh-live
+- Background scheduler (configurable via APIFOOTBALL_LIVE_SYNC_ENABLED env var)
+- Circuit breaker to protect API quota
+- Team logos, elapsed time, kickoff times for imported matches
 
-### 9. Rankings
-- **Classifica settimanale**: Shows `total_correct` (pronostici corretti) instead of old `exact_correct`
-- **Classifica totale**: Aggregated across all matchdays
-- Matchday-by-matchday breakdown
+### i18n (Complete - Fixed 2026-02-21)
+- Fallback language set to Italian (`fallbackLng: 'it'`)
+- Auth screens (landing, login) fully translated
+- Onboarding uses correct dot-notation keys, Spanish flag added
+- Profile screen uses correct nested i18n keys
+- All 3 locale files (IT/EN/ES) complete with all keys
 
-## Completed Bug Fixes
-- Fixed LIVE mode inconsistency: /api/home now prioritizes LIVE > OPEN > LOCKED
-- Fixed provisional points not showing during LIVE: scoring.py accepts "live" status
-- Fixed "Ultimi 5 pronostici" showing 0 for national-type leagues (removed league_id filter)
-- Fixed "Classifica settimanale" showing "0 risultati esatti" (replaced with total_correct)
-- Removed "Tipo Mercato" selector from Admin Console and league console
-- Fixed "Completa e Calcola" button (Alert.alert web incompatibility)
-- Fixed incorrect active matchday on home page
-- Fixed admin access for national-type league owners
-- Expo tunnel fixed by switching to --web mode
+## API Key Endpoints
+- `POST /api/auth/login` - Login
+- `POST /api/auth/register` - Register
+- `GET /api/live` - Live match data with logos/elapsed
+- `GET /api/matchdays/{id}/matches` - Matches for a matchday
+- `POST /api/predictions` - Submit predictions
+- `GET /api/standings/{league_id}` - League standings
+- `POST /api/admin/real-fixtures/import` - Import API-Football fixtures
+- `GET /api/admin/real-fixtures/search` - Search API-Football fixtures
+- `GET /api/admin/real-fixtures/leagues` - Supported leagues
+- `POST /api/admin/real-fixtures/refresh-live` - Manual live score refresh
 
-## E2E Test Status (Feb 21, 2026)
-- Login/Registration: OK
-- Home page + matchday: OK  
-- Match creation (admin): OK
-- Match visibility: OK
-- Predictions: OK
-- Results entry: OK
-- Score calculation: OK
-- Weekly standings: OK
-- Total standings: OK
-- Ultimi 5 risultati: OK
-- Admin transitions: OK
-- Profile + admin access: OK
-- LIVE view: OK (limited test)
-- Weekly/Final prizes: NOT IMPLEMENTED
+## Key DB Schema
+- **users**: id, email, username, role, password_hash, language
+- **leagues**: id, name, type (national/private), invite_code, season_id, match_source_type
+- **seasons**: id, league_id, year, status
+- **matchdays**: id, season_id, number, label, status, first_kickoff
+- **matches**: id, matchday_id, home_team, away_team, status, score, home_logo, away_logo, elapsed, external_provider, external_fixture_id
+- **predictions**: id, user_id, match_id, prediction (1/X/2), is_joker
+- **scores**: id, user_id, matchday_id, league_id, points
 
-### 10. i18n Multi-lingua (IT / EN / ES)
-- i18next + react-i18next + expo-localization
-- 3 locale files: `/src/i18n/locales/{it,en,es}/common.json`
-- Language selector in Profile (3 buttons, live switch)
-- localStorage persistence on web, device language detection
-- Screens migrated: Home, Tab nav, Profile, Rankings, Predictions
-- SSR-safe (no AsyncStorage at module init)
+## Environment Variables
+- Backend: MONGO_URL, DB_NAME, JWT_SECRET, APIFOOTBALL_API_KEY, APIFOOTBALL_LIVE_SYNC_ENABLED
+- Frontend: EXPO_PUBLIC_BACKEND_URL
 
-## Completed Refactoring (Feb 21, 2026)
-- TypeScript: Removed all 102 `any` types from frontend codebase
-- Created `/app/frontend/src/types/api.ts` with 30+ shared interfaces
-- All catch blocks use `unknown` instead of `any`
-- All useState hooks use explicit types (HomeData, PredictionsData, etc.)
+## Known Issues
+- **Expo Go Tunnel**: Non-functional in Kubernetes env (platform limitation). All dev/testing via web preview.
+- **Admin Console 'Open Console' button in profile**: LOW priority - text may be low visibility inside dark card (pre-existing, cosmetic only)
 
-## P1 Backlog
-- Implement weekly/final prizes system
+## Prioritized Backlog
 
-## P2 Backlog
-- Implement "Championship Winner Predictions" feature
-- Integrate Stripe for joining National League
-- Re-enable email verification
-- Implement Push Notifications
-- Refactor server.py into modular routes
+### P0 (Critical, do next)
+- None currently
 
-### 11. API-Football Integration (Feb 21, 2026)
-- **Provider**: API-Sports (v3.football.api-sports.io)
-- **Client**: `/app/backend/apifootball.py` — async httpx client with in-memory TTL cache
-- **Env var**: `APIFOOTBALL_API_KEY` in `backend/.env`
-- **Cache TTL**: Leagues 15min, Fixtures 5min, Live: no cache
-- **Admin Endpoints** (require admin auth):
-  - `GET /api/admin/real-fixtures/leagues` — Top 5 leagues (Serie A, PL, LaLiga, Bundesliga, Ligue 1)
-  - `GET /api/admin/real-fixtures/search?league=&season=&from=&to=` — Search real fixtures
-  - `POST /api/admin/real-fixtures/import` — Import fixtures as matches (body: league_id, matchday_id, fixture_ids[])
-- **Admin UI**: `/app/frontend/app/admin/ImportFixtures.tsx` — Collapsible "IMPORTA PARTITE REALI" section in Admin Console
-  - Championship picker (5 leagues modal)
-  - Date range with presets (Questa settimana, Prossima, Prossimi 3gg, Personalizza)
-  - Fixture search with loading state
-  - Checkbox selection (max 10), select all/deselect all
-  - Import button with success/error feedback
-  - Error banner for API quota/suspended key
-- **Match fields added**: `external_provider`, `external_fixture_id` (indexed, sparse)
-- **Background scheduler**: Configurable via `APIFOOTBALL_LIVE_SYNC_ENABLED` (default: false) and `APIFOOTBALL_LIVE_INTERVAL` (default: 180s)
-- **Circuit breaker**: On 429/403/suspended errors, pauses sync for 60 min
-- **Auto-complete**: When all matches in a matchday are finished, auto-sets COMPLETED and calculates scores
-- **Error handling**: Proper 502 errors for API-Football issues (suspended key, rate limits)
-- **Duplicate protection**: Won't re-import already-imported fixture IDs
-- **Status mapping**: API-Football status → internal (1H/2H/HT → live, FT/AET → finished, NS → scheduled, PST → postponed)
-- **NOTE**: API key may be suspended due to quota — user needs to check dashboard.api-football.com
+### P1 (High Priority)
+- Re-enable email verification flow
 
-## Credentials
-- SUPER_ADMIN: admin@fantapronostic.com / admin123
-- LEAGUE_OWNER (National): desiree@raimondi.it / Roberto95
-- LEAGUE_OWNER (Manual): ilio@raimondi.it / password123
-- MEMBER: test@raimondi.it / password123
+### P2 (Medium)
+- Championship Winner Predictions feature
+- Push notifications
 
-## Key Files
-- `/app/backend/server.py` — Main backend
-- `/app/backend/scoring.py` — Points calculation engine
-- `/app/backend/apifootball.py` — API-Football client with TTL caching
-- `/app/frontend/app/admin/index.tsx` — Admin Console v3
-- `/app/frontend/app/admin/league.tsx` — League management console
-- `/app/frontend/app/(tabs)/home.tsx` — Home screen
-- `/app/frontend/app/(tabs)/rankings.tsx` — Rankings/standings screen
-- `/app/frontend/app/live/[id].tsx` — Live matchday screen
-- `/app/frontend/app/(tabs)/profile.tsx` — Profile with admin navigation
+### P3 (Future/Backlog)
+- Stripe integration (joining National League - €20/season)
+- Advanced stats dashboard
+- Match history / prediction history for users
+
+## Test Credentials
+- Super Admin: admin@fantapronostic.com / admin123
+- League Owner (manual): ilio@raimondi.it / password123
+- League Owner (national): desiree@raimondi.it / Roberto95
