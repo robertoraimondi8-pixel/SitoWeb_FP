@@ -1,0 +1,66 @@
+{
+  "summary": "Bug 1 (P0) testing complete - LIVE matchday priority fix VERIFIED. Backend: 7/7 tests passed. Frontend: Login flow works, home page shows Giornata 4 (LIVE) with 'SEGUI LIVE' CTA button. Bug 2: No redundant gear icons found in header. Bug 3: ESLint parsing errors are due to missing TypeScript parser config, not actual code errors - app bundles successfully.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "eslint_config_issues": [
+      {
+        "file": "home.tsx, [id].tsx",
+        "issue": "ESLint parsing errors (unexpected token, reserved keyword) - needs TypeScript ESLint parser config",
+        "priority": "LOW",
+        "note": "Not affecting runtime - app bundles and runs correctly"
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_home_matchday_priority.py",
+    "/app/test_reports/pytest/home_matchday_priority_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: Bug 1 (P0) - /api/home now returns LIVE matchday (Giornata 4) instead of LOCKED (Giornata 7)",
+    "VERIFIED: The fix separates LIVE and LOCKED queries with priority LIVE > OPEN > LOCKED",
+    "VERIFIED: Frontend CTA correctly shows 'SEGUI LIVE' for LIVE matchday status",
+    "VERIFIED: Bug 2 - No redundant gear/settings icons in header area",
+    "NOTE: ESLint errors are config issues (missing TypeScript parser), not code bugs"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_home_matchday_priority.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 tests passed)",
+    "frontend": "95% (login + home + LIVE matchday display working, live navigation tested)"
+  },
+  "test_credentials": {
+    "national_league_user": "desiree@raimondi.it / Roberto95",
+    "admin": "admin@fantapronostic.com / admin123",
+    "manual_league_user": "ilio@raimondi.it / password123"
+  },
+  "seed_data_creation": "None - used existing data with Giornata 4=LIVE, Giornata 7=LOCKED",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Bug 1 (LIVE vs LOCKED priority) verified fixed. Matchday state: Giornata 4=LIVE, Giornata 7=LOCKED. The fix is in /api/home (lines 725-780) which now queries LIVE status first before LOCKED. Desiree's 'Desylega' league is match_source_type=national so it uses national matchdays. ESLint needs TypeScript parser configuration but this doesn't affect runtime.",
+  "bugs_tested": {
+    "bug_1_p0": {
+      "description": "LIVE mode inconsistency - home page was showing wrong matchday when LIVE and LOCKED coexisted",
+      "status": "FIXED_AND_VERIFIED",
+      "fix_location": "/app/backend/server.py lines 725-780",
+      "verification": "Backend tests pass + UI shows Giornata 4 (LIVE) not Giornata 7 (LOCKED)"
+    },
+    "bug_2_p1": {
+      "description": "Redundant settings/gear icon in league switcher",
+      "status": "NOT_FOUND",
+      "note": "No redundant gear icons detected in header/league switcher area"
+    },
+    "bug_3_p2": {
+      "description": "Frontend linter errors",
+      "status": "CONFIG_ISSUE",
+      "note": "ESLint parsing errors due to missing TypeScript parser - app runs fine"
+    }
+  }
+}
