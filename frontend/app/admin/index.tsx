@@ -641,7 +641,7 @@ export default function AdminConsoleV3() {
                             <Text style={s.statusSelectorText}>{(editingResults[match.id]?.status || match.status).toUpperCase().slice(0, 4)}</Text>
                           </TouchableOpacity>
                         </View>
-                        <Text style={[s.matchMeta, { color: colors.textSecondary }]}>{match.market_type} {isModified && '| Modificato'}</Text>
+                        <Text style={[s.matchMeta, { color: colors.textSecondary }]}>{isModified && 'Modificato'}</Text>
                       </View>
                     );
                   })}
@@ -851,16 +851,6 @@ export default function AdminConsoleV3() {
                   <Text style={[s.donePickerBtnText, { color: colors.background }]}>Fatto</Text>
                 </TouchableOpacity>
               )}
-              <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Tipo Mercato</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-                {MARKET_TYPES.map(mt => (
-                  <TouchableOpacity key={mt}
-                    style={[s.chip, { borderColor: colors.border }, newMatch.market_type === mt && { backgroundColor: colors.accent, borderColor: colors.accent }]}
-                    onPress={() => setNewMatch(p => ({ ...p, market_type: mt }))}>
-                    <Text style={[s.chipText, { color: colors.text }, newMatch.market_type === mt && { color: colors.background }]}>{mt}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
               <View style={s.modalBtns}>
                 <TouchableOpacity style={[s.modalBtn, { borderColor: colors.border }]} onPress={() => { setShowAddMatch(false); setShowMatchDatePicker(false); setShowMatchTimePicker(false); }}>
                   <Text style={[s.modalBtnText, { color: colors.textSecondary }]}>Annulla</Text>
