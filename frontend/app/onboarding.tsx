@@ -146,7 +146,7 @@ export default function OnboardingScreen() {
         </View>
 
         {/* Path A: National League */}
-        <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>{t('onboarding_choose_path')}</Text>
+        <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>{t('onboarding.choose_path')}</Text>
 
         {nationalLeagues.map(nl => (
           <TouchableOpacity
@@ -161,11 +161,11 @@ export default function OnboardingScreen() {
               <Ionicons name="globe" size={28} color={colors.accent} />
             </View>
             <View style={s.pathContent}>
-              <Text style={[s.pathTitle, { color: colors.text }]}>{t('onboarding_national_title')}</Text>
-              <Text style={[s.pathDesc, { color: colors.textSecondary }]}>{t('onboarding_national_desc')}</Text>
+              <Text style={[s.pathTitle, { color: colors.text }]}>{t('onboarding.national_title')}</Text>
+              <Text style={[s.pathDesc, { color: colors.textSecondary }]}>{t('onboarding.national_desc')}</Text>
               <View style={s.priceRow}>
                 <Text style={[s.price, { color: colors.accent }]}>€20.00</Text>
-                <Text style={[s.pricePer, { color: colors.textSecondary }]}>/ {t('onboarding_season')}</Text>
+                <Text style={[s.pricePer, { color: colors.textSecondary }]}>/ {t('onboarding.season')}</Text>
               </View>
             </View>
             {payLoading ? (
@@ -187,10 +187,10 @@ export default function OnboardingScreen() {
             <Ionicons name="add-circle" size={28} color={colors.info} />
           </View>
           <View style={s.pathContent}>
-            <Text style={[s.pathTitle, { color: colors.text }]}>{t('onboarding_create_title')}</Text>
-            <Text style={[s.pathDesc, { color: colors.textSecondary }]}>{t('onboarding_create_desc')}</Text>
+            <Text style={[s.pathTitle, { color: colors.text }]}>{t('onboarding.create_title')}</Text>
+            <Text style={[s.pathDesc, { color: colors.textSecondary }]}>{t('onboarding.create_desc')}</Text>
             <View style={[s.freeBadge, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
-              <Text style={[s.freeText, { color: colors.success }]}>{t('onboarding_free')}</Text>
+              <Text style={[s.freeText, { color: colors.success }]}>{t('onboarding.free')}</Text>
             </View>
           </View>
           <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
