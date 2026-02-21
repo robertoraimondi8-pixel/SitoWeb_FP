@@ -695,6 +695,34 @@ export default function AdminConsoleV3() {
                 }}
               />
             )}
+
+            {/* AGGIORNA RISULTATI LIVE - only for national league, super admin */}
+            {selectedLeague._is_national && isSuperAdmin && (
+              <View style={[s.section, { backgroundColor: colors.card }]}>
+                <Text style={[s.sectionTitle, { color: colors.accent, marginBottom: 12 }]}>
+                  <Ionicons name="sync" size={16} /> RISULTATI LIVE
+                </Text>
+                <Text style={[s.emptyText, { color: colors.textSecondary, marginBottom: 12 }]}>
+                  Aggiorna manualmente i risultati delle partite live dall'API.
+                </Text>
+                <TouchableOpacity
+                  data-testid="refresh-live-btn"
+                  style={[s.transitionBtn, { backgroundColor: liveRefreshing ? colors.border : '#059669' }]}
+                  onPress={doRefreshLive}
+                  disabled={liveRefreshing || actionLoading}
+                  activeOpacity={0.7}
+                >
+                  {liveRefreshing ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Ionicons name="sync" size={20} color="#fff" />
+                  )}
+                  <Text style={s.transitionBtnText}>
+                    {liveRefreshing ? 'Aggiornamento...' : 'Aggiorna Risultati Live'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </>
         )}
       </ScrollView>
