@@ -91,8 +91,11 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 - LIVE view: OK (limited test)
 - Weekly/Final prizes: NOT IMPLEMENTED
 
-## P0 Backlog
-- (none)
+## Completed Refactoring (Feb 21, 2026)
+- TypeScript: Removed all 102 `any` types from frontend codebase
+- Created `/app/frontend/src/types/api.ts` with 30+ shared interfaces
+- All catch blocks use `unknown` instead of `any`
+- All useState hooks use explicit types (HomeData, PredictionsData, etc.)
 
 ## P1 Backlog
 - Implement weekly/final prizes system
