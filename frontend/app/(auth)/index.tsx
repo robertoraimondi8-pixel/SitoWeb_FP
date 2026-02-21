@@ -157,13 +157,13 @@ export default function AuthLanding() {
             activeOpacity={0.85}
           >
             <Ionicons name="log-in-outline" size={20} color={colors.accent} />
-            <Text style={s.secondaryBtnText}>Accedi</Text>
+            <Text style={s.secondaryBtnText}>{t('login')}</Text>
           </TouchableOpacity>
 
           {/* Divider */}
           <View style={s.dividerRow}>
             <View style={s.dividerLine} />
-            <Text style={s.dividerText}>oppure</Text>
+            <Text style={s.dividerText}>{t('or')}</Text>
             <View style={s.dividerLine} />
           </View>
 
