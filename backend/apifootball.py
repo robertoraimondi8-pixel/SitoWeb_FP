@@ -141,6 +141,7 @@ class APIFootballClient:
         fix = f.get("fixture", {})
         teams = f.get("teams", {})
         goals = f.get("goals", {})
+        league = f.get("league", {})
         return {
             "fixture_id": fix.get("id"),
             "date": fix.get("date"),
@@ -151,6 +152,7 @@ class APIFootballClient:
             "away_team": teams.get("away", {}).get("name"),
             "home_goals": goals.get("home"),
             "away_goals": goals.get("away"),
+            "league_name": league.get("name", ""),
         }
 
     # ------------------------------------------------------------------
