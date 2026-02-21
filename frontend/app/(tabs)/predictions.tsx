@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
   ActivityIndicator, Alert, TextInput, KeyboardAvoidingView, Platform, Image,
@@ -11,6 +11,7 @@ import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import { PredictionsData, Matchday, PredictionEntry, MatchItem, getErrorMessage } from '../../src/types/api';
 import type { Href } from 'expo-router';
+import { goToPredictionsHub } from '../../src/utils/navigation';
 
 // Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
