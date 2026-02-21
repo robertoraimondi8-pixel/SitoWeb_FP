@@ -12,8 +12,8 @@ import { HomeData, League, RankingsPreviewEntry, getErrorMessage } from '../../s
 import { goToPredictionsHub } from '../../src/utils/navigation';
 
 // Design System
-import { colors, typography, spacing, borderRadius, shadows, getStatusColor, getPerformanceColor } from '../../src/theme/designSystem';
-import { SectionCard, StatusBadge, PrimaryButton, StatBlock, LastFiveIndicator } from '../../src/components/ui';
+import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+import { SectionCard, StatusBadge, PrimaryButton, LastFiveIndicator } from '../../src/components/ui';
 import { BrandLogo } from '../../src/components/BrandLogo';
 
 export default function HomeScreen() {
@@ -27,8 +27,6 @@ export default function HomeScreen() {
   const [countdown, setCountdown] = useState(0);
   const [activeLeagueId, setActiveLeagueId] = useState<string | null>(null);
   const [showLeagueSwitcher, setShowLeagueSwitcher] = useState(false);
-
-  // Fade animation
   const fadeAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
@@ -45,13 +43,7 @@ export default function HomeScreen() {
       setData(res);
       if (res.league?.id) setActiveLeagueId(res.league.id);
       if (res.matchday?.countdown_seconds) setCountdown(res.matchday.countdown_seconds);
-      
-      // Fade in animation
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }).start();
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
     } catch (e: unknown) {
       if (isAuthError(e)) {
         const didLogout = await handleAuthError(e);
@@ -59,8 +51,10 @@ export default function HomeScreen() {
         return;
       }
       console.error('Home fetch error:', e.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    finally { setLoading(false); setRefreshing(false); }
   }, [token, handleAuthError, router, fadeAnim]);
 
   useEffect(() => { fetchHome(); }, [fetchHome]);
@@ -75,7 +69,9 @@ export default function HomeScreen() {
     const h = Math.floor(s / 3600);
     const m = Math.floor((s % 3600) / 60);
     const sec = s % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    if (h > 0) return `${h}${t('home.countdown_hours')} ${m}${t('home.countdown_minutes')}`;
+    if (m > 0) return `${m}${t('home.countdown_minutes')} ${sec}${t('home.countdown_seconds')}`;
+    return `${sec}${t('home.countdown_seconds')}`;
   };
 
   const formatPoints = (n: number | undefined | null) => {
@@ -90,18 +86,60 @@ export default function HomeScreen() {
   const getCtaConfig = (status: string) => {
     switch (status?.toUpperCase()) {
       case 'OPEN':
-        return { 
-          icon: 'create-outline' as const, 
-          label: t('home.insert_predictions'), 
-          route: `/(tabs)/predictions?league_id=${data?.league?.id || ''}&matchday_id=${data?.matchday?.id || ''}` 
-        };
+        return { icon: 'create-outline' as const, label: t('home.insert_predictions') };
       case 'LIVE':
-        return { icon: 'pulse' as const, label: t('home.follow_live'), route: `/live/${data?.matchday?.id}` };
+        return { icon: 'pulse' as const, label: t('home.follow_live') };
       case 'COMPLETED':
-        return { icon: 'checkmark-circle' as const, label: t('home.view_results'), route: `/live/${data?.matchday?.id}` };
+        return { icon: 'checkmark-circle' as const, label: t('home.view_results') };
       default:
         return null;
     }
+  };
+
+  // Dynamic micro-message
+  const getMatchdayMessage = () => {
+    if (!data?.matchday) return '';
+    const status = data.matchday.status?.toUpperCase();
+    if (status === 'OPEN' && countdown > 0) {
+      return `${t('home.closes_in')} ${formatCountdown(countdown)}`;
+    }
+    if (status === 'LIVE') {
+      const pts = data.live?.total_provisional;
+      if (pts != null) return `${t('home.in_progress')} · ${formatPoints(pts)} pts`;
+      return t('home.in_progress');
+    }
+    if (status === 'COMPLETED') {
+      const pts = data.matchday.my_points ?? data.live?.total_provisional;
+      if (pts != null) return t('home.you_scored', { points: formatPoints(pts) });
+      return '';
+    }
+    if (status === 'OPEN') {
+      return `${data.matchday.my_predictions_count}/${Math.min(data.matchday.total_matches || 0, 10)} ${t('predictions.matches_label', { defaultValue: 'partite' })}`;
+    }
+    return '';
+  };
+
+  // Average of last 5
+  const getAvgLast5 = () => {
+    const perf = data?.last_5_performance;
+    if (!Array.isArray(perf) || perf.length === 0) return null;
+    const sum = perf.reduce((acc: number, p: { points: number }) => acc + p.points, 0);
+    return (sum / perf.length).toFixed(1);
+  };
+
+  // Weekly goal
+  const getWeeklyGoal = () => {
+    if (!data?.user_summary) return null;
+    const rank = data.user_summary.rank;
+    if (!rank || rank < 1) return null;
+    const avg = getAvgLast5();
+    const avgNum = avg ? parseFloat(avg) : 2;
+    if (rank === 1) {
+      const target = Math.max(avgNum, 2).toFixed(0);
+      return t('home.goal_keep_position', { points: target, rank: 1 });
+    }
+    const target = (avgNum + 1).toFixed(0);
+    return t('home.goal_climb_position', { points: target, rank: rank - 1 });
   };
 
   if (loading) {
@@ -113,13 +151,16 @@ export default function HomeScreen() {
   }
 
   const ctaConfig = data?.matchday ? getCtaConfig(data.matchday.status) : null;
+  const matchdayMsg = getMatchdayMessage();
+  const avg5 = getAvgLast5();
+  const weeklyGoal = getWeeklyGoal();
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.greeting}>Ciao, {user?.username}</Text>
+          <Text style={styles.greeting}>{t('home.greeting', { name: user?.username })}</Text>
           <View style={styles.logoSpacing}>
             <BrandLogo variant="wordmark" size="lg" />
           </View>
@@ -149,7 +190,7 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {/* LEAGUE SWITCHER DROPDOWN MODAL */}
+      {/* LEAGUE SWITCHER DROPDOWN */}
       {showLeagueSwitcher && data?.user_leagues && (
         <TouchableOpacity
           style={styles.switcherOverlay}
@@ -157,18 +198,14 @@ export default function HomeScreen() {
           onPress={() => setShowLeagueSwitcher(false)}
         >
           <View style={styles.switcherDropdown}>
-            <Text style={styles.switcherTitle}>Cambia Lega</Text>
+            <Text style={styles.switcherTitle}>{t('home.switch_league', { defaultValue: 'Cambia Lega' })}</Text>
             {data.user_leagues.map((lg: League) => (
               <TouchableOpacity
                 key={lg.id}
-                style={[
-                  styles.switcherItem,
-                  lg.id === activeLeagueId && styles.switcherItemActive,
-                ]}
+                style={[styles.switcherItem, lg.id === activeLeagueId && styles.switcherItemActive]}
                 onPress={async () => {
                   setShowLeagueSwitcher(false);
                   setActiveLeagueId(lg.id);
-                  // Persist preference
                   const authToken = token || await AsyncStorage.getItem('access_token');
                   if (authToken) {
                     apiCall(`/profile/current-league?league_id=${lg.id}`, { method: 'PATCH', token: authToken }).catch(() => {});
@@ -197,66 +234,55 @@ export default function HomeScreen() {
         </TouchableOpacity>
       )}
 
-      <Animated.ScrollView 
+      <Animated.ScrollView
         style={{ opacity: fadeAnim }}
-        contentContainerStyle={styles.scrollContent} 
+        contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={() => { setRefreshing(true); fetchHome(); }} 
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => { setRefreshing(true); fetchHome(); }}
             tintColor={colors.accent}
             colors={[colors.accent]}
           />
         }
       >
-        {/* MATCHDAY CARD */}
+        {/* ─── 1. MATCHDAY CARD ─── */}
         {data?.league && (
-          <View style={styles.matchdayCard}>
+          <View style={styles.matchdayCard} data-testid="matchday-card">
             {data?.matchday ? (
               <>
                 <View style={styles.matchdayHeader}>
                   <Text style={styles.sectionLabel}>{t('home.matchday_label')}</Text>
                   <StatusBadge status={data.matchday.status} label={getStatusLabel(data.matchday.status)} />
                 </View>
-                
+
                 <Text style={styles.matchdayTitle}>
                   {data.matchday.label || `Giornata ${data.matchday.number}`}
                 </Text>
-                
-                <Text style={styles.matchdayMeta}>
-                  {data.matchday.status === 'COMPLETED'
-                    ? data.matchday.my_points != null
-                      ? `${data.matchday.my_points} pts`
-                      : `${data.matchday.my_predictions_count}/${Math.min(data.matchday.total_matches || 0, 10)} partite`
-                    : `${data.matchday.my_predictions_count}/${Math.min(data.matchday.total_matches || 0, 10)} partite`
-                  }
-                </Text>
 
-                {data.matchday.status === 'OPEN' && countdown > 0 && (
-                  <View style={styles.countdownContainer}>
-                    <Ionicons name="time-outline" size={18} color={colors.accent} />
-                    <Text style={styles.countdownText}>{formatCountdown(countdown)}</Text>
-                  </View>
+                {/* Dynamic micro-message */}
+                {matchdayMsg !== '' && (
+                  <Text style={[
+                    styles.matchdayMessage,
+                    data.matchday.status?.toUpperCase() === 'COMPLETED' && styles.matchdayMessageHighlight,
+                  ]}>
+                    {matchdayMsg}
+                  </Text>
                 )}
               </>
             ) : (
               <View style={styles.matchdayHeader}>
-                <Text style={styles.sectionLabel}>{t('home.matchday_label')}</Text>
+                <Text style={styles.sectionLabel}>{t('home.no_matchday')}</Text>
               </View>
             )}
 
             <PrimaryButton
               testID="matchday-cta-btn"
-              title={ctaConfig?.label ?? 'INSERISCI PRONOSTICI'}
+              title={ctaConfig?.label ?? t('home.insert_predictions')}
               icon={(ctaConfig?.icon ?? 'create-outline') as React.ComponentProps<typeof Ionicons>['name']}
               onPress={() => {
                 if (!data?.matchday) return;
-                goToPredictionsHub(
-                  router,
-                  data.matchday.status,
-                  data.matchday.id,
-                  data.league?.id,
-                );
+                goToPredictionsHub(router, data.matchday.status, data.matchday.id, data.league?.id);
               }}
               disabled={!data?.matchday}
               style={styles.ctaButton}
@@ -264,87 +290,90 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* LIVE PREVIEW - right under CTA */}
-        {data?.live && (
-          <View style={styles.liveCard}>
-            <View style={styles.liveHeader}>
-              <StatusBadge status={data.matchday?.status || 'LIVE'} label={data.matchday?.status === 'COMPLETED' ? 'COMPLETATA' : 'LIVE'} />
-            </View>
-            <Text style={styles.liveScore}>{formatPoints(data.live.total_provisional)} pts</Text>
-            <Text style={styles.liveMeta}>
-              {data.matchday?.status === 'COMPLETED' ? t('home.official_points') : t('home.provisional_points')}
-            </Text>
-          </View>
-        )}
-
-        {/* USER SUMMARY */}
+        {/* ─── 2. PERFORMANCE CARD ─── */}
         {data?.user_summary && (
-          <View style={styles.summaryCard}>
-            <Text style={styles.sectionLabel}>{t('home.league_summary')}</Text>
-            
-            <View style={styles.statsRow}>
-              <StatBlock 
-                label={t('home.position')} 
-                value={data.user_summary.rank ? `${data.user_summary.rank}°` : '-'}
-                accent
-              />
-              <View style={styles.statDivider} />
-              <StatBlock 
-                label={t('home.points')} 
-                value={formatPoints(data.user_summary.points)}
-              />
-              <View style={styles.statDivider} />
-              <StatBlock 
-                label={t('home.matchdays_played')} 
-                value={data.user_summary.matchdays_played ?? 0}
-              />
-              <View style={styles.statDivider} />
-              <StatBlock 
-                label={t('home.total')} 
-                value={formatPoints(data.user_summary.total_points)}
-                accent
-              />
+          <View style={styles.perfCard} data-testid="performance-card">
+            <Text style={styles.sectionLabel}>{t('home.performance')}</Text>
+
+            {/* Position – hero element */}
+            <View style={styles.perfPositionRow}>
+              <Text style={styles.perfPositionValue}>
+                {data.user_summary.rank ? `${data.user_summary.rank}°` : '-'}
+              </Text>
+              <Text style={styles.perfPositionLabel}>{t('home.current_position')}</Text>
+            </View>
+
+            <View style={styles.perfDivider} />
+
+            {/* Stats row */}
+            <View style={styles.perfStatsRow}>
+              <View style={styles.perfStatItem}>
+                <Text style={styles.perfStatValue}>{formatPoints(data.user_summary.total_points)}</Text>
+                <Text style={styles.perfStatLabel}>{t('home.total_points')}</Text>
+              </View>
+              <View style={styles.perfStatSep} />
+              <View style={styles.perfStatItem}>
+                <Text style={styles.perfStatValue}>
+                  {formatPoints(data.matchday?.my_points ?? data.live?.total_provisional ?? 0)}
+                </Text>
+                <Text style={styles.perfStatLabel}>{t('home.matchday_points')}</Text>
+              </View>
+              <View style={styles.perfStatSep} />
+              <View style={styles.perfStatItem}>
+                <Text style={styles.perfStatValue}>{avg5 ?? '-'}</Text>
+                <Text style={styles.perfStatLabel}>{t('home.avg_last_5')}</Text>
+              </View>
             </View>
           </View>
         )}
 
-        {/* LAST 5 PERFORMANCE */}
+        {/* ─── 3. LAST 5 TREND (BAR CHART) ─── */}
         {Array.isArray(data?.last_5_performance) && data.last_5_performance.length > 0 && (
-          <SectionCard title={t('home.last_5')}>
-            <LastFiveIndicator data={data.last_5_performance} />
+          <SectionCard title={t('home.trend')}>
+            <LastFiveIndicator
+              data={data.last_5_performance}
+              label={t('home.points_per_matchday')}
+            />
           </SectionCard>
         )}
 
-        {/* RANKINGS PREVIEW */}
+        {/* ─── 4. WEEKLY GOAL ─── */}
+        {weeklyGoal && (
+          <View style={styles.goalCard} data-testid="weekly-goal-card">
+            <View style={styles.goalIconWrap}>
+              <Ionicons name="flag-outline" size={18} color={colors.primary} />
+            </View>
+            <View style={styles.goalContent}>
+              <Text style={styles.goalTitle}>{t('home.weekly_goal')}</Text>
+              <Text style={styles.goalText}>{weeklyGoal}</Text>
+            </View>
+          </View>
+        )}
+
+        {/* ─── 5. RANKINGS PREVIEW ─── */}
         {data?.rankings_preview && (
-          <View style={styles.rankingsCard}>
+          <View style={styles.rankingsCard} data-testid="rankings-card">
             <View style={styles.rankingsHeader}>
               <Text style={styles.sectionLabel}>{t('home.rankings_section')}</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.rankingsMore}
                 onPress={() => router.push('/(tabs)/rankings')}
               >
                 <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
-            
+
             <Text style={styles.leagueName}>{data.rankings_preview.league_name}</Text>
-            
+
             {data.rankings_preview.top?.map((entry: RankingsPreviewEntry, i: number) => {
               const isCurrentUser = entry.user_id === user?.id;
               return (
-                <View 
-                  key={entry.user_id || i} 
-                  style={[
-                    styles.rankRow,
-                    isCurrentUser && styles.rankRowHighlight,
-                  ]}
+                <View
+                  key={entry.user_id || i}
+                  style={[styles.rankRow, isCurrentUser && styles.rankRowHighlight]}
                 >
                   {isCurrentUser && <View style={styles.rankRowAccent} />}
-                  <Text style={[
-                    styles.rankPosition,
-                    i < 3 && styles.rankPositionTop3,
-                  ]}>
+                  <Text style={[styles.rankPosition, i < 3 && styles.rankPositionTop3]}>
                     {entry.rank}
                   </Text>
                   <Text style={[styles.rankName, isCurrentUser && styles.rankNameBold]}>
@@ -356,14 +385,6 @@ export default function HomeScreen() {
             })}
           </View>
         )}
-
-        {/* STATS PLACEHOLDER */}
-        <SectionCard title={t('home.stats_section')}>
-          <View style={styles.statsPlaceholder}>
-            <Ionicons name="stats-chart-outline" size={32} color={colors.textMuted} />
-            <Text style={styles.statsPlaceholderText}>{t('home.stats_coming_soon')}</Text>
-          </View>
-        </SectionCard>
       </Animated.ScrollView>
     </SafeAreaView>
   );
@@ -380,8 +401,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.background,
   },
-  
-  // Header
+
+  // ── Header ──
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -393,18 +414,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  headerLeft: {
-    flex: 1,
-  },
+  headerLeft: { flex: 1 },
   greeting: {
     ...typography.bodyS,
     color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
-  logoSpacing: {
-    marginTop: 0,
-    marginBottom: 0,
-  },
+  logoSpacing: { marginTop: 0, marginBottom: 0 },
   headerButton: {
     width: 42,
     height: 42,
@@ -416,7 +432,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
 
-  // League Switcher
+  // ── League Switcher ──
   leagueSwitcherWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -448,10 +464,7 @@ const styles = StyleSheet.create({
   },
   switcherOverlay: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.45)',
     zIndex: 100,
     justifyContent: 'flex-start',
@@ -499,23 +512,24 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
-  
+
+  // ── Scroll ──
   scrollContent: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxxl,
+    padding: spacing.xl,
+    paddingBottom: spacing.xxxl + 32,
+    gap: spacing.xl, // consistent gap between cards
   },
-  
+
   sectionLabel: {
     ...typography.sectionLabel,
     color: colors.textSecondary,
   },
-  
-  // Matchday Card
+
+  // ── 1. Matchday Card ──
   matchdayCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
     padding: spacing.xl,
-    marginBottom: spacing.lg,
     ...shadows.card,
   },
   matchdayHeader: {
@@ -529,78 +543,112 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
-  matchdayMeta: {
+  matchdayMessage: {
     ...typography.bodyS,
     color: colors.textSecondary,
     marginBottom: spacing.md,
   },
-  countdownContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  countdownText: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.accent,
-    fontVariant: ['tabular-nums'],
+  matchdayMessageHighlight: {
+    color: colors.primary,
+    fontWeight: '600',
   },
   ctaButton: {
     marginTop: spacing.sm,
   },
-  
-  // Summary Card
-  summaryCard: {
+
+  // ── 2. Performance Card ──
+  perfCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xxl,
-    marginBottom: spacing.lg,
+    padding: spacing.xl,
     ...shadows.card,
   },
-  statsRow: {
-    flexDirection: 'row',
+  perfPositionRow: {
     alignItems: 'center',
     marginTop: spacing.lg,
-  },
-  statDivider: {
-    width: 1,
-    height: 36,
-    backgroundColor: colors.border,
-  },
-  
-  // Live Card
-  liveCard: {
-    backgroundColor: colors.successLight,
-    borderRadius: borderRadius.xl,
-    padding: spacing.xl,
-    marginBottom: spacing.lg,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.success,
-  },
-  liveHeader: {
     marginBottom: spacing.md,
   },
-  liveScore: {
-    fontSize: 36,
+  perfPositionValue: {
+    fontSize: 40,
     fontWeight: '800',
-    color: colors.success,
+    color: colors.textPrimary,
+    lineHeight: 46,
   },
-  liveMeta: {
-    ...typography.bodyS,
+  perfPositionLabel: {
+    ...typography.meta,
     color: colors.textSecondary,
     marginTop: spacing.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
-  
-  // Rankings Card
+  perfDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: spacing.lg,
+  },
+  perfStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  perfStatItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  perfStatValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  perfStatLabel: {
+    ...typography.metaSmall,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    textAlign: 'center',
+  },
+  perfStatSep: {
+    width: 1,
+    height: 32,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
+  },
+
+  // ── 4. Weekly Goal ──
+  goalCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    gap: spacing.md,
+    ...shadows.card,
+  },
+  goalIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primary + '0D',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  goalContent: { flex: 1 },
+  goalTitle: {
+    ...typography.sectionLabel,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  goalText: {
+    ...typography.bodyM,
+    color: colors.textPrimary,
+    lineHeight: 20,
+  },
+
+  // ── 5. Rankings ──
   rankingsCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
     padding: spacing.xl,
-    marginBottom: spacing.lg,
     ...shadows.card,
   },
   rankingsHeader: {
@@ -609,9 +657,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
   },
-  rankingsMore: {
-    padding: spacing.xs,
-  },
+  rankingsMore: { padding: spacing.xs },
   leagueName: {
     ...typography.titleM,
     color: colors.textPrimary,
@@ -647,51 +693,17 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   rankPositionTop3: {
-    color: colors.accent,
+    color: colors.primary,
   },
   rankName: {
     flex: 1,
     ...typography.bodyM,
     color: colors.textPrimary,
   },
-  rankNameBold: {
-    fontWeight: '700',
-  },
+  rankNameBold: { fontWeight: '700' },
   rankPoints: {
     ...typography.statMedium,
-    color: colors.accent,
-  },
-  
-  // Leagues
-  leagueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-  },
-  leagueText: {
-    ...typography.bodyM,
     color: colors.textPrimary,
-  },
-  leagueActions: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginTop: spacing.lg,
-  },
-  leagueBtn: {
-    flex: 1,
-  },
-  
-  // Stats Placeholder
-  statsPlaceholder: {
-    alignItems: 'center',
-    paddingVertical: spacing.xxl,
-  },
-  statsPlaceholderText: {
-    ...typography.bodyS,
-    color: colors.textMuted,
-    marginTop: spacing.sm,
+    fontWeight: '700',
   },
 });
