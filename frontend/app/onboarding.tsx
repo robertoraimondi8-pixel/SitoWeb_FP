@@ -207,8 +207,8 @@ export default function OnboardingScreen() {
             <Ionicons name="enter" size={28} color="#8B5CF6" />
           </View>
           <View style={s.pathContent}>
-            <Text style={[s.pathTitle, { color: colors.text }]}>{t('onboarding_join_title')}</Text>
-            <Text style={[s.pathDesc, { color: colors.textSecondary }]}>{t('onboarding_join_desc')}</Text>
+            <Text style={[s.pathTitle, { color: colors.text }]}>{t('onboarding.join_title')}</Text>
+            <Text style={[s.pathDesc, { color: colors.textSecondary }]}>{t('onboarding.join_desc')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
         </TouchableOpacity>
