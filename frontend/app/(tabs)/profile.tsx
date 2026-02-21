@@ -103,25 +103,25 @@ export default function ProfileScreen() {
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{leagueCount}</Text>
-              <Text style={styles.statLabel}>{t('my_leagues')}</Text>
+              <Text style={styles.statLabel}>{t('profile.my_leagues')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{user?.role === 'admin' ? 'Admin' : 'Player'}</Text>
-              <Text style={styles.statLabel}>Ruolo</Text>
+              <Text style={styles.statValue}>{user?.role === 'admin' ? t('profile.role_admin') : t('profile.role_player')}</Text>
+              <Text style={styles.statLabel}>{t('profile.role')}</Text>
             </View>
           </View>
         </View>
 
         {/* Settings Section */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>{t('settings')}</Text>
+          <Text style={styles.sectionTitle}>{t('profile.settings')}</Text>
 
           <View style={styles.settingRow}>
             <View style={[styles.settingIcon, { backgroundColor: isDark ? colors.accentLight : colors.infoLight }]}>
               <Ionicons name={isDark ? 'moon' : 'sunny'} size={18} color={isDark ? colors.accent : colors.info} />
             </View>
-            <Text style={styles.settingLabel}>{isDark ? t('dark_mode') : t('light_mode')}</Text>
+            <Text style={styles.settingLabel}>{isDark ? t('profile.dark_mode') : t('profile.light_mode')}</Text>
             <Switch 
               testID="theme-toggle" 
               value={isDark} 
