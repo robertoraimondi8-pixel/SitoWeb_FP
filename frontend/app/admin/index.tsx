@@ -364,9 +364,18 @@ export default function AdminConsoleV3() {
   if (leagues.length === 0) {
     return (
       <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+        <View style={s.header}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/profile')} style={s.backBtn}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={[s.headerTitle, { color: colors.text }]}>Console Admin</Text>
+        </View>
         <View style={s.center}>
-          <Ionicons name="lock-closed" size={48} color={colors.error} />
-          <Text style={[s.errorText, { color: colors.error }]}>Nessuna lega da gestire</Text>
+          <Ionicons name="information-circle" size={48} color={colors.accent} />
+          <Text style={[s.errorText, { color: colors.text }]}>Nessuna lega da gestire</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 14, textAlign: 'center', paddingHorizontal: 32, marginTop: 8 }}>
+            Le leghe che usano le partite della Lega Nazionale non richiedono gestione manuale.
+          </Text>
         </View>
       </SafeAreaView>
     );
