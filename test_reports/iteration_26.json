@@ -1,0 +1,47 @@
+{
+  "summary": "Tested Predictions tab smart redirect fix for COMPLETED matchday status. All tests passed. The shared goToPredictionsHub function correctly routes both Home CTA and Predictions tab to /live/{matchdayId} when matchday is COMPLETED.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "goToPredictionsHub function correctly implemented in /app/frontend/src/utils/navigation.ts",
+    "Function correctly routes LIVE|COMPLETED → /live/{id} and OPEN|LOCKED → /(tabs)/predictions",
+    "Home CTA at line 254 correctly uses goToPredictionsHub with matchday status",
+    "Predictions tab useFocusEffect at lines 243-254 correctly triggers smart redirect when status is LIVE or COMPLETED",
+    "redirectedRef prevents redirect loop on the Predictions screen"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only test)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "league_owner": "ilio@raimondi.it / password123"
+  },
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Smart Predictions tab redirect is working correctly. When user ilio@raimondi.it logs in, they see Giornata 4 with COMPLETED status. Clicking the Predictions tab auto-redirects to /live/{matchdayId} showing the results screen. The VIEW RESULTS CTA on Home also navigates to the same screen. All 4 tabs (Home, Predictions, Rankings, Profile) render correctly at bottom of screen.",
+  "test_results_detail": {
+    "login_flow": "PASS - Login with ilio@raimondi.it / password123 works correctly",
+    "home_completed_status": "PASS - Home page shows Giornata 4 with COMPLETED status badge",
+    "home_view_results_cta": "PASS - VIEW RESULTS button visible and correctly navigates to /live/{matchdayId}",
+    "predictions_tab_smart_redirect": "PASS - Clicking Predictions tab auto-redirects to /live/{matchdayId} for COMPLETED matchday",
+    "tab_bar_rendering": "PASS - All 4 tabs (Home, Predictions, Rankings, Profile) render correctly",
+    "live_results_screen": "PASS - Shows Giornata 4, PUNTI UFFICIALI (official points), match results with FT status"
+  },
+  "tested_features": [
+    "goToPredictionsHub shared function routes COMPLETED status to /live/{matchdayId}",
+    "Home CTA 'VIEW RESULTS' navigates to /live/{matchdayId}",
+    "Predictions tab smart redirect via useFocusEffect",
+    "Tab bar renders all 4 tabs correctly"
+  ]
+}
