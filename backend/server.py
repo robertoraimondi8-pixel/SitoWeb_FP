@@ -3730,12 +3730,15 @@ async def _live_fixtures_loop():
     logger.info(f"[LIVE-REFRESH] Sync enabled, interval={LIVE_REFRESH_INTERVAL}s")
     while True:
         try:
+            logger.info(f"[LIVE-REFRESH] Sleeping {LIVE_REFRESH_INTERVAL}s before next check...")
             await asyncio.sleep(LIVE_REFRESH_INTERVAL)
+            logger.info("[LIVE-REFRESH] Woke up, checking for live matches...")
             await _refresh_live_fixtures()
         except asyncio.CancelledError:
+            logger.info("[LIVE-REFRESH] Task cancelled")
             break
         except Exception as e:
-            logger.error(f"[LIVE-REFRESH] Error: {e}")
+            logger.error(f"[LIVE-REFRESH] Error in loop: {e}", exc_info=True)
 
 
 async def _refresh_live_fixtures():
