@@ -269,10 +269,20 @@ export default function LiveScreen() {
               <Text style={[s.competition, { color: colors.textSecondary }]}>
                 {match.competition}
               </Text>
+              {match.status === 'live' && match.elapsed != null && (
+                <View style={s.elapsedBadge}>
+                  <Text style={s.elapsedText}>{match.elapsed}'</Text>
+                </View>
+              )}
+              {match.status === 'scheduled' && match.start_time && (
+                <Text style={[s.kickoffTime, { color: colors.textSecondary }]}>
+                  {new Date(match.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              )}
               <View style={[s.statusBadge, { backgroundColor: getStatusColor(match.status) }]}>
                 {match.status === 'live' && <View style={s.liveDotSmall} />}
                 <Text style={s.statusText}>
-                  {match.status === 'live' ? 'LIVE' : match.status === 'finished' ? 'FT' : 'SCH'}
+                  {match.status === 'live' ? 'LIVE' : match.status === 'finished' ? 'FT' : match.status === 'scheduled' ? 'SCH' : match.status.toUpperCase()}
                 </Text>
               </View>
             </View>
