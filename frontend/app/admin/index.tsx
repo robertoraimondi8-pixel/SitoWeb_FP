@@ -507,32 +507,29 @@ export default function AdminConsoleV3() {
               {/* Action buttons */}
               <View style={s.transitionActions}>
                 {transitionInfo && (
-                  <TouchableOpacity
-                    data-testid="transition-btn"
+                  <Pressable
                     style={[s.transitionBtn, { backgroundColor: getStatusColor(transitionInfo.target) }]}
                     onPress={() => doTransition(transitionInfo.target)}
                     disabled={actionLoading}
                   >
                     <Ionicons name={transitionInfo.icon as any} size={22} color="#fff" />
                     <Text style={s.transitionBtnText}>{transitionInfo.label}</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 )}
 
                 {isCompleted && isSuperAdmin && (
-                  <TouchableOpacity
-                    data-testid="recalculate-btn"
+                  <Pressable
                     style={[s.transitionBtn, { backgroundColor: 'rgba(59,130,246,0.9)' }]}
                     onPress={doRecalculate}
                     disabled={actionLoading}
                   >
                     <Ionicons name="refresh" size={22} color="#fff" />
                     <Text style={s.transitionBtnText}>Ricalcola Giornata</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 )}
 
                 {!isCompleted && (
-                  <TouchableOpacity
-                    data-testid="delete-matchday-btn"
+                  <Pressable
                     style={[s.deleteBtn]}
                     onPress={deleteMatchday}
                     disabled={actionLoading}
