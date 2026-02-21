@@ -182,26 +182,25 @@ export default function AuthLanding() {
             ) : (
               <>
                 <View style={s.googleIcon}><Text style={s.googleG}>G</Text></View>
-                <Text style={s.googleBtnText}>Continua con Google</Text>
+                <Text style={s.googleBtnText}>{t('continue_with_google')}</Text>
               </>
             )}
           </TouchableOpacity>
 
-          {/* Password dimenticata */}
           <TouchableOpacity
             style={s.forgotRow}
             onPress={() => router.push('/(auth)/forgot-password')}
           >
-            <Text style={s.forgotText}>Password dimenticata?</Text>
+            <Text style={s.forgotText}>{t('forgot_password')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Footer */}
         <Text style={s.footer}>
-          Accedendo accetti i nostri{' '}
-          <Text style={s.footerLink}>Termini</Text>
-          {' '}e la{' '}
-          <Text style={s.footerLink}>Privacy Policy</Text>
+          {t('auth.footer_text')}{' '}
+          <Text style={s.footerLink}>{t('auth.footer_terms')}</Text>
+          {' '}{t('auth.footer_and')}{' '}
+          <Text style={s.footerLink}>{t('auth.footer_privacy')}</Text>
         </Text>
       </ScrollView>
     </SafeAreaView>
