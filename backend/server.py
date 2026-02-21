@@ -979,12 +979,12 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         last_5_matchdays.reverse()  # ASC order (oldest first) per display
 
         for md in last_5_matchdays:
-            # Per leghe manuali filtra per league_id; per nazionali filtra per predictions.league_id
+            # Per leghe manuali filtra per league_id; per nazionali NO league_id (score_summaries salvati senza)
             if is_manual_league:
                 score_filter = {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]}
             else:
-                # Lega nazionale privata: predictions con league_id = questa lega
-                score_filter = {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]}
+                # Lega nazionale/privata nazionale: score_summaries non hanno league_id della lega privata
+                score_filter = {"user_id": user["id"], "matchday_id": md["id"]}
             score = await score_summaries_col.find_one(score_filter, {"_id": 0, "total_points": 1})
             pts = score.get("total_points", 0.0) if score else 0.0
             last_5_performance.append({
@@ -2187,18 +2187,17 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
         users_who_played = {p["user_id"] for p in all_preds}
         member_user_ids = [uid for uid in member_user_ids if uid in users_who_played]
 
-    # Group predictions by user and count types
+    # Group predictions by user and count correct predictions
     user_pred_stats = {}
     for p in all_preds:
         uid = p["user_id"]
         if uid not in user_pred_stats:
-            user_pred_stats[uid] = {"exact_correct": 0, "1x2_correct": 0}
+            user_pred_stats[uid] = {"total_correct": 0, "1x2_correct": 0}
         
         if p.get("is_correct"):
+            user_pred_stats[uid]["total_correct"] += 1
             market = p.get("market_type", "1X2")
-            if market == "EXACT_SCORE":
-                user_pred_stats[uid]["exact_correct"] += 1
-            elif market == "1X2":
+            if market == "1X2":
                 user_pred_stats[uid]["1x2_correct"] += 1
 
     # B) COERENZA PUNTI: Usa compute_matchday_points per ogni utente
@@ -2210,7 +2209,7 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
         # Usa la funzione centralizzata che ritorna gli stessi valori di /predictions/user
         points_data = await compute_matchday_points(uid, matchday_id)
         
-        stats = user_pred_stats.get(uid, {"exact_correct": 0, "1x2_correct": 0})
+        stats = user_pred_stats.get(uid, {"total_correct": 0, "1x2_correct": 0})
         
         entries.append({
             "user_id": uid,
@@ -2218,14 +2217,14 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
             "matchday_points": points_data["total_points"],  # Coerente con /predictions/user
             "base_points": points_data["base_points"],
             "joker_bonus": points_data["joker_bonus"],
-            "exact_correct": stats["exact_correct"],
+            "total_correct": stats["total_correct"],
             "1x2_correct": stats["1x2_correct"],
             "jolly_active": points_data["joker_active"],
             "is_current_user": uid == user["id"],
         })
 
-    # Sort: points DESC, exact DESC, 1x2 DESC
-    entries.sort(key=lambda x: (-x["matchday_points"], -x["exact_correct"], -x["1x2_correct"]))
+    # Sort: points DESC, total_correct DESC, 1x2 DESC
+    entries.sort(key=lambda x: (-x["matchday_points"], -x["total_correct"], -x["1x2_correct"]))
     
     for i, e in enumerate(entries):
         e["rank"] = i + 1
