@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  View, Text, StyleSheet, ScrollView, 
-  ActivityIndicator, TouchableOpacity, Animated, RefreshControl 
+import {
+  View, Text, StyleSheet, ScrollView,
+  ActivityIndicator, TouchableOpacity, Animated, RefreshControl, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
