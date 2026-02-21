@@ -291,23 +291,23 @@ export default function HomeScreen() {
             
             <View style={styles.statsRow}>
               <StatBlock 
-                label="Posizione" 
+                label={t('home.position')} 
                 value={data.user_summary.rank ? `${data.user_summary.rank}°` : '-'}
                 accent
               />
               <View style={styles.statDivider} />
               <StatBlock 
-                label="Punti" 
+                label={t('home.points')} 
                 value={formatPoints(data.user_summary.points)}
               />
               <View style={styles.statDivider} />
               <StatBlock 
-                label="Giornate" 
+                label={t('home.matchdays_played')} 
                 value={data.user_summary.matchdays_played ?? 0}
               />
               <View style={styles.statDivider} />
               <StatBlock 
-                label="Totali" 
+                label={t('home.total')} 
                 value={formatPoints(data.user_summary.total_points)}
                 accent
               />
