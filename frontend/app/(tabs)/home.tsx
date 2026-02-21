@@ -252,20 +252,12 @@ export default function HomeScreen() {
               icon={(ctaConfig?.icon ?? 'create-outline') as React.ComponentProps<typeof Ionicons>['name']}
               onPress={() => {
                 if (!data?.matchday) return;
-                const leagueId = data?.league?.id || '';
-                const matchdayId = data?.matchday?.id;
-                const status = data?.matchday?.status?.toUpperCase();
-
-                if (status === 'COMPLETED' || status === 'LIVE') {
-                  // Naviga alla schermata risultati/live
-                  router.push(`/live/${matchdayId}?league_id=${leagueId}` as Href);
-                } else {
-                  // Naviga al form pronostici
-                  const url = matchdayId
-                    ? `/(tabs)/predictions?league_id=${leagueId}&matchday_id=${matchdayId}`
-                    : `/(tabs)/predictions?league_id=${leagueId}`;
-                  router.push(url as Href);
-                }
+                goToPredictionsHub(
+                  router,
+                  data.matchday.status,
+                  data.matchday.id,
+                  data.league?.id,
+                );
               }}
               disabled={!data?.matchday}
               style={styles.ctaButton}
