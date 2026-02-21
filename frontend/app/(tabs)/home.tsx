@@ -83,13 +83,7 @@ export default function HomeScreen() {
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status?.toUpperCase()) {
-      case 'OPEN': return 'Aperta';
-      case 'LIVE': return 'Live';
-      case 'LOCKED': return 'Chiusa';
-      case 'COMPLETED': return 'Completata';
-      default: return status;
-    }
+    return t(`status.${status?.toUpperCase()}`, { defaultValue: status });
   };
 
   const getCtaConfig = (status: string) => {
@@ -97,13 +91,13 @@ export default function HomeScreen() {
       case 'OPEN':
         return { 
           icon: 'create-outline' as const, 
-          label: 'INSERISCI PRONOSTICI', 
+          label: t('home.insert_predictions'), 
           route: `/(tabs)/predictions?league_id=${data?.league?.id || ''}&matchday_id=${data?.matchday?.id || ''}` 
         };
       case 'LIVE':
-        return { icon: 'pulse' as const, label: 'SEGUI LIVE', route: `/live/${data?.matchday?.id}` };
+        return { icon: 'pulse' as const, label: t('home.follow_live'), route: `/live/${data?.matchday?.id}` };
       case 'COMPLETED':
-        return { icon: 'checkmark-circle' as const, label: 'VEDI RISULTATI', route: `/live/${data?.matchday?.id}` };
+        return { icon: 'checkmark-circle' as const, label: t('home.view_results'), route: `/live/${data?.matchday?.id}` };
       default:
         return null;
     }
