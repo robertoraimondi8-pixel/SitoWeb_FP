@@ -5,7 +5,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, Pressable, StyleSheet, ScrollView,
+  View, Text, TouchableOpacity, StyleSheet, ScrollView,
   ActivityIndicator, TextInput, Alert, RefreshControl, Modal,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
@@ -183,11 +183,7 @@ export default function AdminConsoleV3() {
 
   // === TRANSITION ===
   const doTransition = async (targetStatus: string) => {
-    console.log('[ADMIN_V3] doTransition called', { targetStatus, selectedMatchday: selectedMatchday?.id, selectedLeague: selectedLeague?.id });
-    if (!selectedMatchday || !selectedLeague) {
-      console.log('[ADMIN_V3] ABORT: missing matchday or league');
-      return;
-    }
+    if (!selectedMatchday || !selectedLeague) return;
     const label = STATUS_LABELS[targetStatus] || targetStatus;
 
     setActionLoading(true);
