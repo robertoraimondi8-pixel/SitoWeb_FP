@@ -406,6 +406,8 @@ const s = StyleSheet.create({
   // Teams
   teamsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   teamCol: { flex: 1 },
+  teamNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  teamLogo: { width: 22, height: 22, borderRadius: 11 },
   teamName: { fontSize: 14, fontWeight: '600' },
   scoreCol: { paddingHorizontal: 12, minWidth: 70, alignItems: 'center' },
   score: { fontSize: 20, fontWeight: '800' },
