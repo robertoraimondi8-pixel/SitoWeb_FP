@@ -869,6 +869,17 @@ const styles = StyleSheet.create({
     gap: spacing.md, 
     marginBottom: spacing.lg,
   },
+  teamWithLogo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  teamLogo: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+  },
   teamName: { 
     ...typography.bodyM,
     color: colors.textPrimary,
