@@ -2696,6 +2696,8 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
             "match_id": m["id"],
             "home_team": m["home_team"],
             "away_team": m["away_team"],
+            "home_logo": m.get("home_logo"),
+            "away_logo": m.get("away_logo"),
             "competition": m.get("competition", ""),
             "start_time": m["start_time"],
             "home_score": m.get("home_score"),
