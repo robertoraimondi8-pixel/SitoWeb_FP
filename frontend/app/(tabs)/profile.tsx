@@ -8,6 +8,9 @@ import { useTheme } from '../../src/contexts/ThemeContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 
+import { setAppLanguage, SUPPORTED_LANGS } from '../../src/i18n';
+import type { SupportedLang } from '../../src/i18n';
+
 // Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
 import { SectionCard, PrimaryButton } from '../../src/components/ui';
@@ -60,10 +63,8 @@ export default function ProfileScreen() {
     })();
   }, [token, handleAuthError, router, user?.id]);
 
-  const switchLang = () => {
-    const newLang = i18n.language === 'it' ? 'en' : 'it';
-    i18n.changeLanguage(newLang);
-    apiCall('/profile', { method: 'PUT', token, body: { language: newLang } }).catch(() => {});
+  const handleLangChange = async (lang: SupportedLang) => {
+    await setAppLanguage(lang);
   };
 
   const handleLogout = async () => {
@@ -76,7 +77,7 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profilo</Text>
+          <Text style={styles.headerTitle}>{t('profile.title')}</Text>
           <View style={styles.accentLine} />
         </View>
 
@@ -132,16 +133,35 @@ export default function ProfileScreen() {
 
           <View style={styles.settingDivider} />
 
-          <TouchableOpacity testID="lang-toggle-btn" style={styles.settingRow} onPress={switchLang}>
-            <View style={[styles.settingIcon, { backgroundColor: colors.infoLight }]}>
-              <Ionicons name="language" size={18} color={colors.info} />
+          {/* Language Selector - 3 languages */}
+          <View style={styles.langSection}>
+            <View style={styles.settingRow}>
+              <View style={[styles.settingIcon, { backgroundColor: colors.infoLight }]}>
+                <Ionicons name="language" size={18} color={colors.info} />
+              </View>
+              <Text style={styles.settingLabel}>{t('profile.language_section')}</Text>
             </View>
-            <Text style={styles.settingLabel}>{t('language')}</Text>
-            <View style={styles.langChip}>
-              <Text style={styles.langChipText}>{i18n.language.toUpperCase()}</Text>
+            <View style={styles.langOptions}>
+              {SUPPORTED_LANGS.map((lang) => (
+                <TouchableOpacity
+                  key={lang}
+                  data-testid={`lang-${lang}-btn`}
+                  style={[
+                    styles.langOption,
+                    i18n.language === lang && styles.langOptionActive,
+                  ]}
+                  onPress={() => handleLangChange(lang)}
+                >
+                  <Text style={[
+                    styles.langOptionText,
+                    i18n.language === lang && styles.langOptionTextActive,
+                  ]}>
+                    {t(`profile.lang_${lang}`)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* League Actions */}
