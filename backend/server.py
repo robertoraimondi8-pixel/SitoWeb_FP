@@ -1,8 +1,10 @@
 """FantaPronostic Backend - Main FastAPI Application."""
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, Query
 from fastapi.responses import HTMLResponse, JSONResponse
+from pydantic import BaseModel as PydanticBaseModel
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from typing import Optional, List
 import os
 import logging
 import random
