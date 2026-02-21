@@ -279,9 +279,12 @@ export default function LiveScreen() {
             {/* Teams & Score */}
             <View style={s.teamsRow}>
               <View style={s.teamCol}>
-                <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>
-                  {match.home_team}
-                </Text>
+                <View style={s.teamNameRow}>
+                  {match.home_logo && <Image source={{ uri: match.home_logo }} style={s.teamLogo} />}
+                  <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>
+                    {match.home_team}
+                  </Text>
+                </View>
               </View>
               <View style={s.scoreCol}>
                 {match.home_score !== null ? (
@@ -296,9 +299,12 @@ export default function LiveScreen() {
                 )}
               </View>
               <View style={s.teamCol}>
-                <Text style={[s.teamName, { color: colors.text, textAlign: 'right' }]} numberOfLines={1}>
-                  {match.away_team}
-                </Text>
+                <View style={[s.teamNameRow, { justifyContent: 'flex-end' }]}>
+                  <Text style={[s.teamName, { color: colors.text, textAlign: 'right' }]} numberOfLines={1}>
+                    {match.away_team}
+                  </Text>
+                  {match.away_logo && <Image source={{ uri: match.away_logo }} style={s.teamLogo} />}
+                </View>
               </View>
             </View>
 
