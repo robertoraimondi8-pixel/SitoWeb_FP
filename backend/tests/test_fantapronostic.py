@@ -12,7 +12,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://predict-hub-10.preview.emergentagent.com"
+BASE_URL = "https://matchday-state-flow.preview.emergentagent.com"
 
 class TestHealth:
     """API health check"""

@@ -81,7 +81,7 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 
 ### 9. Expo Web Preview
 - Expo runs in `--web` mode (not tunnel) for K8s compatibility
-- Accessible via `https://predict-hub-10.preview.emergentagent.com`
+- Accessible via `https://matchday-state-flow.preview.emergentagent.com`
 
 ## P0 Backlog
 - (none)

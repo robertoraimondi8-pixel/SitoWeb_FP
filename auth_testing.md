@@ -24,13 +24,13 @@ print('Session token: ' + sessionToken);
 ## Step 2: Test Backend Google OAuth API
 ```bash
 # Test Google session endpoint (will fail without real session_id from Emergent Auth)
-curl -X POST "https://predict-hub-10.preview.emergentagent.com/api/auth/google/session" \
+curl -X POST "https://matchday-state-flow.preview.emergentagent.com/api/auth/google/session" \
   -H "Content-Type: application/json" \
   -d '{"session_id": "test_invalid_session"}'
 # Expected: 401 Invalid Google session
 
 # Test email login (should still work)
-curl -X POST "https://predict-hub-10.preview.emergentagent.com/api/auth/login" \
+curl -X POST "https://matchday-state-flow.preview.emergentagent.com/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email": "marco@test.com", "password": "password123"}'
 # Expected: 200 with JWT tokens
@@ -48,7 +48,7 @@ await page.context.add_cookies([{
     "secure": True,
     "sameSite": "None"
 }])
-await page.goto("https://predict-hub-10.preview.emergentagent.com")
+await page.goto("https://matchday-state-flow.preview.emergentagent.com")
 ```
 
 ## Checklist
