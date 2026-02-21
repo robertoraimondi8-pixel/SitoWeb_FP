@@ -1,5 +1,5 @@
 """FantaPronostic Backend - Main FastAPI Application."""
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -7,6 +7,7 @@ import os
 import logging
 import random
 import string
+import asyncio
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
