@@ -68,6 +68,8 @@
 
   "predictions": {
     "title": "Pronósticos",
+    "matchday_prefix": "Jornada",
+    "matches_label": "partidos",
     "select_matchday": "Seleccionar Jornada",
     "no_active_matchday": "No hay jornada disponible",
     "save_button": "GUARDAR PRONÓSTICOS",
@@ -75,6 +77,7 @@
     "match_locked": "Partido bloqueado",
     "all_locked": "Todos los pronósticos están bloqueados",
     "completed_of": "{{done}} de {{total}} completados",
+    "no_prediction": "Sin pronóstico",
     "joker": "COMODÍN",
     "joker_active": "Comodín activo",
     "joker_desc": "Duplica los puntos de un partido",

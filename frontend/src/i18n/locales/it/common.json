@@ -68,6 +68,8 @@
 
   "predictions": {
     "title": "Pronostici",
+    "matchday_prefix": "Giornata",
+    "matches_label": "partite",
     "select_matchday": "Seleziona Giornata",
     "no_active_matchday": "Nessuna giornata disponibile",
     "save_button": "SALVA PRONOSTICI",
@@ -75,6 +77,7 @@
     "match_locked": "Partita bloccata",
     "all_locked": "Tutti i pronostici sono bloccati",
     "completed_of": "{{done}} di {{total}} completati",
+    "no_prediction": "Nessun pronostico",
     "joker": "JOLLY",
     "joker_active": "Jolly attivo",
     "joker_desc": "Raddoppia i punti di una partita",

@@ -68,6 +68,8 @@
 
   "predictions": {
     "title": "Predictions",
+    "matchday_prefix": "Matchday",
+    "matches_label": "matches",
     "select_matchday": "Select Matchday",
     "no_active_matchday": "No matchday available",
     "save_button": "SAVE PREDICTIONS",
@@ -75,6 +77,7 @@
     "match_locked": "Match locked",
     "all_locked": "All predictions are locked",
     "completed_of": "{{done}} of {{total}} completed",
+    "no_prediction": "No prediction",
     "joker": "JOKER",
     "joker_active": "Joker active",
     "joker_desc": "Double the points of one match",
