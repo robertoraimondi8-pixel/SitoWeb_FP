@@ -193,32 +193,28 @@ export default function AdminConsoleV3() {
         method: 'POST', token,
         body: { league_id: selectedLeague.id, target_status: targetStatus },
       });
-      Alert.alert('Fatto!', `Giornata ${label}`);
+      showAlert('Fatto!', `Giornata ${label}`);
       await loadMatchdays(selectedLeague.id);
       setSelectedMatchday(prev => prev ? { ...prev, status: targetStatus } : null);
     } catch (e: any) {
-      Alert.alert('Errore', e.message || 'Transizione fallita');
+      showAlert('Errore', e.message || 'Transizione fallita');
     } finally { setActionLoading(false); }
   };
 
   // === RECALCULATE ===
   const doRecalculate = async () => {
     if (!selectedMatchday || !selectedLeague) return;
-    Alert.alert('Ricalcola', 'Ricalcolare tutti i punteggi per questa giornata?', [
-      { text: 'Annulla', style: 'cancel' },
-      { text: 'Ricalcola', onPress: async () => {
-        setActionLoading(true);
-        try {
-          await apiCall(`/admin/matchday/${selectedMatchday.id}/recalculate`, {
-            method: 'POST', token,
-            body: { league_id: selectedLeague.id },
-          });
-          Alert.alert('Fatto!', 'Punteggi ricalcolati');
-        } catch (e: any) {
-          Alert.alert('Errore', e.message || 'Ricalcolo fallito');
-        } finally { setActionLoading(false); }
-      }},
-    ]);
+    if (!(await showConfirm('Ricalcola', 'Ricalcolare tutti i punteggi per questa giornata?'))) return;
+    setActionLoading(true);
+    try {
+      await apiCall(`/admin/matchday/${selectedMatchday.id}/recalculate`, {
+        method: 'POST', token,
+        body: { league_id: selectedLeague.id },
+      });
+      showAlert('Fatto!', 'Punteggi ricalcolati');
+    } catch (e: any) {
+      showAlert('Errore', e.message || 'Ricalcolo fallito');
+    } finally { setActionLoading(false); }
   };
 
   // === MATCHDAY CRUD ===
