@@ -285,7 +285,7 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.liveScore}>{formatPoints(data.live.total_provisional)} pts</Text>
             <Text style={styles.liveMeta}>
-              {data.matchday?.status === 'COMPLETED' ? 'Punti ufficiali' : 'Punti provvisori'}
+              {data.matchday?.status === 'COMPLETED' ? t('home.official_points') : t('home.provisional_points')}
             </Text>
           </View>
         )}
@@ -293,7 +293,7 @@ export default function HomeScreen() {
         {/* USER SUMMARY */}
         {data?.user_summary && (
           <View style={styles.summaryCard}>
-            <Text style={styles.sectionLabel}>LA TUA LEGA · SINTESI</Text>
+            <Text style={styles.sectionLabel}>{t('home.league_summary')}</Text>
             
             <View style={styles.statsRow}>
               <StatBlock 
@@ -323,7 +323,7 @@ export default function HomeScreen() {
 
         {/* LAST 5 PERFORMANCE */}
         {Array.isArray(data?.last_5_performance) && data.last_5_performance.length > 0 && (
-          <SectionCard title="ULTIMI 5 RISULTATI">
+          <SectionCard title={t('home.last_5')}>
             <LastFiveIndicator data={data.last_5_performance} />
           </SectionCard>
         )}
@@ -332,7 +332,7 @@ export default function HomeScreen() {
         {data?.rankings_preview && (
           <View style={styles.rankingsCard}>
             <View style={styles.rankingsHeader}>
-              <Text style={styles.sectionLabel}>CLASSIFICHE</Text>
+              <Text style={styles.sectionLabel}>{t('home.rankings_section')}</Text>
               <TouchableOpacity 
                 style={styles.rankingsMore}
                 onPress={() => router.push('/(tabs)/rankings')}
@@ -371,10 +371,10 @@ export default function HomeScreen() {
         )}
 
         {/* STATS PLACEHOLDER */}
-        <SectionCard title="STATISTICHE">
+        <SectionCard title={t('home.stats_section')}>
           <View style={styles.statsPlaceholder}>
             <Ionicons name="stats-chart-outline" size={32} color={colors.textMuted} />
-            <Text style={styles.statsPlaceholderText}>Prossimamente</Text>
+            <Text style={styles.statsPlaceholderText}>{t('home.stats_coming_soon')}</Text>
           </View>
         </SectionCard>
       </Animated.ScrollView>
