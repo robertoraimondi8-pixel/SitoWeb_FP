@@ -3801,6 +3801,9 @@ async def _refresh_live_fixtures():
             updates["away_score"] = fx["away_goals"]
         if new_status != m["status"]:
             updates["status"] = new_status
+        # Save elapsed minutes for live matches
+        if fx.get("elapsed") is not None:
+            updates["elapsed"] = fx["elapsed"]
         # Save logos if missing
         if fx.get("home_logo") and not m.get("home_logo"):
             updates["home_logo"] = fx["home_logo"]
