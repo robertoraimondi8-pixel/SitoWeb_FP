@@ -31,15 +31,21 @@ i18n.use(initReactI18next).init({
   react: { useSuspense: false },
 });
 
-// Restore saved language on startup
-AsyncStorage.getItem(STORAGE_KEY).then((saved) => {
-  if (saved && SUPPORTED_LANGS.includes(saved as SupportedLang)) {
-    i18n.changeLanguage(saved);
-  } else {
-    const deviceLang = getDeviceLanguage();
-    i18n.changeLanguage(deviceLang);
-  }
-});
+// Restore saved language on startup (safe for SSR)
+if (typeof window !== 'undefined') {
+  AsyncStorage.getItem(STORAGE_KEY)
+    .then((saved) => {
+      if (saved && SUPPORTED_LANGS.includes(saved as SupportedLang)) {
+        i18n.changeLanguage(saved);
+      } else {
+        const deviceLang = getDeviceLanguage();
+        i18n.changeLanguage(deviceLang);
+      }
+    })
+    .catch(() => {
+      i18n.changeLanguage(getDeviceLanguage());
+    });
+}
 
 export async function setAppLanguage(lang: SupportedLang): Promise<void> {
   await AsyncStorage.setItem(STORAGE_KEY, lang);
