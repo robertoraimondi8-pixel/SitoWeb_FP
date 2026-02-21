@@ -13,7 +13,7 @@ import pytest
 import requests
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://matchday-state-flow.preview.emergentagent.com"
+BASE_URL = "https://prono-hub-1.preview.emergentagent.com"
 
 
 @pytest.fixture

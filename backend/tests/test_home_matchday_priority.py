@@ -15,7 +15,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://matchday-state-flow.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://prono-hub-1.preview.emergentagent.com')
 
 # Known constants
 NATIONAL_LEAGUE_ID = "f1373417-43aa-4043-b6a2-125873181c95"

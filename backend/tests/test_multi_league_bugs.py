@@ -9,7 +9,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://matchday-state-flow.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://prono-hub-1.preview.emergentagent.com')
 
 # Test credentials
 TEST_EMAIL = "email@email.com"

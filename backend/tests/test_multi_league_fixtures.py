@@ -11,7 +11,7 @@ import requests
 import os
 from datetime import datetime, timedelta
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://matchday-state-flow.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://prono-hub-1.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 USER1 = {"email": "email@email.com", "password": "Roberto95"}
