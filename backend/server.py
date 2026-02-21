@@ -3601,9 +3601,12 @@ def _get_apifootball() -> APIFootballClient:
 @fixtures_router.get("/leagues")
 async def real_fixtures_leagues(admin=Depends(require_admin)):
     """Top 5 leagues with current season."""
-    client = _get_apifootball()
-    leagues = await client.get_top_leagues()
-    return leagues
+    try:
+        client = _get_apifootball()
+        leagues = await client.get_top_leagues()
+        return leagues
+    except Exception as e:
+        raise HTTPException(502, f"Errore API-Football: {e}")
 
 
 @fixtures_router.get("/search")
@@ -3615,9 +3618,12 @@ async def real_fixtures_search(
     admin=Depends(require_admin),
 ):
     """Search real fixtures from API-Football."""
-    client = _get_apifootball()
-    fixtures = await client.search_fixtures(league, season, date_from, date_to)
-    return fixtures
+    try:
+        client = _get_apifootball()
+        fixtures = await client.search_fixtures(league, season, date_from, date_to)
+        return fixtures
+    except Exception as e:
+        raise HTTPException(502, f"Errore API-Football: {e}")
 
 
 class ImportFixturesRequest(PydanticBaseModel):
