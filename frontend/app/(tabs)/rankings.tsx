@@ -24,6 +24,7 @@ interface StandingEntry {
   matchdays_played?: number;
   jolly_used?: number;
   exact_correct?: number;
+  total_correct?: number;
   '1x2_correct'?: number;
   jolly_active?: boolean;
   is_current_user: boolean;
@@ -166,7 +167,7 @@ export default function RankingsScreen() {
           )}
           {isTop3 && tab === 'weekly' && (
             <Text style={styles.entryMeta}>
-              {entry.exact_correct || 0} esatti • {entry['1x2_correct'] || 0} 1X2
+              {entry.total_correct || 0} corretti • {entry['1x2_correct'] || 0} 1X2
             </Text>
           )}
         </View>
