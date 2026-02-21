@@ -21,6 +21,17 @@
   "delete": "Elimina",
   "back_home": "Torna alla Home",
 
+  "auth": {
+    "welcome_back": "Bentornato!",
+    "sign_in_continue": "Accedi per continuare",
+    "loading_google": "Attendere...",
+    "footer_text": "Accedendo accetti i nostri",
+    "footer_terms": "Termini",
+    "footer_and": "e la",
+    "footer_privacy": "Privacy Policy",
+    "tagline": "Pronostica. Vinci. Domina la classifica"
+  },
+
   "tabs": {
     "home": "Home",
     "predictions": "Pronostici",
@@ -108,7 +119,19 @@
     "private": "Privata",
     "active": "Attiva",
     "share_code": "Condividi codice",
-    "league_share_message": "Unisciti alla mia lega su FantaPronostic!"
+    "league_share_message": "Unisciti alla mia lega su FantaPronostic!",
+    "settings": "Impostazioni",
+    "dark_mode": "Modalità scura",
+    "light_mode": "Modalità chiara",
+    "role": "Ruolo",
+    "role_admin": "Admin",
+    "role_player": "Giocatore",
+    "admin_console_title": "CONSOLE ADMIN",
+    "admin_console_desc": "Gestisci stagioni, giornate e partite",
+    "admin_console_btn": "Apri Console",
+    "creator_console_title": "GESTISCI LE MIE LEGHE",
+    "creator_console_desc": "Crea giornate e partite per le tue leghe",
+    "creator_console_btn": "Apri Console Admin"
   },
 
   "live": {
@@ -157,7 +180,8 @@
     "join_title": "Entra in una Lega",
     "join_desc": "Hai già un codice invito? Entra subito nella lega dei tuoi amici",
     "season": "stagione",
-    "free": "GRATIS"
+    "free": "GRATIS",
+    "logout": "Esci"
   },
 
   "status": {

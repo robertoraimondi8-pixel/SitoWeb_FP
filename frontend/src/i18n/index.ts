@@ -55,7 +55,7 @@ i18n.use(initReactI18next).init({
     es: { translation: es },
   },
   lng: initialLang,
-  fallbackLng: 'en',
+  fallbackLng: 'it',
   interpolation: { escapeValue: false },
   react: { useSuspense: false },
 });
