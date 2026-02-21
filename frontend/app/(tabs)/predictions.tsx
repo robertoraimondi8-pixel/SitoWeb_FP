@@ -313,11 +313,11 @@ export default function PredictionsScreen() {
   const handleJollyToggle = async () => {
     if (!data?.matchday) return;
     if (joker.is_locked) {
-      Alert.alert(t('error'), 'Jolly bloccato - tempo scaduto');
+      Alert.alert(t('error'), t('predictions.match_locked'));
       return;
     }
     if (joker.used_other_matchday) {
-      Alert.alert(t('error'), `Jolly già usato in un'altra giornata (${joker.half === 1 ? 'Andata' : 'Ritorno'})`);
+      Alert.alert(t('error'), `t('predictions.joker_already_used') (${joker.half === 1 ? 'Andata' : 'Ritorno'})`);
       return;
     }
 
@@ -420,7 +420,7 @@ export default function PredictionsScreen() {
       ? `USATO (${joker.half === 1 ? 'And.' : 'Rit.'})` 
       : joker.is_active 
         ? 'ATTIVO x2' 
-        : 'Attiva Jolly';
+        : t('predictions.set_joker');
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -663,7 +663,7 @@ export default function PredictionsScreen() {
           )}
           <PrimaryButton
             testID="confirm-predictions-btn"
-            title={allComplete || !isOpen ? t('save_predictions') : `Completa tutti i pronostici`}
+            title={allComplete || !isOpen ? t('save_predictions') : `${t('predictions.save_button')}`}
             icon={allComplete || !isOpen ? 'checkmark-circle' : 'alert-circle'}
             onPress={handleSave}
             loading={saving}
