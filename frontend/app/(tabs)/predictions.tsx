@@ -225,14 +225,32 @@ export default function PredictionsScreen() {
     finally { setLoading(false); }
   }, [token, handleAuthError, router, paramMatchdayId]);
 
+  // Redirect ref: impedisce redirect loop quando lo screen è montato come tab
+  const redirectedRef = useRef(false);
+
   // useFocusEffect: rifetch ogni volta che la schermata Pronostici ottiene il focus
   // (risolve lo stale state quando si naviga da Home dopo aver creato una nuova giornata)
   useFocusEffect(
     useCallback(() => {
+      redirectedRef.current = false;
       setLoading(true);
       setPreds({});
       fetchData();
     }, [fetchData])
+  );
+
+  // Smart redirect: se stato è LIVE o COMPLETED, naviga alla schermata Live
+  useFocusEffect(
+    useCallback(() => {
+      if (!data?.matchday || redirectedRef.current) return;
+      const status = data.matchday.status?.toUpperCase();
+      if (status === 'LIVE' || status === 'COMPLETED') {
+        redirectedRef.current = true;
+        const leagueId = leagueInfo?.id || '';
+        const matchdayId = data.matchday.id;
+        goToPredictionsHub(router, status, matchdayId, leagueId);
+      }
+    }, [data?.matchday, leagueInfo, router])
   );
 
   const setMarket = (matchId: string, market: string) => {
