@@ -17,6 +17,8 @@ interface LiveMatch {
   match_id: string;
   home_team: string;
   away_team: string;
+  home_logo: string | null;
+  away_logo: string | null;
   competition: string;
   start_time: string;
   home_score: number | null;
