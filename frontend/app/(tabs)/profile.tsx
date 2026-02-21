@@ -166,13 +166,13 @@ export default function ProfileScreen() {
 
         {/* League Actions */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>LEGHE</Text>
+          <Text style={styles.sectionTitle}>{t('profile.my_leagues')}</Text>
 
           <TouchableOpacity testID="create-league-profile-btn" style={styles.settingRow} onPress={() => router.push('/league/create')}>
             <View style={[styles.settingIcon, { backgroundColor: colors.successLight }]}>
               <Ionicons name="add-circle-outline" size={18} color={colors.success} />
             </View>
-            <Text style={styles.settingLabel}>{t('create_league')}</Text>
+            <Text style={styles.settingLabel}>{t('profile.create_league')}</Text>
             <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </TouchableOpacity>
 
@@ -182,7 +182,7 @@ export default function ProfileScreen() {
             <View style={[styles.settingIcon, { backgroundColor: colors.accentLight }]}>
               <Ionicons name="enter-outline" size={18} color={colors.accent} />
             </View>
-            <Text style={styles.settingLabel}>{t('join_league')}</Text>
+            <Text style={styles.settingLabel}>{t('profile.join_league')}</Text>
             <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </TouchableOpacity>
         </View>
@@ -221,7 +221,7 @@ export default function ProfileScreen() {
         {/* Logout */}
         <TouchableOpacity testID="logout-btn" style={styles.logoutBtn} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color={colors.error} />
-          <Text style={styles.logoutText}>{t('logout')}</Text>
+          <Text style={styles.logoutText}>{t('profile.logout')}</Text>
         </TouchableOpacity>
 
         {/* Version */}
