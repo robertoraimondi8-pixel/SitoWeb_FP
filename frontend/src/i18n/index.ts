@@ -15,11 +15,17 @@ function isSupportedLang(lang: string): lang is SupportedLang {
 
 function getDeviceLanguage(): SupportedLang {
   try {
+    // Try browser language first (web)
+    if (typeof navigator !== 'undefined' && navigator.language) {
+      const browserLang = navigator.language.split('-')[0];
+      if (isSupportedLang(browserLang)) return browserLang;
+    }
+    // Then expo-localization (native)
     const { getLocales } = require('expo-localization');
-    const locale = getLocales()[0]?.languageCode ?? 'en';
+    const locale = getLocales()[0]?.languageCode ?? 'it';
     if (isSupportedLang(locale)) return locale;
   } catch { /* SSR or unavailable */ }
-  return 'en';
+  return 'it';
 }
 
 // Platform-safe storage: localStorage on web, AsyncStorage on native (lazy loaded)
