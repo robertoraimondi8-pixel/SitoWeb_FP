@@ -51,7 +51,6 @@
   "confirm": "Confirmar",
   "delete": "Eliminar",
   "back_home": "Volver al inicio",
-
   "auth": {
     "welcome_back": "¡Bienvenido de nuevo!",
     "sign_in_continue": "Inicia sesión para continuar",
@@ -62,14 +61,12 @@
     "footer_privacy": "Política de privacidad",
     "tagline": "Predice. Gana. Domina la clasificación"
   },
-
   "tabs": {
     "home": "Inicio",
     "predictions": "Pronósticos",
     "rankings": "Clasificación",
     "profile": "Perfil"
   },
-
   "home": {
     "greeting": "Hola, {{name}}",
     "matchday_label": "JORNADA",
@@ -94,9 +91,22 @@
     "countdown_days": "d",
     "countdown_hours": "h",
     "countdown_minutes": "m",
-    "countdown_seconds": "s"
+    "countdown_seconds": "s",
+    "performance": "RENDIMIENTO",
+    "closes_in": "Cierra en",
+    "in_progress": "En curso",
+    "you_scored": "Has hecho {{points}} puntos",
+    "current_position": "Posición actual",
+    "total_points": "Puntos totales",
+    "matchday_points": "Puntos jornada",
+    "avg_last_5": "Media últimas 5",
+    "weekly_goal": "OBJETIVO SEMANAL",
+    "goal_keep_position": "Haz al menos {{points}} pts para mantener el {{rank}}° puesto",
+    "goal_climb_position": "Haz {{points}} pts para subir al {{rank}}° puesto",
+    "no_matchday": "No hay jornada activa",
+    "predictions_count": "{{count}}/{{total}} partidos",
+    "trend": "TENDENCIA"
   },
-
   "predictions": {
     "title": "Pronósticos",
     "matchday_prefix": "Jornada",
@@ -123,7 +133,6 @@
     "prediction_X": "X",
     "prediction_2": "2"
   },
-
   "rankings": {
     "title": "Clasificación",
     "tab_total": "Total",
@@ -136,7 +145,6 @@
     "no_standings": "No hay clasificación disponible",
     "your_position": "Tu posición"
   },
-
   "profile": {
     "title": "Perfil",
     "my_leagues": "Mis Ligas",
@@ -167,7 +175,6 @@
     "creator_console_desc": "Crea jornadas y partidos para tus ligas",
     "creator_console_btn": "Abrir Consola Admin"
   },
-
   "live": {
     "title": "En Vivo",
     "base_points": "Puntos base",
@@ -182,7 +189,6 @@
     "pending": "Pendiente",
     "server_time": "Hora servidor"
   },
-
   "league": {
     "create_title": "Crear Liga Privada",
     "join_title": "Unirse con Código",
@@ -202,7 +208,6 @@
     "invite_section": "Código de invitación",
     "no_leagues": "Aún no estás en ninguna liga"
   },
-
   "onboarding": {
     "welcome": "Bienvenido",
     "subtitle": "Elige cómo empezar tu aventura con los pronósticos",
@@ -217,7 +222,6 @@
     "free": "GRATIS",
     "logout": "Salir"
   },
-
   "status": {
     "DRAFT": "BORRADOR",
     "OPEN": "ABIERTA",

@@ -51,7 +51,6 @@
   "confirm": "Confirm",
   "delete": "Delete",
   "back_home": "Back to Home",
-
   "auth": {
     "welcome_back": "Welcome back!",
     "sign_in_continue": "Sign in to continue",
@@ -62,14 +61,12 @@
     "footer_privacy": "Privacy Policy",
     "tagline": "Predict. Win. Dominate the rankings"
   },
-
   "tabs": {
     "home": "Home",
     "predictions": "Predictions",
     "rankings": "Rankings",
     "profile": "Profile"
   },
-
   "home": {
     "greeting": "Hi, {{name}}",
     "matchday_label": "MATCHDAY",
@@ -94,9 +91,22 @@
     "countdown_days": "d",
     "countdown_hours": "h",
     "countdown_minutes": "m",
-    "countdown_seconds": "s"
+    "countdown_seconds": "s",
+    "performance": "PERFORMANCE",
+    "closes_in": "Closes in",
+    "in_progress": "In progress",
+    "you_scored": "You scored {{points}} points",
+    "current_position": "Current position",
+    "total_points": "Total points",
+    "matchday_points": "Matchday points",
+    "avg_last_5": "Avg last 5",
+    "weekly_goal": "WEEKLY GOAL",
+    "goal_keep_position": "Score at least {{points}} pts to keep {{rank}}th place",
+    "goal_climb_position": "Score {{points}} pts to climb to {{rank}}th place",
+    "no_matchday": "No active matchday",
+    "predictions_count": "{{count}}/{{total}} matches",
+    "trend": "TREND"
   },
-
   "predictions": {
     "title": "Predictions",
     "matchday_prefix": "Matchday",
@@ -123,7 +133,6 @@
     "prediction_X": "X",
     "prediction_2": "2"
   },
-
   "rankings": {
     "title": "Rankings",
     "tab_total": "Total",
@@ -136,7 +145,6 @@
     "no_standings": "No standings available",
     "your_position": "Your position"
   },
-
   "profile": {
     "title": "Profile",
     "my_leagues": "My Leagues",
@@ -167,7 +175,6 @@
     "creator_console_desc": "Create matchdays and matches for your leagues",
     "creator_console_btn": "Open Admin Console"
   },
-
   "live": {
     "title": "Live",
     "base_points": "Base points",
@@ -182,7 +189,6 @@
     "pending": "Pending",
     "server_time": "Server time"
   },
-
   "league": {
     "create_title": "Create Private League",
     "join_title": "Join with Code",
@@ -202,7 +208,6 @@
     "invite_section": "Invite Code",
     "no_leagues": "You're not in any league yet"
   },
-
   "onboarding": {
     "welcome": "Welcome",
     "subtitle": "Choose how to start your prediction adventure",
@@ -217,7 +222,6 @@
     "free": "FREE",
     "logout": "Logout"
   },
-
   "status": {
     "DRAFT": "DRAFT",
     "OPEN": "OPEN",
