@@ -214,7 +214,7 @@ export default function HomeScreen() {
             {data?.matchday ? (
               <>
                 <View style={styles.matchdayHeader}>
-                  <Text style={styles.sectionLabel}>{{t('home.matchday_label')}}</Text>
+                  <Text style={styles.sectionLabel}>{t('home.matchday_label')}</Text>
                   <StatusBadge status={data.matchday.status} label={getStatusLabel(data.matchday.status)} />
                 </View>
                 
