@@ -193,7 +193,7 @@ export default function RankingsScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Classifiche</Text>
+        <Text style={styles.headerTitle}>{t('rankings.title')}</Text>
         <View style={styles.accentLine} />
       </View>
 
@@ -242,7 +242,7 @@ export default function RankingsScreen() {
             style={[styles.tabBtn, tab === 'total' && styles.tabBtnActive]}
           >
             <Text style={[styles.tabText, tab === 'total' && styles.tabTextActive]}>
-              Totale
+              {t('rankings.tab_total')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -251,7 +251,7 @@ export default function RankingsScreen() {
             style={[styles.tabBtn, tab === 'weekly' && styles.tabBtnActive]}
           >
             <Text style={[styles.tabText, tab === 'weekly' && styles.tabTextActive]}>
-              Settimanale
+              {t('rankings.tab_weekly')}
             </Text>
           </TouchableOpacity>
         </View>
