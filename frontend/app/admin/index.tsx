@@ -164,22 +164,20 @@ export default function AdminConsoleV3() {
     setRefreshing(false);
   }, [selectedLeague]);
 
+  // Confirmation modal state
+  const [confirmModal, setConfirmModal] = useState<{ visible: boolean; title: string; message: string; onConfirm: () => void }>({ visible: false, title: '', message: '', onConfirm: () => {} });
+
   // === Helper: cross-platform confirm/alert ===
   const showAlert = (title: string, message: string) => {
-    if (Platform.OS === 'web') {
-      try { window.alert(`${title}: ${message}`); } catch { console.log(`${title}: ${message}`); }
-    } else { Alert.alert(title, message); }
+    setConfirmModal({ visible: true, title, message, onConfirm: () => setConfirmModal(p => ({ ...p, visible: false })) });
   };
   const showConfirm = (title: string, message: string): Promise<boolean> => {
-    if (Platform.OS === 'web') {
-      try { return Promise.resolve(window.confirm(`${title}\n${message}`)); }
-      catch { return Promise.resolve(true); }
-    }
     return new Promise((resolve) => {
-      Alert.alert(title, message, [
-        { text: 'Annulla', style: 'cancel', onPress: () => resolve(false) },
-        { text: 'Conferma', onPress: () => resolve(true) },
-      ]);
+      setConfirmModal({
+        visible: true, title, message,
+        onConfirm: () => { setConfirmModal(p => ({ ...p, visible: false })); resolve(true); },
+      });
+      // If modal is dismissed without confirm, resolve false
     });
   };
 
