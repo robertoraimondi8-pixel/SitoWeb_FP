@@ -132,7 +132,8 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
   - Import button with success/error feedback
   - Error banner for API quota/suspended key
 - **Match fields added**: `external_provider`, `external_fixture_id` (indexed, sparse)
-- **Background scheduler**: Every 60s refreshes imported matches with status `live`/`scheduled`
+- **Background scheduler**: Configurable via `APIFOOTBALL_LIVE_SYNC_ENABLED` (default: false) and `APIFOOTBALL_LIVE_INTERVAL` (default: 180s)
+- **Circuit breaker**: On 429/403/suspended errors, pauses sync for 60 min
 - **Auto-complete**: When all matches in a matchday are finished, auto-sets COMPLETED and calculates scores
 - **Error handling**: Proper 502 errors for API-Football issues (suspended key, rate limits)
 - **Duplicate protection**: Won't re-import already-imported fixture IDs
