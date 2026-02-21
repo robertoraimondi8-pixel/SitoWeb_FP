@@ -41,7 +41,7 @@ export default function UserPredictionsScreen() {
         if (params.leagueId) url += `?league_id=${params.leagueId}`;
         const res = await apiCall(url, { token });
         setData(res);
-      } catch (e: any) { 
+      } catch (e: unknown) { 
         if (isAuthError(e)) {
           const didLogout = await handleAuthError(e);
           if (didLogout) router.replace('/(auth)/login');

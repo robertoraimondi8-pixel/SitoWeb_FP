@@ -70,7 +70,7 @@ export default function LiveScreen() {
       setData(res);
       setLastUpdate(new Date());
       setCountdown(60);
-    } catch (e: any) { 
+    } catch (e: unknown) { 
       if (isAuthError(e)) {
         const didLogout = await handleAuthError(e);
         if (didLogout) router.replace('/(auth)/login');

@@ -85,7 +85,7 @@ export default function CreateLeagueScreen() {
       });
       if (token) await refreshLeagues(token);
       setCreated(res);
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (isAuthError(e)) { const d = await handleAuthError(e); if (d) router.replace('/(auth)/login'); return; }
       setError(e.message || 'Errore nella creazione');
     } finally {

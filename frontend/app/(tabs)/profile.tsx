@@ -49,7 +49,7 @@ export default function ProfileScreen() {
           }
         }
         setOwnedLeagues(owned);
-      } catch (e: any) { 
+      } catch (e: unknown) { 
         if (isAuthError(e)) {
           const didLogout = await handleAuthError(e);
           if (didLogout) router.replace('/(auth)/login');

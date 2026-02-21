@@ -211,7 +211,7 @@ export default function PredictionsScreen() {
         }
       });
       setPreds(predMap);
-    } catch (e: any) { 
+    } catch (e: unknown) { 
       if (isAuthError(e)) {
         const didLogout = await handleAuthError(e);
         if (didLogout) router.replace('/(auth)/login');
@@ -304,7 +304,7 @@ export default function PredictionsScreen() {
         }
       }
       setSaved(true);
-    } catch (e: any) { Alert.alert(t('error'), e.message); }
+    } catch (e: unknown) { Alert.alert(t('error'), e.message); }
     finally { setSaving(false); }
   };
 
@@ -328,7 +328,7 @@ export default function PredictionsScreen() {
         await apiCall(`/predictions/${data.matchday.id}/joker`, { method: 'POST', token });
         setJoker(prev => ({ ...prev, is_active: true }));
       }
-    } catch (e: any) { 
+    } catch (e: unknown) { 
       Alert.alert(t('error'), e.message); 
     }
     finally { setJokerLoading(false); }

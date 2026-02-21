@@ -111,7 +111,7 @@ export default function LoginScreen() {
           router.replace('/onboarding');
           return;
         }
-      } catch (leagueErr: any) {
+      } catch (leagueErr: unknown) {
         console.log('[DEBUG-4] NAVIGATE -> /onboarding (errore /leagues:', leagueErr?.message, ')');
         router.replace('/onboarding');
         return;
@@ -119,7 +119,7 @@ export default function LoginScreen() {
 
       console.log('[DEBUG-4] NAVIGATE -> /(tabs)/home (tutto ok)');
       router.replace('/(tabs)/home');
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.log('[DEBUG-1] ERRORE login:', e?.message);
       setError(mapLoginError(e));
     } finally {
@@ -226,7 +226,7 @@ export default function LoginScreen() {
           // no leagues → /onboarding
           // else → /(tabs)/home
           router.replace('/');
-        } catch (backendError: any) {
+        } catch (backendError: unknown) {
           console.log(`${LOG_PREFIX} Backend error: ${backendError.message}`);
           setGoogleError(backendError.message || 'Autenticazione fallita');
           setGoogleLoading(false);
@@ -243,7 +243,7 @@ export default function LoginScreen() {
         setGoogleError('Errore durante il login. Riprova.');
         setGoogleLoading(false);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.log(`${LOG_PREFIX} Exception: ${e.message}`);
       
       // Clear timeout

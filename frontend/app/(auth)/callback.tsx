@@ -77,7 +77,7 @@ export default function AuthCallbackScreen() {
 
       // Redirect to home
       router.replace('/(tabs)/home');
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(`${LOG_PREFIX} Error: ${e.message}`);
       setError(e.message || 'Autenticazione fallita');
       setProcessing(false);

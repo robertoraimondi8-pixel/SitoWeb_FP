@@ -38,7 +38,7 @@ export default function OnboardingScreen() {
       try {
         const nls = await apiCall('/leagues/national', { token });
         setNationalLeagues(nls);
-      } catch (e: any) { 
+      } catch (e: unknown) { 
         if (isAuthError(e)) {
           const didLogout = await handleAuthError(e);
           if (didLogout) router.replace('/(auth)/login');
@@ -70,7 +70,7 @@ export default function OnboardingScreen() {
       // Refresh leagues and go home
       if (token) await refreshLeagues(token);
       router.replace('/(tabs)/home');
-    } catch (e: any) { Alert.alert('Errore', e.message); }
+    } catch (e: unknown) { Alert.alert('Errore', e.message); }
     finally { setPayLoading(false); }
   };
 

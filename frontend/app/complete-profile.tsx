@@ -97,7 +97,7 @@ export default function CompleteProfileScreen() {
       if (updateUser) updateUser({ ...res.user, profile_completed: true });
       // Navigate to league gate
       router.replace('/');
-    } catch (e: any) {
+    } catch (e: unknown) {
       setSubmitError(e.message || 'Errore nel salvataggio. Riprova.');
     } finally {
       setLoading(false);

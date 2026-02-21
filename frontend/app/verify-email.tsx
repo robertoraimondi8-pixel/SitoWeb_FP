@@ -54,7 +54,7 @@ export default function VerifyEmailScreen() {
       updateUser({ email_verified: true });
       setSuccessMsg('Email verificata! Reindirizzamento in corso…');
       setTimeout(() => router.replace('/'), 1200);
-    } catch (e: any) {
+    } catch (e: unknown) {
       setErrorMsg(e.message || 'Token non valido o scaduto.');
     } finally {
       setVerifying(false);
@@ -74,7 +74,7 @@ export default function VerifyEmailScreen() {
         skipAuth: true,
       });
       setSuccessMsg('Nuovo token generato. Controlla i log del server.');
-    } catch (e: any) {
+    } catch (e: unknown) {
       setErrorMsg(e.message || 'Errore. Riprova più tardi.');
     } finally {
       setResending(false);

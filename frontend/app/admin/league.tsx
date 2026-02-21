@@ -165,7 +165,7 @@ export default function LeagueAdminConsole() {
       
       setLeague(data);
       setCompetitionName(data.competition_name || '');
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (isAuthError(e)) {
         const didLogout = await handleAuthError(e);
         if (didLogout) router.replace('/(auth)/login');
@@ -185,7 +185,7 @@ export default function LeagueAdminConsole() {
       setSelectedMatchday(null);
       setMatches([]);
       setModifiedMatches(new Set());
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (isAuthError(e)) {
         const didLogout = await handleAuthError(e);
         if (didLogout) router.replace('/(auth)/login');
@@ -209,7 +209,7 @@ export default function LeagueAdminConsole() {
       });
       setEditingResults(initial);
       setModifiedMatches(new Set());
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (isAuthError(e)) {
         const didLogout = await handleAuthError(e);
         if (didLogout) router.replace('/(auth)/login');
@@ -264,7 +264,7 @@ export default function LeagueAdminConsole() {
       setNewMatchday({ number: '', label: '' });
       setSelectedDate(getDefaultDate());
       await loadMatchdays();
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('Errore', e.message || 'Impossibile creare giornata');
     } finally {
       setActionLoading(false);
@@ -294,7 +294,7 @@ export default function LeagueAdminConsole() {
       setSelectedMatchday(null);
       setMatches([]);
       await loadMatchdays();
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('Errore', e.message || 'Impossibile eliminare giornata');
     } finally {
       setActionLoading(false);
@@ -314,7 +314,7 @@ export default function LeagueAdminConsole() {
       Alert.alert('Fatto!', `Status aggiornato a ${status}`);
       await loadMatchdays();
       setSelectedMatchday({ ...selectedMatchday, status });
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('Errore', e.message || 'Impossibile aggiornare status');
     } finally {
       setActionLoading(false);
@@ -333,7 +333,7 @@ export default function LeagueAdminConsole() {
         body: { competition_name: competitionName.trim() },
       });
       Alert.alert('Salvato!', 'Nome campionato aggiornato');
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('Errore', e.message || 'Impossibile salvare');
     } finally {
       setSavingCompetition(false);
@@ -367,7 +367,7 @@ export default function LeagueAdminConsole() {
     setNewMatch({ home_team: '', away_team: '', market_type: '1X2', competition: '' });
       setMatchDate(getDefaultDate());
       await loadMatches(selectedMatchday.id);
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('Errore', e.message || 'Impossibile aggiungere partita');
     } finally {
       setActionLoading(false);
@@ -395,7 +395,7 @@ export default function LeagueAdminConsole() {
       });
       Alert.alert('Fatto!', 'Partita eliminata');
       await loadMatches(selectedMatchday.id);
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('Errore', e.message || 'Impossibile eliminare partita');
     } finally {
       setActionLoading(false);
@@ -430,7 +430,7 @@ export default function LeagueAdminConsole() {
           body,
         });
         savedCount++;
-      } catch (e: any) {
+      } catch (e: unknown) {
         errorCount++;
         console.error(`Error saving match ${matchId}:`, e);
       }

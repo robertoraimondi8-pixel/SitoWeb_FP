@@ -114,7 +114,7 @@ export default function AuthLanding() {
       } else {
         setGoogleError('Errore durante il login. Riprova.');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       clearTimeout(timeoutRef.current);
       console.log('GOOGLE: CATCH error', e?.message); // LOG extra catch
       setGoogleError(e.message || 'Errore di connessione');

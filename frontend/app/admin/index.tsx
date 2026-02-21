@@ -118,7 +118,7 @@ export default function AdminConsoleV3() {
       if (data.length > 0 && !selectedLeague) {
         setSelectedLeague(data[0]);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (await authErr(e)) return;
       setError(e.message || 'Errore caricamento leghe');
     } finally { setLoading(false); }
@@ -128,7 +128,7 @@ export default function AdminConsoleV3() {
     try {
       const data = await apiCall(`/admin/v3/matchdays?league_id=${leagueId}`, { token });
       setMatchdays(data);
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (await authErr(e)) return;
       console.error(e);
     }
@@ -151,7 +151,7 @@ export default function AdminConsoleV3() {
       });
       setEditingResults(initial);
       setModifiedMatches(new Set());
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (await authErr(e)) return;
       console.error(e);
     }
@@ -195,7 +195,7 @@ export default function AdminConsoleV3() {
       showAlert('Fatto!', `Giornata ${label}`);
       await loadMatchdays(selectedLeague.id);
       setSelectedMatchday(prev => prev ? { ...prev, status: targetStatus } : null);
-    } catch (e: any) {
+    } catch (e: unknown) {
       showAlert('Errore', e.message || 'Transizione fallita');
     } finally { setActionLoading(false); }
   };
@@ -211,7 +211,7 @@ export default function AdminConsoleV3() {
         body: { league_id: selectedLeague.id },
       });
       showAlert('Fatto!', 'Punteggi ricalcolati');
-    } catch (e: any) {
+    } catch (e: unknown) {
       showAlert('Errore', e.message || 'Ricalcolo fallito');
     } finally { setActionLoading(false); }
   };
@@ -245,7 +245,7 @@ export default function AdminConsoleV3() {
       setNewMatchday({ number: '', label: '' });
       setSelectedDate(getDefaultDate());
       await loadMatchdays(selectedLeague.id);
-    } catch (e: any) {
+    } catch (e: unknown) {
       showAlert('Errore', e.message || 'Impossibile creare');
     } finally { setActionLoading(false); }
   };
@@ -262,7 +262,7 @@ export default function AdminConsoleV3() {
       showAlert('Fatto!', 'Giornata eliminata');
       setSelectedMatchday(null); setMatches([]);
       await loadMatchdays(selectedLeague.id);
-    } catch (e: any) {
+    } catch (e: unknown) {
       showAlert('Errore', e.message || 'Errore eliminazione');
     } finally { setActionLoading(false); }
   };
@@ -290,7 +290,7 @@ export default function AdminConsoleV3() {
       setMatchDate(getDefaultDate());
       await loadMatches(selectedMatchday.id);
       await loadMatchdays(selectedLeague.id);
-    } catch (e: any) {
+    } catch (e: unknown) {
       showAlert('Errore', e.message || 'Impossibile aggiungere');
     } finally { setActionLoading(false); }
   };
@@ -306,7 +306,7 @@ export default function AdminConsoleV3() {
       await apiCall(endpoint, { method: 'DELETE', token });
       await loadMatches(selectedMatchday.id);
       await loadMatchdays(selectedLeague.id);
-    } catch (e: any) {
+    } catch (e: unknown) {
       showAlert('Errore', e.message || 'Errore eliminazione');
     } finally { setActionLoading(false); }
   };

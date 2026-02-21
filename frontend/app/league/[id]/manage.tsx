@@ -47,7 +47,7 @@ export default function LeagueManageScreen() {
       ]);
       setLeague(lg);
       setMatchdays(mds);
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (isAuthError(e)) { const d = await handleAuthError(e); if (d) router.replace('/(auth)/login'); }
     } finally {
       setLoading(false);
@@ -75,7 +75,7 @@ export default function LeagueManageScreen() {
       });
       setMatchdays(prev => [...prev, md].sort((a, b) => a.number - b.number));
       setShowAddMd(false); setNewMdNumber(''); setNewMdLabel(''); setNewMdKickoff('');
-    } catch (e: any) { Alert.alert('Errore', e.message); }
+    } catch (e: unknown) { Alert.alert('Errore', e.message); }
     finally { setSavingMd(false); }
   };
 
@@ -106,7 +106,7 @@ export default function LeagueManageScreen() {
       setMdMatches(prev => ({ ...prev, [mdId]: [...(prev[mdId] || []), m] }));
       setMatchdays(prev => prev.map(md => md.id === mdId ? { ...md, match_count: (md.match_count || 0) + 1 } : md));
       setAddMatchFor(null); setNewHome(''); setNewAway(''); setNewKickoff('');
-    } catch (e: any) { Alert.alert('Errore', e.message); }
+    } catch (e: unknown) { Alert.alert('Errore', e.message); }
     finally { setSavingMatch(false); }
   };
 

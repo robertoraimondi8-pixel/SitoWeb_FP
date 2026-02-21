@@ -160,7 +160,7 @@ export default function RegisterScreen() {
       // TODO: Quando si integra email reale, rimandare a /verify-email
       // router.replace({ pathname: '/verify-email', params: { email: form.email.trim().toLowerCase() } });
       router.replace('/');
-    } catch (e: any) {
+    } catch (e: unknown) {
       setSubmitError(e.message || 'Registrazione fallita. Riprova.');
     } finally {
       setLoading(false);

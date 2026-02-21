@@ -57,7 +57,7 @@ export default function RankingsScreen() {
           setMatchdays(mds);
           if (mds.length > 0) setSelectedMatchday(mds[0]);
         }
-      } catch (e: any) { 
+      } catch (e: unknown) { 
         if (isAuthError(e)) {
           const didLogout = await handleAuthError(e);
           if (didLogout) router.replace('/(auth)/login');
@@ -77,7 +77,7 @@ export default function RankingsScreen() {
         setMatchdays(mds);
         if (mds.length > 0) setSelectedMatchday(mds[0]);
         else setSelectedMatchday(null);
-      } catch (e: any) { console.error(e); }
+      } catch (e: unknown) { console.error(e); }
     })();
   }, [selectedLeague, token]);
 
@@ -94,7 +94,7 @@ export default function RankingsScreen() {
       }
       const res = await apiCall(url, { token });
       setStandings(res);
-    } catch (e: any) { 
+    } catch (e: unknown) { 
       if (isAuthError(e)) {
         const didLogout = await handleAuthError(e);
         if (didLogout) router.replace('/(auth)/login');

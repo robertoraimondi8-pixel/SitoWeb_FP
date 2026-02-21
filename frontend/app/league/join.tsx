@@ -30,7 +30,7 @@ export default function JoinLeagueScreen() {
       await apiCall('/leagues/join', { method: 'POST', token, body: { invite_code: code.trim().toUpperCase() } });
       Alert.alert('Entrato nella lega!');
       router.back();
-    } catch (e: any) { Alert.alert(t('error'), e.message); }
+    } catch (e: unknown) { Alert.alert(t('error'), e.message); }
     finally { setLoading(false); }
   };
 
@@ -46,7 +46,7 @@ export default function JoinLeagueScreen() {
       if (res.url) {
         await WebBrowser.openBrowserAsync(res.url);
       }
-    } catch (e: any) { Alert.alert(t('error'), e.message); }
+    } catch (e: unknown) { Alert.alert(t('error'), e.message); }
     finally { setPayLoading(null); }
   };
 

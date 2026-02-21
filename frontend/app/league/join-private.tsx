@@ -36,7 +36,7 @@ export default function JoinPrivateScreen() {
         `${t('league_joined_desc')} ${res.league?.name || ''}`,
         [{ text: 'OK', onPress: () => router.replace('/(tabs)/home') }]
       );
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert(t('error'), e.message);
     } finally {
       setLoading(false);

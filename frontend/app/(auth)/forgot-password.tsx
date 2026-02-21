@@ -34,7 +34,7 @@ export default function ForgotPasswordScreen() {
         skipAuth: true,
       });
       setSent(true);
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Always show generic message for security
       setSent(true);
     } finally {
