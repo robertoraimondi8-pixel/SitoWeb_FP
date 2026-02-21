@@ -1,0 +1,62 @@
+{
+  "summary": "Tested ImportFixtures admin UI feature. Found critical bug: ImportFixtures section not rendering for national league with DRAFT matchday despite conditions being met. Admin console basic elements (league selector, matchday selector, NAZIONALE badge, GIORNATE, PARTITE sections) work correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/admin/real-fixtures/leagues", "issue": "Returns 502 Bad Gateway (expected - API-Football key suspended)"},
+      {"endpoint": "/api/admin/real-fixtures/search", "issue": "Returns 502 Bad Gateway (expected - API-Football key suspended)"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "ImportFixtures",
+        "issue": "ImportFixtures section not rendering for national league with DRAFT matchday. Condition `selectedLeague._is_national && canEditMatches` failing despite both conditions appearing true.",
+        "selector": "text=IMPORTA PARTITE REALI",
+        "priority": "CRITICAL",
+        "details": "Verified: National league is selected (NAZIONALE badge visible), DRAFT matchday selected (BOZZA badge visible), PARTITE section with Aggiungi button visible. But IMPORTA PARTITE REALI section missing after PARTITE section.",
+        "location": "/app/frontend/app/admin/index.tsx lines 667-681"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "CRITICAL: Debug why ImportFixtures component not rendering for national league + DRAFT matchday",
+    "Check if selectedLeague._is_national is correctly evaluated when rendering",
+    "Check if token is null causing the component to fail silently (line 674: token!)",
+    "Add console.log in admin/index.tsx to debug: `console.log('ImportFixtures condition:', {_is_national: selectedLeague?._is_national, canEditMatches, token: !!token});`",
+    "Test by manually setting selectedLeague in browser devtools to verify _is_national property"
+  ],
+  "critical_code_review_comments": [
+    "ImportFixtures render condition (line 668) may be failing because token from useAuth() is null",
+    "The token! assertion on line 674 would cause issues if token is actually null",
+    "Consider adding explicit null check: `selectedLeague?._is_national && canEditMatches && token && (`"
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (API-Football 502 is expected)", "frontend": "Partial - ImportFixtures not rendering"},
+  "seed_data_creation": "Giornata 15 with DRAFT status exists for testing",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "ImportFixtures component exists at /app/frontend/app/admin/ImportFixtures.tsx. It's imported in /app/frontend/app/admin/index.tsx line 19. The rendering condition is on line 668. All admin console elements work EXCEPT the ImportFixtures section which should appear after PARTITE section for national league + editable matchday. Use admin@fantapronostic.com / admin123 to login. Authentication works but needs correct localStorage keys: 'access_token', 'refresh_token', 'user'.",
+  "rca_of_the_issue": {
+    "issue": "ImportFixtures component not rendering",
+    "reproduction_steps": [
+      "1. Login as admin@fantapronostic.com",
+      "2. Navigate to /admin",
+      "3. Lega Nazionale FantaPronostic is auto-selected (with NAZIONALE badge)",
+      "4. Open matchday selector and select a matchday with BOZZA (DRAFT) status",
+      "5. Observe: PARTITE section shows but no IMPORTA PARTITE REALI section below it"
+    ],
+    "expected_behavior": "IMPORTA PARTITE REALI collapsible section should appear after PARTITE section",
+    "actual_behavior": "Section does not appear at all",
+    "potential_root_causes": [
+      "1. selectedLeague._is_national property not being recognized in render condition",
+      "2. token from useAuth() is null during render",
+      "3. React component conditional rendering issue",
+      "4. canEditMatches evaluating to false despite DRAFT status"
+    ],
+    "suggested_fix": "Add debug logging to verify values: console.log('Import condition:', {isNational: selectedLeague?._is_national, canEditMatches, hasToken: !!token}); before line 668"
+  }
+}
