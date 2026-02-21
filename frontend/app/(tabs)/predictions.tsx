@@ -517,7 +517,7 @@ export default function PredictionsScreen() {
                   {item.is_locked && (
                     <View style={styles.lockBadge}>
                       <Ionicons name="lock-closed" size={12} color={colors.error} />
-                      <Text style={styles.lockText}>LOCKED</Text>
+                      <Text style={styles.lockText}>{t('status.LOCKED')}</Text>
                     </View>
                   )}
                 </View>
