@@ -105,7 +105,7 @@ export default function AdminConsoleV3() {
     }
   }, [selectedMatchday?.id]);
 
-  const authErr = async (e: any) => {
+  const authErr = async (e: unknown) => {
     if (isAuthError(e)) { const d = await handleAuthError(e); if (d) router.replace('/(auth)/login'); return true; }
     return false;
   };
@@ -231,7 +231,7 @@ export default function AdminConsoleV3() {
       const endpoint = selectedLeague._is_national
         ? '/admin/matchdays'
         : `/leagues/${selectedLeague.id}/matchdays`;
-      const body: any = {
+      const body: Record<string, unknown> = {
         season_id: selectedLeague.season_id,
         number: num,
         label: newMatchday.label || `Giornata ${num}`,
@@ -277,7 +277,7 @@ export default function AdminConsoleV3() {
       const endpoint = selectedLeague._is_national
         ? '/admin/matches'
         : `/leagues/${selectedLeague.id}/matchdays/${selectedMatchday.id}/matches`;
-      const body: any = {
+      const body: Record<string, unknown> = {
         home_team: newMatch.home_team, away_team: newMatch.away_team,
         market_type: newMatch.market_type, competition: newMatch.competition,
         start_time: matchDate.toISOString(), status: 'scheduled',
@@ -325,7 +325,7 @@ export default function AdminConsoleV3() {
       try {
         const homeScore = r.home ? parseInt(r.home, 10) : null;
         const awayScore = r.away ? parseInt(r.away, 10) : null;
-        const body: any = { status: r.status };
+        const body: Record<string, unknown> = { status: r.status };
         if (homeScore !== null && !isNaN(homeScore)) body.home_score = homeScore;
         if (awayScore !== null && !isNaN(awayScore)) body.away_score = awayScore;
 
@@ -345,8 +345,8 @@ export default function AdminConsoleV3() {
   };
 
   // Date handlers
-  const onDateChange = (_: any, d?: Date) => { if (Platform.OS === 'android') setShowDatePicker(false); if (d) setSelectedDate(d); };
-  const onTimeChange = (_: any, d?: Date) => { if (Platform.OS === 'android') setShowTimePicker(false); if (d) { const n = new Date(selectedDate); n.setHours(d.getHours(), d.getMinutes()); setSelectedDate(n); } };
+  const onDateChange = (_: unknown, d?: Date) => { if (Platform.OS === 'android') setShowDatePicker(false); if (d) setSelectedDate(d); };
+  const onTimeChange = (_: unknown, d?: Date) => { if (Platform.OS === 'android') setShowTimePicker(false); if (d) { const n = new Date(selectedDate); n.setHours(d.getHours(), d.getMinutes()); setSelectedDate(n); } };
 
   // Computed
   const resultsInserted = matches.filter(m => m.home_score !== null && m.away_score !== null).length;

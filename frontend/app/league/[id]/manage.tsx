@@ -16,7 +16,7 @@ export default function LeagueManageScreen() {
   const { token, user, handleAuthError } = useAuth();
   const router = useRouter();
 
-  const [league, setLeague]       = useState<any>(null);
+  const [league, setLeague]       = useState<LeagueDetail | null>(null);
   const [matchdays, setMatchdays] = useState<any[]>([]);
   const [loading, setLoading]     = useState(true);
   const [expandedMd, setExpandedMd] = useState<string | null>(null);
@@ -296,7 +296,7 @@ export default function LeagueManageScreen() {
   );
 }
 
-const makeStyles = (colors: any) => StyleSheet.create({
+const makeStyles = (colors: typeof import("../../../src/theme/designSystem").colors) => StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border, gap: 4 },

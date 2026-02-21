@@ -19,7 +19,7 @@ import { colors, typography, spacing, borderRadius, shadows } from '../../src/th
 import { BrandLogo } from '../../src/components/BrandLogo';
 
 // ─── Mappa errori login → messaggi leggibili ─────────────────────────────────
-function mapLoginError(e: any): string {
+function mapLoginError(e: unknown): string {
   const raw = (e?.message ?? String(e ?? '')).toLowerCase();
   if (
     raw.includes('401') || raw.includes('400') ||

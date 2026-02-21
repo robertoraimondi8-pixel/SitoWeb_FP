@@ -73,7 +73,7 @@ export default function SplashScreen() {
     }
 
     const userStr = await AsyncStorage.getItem('user');
-    const storedUser: any = userStr ? JSON.parse(userStr) : null;
+    const storedUser: { profile_complete?: boolean; access_token?: string } | null = userStr ? JSON.parse(userStr) : null;
 
     // GATE 1: Profile completeness (Google users missing required fields)
     if (storedUser?.profile_completed === false) {

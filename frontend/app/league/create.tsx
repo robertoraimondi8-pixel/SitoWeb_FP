@@ -30,7 +30,7 @@ export default function CreateLeagueScreen() {
 
   const [seasons, setSeasons]     = useState<any[]>([]);
   const [loading, setLoading]     = useState(false);
-  const [created, setCreated]     = useState<any>(null);
+  const [created, setCreated]     = useState<CreatedLeague | null>(null);
   const [error, setError]         = useState('');
 
   // Form fields
@@ -308,7 +308,7 @@ export default function CreateLeagueScreen() {
   );
 }
 
-const makeStyles = (colors: any) => StyleSheet.create({
+const makeStyles = (colors: typeof import("../../src/theme/designSystem").colors) => StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 12 },
   backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },

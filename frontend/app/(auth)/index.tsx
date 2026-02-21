@@ -24,7 +24,7 @@ export default function AuthLanding() {
   const { loginWithToken } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState('');
-  const timeoutRef = useRef<any>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleGoogleLogin = async () => {
     console.log('GOOGLE: start'); // LOG A
@@ -55,7 +55,7 @@ export default function AuthLanding() {
         type: result.type,
         hasUrl: result.type === 'success' ? !!result.url : false,
         urlPreview: result.type === 'success' ? result.url?.slice(0, 80) : null,
-        error: (result as any).error ?? null,
+        error: (result as { error?: string }).error ?? null,
       });
 
       if (result.type === 'success' && result.url) {
@@ -108,7 +108,7 @@ export default function AuthLanding() {
         }
 
         console.log('GOOGLE: navigate to', targetRoute, 'reason:', reason); // LOG F
-        router.replace(targetRoute as any);
+        router.replace(targetRoute as Href);
       } else if (result.type === 'cancel' || result.type === 'dismiss') {
         setGoogleError(result.type === 'cancel' ? 'Login annullato' : '');
       } else {

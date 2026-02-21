@@ -420,7 +420,7 @@ export default function LeagueAdminConsole() {
         const homeScore = result.home ? parseInt(result.home, 10) : null;
         const awayScore = result.away ? parseInt(result.away, 10) : null;
         
-        const body: any = { status: result.status };
+        const body: Record<string, unknown> = { status: result.status };
         if (homeScore !== null && !isNaN(homeScore)) body.home_score = homeScore;
         if (awayScore !== null && !isNaN(awayScore)) body.away_score = awayScore;
         
@@ -454,12 +454,12 @@ export default function LeagueAdminConsole() {
   };
 
   // Date picker handlers
-  const onDateChange = (event: any, date?: Date) => {
+  const onDateChange = (_event: unknown, date?: Date) => {
     if (Platform.OS === 'android') setShowDatePicker(false);
     if (date) setSelectedDate(date);
   };
 
-  const onTimeChange = (event: any, date?: Date) => {
+  const onTimeChange = (_event: unknown, date?: Date) => {
     if (Platform.OS === 'android') setShowTimePicker(false);
     if (date) {
       const newDate = new Date(selectedDate);

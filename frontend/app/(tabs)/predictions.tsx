@@ -649,7 +649,7 @@ export default function PredictionsScreen() {
                     styles.progressBarFill,
                     {
                       width: editableCount > 0
-                        ? `${(completedEditableCount / editableCount) * 100}%` as any
+                        ? `${(completedEditableCount / editableCount) * 100}%` as string
                         : '0%',
                       backgroundColor: allComplete ? colors.success : colors.accent,
                     },

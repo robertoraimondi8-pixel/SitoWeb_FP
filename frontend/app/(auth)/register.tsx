@@ -50,7 +50,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [usernameChecking, setUsernameChecking] = useState(false);
-  const usernameDebounce = React.useRef<any>(null);
+  const usernameDebounce = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const set = (key: string) => (val: string) => setForm(p => ({ ...p, [key]: val }));
 
