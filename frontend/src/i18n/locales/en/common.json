@@ -101,8 +101,8 @@
     "matchday_points": "Matchday points",
     "avg_last_5": "Avg last 5",
     "weekly_goal": "WEEKLY GOAL",
-    "goal_keep_position": "Score at least {{points}} pts to keep {{rank}}th place",
-    "goal_climb_position": "Score {{points}} pts to climb to {{rank}}th place",
+    "goal_keep_position": "Score at least {{points}} pts to keep #{{rank}} spot",
+    "goal_climb_position": "Score {{points}} pts to climb to #{{rank}} spot",
     "no_matchday": "No active matchday",
     "predictions_count": "{{count}}/{{total}} matches",
     "trend": "TREND"
