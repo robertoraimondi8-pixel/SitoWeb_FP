@@ -487,7 +487,7 @@ export default function PredictionsScreen() {
             const ta = a.match?.start_time ? new Date(a.match.start_time).getTime() : 0;
             const tb = b.match?.start_time ? new Date(b.match.start_time).getTime() : 0;
             return ta - tb;
-          }).map((item: any, idx: number) => {
+          }).map((item: PredictionEntry, idx: number) => {
             const m = item.match;
             const isLocked = item.is_locked;
             const pred = preds[m.id];

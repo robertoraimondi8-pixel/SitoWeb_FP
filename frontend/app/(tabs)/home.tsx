@@ -253,7 +253,7 @@ export default function HomeScreen() {
             <PrimaryButton
               testID="matchday-cta-btn"
               title={ctaConfig?.label ?? 'INSERISCI PRONOSTICI'}
-              icon={(ctaConfig?.icon ?? 'create-outline') as any}
+              icon={(ctaConfig?.icon ?? 'create-outline') as React.ComponentProps<typeof Ionicons>['name']}
               onPress={() => {
                 if (!data?.matchday) return;
                 const leagueId = data?.league?.id || '';

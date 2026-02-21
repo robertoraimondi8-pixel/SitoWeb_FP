@@ -522,7 +522,7 @@ export default function AdminConsoleV3() {
                     disabled={actionLoading}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name={transitionInfo.icon as any} size={22} color="#fff" />
+                    <Ionicons name={transitionInfo.icon as React.ComponentProps<typeof Ionicons>['name']} size={22} color="#fff" />
                     <Text style={s.transitionBtnText}>{transitionInfo.label}</Text>
                   </TouchableOpacity>
                 )}

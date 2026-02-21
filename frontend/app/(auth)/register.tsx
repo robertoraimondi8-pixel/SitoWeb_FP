@@ -523,7 +523,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 function Row({ icon, children }: { icon: string; children: React.ReactNode }) {
   return (
     <View style={s.inputRow}>
-      <Ionicons name={icon as any} size={20} color={colors.textSecondary} />
+      <Ionicons name={icon as React.ComponentProps<typeof Ionicons>['name']} size={20} color={colors.textSecondary} />
       {children}
     </View>
   );
