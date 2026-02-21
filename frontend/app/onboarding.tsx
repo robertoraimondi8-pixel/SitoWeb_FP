@@ -103,7 +103,7 @@ export default function OnboardingScreen() {
             activeOpacity={0.7}
           >
             <Ionicons name="log-out-outline" size={18} color={colors.textSecondary} />
-            <Text style={[s.logoutText, { color: colors.textSecondary }]}>Esci</Text>
+            <Text style={[s.logoutText, { color: colors.textSecondary }]}>{t('onboarding.logout')}</Text>
           </TouchableOpacity>
         </View>
 
