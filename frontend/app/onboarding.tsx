@@ -126,7 +126,11 @@ export default function OnboardingScreen() {
         <View style={s.langSection}>
           <Text style={[s.langLabel, { color: colors.textSecondary }]}>{t('language')}</Text>
           <View style={s.langRow}>
-            {[{ code: 'it', flag: '🇮🇹', label: 'Italiano' }, { code: 'en', flag: '🇬🇧', label: 'English' }].map(l => (
+            {[
+              { code: 'it', flag: '🇮🇹', label: 'Italiano' },
+              { code: 'en', flag: '🇬🇧', label: 'English' },
+              { code: 'es', flag: '🇪🇸', label: 'Español' },
+            ].map(l => (
               <TouchableOpacity
                 key={l.code}
                 testID={`onboarding-lang-${l.code}`}
