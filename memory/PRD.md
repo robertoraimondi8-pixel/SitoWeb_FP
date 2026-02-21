@@ -124,6 +124,13 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
   - `GET /api/admin/real-fixtures/leagues` — Top 5 leagues (Serie A, PL, LaLiga, Bundesliga, Ligue 1)
   - `GET /api/admin/real-fixtures/search?league=&season=&from=&to=` — Search real fixtures
   - `POST /api/admin/real-fixtures/import` — Import fixtures as matches (body: league_id, matchday_id, fixture_ids[])
+- **Admin UI**: `/app/frontend/app/admin/ImportFixtures.tsx` — Collapsible "IMPORTA PARTITE REALI" section in Admin Console
+  - Championship picker (5 leagues modal)
+  - Date range with presets (Questa settimana, Prossima, Prossimi 3gg, Personalizza)
+  - Fixture search with loading state
+  - Checkbox selection (max 10), select all/deselect all
+  - Import button with success/error feedback
+  - Error banner for API quota/suspended key
 - **Match fields added**: `external_provider`, `external_fixture_id` (indexed, sparse)
 - **Background scheduler**: Every 60s refreshes imported matches with status `live`/`scheduled`
 - **Auto-complete**: When all matches in a matchday are finished, auto-sets COMPLETED and calculates scores
