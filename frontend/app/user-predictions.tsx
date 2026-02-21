@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
+import { UserPredictionsData, getErrorMessage } from '../src/types/api';
 import { apiCall, isAuthError } from '../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -30,7 +31,7 @@ export default function UserPredictionsScreen() {
   const { token, handleAuthError } = useAuth();
   const params = useLocalSearchParams<{ userId: string; matchdayId: string; leagueId?: string }>();
   
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<UserPredictionsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -62,7 +63,7 @@ export default function UserPredictionsScreen() {
     }
   };
 
-  const getOutcomeIcon = (outcome: string): any => {
+  const getOutcomeIcon = (outcome: string): string => {
     switch (outcome) {
       case 'correct': return 'checkmark-circle';
       case 'wrong': return 'close-circle';

@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { LiveScreenData, getErrorMessage } from '../../src/types/api';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -32,7 +33,7 @@ export default function LiveScreen() {
   const { token, handleAuthError } = useAuth();
   const params = useLocalSearchParams<{ id: string; league_id?: string }>();
   
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<LiveScreenData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
