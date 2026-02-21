@@ -115,10 +115,10 @@ export default function OnboardingScreen() {
             resizeMode="contain"
           />
           <Text style={[s.welcome, { color: colors.text }]}>
-            {t('onboarding_welcome')}, {user?.username}!
+            {t('onboarding.welcome')}, {user?.username}!
           </Text>
           <Text style={[s.subtitle, { color: colors.textSecondary }]}>
-            {t('onboarding_subtitle')}
+            {t('onboarding.subtitle')}
           </Text>
         </View>
 

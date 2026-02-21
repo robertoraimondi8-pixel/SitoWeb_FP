@@ -190,11 +190,11 @@ export default function ProfileScreen() {
         {/* Admin Console - per admin globale */}
         {user?.role === 'admin' && (
           <View style={styles.adminCard}>
-            <Text style={styles.adminTitle}>ADMIN CONSOLE</Text>
-            <Text style={styles.adminSubtitle}>Gestisci stagioni, giornate e partite</Text>
+            <Text style={styles.adminTitle}>{t('profile.admin_console_title')}</Text>
+            <Text style={styles.adminSubtitle}>{t('profile.admin_console_desc')}</Text>
             
             <PrimaryButton
-              title="Apri Console"
+              title={t('profile.admin_console_btn')}
               icon="shield-checkmark"
               variant="secondary"
               onPress={() => router.push('/admin')}
@@ -206,10 +206,10 @@ export default function ProfileScreen() {
         {/* Creator Console - per owner di leghe manuali */}
         {ownedLeagues.some(l => l.match_source_type === 'manual' || l.match_source_type === 'custom') && user?.role !== 'admin' && (
           <View style={styles.creatorCard}>
-            <Text style={styles.creatorTitle}>GESTISCI LE MIE LEGHE</Text>
-            <Text style={styles.creatorSubtitle}>Crea giornate e partite per le tue leghe</Text>
+            <Text style={styles.creatorTitle}>{t('profile.creator_console_title')}</Text>
+            <Text style={styles.creatorSubtitle}>{t('profile.creator_console_desc')}</Text>
             <PrimaryButton
-              title="Apri Console Admin"
+              title={t('profile.creator_console_btn')}
               icon="settings"
               variant="secondary"
               onPress={() => router.push('/admin')}
