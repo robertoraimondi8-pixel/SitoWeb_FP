@@ -3627,7 +3627,14 @@ async def real_fixtures_search(
         raise HTTPException(502, f"Errore API-Football: {e}")
 
 
-class ImportFixturesRequest(PydanticBaseModel):
+@fixtures_router.post("/refresh-live")
+async def real_fixtures_refresh_live(admin=Depends(require_admin)):
+    """Manually trigger a live refresh of imported matches."""
+    try:
+        await _refresh_live_fixtures()
+        return {"status": "ok", "message": "Live refresh completato"}
+    except Exception as e:
+        raise HTTPException(502, f"Errore refresh: {e}")
     league_id: str          # Our internal league_id (national)
     matchday_id: str        # Our internal matchday_id
     fixture_ids: List[int]  # API-Football fixture IDs to import
