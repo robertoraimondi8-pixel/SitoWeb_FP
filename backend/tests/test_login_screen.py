@@ -9,7 +9,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://match-importer.preview.emergentagent.com"
+BASE_URL = "https://predictions-bug.preview.emergentagent.com"
 
 
 class TestLoginEmailPassword:
