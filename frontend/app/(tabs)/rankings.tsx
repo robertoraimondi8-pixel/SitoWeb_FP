@@ -34,14 +34,14 @@ export default function RankingsScreen() {
   const { t } = useTranslation();
   const { token, user, handleAuthError } = useAuth();
   const [tab, setTab] = useState<'total' | 'weekly'>('total');
-  const [leagues, setLeagues] = useState<any[]>([]);
+  const [leagues, setLeagues] = useState<League[]>([]);
   const [selectedLeague, setSelectedLeague] = useState('');
-  const [standings, setStandings] = useState<any>(null);
+  const [standings, setStandings] = useState<StandingsData | null>(null);
   const [loading, setLoading] = useState(true);
   
   // Weekly specific
-  const [matchdays, setMatchdays] = useState<any[]>([]);
-  const [selectedMatchday, setSelectedMatchday] = useState<any>(null);
+  const [matchdays, setMatchdays] = useState<League[]>([]);
+  const [selectedMatchday, setSelectedMatchday] = useState<StandingsData | null>(null);
   const [showMatchdayPicker, setShowMatchdayPicker] = useState(false);
 
   useEffect(() => {
