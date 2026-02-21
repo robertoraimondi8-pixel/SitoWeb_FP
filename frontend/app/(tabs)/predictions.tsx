@@ -669,7 +669,7 @@ export default function PredictionsScreen() {
           )}
           <PrimaryButton
             testID="confirm-predictions-btn"
-            title={allComplete || !isOpen ? t('save_predictions') : `${t('predictions.save_button')}`}
+            title={t('predictions.save_button')}
             icon={allComplete || !isOpen ? 'checkmark-circle' : 'alert-circle'}
             onPress={handleSave}
             loading={saving}
