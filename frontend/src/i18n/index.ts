@@ -1,6 +1,5 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { Platform } from 'react-native';
 
 import it from './locales/it/common.json';
 import en from './locales/en/common.json';
@@ -10,14 +9,38 @@ const STORAGE_KEY = 'APP_LANGUAGE';
 const SUPPORTED_LANGS = ['it', 'en', 'es'] as const;
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
 
+function isSupportedLang(lang: string): lang is SupportedLang {
+  return (SUPPORTED_LANGS as readonly string[]).includes(lang);
+}
+
 function getDeviceLanguage(): SupportedLang {
   try {
     const { getLocales } = require('expo-localization');
     const locale = getLocales()[0]?.languageCode ?? 'en';
-    if ((SUPPORTED_LANGS as readonly string[]).includes(locale)) return locale as SupportedLang;
-  } catch { /* ignore */ }
+    if (isSupportedLang(locale)) return locale;
+  } catch { /* SSR or unavailable */ }
   return 'en';
 }
+
+// Platform-safe storage: localStorage on web, AsyncStorage on native (lazy loaded)
+function getSavedLang(): string | null {
+  try {
+    if (typeof localStorage !== 'undefined') return localStorage.getItem(STORAGE_KEY);
+  } catch { /* SSR */ }
+  return null;
+}
+
+function saveLang(lang: string): void {
+  try {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY, lang);
+  } catch { /* SSR */ }
+}
+
+// Determine initial language
+const savedLang = getSavedLang();
+const initialLang: SupportedLang = savedLang && isSupportedLang(savedLang) 
+  ? savedLang 
+  : getDeviceLanguage();
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -25,36 +48,14 @@ i18n.use(initReactI18next).init({
     en: { translation: en },
     es: { translation: es },
   },
-  lng: 'it',
+  lng: initialLang,
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
   react: { useSuspense: false },
 });
 
-// Restore saved language on startup (deferred to avoid SSR crash)
-async function restoreLanguage() {
-  try {
-    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
-    const saved = await AsyncStorage.getItem(STORAGE_KEY);
-    if (saved && (SUPPORTED_LANGS as readonly string[]).includes(saved)) {
-      await i18n.changeLanguage(saved);
-    } else {
-      await i18n.changeLanguage(getDeviceLanguage());
-    }
-  } catch {
-    i18n.changeLanguage(getDeviceLanguage());
-  }
-}
-
-if (Platform.OS !== 'web' || typeof window !== 'undefined') {
-  restoreLanguage();
-}
-
 export async function setAppLanguage(lang: SupportedLang): Promise<void> {
-  try {
-    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
-    await AsyncStorage.setItem(STORAGE_KEY, lang);
-  } catch { /* SSR */ }
+  saveLang(lang);
   await i18n.changeLanguage(lang);
 }
 
