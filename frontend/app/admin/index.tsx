@@ -888,6 +888,8 @@ export default function AdminConsoleV3() {
         </TouchableOpacity>
       </Modal>
     </SafeAreaView>
+  );
+}
 
 function getStatusColor(status: string): string {
   switch (status) {
