@@ -3685,6 +3685,8 @@ async def real_fixtures_import(req: ImportFixturesRequest, admin=Depends(require
             "league_id": req.league_id,
             "home_team": fx["home_team"],
             "away_team": fx["away_team"],
+            "home_logo": fx.get("home_logo"),
+            "away_logo": fx.get("away_logo"),
             "competition": fx.get("league_name", ""),
             "start_time": fx["date"],
             "market_type": "1X2",
