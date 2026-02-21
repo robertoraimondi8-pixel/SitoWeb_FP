@@ -5,7 +5,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ScrollView,
+  View, Text, TouchableOpacity, Pressable, StyleSheet, ScrollView,
   ActivityIndicator, TextInput, Alert, RefreshControl, Modal,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
