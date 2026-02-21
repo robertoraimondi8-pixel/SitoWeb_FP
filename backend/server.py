@@ -3349,8 +3349,14 @@ async def admin_v3_leagues(user=Depends(get_current_user)):
 
     for lg in privates:
         lg["_is_national"] = False
+        source = lg.get("match_source_type", "")
+        lg["_can_manage_matches"] = source in ("manual", "custom") or is_super
         lg["member_count"] = await memberships_col.count_documents({"league_id": lg["id"], "status": "active"})
         results.append(lg)
+
+    # Per non-super admin, filtra le leghe senza gestione partite
+    if not is_super:
+        results = [lg for lg in results if lg.get("_can_manage_matches", False)]
 
     return results
 
