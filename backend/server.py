@@ -2702,6 +2702,7 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
             "start_time": m["start_time"],
             "home_score": m.get("home_score"),
             "away_score": m.get("away_score"),
+            "elapsed": m.get("elapsed"),
             "status": m["status"],  # scheduled / live / finished / postponed / void
             "my_prediction": pred.get("prediction_value") if pred else None,
             "my_market": pred.get("market_type") if pred else None,
