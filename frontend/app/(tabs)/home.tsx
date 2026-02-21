@@ -7,7 +7,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../../src/api/client';
-import { Ionicons } from '@expo/vector-icons';
+import { HomeData, League, RankingsPreviewEntry, getErrorMessage } from '../../src/types/api';
+import type { Href } from 'expo-router';
 
 // Design System
 import { colors, typography, spacing, borderRadius, shadows, getStatusColor, getPerformanceColor } from '../../src/theme/designSystem';
@@ -19,7 +20,7 @@ export default function HomeScreen() {
   const { token, user, handleAuthError } = useAuth();
   const { refreshLeagues } = useLeague();
   const router = useRouter();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<HomeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -50,7 +51,7 @@ export default function HomeScreen() {
         duration: 400,
         useNativeDriver: true,
       }).start();
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (isAuthError(e)) {
         const didLogout = await handleAuthError(e);
         if (didLogout) router.replace('/(auth)/login');
@@ -76,7 +77,7 @@ export default function HomeScreen() {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
   };
 
-  const formatPoints = (n: any) => {
+  const formatPoints = (n: number | undefined | null) => {
     const num = typeof n === 'number' ? n : Number(n || 0);
     return num.toFixed(1);
   };
@@ -162,7 +163,7 @@ export default function HomeScreen() {
         >
           <View style={styles.switcherDropdown}>
             <Text style={styles.switcherTitle}>Cambia Lega</Text>
-            {data.user_leagues.map((lg: any) => (
+            {data.user_leagues.map((lg: League) => (
               <TouchableOpacity
                 key={lg.id}
                 style={[
@@ -261,13 +262,13 @@ export default function HomeScreen() {
 
                 if (status === 'COMPLETED' || status === 'LIVE') {
                   // Naviga alla schermata risultati/live
-                  router.push(`/live/${matchdayId}?league_id=${leagueId}` as any);
+                  router.push(`/live/${matchdayId}?league_id=${leagueId}` as Href);
                 } else {
                   // Naviga al form pronostici
                   const url = matchdayId
                     ? `/(tabs)/predictions?league_id=${leagueId}&matchday_id=${matchdayId}`
                     : `/(tabs)/predictions?league_id=${leagueId}`;
-                  router.push(url as any);
+                  router.push(url as Href);
                 }
               }}
               disabled={!data?.matchday}
@@ -342,7 +343,7 @@ export default function HomeScreen() {
             
             <Text style={styles.leagueName}>{data.rankings_preview.league_name}</Text>
             
-            {data.rankings_preview.top?.map((entry: any, i: number) => {
+            {data.rankings_preview.top?.map((entry: RankingsPreviewEntry, i: number) => {
               const isCurrentUser = entry.user_id === user?.id;
               return (
                 <View 
