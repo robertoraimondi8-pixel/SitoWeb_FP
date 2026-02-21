@@ -870,8 +870,14 @@ export default function AdminConsoleV3() {
                   <Text style={[s.dateTimeBtnText, { color: colors.text }]}>{matchDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</Text>
                 </TouchableOpacity>
               </View>
-              {showMatchDatePicker && <DateTimePicker value={matchDate} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={(_, d) => { if (Platform.OS === 'android') setShowMatchDatePicker(false); if (d) setMatchDate(d); }} />}
-              {showMatchTimePicker && <DateTimePicker value={matchDate} mode="time" display={Platform.OS === 'ios' ? 'spinner' : 'default'} is24Hour onChange={(_, d) => { if (Platform.OS === 'android') setShowMatchTimePicker(false); if (d) { const n = new Date(matchDate); n.setHours(d.getHours(), d.getMinutes()); setMatchDate(n); }}} />}
+              {showMatchDatePicker && (isWeb
+                ? <WebDateTimePicker value={matchDate} mode="date" onChange={d => { setMatchDate(d); setShowMatchDatePicker(false); }} />
+                : <DateTimePicker value={matchDate} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={(_, d) => { if (Platform.OS === 'android') setShowMatchDatePicker(false); if (d) setMatchDate(d); }} />
+              )}
+              {showMatchTimePicker && (isWeb
+                ? <WebDateTimePicker value={matchDate} mode="time" onChange={d => { const n = new Date(matchDate); n.setHours(d.getHours(), d.getMinutes()); setMatchDate(n); setShowMatchTimePicker(false); }} />
+                : <DateTimePicker value={matchDate} mode="time" display={Platform.OS === 'ios' ? 'spinner' : 'default'} is24Hour onChange={(_, d) => { if (Platform.OS === 'android') setShowMatchTimePicker(false); if (d) { const n = new Date(matchDate); n.setHours(d.getHours(), d.getMinutes()); setMatchDate(n); }}} />
+              )}
               {Platform.OS === 'ios' && (showMatchDatePicker || showMatchTimePicker) && (
                 <TouchableOpacity style={[s.donePickerBtn, { backgroundColor: colors.accent }]} onPress={() => { setShowMatchDatePicker(false); setShowMatchTimePicker(false); }}>
                   <Text style={[s.donePickerBtnText, { color: colors.background }]}>Fatto</Text>
