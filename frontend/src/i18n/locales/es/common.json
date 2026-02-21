@@ -1,4 +1,9 @@
 {
+  "save_predictions": "GUARDAR PRONÓSTICOS",
+  "save_success": "¡Pronósticos guardados con éxito!",
+  "matches": "partidos",
+  "matchday": "Jornada",
+  "no_predictions": "Sin pronóstico",
   "app_name": "FantaPronostic",
   "login": "Iniciar sesión",
   "register": "Registrarse",

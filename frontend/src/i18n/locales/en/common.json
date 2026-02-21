@@ -1,4 +1,9 @@
 {
+  "save_predictions": "SAVE PREDICTIONS",
+  "save_success": "Predictions saved successfully!",
+  "matches": "matches",
+  "matchday": "Matchday",
+  "no_predictions": "No prediction",
   "app_name": "FantaPronostic",
   "login": "Sign In",
   "register": "Sign Up",
