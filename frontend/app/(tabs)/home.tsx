@@ -276,6 +276,19 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* LIVE PREVIEW - right under CTA */}
+        {data?.live && (
+          <View style={styles.liveCard}>
+            <View style={styles.liveHeader}>
+              <StatusBadge status={data.matchday?.status || 'LIVE'} label={data.matchday?.status === 'COMPLETED' ? 'COMPLETATA' : 'LIVE'} />
+            </View>
+            <Text style={styles.liveScore}>{formatPoints(data.live.total_provisional)} pts</Text>
+            <Text style={styles.liveMeta}>
+              {data.matchday?.status === 'COMPLETED' ? 'Punti ufficiali' : 'Punti provvisori'}
+            </Text>
+          </View>
+        )}
+
         {/* USER SUMMARY */}
         {data?.user_summary && (
           <View style={styles.summaryCard}>
@@ -312,19 +325,6 @@ export default function HomeScreen() {
           <SectionCard title="ULTIMI 5 RISULTATI">
             <LastFiveIndicator data={data.last_5_performance} />
           </SectionCard>
-        )}
-
-        {/* LIVE PREVIEW */}
-        {data?.live && (
-          <View style={styles.liveCard}>
-            <View style={styles.liveHeader}>
-              <StatusBadge status={data.matchday?.status || 'LIVE'} label={data.matchday?.status === 'COMPLETED' ? 'COMPLETATA' : 'LIVE'} />
-            </View>
-            <Text style={styles.liveScore}>{formatPoints(data.live.total_provisional)} pts</Text>
-            <Text style={styles.liveMeta}>
-              {data.matchday?.status === 'COMPLETED' ? 'Punti ufficiali' : 'Punti provvisori'}
-            </Text>
-          </View>
         )}
 
         {/* RANKINGS PREVIEW */}

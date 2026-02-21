@@ -165,11 +165,6 @@ export default function RankingsScreen() {
               {entry.matchdays_played || 0} giornate • {entry.jolly_used || 0} jolly
             </Text>
           )}
-          {isTop3 && tab === 'weekly' && (
-            <Text style={styles.entryMeta}>
-              {entry.total_correct || 0} corretti • {entry['1x2_correct'] || 0} 1X2
-            </Text>
-          )}
         </View>
         
         <View style={styles.pointsContainer}>
