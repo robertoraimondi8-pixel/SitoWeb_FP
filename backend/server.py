@@ -3754,12 +3754,12 @@ async def _refresh_live_fixtures():
         logger.info(f"[LIVE-REFRESH] Circuit breaker open, skipping ({remaining}s remaining)")
         return
 
-    # Only fetch matches that are actually live (not all scheduled)
+    # Find matches that are imported and either live or scheduled (to detect transitions)
     live_matches = await matches_col.find(
         {
             "external_provider": "api-football",
             "external_fixture_id": {"$exists": True},
-            "status": "live",
+            "status": {"$in": ["live", "scheduled"]},
         },
         {"_id": 0}
     ).to_list(200)
