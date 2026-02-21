@@ -305,6 +305,10 @@ export default function LiveScreen() {
                   ]}>
                     {match.home_score} - {match.away_score}
                   </Text>
+                ) : match.status === 'scheduled' && match.start_time ? (
+                  <Text style={[s.schedTime, { color: colors.textSecondary }]}>
+                    {new Date(match.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
                 ) : (
                   <Text style={[s.vs, { color: colors.textSecondary }]}>vs</Text>
                 )}
