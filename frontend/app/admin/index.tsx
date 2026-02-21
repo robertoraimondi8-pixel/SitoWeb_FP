@@ -220,6 +220,19 @@ export default function AdminConsoleV3() {
     } finally { setActionLoading(false); }
   };
 
+  // === REFRESH LIVE SCORES ===
+  const [liveRefreshing, setLiveRefreshing] = useState(false);
+  const doRefreshLive = async () => {
+    setLiveRefreshing(true);
+    try {
+      await apiCall('/admin/real-fixtures/refresh-live', { method: 'POST', token });
+      showAlert('Aggiornamento avviato', 'I risultati live verranno aggiornati a breve.');
+      if (selectedMatchday) await loadMatches(selectedMatchday.id);
+    } catch (e: unknown) {
+      showAlert('Errore', e.message || 'Aggiornamento fallito');
+    } finally { setLiveRefreshing(false); }
+  };
+
   // === MATCHDAY CRUD ===
   const getAvailableNumbers = () => {
     const used = matchdays.map(md => md.number);
