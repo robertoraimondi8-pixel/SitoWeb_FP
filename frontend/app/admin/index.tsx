@@ -168,17 +168,17 @@ export default function AdminConsoleV3() {
   const doTransition = async (targetStatus: string) => {
     if (!selectedMatchday || !selectedLeague) return;
     const label = STATUS_LABELS[targetStatus] || targetStatus;
-    const confirm = () => new Promise<boolean>((resolve) => {
-      if (targetStatus === 'COMPLETED') {
-        Alert.alert('Conferma', `Completare la giornata e calcolare i punteggi?`, [
-          { text: 'Annulla', style: 'cancel', onPress: () => resolve(false) },
-          { text: 'Conferma', onPress: () => resolve(true) },
-        ]);
-      } else {
-        resolve(true);
-      }
-    });
-    if (!(await confirm())) return;
+    if (targetStatus === 'COMPLETED') {
+      const ok = Platform.OS === 'web'
+        ? window.confirm('Completare la giornata e calcolare i punteggi?')
+        : await new Promise<boolean>((resolve) => {
+            Alert.alert('Conferma', 'Completare la giornata e calcolare i punteggi?', [
+              { text: 'Annulla', style: 'cancel', onPress: () => resolve(false) },
+              { text: 'Conferma', onPress: () => resolve(true) },
+            ]);
+          });
+      if (!ok) return;
+    }
 
     setActionLoading(true);
     try {
