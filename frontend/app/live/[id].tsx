@@ -413,6 +413,9 @@ const s = StyleSheet.create({
   statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
   liveDotSmall: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#fff' },
   statusText: { color: '#fff', fontSize: 9, fontWeight: '700' },
+  elapsedBadge: { backgroundColor: 'rgba(239,68,68,0.15)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  elapsedText: { fontSize: 12, fontWeight: '700', color: 'rgb(239,68,68)' },
+  kickoffTime: { fontSize: 12, fontWeight: '600' },
   
   // Teams
   teamsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
