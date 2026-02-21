@@ -11,6 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 // Design System
+import { League, Matchday, StandingsData, getErrorMessage } from '../../src/types/api';
+
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
 import { StatusBadge } from '../../src/components/ui';
 
