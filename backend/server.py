@@ -723,13 +723,19 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
     
     if is_manual_league:
         # MANUAL LEAGUE: cerca matchday SOLO della lega manuale
+        # Priorità: LIVE > OPEN > LOCKED > ultima giornata
         matchday = await matchdays_col.find_one(
-            {"league_id": active_league["id"], "status": "OPEN"},
+            {"league_id": active_league["id"], "status": "LIVE"},
             {"_id": 0}
         )
         if not matchday:
             matchday = await matchdays_col.find_one(
-                {"league_id": active_league["id"], "status": {"$in": ["LOCKED", "LIVE"]}},
+                {"league_id": active_league["id"], "status": "OPEN"},
+                {"_id": 0}
+            )
+        if not matchday:
+            matchday = await matchdays_col.find_one(
+                {"league_id": active_league["id"], "status": "LOCKED"},
                 {"_id": 0},
                 sort=[("number", -1)]
             )
@@ -741,15 +747,21 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             )
     else:
         # NATIONAL LEAGUE: usa logica standard dalla stagione
-        # Priorità: OPEN > LOCKED/LIVE > current_matchday_id > ultima giornata
+        # Priorità: LIVE > OPEN > LOCKED > current_matchday_id > ultima giornata
         matchday = await matchdays_col.find_one(
-            {"season_id": season["id"], "status": "OPEN", "league_id": NATIONAL_LEAGUE_ID},
+            {"season_id": season["id"], "status": "LIVE", "league_id": NATIONAL_LEAGUE_ID},
             {"_id": 0}
         )
         
         if not matchday:
             matchday = await matchdays_col.find_one(
-                {"season_id": season["id"], "status": {"$in": ["LOCKED", "LIVE"]}, "league_id": NATIONAL_LEAGUE_ID},
+                {"season_id": season["id"], "status": "OPEN", "league_id": NATIONAL_LEAGUE_ID},
+                {"_id": 0}
+            )
+        
+        if not matchday:
+            matchday = await matchdays_col.find_one(
+                {"season_id": season["id"], "status": "LOCKED", "league_id": NATIONAL_LEAGUE_ID},
                 {"_id": 0},
                 sort=[("number", -1)]
             )
