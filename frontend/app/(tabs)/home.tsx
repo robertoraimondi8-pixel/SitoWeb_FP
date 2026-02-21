@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
   switcherItemText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
+    color: colors.textPrimary,
   },
   switcherItemSub: {
     fontSize: 11,
