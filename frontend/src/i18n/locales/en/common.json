@@ -21,6 +21,17 @@
   "delete": "Delete",
   "back_home": "Back to Home",
 
+  "auth": {
+    "welcome_back": "Welcome back!",
+    "sign_in_continue": "Sign in to continue",
+    "loading_google": "Please wait...",
+    "footer_text": "By continuing you accept our",
+    "footer_terms": "Terms",
+    "footer_and": "and our",
+    "footer_privacy": "Privacy Policy",
+    "tagline": "Predict. Win. Dominate the rankings"
+  },
+
   "tabs": {
     "home": "Home",
     "predictions": "Predictions",
@@ -108,7 +119,19 @@
     "private": "Private",
     "active": "Active",
     "share_code": "Share code",
-    "league_share_message": "Join my league on FantaPronostic!"
+    "league_share_message": "Join my league on FantaPronostic!",
+    "settings": "Settings",
+    "dark_mode": "Dark mode",
+    "light_mode": "Light mode",
+    "role": "Role",
+    "role_admin": "Admin",
+    "role_player": "Player",
+    "admin_console_title": "ADMIN CONSOLE",
+    "admin_console_desc": "Manage seasons, matchdays and matches",
+    "admin_console_btn": "Open Console",
+    "creator_console_title": "MANAGE MY LEAGUES",
+    "creator_console_desc": "Create matchdays and matches for your leagues",
+    "creator_console_btn": "Open Admin Console"
   },
 
   "live": {
@@ -151,13 +174,14 @@
     "subtitle": "Choose how to start your prediction adventure",
     "choose_path": "Choose your path",
     "national_title": "National League",
-    "national_desc": "Challenge all Italian players in the official ranking",
+    "national_desc": "Challenge all players in the official ranking",
     "create_title": "Create Private League",
     "create_desc": "Create your league and invite friends with a code",
     "join_title": "Join a League",
     "join_desc": "Already have an invite code? Join your friends' league now",
     "season": "season",
-    "free": "FREE"
+    "free": "FREE",
+    "logout": "Logout"
   },
 
   "status": {

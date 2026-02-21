@@ -21,6 +21,17 @@
   "delete": "Eliminar",
   "back_home": "Volver al inicio",
 
+  "auth": {
+    "welcome_back": "¡Bienvenido de nuevo!",
+    "sign_in_continue": "Inicia sesión para continuar",
+    "loading_google": "Por favor espera...",
+    "footer_text": "Al continuar aceptas nuestros",
+    "footer_terms": "Términos",
+    "footer_and": "y nuestra",
+    "footer_privacy": "Política de privacidad",
+    "tagline": "Predice. Gana. Domina la clasificación"
+  },
+
   "tabs": {
     "home": "Inicio",
     "predictions": "Pronósticos",
@@ -108,7 +119,19 @@
     "private": "Privada",
     "active": "Activa",
     "share_code": "Compartir código",
-    "league_share_message": "¡Únete a mi liga en FantaPronostic!"
+    "league_share_message": "¡Únete a mi liga en FantaPronostic!",
+    "settings": "Configuración",
+    "dark_mode": "Modo oscuro",
+    "light_mode": "Modo claro",
+    "role": "Rol",
+    "role_admin": "Admin",
+    "role_player": "Jugador",
+    "admin_console_title": "CONSOLA ADMIN",
+    "admin_console_desc": "Gestiona temporadas, jornadas y partidos",
+    "admin_console_btn": "Abrir Consola",
+    "creator_console_title": "GESTIONAR MIS LIGAS",
+    "creator_console_desc": "Crea jornadas y partidos para tus ligas",
+    "creator_console_btn": "Abrir Consola Admin"
   },
 
   "live": {
@@ -157,7 +180,8 @@
     "join_title": "Unirse a una Liga",
     "join_desc": "¿Ya tienes un código? Únete ahora a la liga de tus amigos",
     "season": "temporada",
-    "free": "GRATIS"
+    "free": "GRATIS",
+    "logout": "Salir"
   },
 
   "status": {
