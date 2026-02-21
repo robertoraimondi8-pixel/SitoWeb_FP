@@ -13,7 +13,7 @@ import pytest
 import requests
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://scoring-engine-10.preview.emergentagent.com"
+BASE_URL = "https://predict-hub-10.preview.emergentagent.com"
 
 
 @pytest.fixture
