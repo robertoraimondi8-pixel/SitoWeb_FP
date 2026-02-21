@@ -318,7 +318,7 @@ export default function AdminConsoleV3() {
   };
 
   const saveAllResults = async () => {
-    if (modifiedMatches.size === 0 || !selectedLeague) { Alert.alert('Info', 'Nessuna modifica'); return; }
+    if (modifiedMatches.size === 0 || !selectedLeague) { showAlert('Info', 'Nessuna modifica'); return; }
     setActionLoading(true);
     let saved = 0, errors = 0;
     for (const matchId of modifiedMatches) {
@@ -339,8 +339,8 @@ export default function AdminConsoleV3() {
       } catch { errors++; }
     }
     setModifiedMatches(new Set());
-    if (errors > 0) Alert.alert('Attenzione', `Salvati ${saved}, errori ${errors}`);
-    else Alert.alert('Fatto!', `${saved} risultati salvati`);
+    if (errors > 0) showAlert('Attenzione', `Salvati ${saved}, errori ${errors}`);
+    else showAlert('Fatto!', `${saved} risultati salvati`);
     if (selectedMatchday) { await loadMatches(selectedMatchday.id); await loadMatchdays(selectedLeague.id); }
     setActionLoading(false);
   };
