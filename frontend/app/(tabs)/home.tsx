@@ -9,7 +9,6 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { HomeData, League, RankingsPreviewEntry, getErrorMessage } from '../../src/types/api';
-import type { Href } from 'expo-router';
 import { goToPredictionsHub } from '../../src/utils/navigation';
 
 // Design System
