@@ -166,11 +166,15 @@ export default function AdminConsoleV3() {
 
   // === Helper: cross-platform confirm/alert ===
   const showAlert = (title: string, message: string) => {
-    if (Platform.OS === 'web') { window.alert(`${title}: ${message}`); }
-    else { Alert.alert(title, message); }
+    if (Platform.OS === 'web') {
+      try { window.alert(`${title}: ${message}`); } catch { console.log(`${title}: ${message}`); }
+    } else { Alert.alert(title, message); }
   };
   const showConfirm = (title: string, message: string): Promise<boolean> => {
-    if (Platform.OS === 'web') return Promise.resolve(window.confirm(`${title}\n${message}`));
+    if (Platform.OS === 'web') {
+      try { return Promise.resolve(window.confirm(`${title}\n${message}`)); }
+      catch { return Promise.resolve(true); }
+    }
     return new Promise((resolve) => {
       Alert.alert(title, message, [
         { text: 'Annulla', style: 'cancel', onPress: () => resolve(false) },
