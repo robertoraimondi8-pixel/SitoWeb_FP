@@ -141,6 +141,7 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 ## Key Files
 - `/app/backend/server.py` — Main backend
 - `/app/backend/scoring.py` — Points calculation engine
+- `/app/backend/apifootball.py` — API-Football client with TTL caching
 - `/app/frontend/app/admin/index.tsx` — Admin Console v3
 - `/app/frontend/app/admin/league.tsx` — League management console
 - `/app/frontend/app/(tabs)/home.tsx` — Home screen
