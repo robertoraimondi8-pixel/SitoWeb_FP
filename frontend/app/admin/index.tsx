@@ -271,7 +271,7 @@ export default function AdminConsoleV3() {
   // === MATCH CRUD ===
   const addMatch = async () => {
     if (!selectedMatchday || !selectedLeague || !newMatch.home_team || !newMatch.away_team) {
-      Alert.alert('Errore', 'Inserisci entrambe le squadre'); return;
+      showAlert('Errore', 'Inserisci entrambe le squadre'); return;
     }
     setActionLoading(true);
     try {
@@ -285,14 +285,14 @@ export default function AdminConsoleV3() {
       };
       if (selectedLeague._is_national) body.matchday_id = selectedMatchday.id;
       await apiCall(endpoint, { method: 'POST', token, body });
-      Alert.alert('Fatto!', 'Partita aggiunta');
+      showAlert('Fatto!', 'Partita aggiunta');
       setShowAddMatch(false);
       setNewMatch({ home_team: '', away_team: '', market_type: '1X2', competition: '' });
       setMatchDate(getDefaultDate());
       await loadMatches(selectedMatchday.id);
       await loadMatchdays(selectedLeague.id);
     } catch (e: any) {
-      Alert.alert('Errore', e.message || 'Impossibile aggiungere');
+      showAlert('Errore', e.message || 'Impossibile aggiungere');
     } finally { setActionLoading(false); }
   };
 
