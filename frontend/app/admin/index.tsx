@@ -183,7 +183,11 @@ export default function AdminConsoleV3() {
 
   // === TRANSITION ===
   const doTransition = async (targetStatus: string) => {
-    if (!selectedMatchday || !selectedLeague) return;
+    console.log('[ADMIN_V3] doTransition called', { targetStatus, selectedMatchday: selectedMatchday?.id, selectedLeague: selectedLeague?.id });
+    if (!selectedMatchday || !selectedLeague) {
+      console.log('[ADMIN_V3] ABORT: missing matchday or league');
+      return;
+    }
     const label = STATUS_LABELS[targetStatus] || targetStatus;
 
     setActionLoading(true);
