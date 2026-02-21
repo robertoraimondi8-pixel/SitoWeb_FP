@@ -741,24 +741,23 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             )
     else:
         # NATIONAL LEAGUE: usa logica standard dalla stagione
-        # current_matchday_id deve essere un matchday della Lega Nazionale (league_id == NATIONAL_LEAGUE_ID)
-        if season.get("current_matchday_id"):
-            matchday = await matchdays_col.find_one(
-                {"id": season["current_matchday_id"], "league_id": NATIONAL_LEAGUE_ID},
-                {"_id": 0}
-            )
-        
-        if not matchday:
-            matchday = await matchdays_col.find_one(
-                {"season_id": season["id"], "status": "OPEN", "league_id": NATIONAL_LEAGUE_ID},
-                {"_id": 0}
-            )
+        # Priorità: OPEN > LOCKED/LIVE > current_matchday_id > ultima giornata
+        matchday = await matchdays_col.find_one(
+            {"season_id": season["id"], "status": "OPEN", "league_id": NATIONAL_LEAGUE_ID},
+            {"_id": 0}
+        )
         
         if not matchday:
             matchday = await matchdays_col.find_one(
                 {"season_id": season["id"], "status": {"$in": ["LOCKED", "LIVE"]}, "league_id": NATIONAL_LEAGUE_ID},
                 {"_id": 0},
                 sort=[("number", -1)]
+            )
+        
+        if not matchday and season.get("current_matchday_id"):
+            matchday = await matchdays_col.find_one(
+                {"id": season["current_matchday_id"], "league_id": NATIONAL_LEAGUE_ID},
+                {"_id": 0}
             )
         
         if not matchday:
