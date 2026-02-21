@@ -240,7 +240,7 @@ export default function HomeScreen() {
               </>
             ) : (
               <View style={styles.matchdayHeader}>
-                <Text style={styles.sectionLabel}>{{t('home.matchday_label')}}</Text>
+                <Text style={styles.sectionLabel}>{t('home.matchday_label')}</Text>
               </View>
             )}
 
