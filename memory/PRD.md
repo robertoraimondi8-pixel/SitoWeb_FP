@@ -5,244 +5,106 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 
 ## Architecture
 - **Frontend**: Expo React Native with TypeScript, expo-router, i18n (IT/EN), Zustand
-- **Backend**: FastAPI (Python) with MongoDB, JWT auth, Stripe integration
-- **Admin Dashboard**: Web admin served by FastAPI at /admin
+- **Backend**: FastAPI (Python) with MongoDB, JWT auth
+- **Admin Console v3**: Unified admin console at `/admin` — replaces old separate national/private admin consoles
 
-## Features Implemented (MVP)
+## Features Implemented
 
-### 1. Authentication ✅
+### 1. Authentication
 - Email + Password (register/login)
-- Google OAuth via Emergent Auth (session verification on backend)
+- Google OAuth via Emergent Auth
 - JWT access + refresh tokens
 - Role-based access: user / admin / superadmin
-- Password show/hide toggle
-- "Password dimenticata?" placeholder
-- "Registrati" link
+- Password show/hide, forgot password, register link
 
-### 2. Home Hub ✅
+### 2. Home Hub
 - Dynamic matchday card (OPEN/LOCKED/LIVE/COMPLETED)
-- Countdown to first_kickoff - 60s
+- Countdown to first_kickoff
 - CTA for predictions or live view
-- Rankings preview
-- User leagues display
-- Statistics placeholder with adapter pattern
+- Rankings preview, user leagues, statistics
 
-### 3. Predictions ✅
-- 11 matches per matchday
-- **USER CHOOSES market type per match** (1X2=1pt, GOAL_NOGOL=0.5pt, OVER_UNDER_25=0.5pt, EXACT_SCORE=4pt)
-- Only 1 market per match enforced (server rejects duplicate match_ids)
-- EXACT_SCORE validated: format H-A, numbers >=0
-- Lock per match: modifiable until match.start_time (server time)
-- Other matches in same matchday remain editable until their start_time
+### 3. Predictions
+- Max 10 matches per matchday
+- User chooses market type per match (1X2=1pt, GOAL_NOGOL=0.5pt, OVER_UNDER=0.5pt, EXACT_SCORE=4pt)
+- Lock per match at start_time
 - Batch save with per-match error reporting
-- "Pronostici salvati!" success feedback
 
-### 4. Joker System ✅
-- 1 usage per half (andata/ritorno) per season
-- Activatable/modifiable until first_kickoff - 60s
-- x2 on valid match points only
-- No points on void matches
+### 4. Joker System
+- 1 Joker per matchday, doubles points for chosen match
+- Joker_active flag per matchday per user
 
-### 5. Live ✅
-- Shows user's 11 predictions with live scores
-- Provisional points calculation
-- Polling every 60s
-- No public rankings during live
+### 5. Scoring Engine
+- Automatic calculation on matchday COMPLETED
+- score_summaries per user per matchday per league
+- Standing recalculation across all matchdays
 
-### 6. Rankings ✅
-- Weekly and Total standings
-- League filter
-- Top 3 highlighted + user position
-- Predictions visible only when matchday COMPLETED + same league
+### 6. League System
+- Private leagues with invite codes
+- National league (uses NATIONAL_LEAGUE_ID constant)
+- Strict data isolation via mandatory league_id on all entities
+- League creation, join, leave
 
-### 7. Leagues ✅
-- National league (Stripe payment required)
-- Private leagues (create with invite code)
-- Join via invite code
+### 7. Admin Console v3 (NEW - Feb 2026)
+**Unified console replacing old separate national/private admin pages.**
 
-### 8. Stripe Payments ✅
-- Checkout session for national league membership (€20/season)
-- Webhook verification
-- Membership activated only after webhook confirmation
+#### Backend Endpoints:
+- `GET /api/admin/v3/leagues` — Role-based league listing (SUPER_ADMIN sees all + national, LEAGUE_ADMIN sees owned only)
+- `GET /api/admin/v3/matchdays?league_id=X` — Enriched matchdays with match_count, results_count, predictions_user_count, auto-lock check
+- `POST /api/admin/matchday/{id}/transition` — Unified state transition (DRAFT→OPEN→LOCKED→LIVE→COMPLETED) with validations
+- `POST /api/admin/matchday/{id}/recalculate` — SUPER_ADMIN only, recalculates scores for COMPLETED matchdays
 
-### 9. Admin Dashboard ✅
-- Web dashboard at /admin
-- CRUD: Seasons, Matchdays, Matches
-- Live manual update (score + status)
-- Confirm matchday → COMPLETED (triggers idempotent scoring)
-- Audit log viewer
-- League and payment management
+#### Frontend Features:
+- League selector header (National always on top, private leagues below)
+- Matchday section with stats (partite, risultati, pronostici)
+- Guided state flow indicator (BOZZA→APERTA→BLOCCATA→LIVE→COMPLETATA)
+- Context-sensitive transition buttons (no free status dropdown)
+- Inline result entry with progress bar
+- Role-based permissions (SUPER_ADMIN vs LEAGUE_ADMIN)
+- Ricalcola Giornata button (SUPER_ADMIN only on COMPLETED)
+- Match CRUD (create/delete with max 10 validation)
+- All UI labels in Italian
 
-### 10. i18n ✅
-- Italian (default) + English
-- All UI text in translation files
-- Language selectable in profile
+#### Validations:
+- Cannot open matchday with 0 matches
+- Cannot add more than 10 matches
+- Cannot complete without all results inserted
+- Cannot modify matches after LOCKED
+- Cannot modify anything after COMPLETED (except recalc for SUPER_ADMIN)
+- Cannot skip or go backwards in state flow
 
-### 11. Database ✅ (MongoDB with relational references)
-- Collections: users, seasons, leagues, memberships, payment_transactions, matchdays, matches, predictions, joker_usages, champion_picks, score_summaries, standings_cache, audit_logs, notifications
-- Unique indexes enforced (user+match, user+season+half for joker, etc.)
-- ObjectId excluded from all responses
+### 8. Data Model (Hardened)
+- All entities (matches, matchdays, predictions, score_summaries) have mandatory `league_id`
+- NATIONAL_LEAGUE_ID = `f1373417-43aa-4043-b6a2-125873181c95`
+- No $or/$exists fallbacks — all queries explicit
 
-### 12. Seed Data ✅
-- 1 season (Serie A 2024-2025)
-- 1 matchday with 11 matches (various competitions)
-- 3 users (admin, Marco_FP, Giulia_Pro)
-- 1 national league, 1 private league (code: AMICI2024)
+### 9. Expo Web Preview
+- Expo runs in `--web` mode (not tunnel) for K8s compatibility
+- Accessible via `https://predict-hub-10.preview.emergentagent.com`
 
-## Login Credentials
-- Admin: admin@fantapronostic.com / admin123
-- User 1: marco@test.com / password123
-- User 2: giulia@test.com / password123
-- Private league code: AMICI2024
+## P0 Backlog
+- (none)
 
-## API Endpoints
-### Auth
-- POST /api/auth/register
-- POST /api/auth/login
-- POST /api/auth/refresh
-- GET /api/auth/me
-- POST /api/auth/google/session (Emergent Google OAuth)
+## P1 Backlog
+- Fix redundant settings/gear icon in home header
+- Fix linter parsing errors in frontend
 
-### User
-- GET /api/home
-- GET /api/profile
-- PUT /api/profile
+## P2 Backlog
+- Full E2E test of complete flow
+- Implement "Championship Winner Predictions" feature
+- Integrate Stripe for joining National League
+- Re-enable email verification
+- Implement Push Notifications
+- Integrate live sports data API
+- Refactor server.py into modular routes
 
-### Leagues
-- GET /api/leagues
-- POST /api/leagues (create private)
-- POST /api/leagues/join
-- GET /api/leagues/national
-- GET /api/leagues/seasons
+## Credentials
+- SUPER_ADMIN: admin@fantapronostic.com / admin123
+- LEAGUE_OWNER (National): desiree@raimondi.it / Roberto95
+- LEAGUE_OWNER (Manual): ilio@raimondi.it / password123
 
-### Predictions
-- GET /api/predictions/{matchday_id}
-- POST /api/predictions/{matchday_id}
-- POST /api/predictions/{matchday_id}/joker
-- DELETE /api/predictions/{matchday_id}/joker
-
-### Standings
-- GET /api/standings/weekly/{matchday_id}?league=
-- GET /api/standings/total?league=
-- GET /api/standings/leagues/{league_id}/matchdays/{matchday_id}/users/{user_id}/predictions
-
-### Live
-- GET /api/live/matchday/{matchday_id}
-
-### Payments
-- POST /api/payments/checkout
-- GET /api/payments/status/{session_id}
-- POST /api/webhook/stripe
-
-### Admin
-- GET/POST /api/admin/seasons
-- PUT /api/admin/seasons/{id}
-- GET/POST /api/admin/matchdays
-- PUT /api/admin/matchdays/{id}
-- GET/POST /api/admin/matches
-- PUT /api/admin/matches/{id}
-- POST /api/admin/matches/{id}/live-update
-- POST /api/admin/matchdays/{id}/confirm
-- POST /api/admin/matchdays/{id}/recalc
-- GET /api/admin/audit-logs
-- GET /api/admin/leagues
-- GET /api/admin/payments
-- GET /api/admin/score-summaries/{matchday_id}
-
-## Design
-- Dark mode default with light toggle
-- Primary: #1A3A6B (deep blue)
-- Accent: #F5A623 (vibrant orange)
-- Card-based UI, minimal modern style
-- Official logo in login screen
-
-## Multi-League Feature ✅ (Feb 2026)
-
-### Private League Creation
-- Create leagues with unique invite code
-- Configure: name, logo, matchdays range, bet deadlines, scoring markets
-- Scoring markets: 1X2, Goal/No Goal, Over/Under, Exact Score (on/off toggles)
-- Rules locked after second member joins
-
-### Match Source Types
-- **National**: Inherits fixtures from national league
-- **Manual**: Creator manages own fixtures via Creator Console
-
-### Creator Console (/league/[id]/manage)
-- Add/edit/delete matchdays
-- Add/edit/delete matches per matchday
-- Only visible to manual league owners
-
-### League Switcher
-- Dropdown in home header to switch between user's leagues
-- Persists selection via PATCH /api/profile/current-league
-- Shows league name with trophy icon
-
-### Bug Fixes (19 Feb 2026)
-- ✅ P0: Manual leagues now show only their own fixtures (not national or other manual leagues)
-- ✅ P1: Creator Console button visible to league owner (is_owner flag in /api/home response)
-- ✅ P2: Redundant league list removed from home screen
-- ✅ FIX DEFINITIVO: Isolamento completo tra leghe manuali A e B con stesso matchday.number
-- ✅ FIX DEFINITIVO: /api/home restituisce matchday specifico per lega (manual vs national)
-- ✅ FIX DEFINITIVO: Permessi 403 per non-owner su endpoint Creator Console
-
-## Changelog
-
-### 19 Feb 2026 (Fix Definitivo)
-- Fixed: /api/home ora cerca matchday per league_id (manual) o season_id (national)
-- Fixed: Aggiunto is_owner e my_role nella risposta league
-- Fixed: Frontend predictions.tsx usa /api/leagues/{id}/fixtures come unico endpoint
-- Added: Test suite isolamento multi-lega (/app/backend/tests/test_multi_league_isolation.py)
-- Verified: 15/15 backend tests passati
-
-### 20 Feb 2026 - Bugfix: GIORNATE contatore errato in home per leghe nazionali private
-- **Root Cause**: `user_matchdays_played` usava `total_completed_in_season` (6 giornate nazionali completate) invece delle giornate dove l'utente ha predictions per questa lega specifica.
-- **Fix** (`server.py`): Per leghe non-manuali, `user_matchdays_played = len(distinct matchday_id from predictions where user_id=X AND league_id=Y)`. Per leghe manuali: mantiene `total_completed_in_season`.
-- **Risultato**: Desylega (nuova lega) mostra GIORNATE = 0. Dopo che desiree inserisce i suoi pronostici, il contatore aumenterà correttamente.
-
-### 20 Feb 2026 - Bugfix: Scoring e Home per Leghe Nazionali Private (rollup completo)
-- **Root Cause completo**: `completed_matchdays_docs` usava solo matchday stagionali (no `league_id`), escludendo matchday di altre leghe. Query mancava del pattern `$or [league_id = X OR no league_id]`.
-- **Fix home**: `completed_matchdays_docs` ora usa predictions.distinct per trovare matchday realmente giocati. Tutti i filtri usano `$or` per retrocompatibilità.
-- **Risultato**: Desylega post-Giornata10 → GIORNATE=1, PUNTI=6.0, RANK=#1, last_5=[{md:10, pts:6.0}]. Zero regressioni su leghe manuali.
-
-
-
-### 20 Feb 2026 - Bugfix: Isolamento Completo Dati Leghe Nazionali Private (league_id in predictions)
-- **Root Cause**: Le predictions non avevano `league_id`, quindi standings/matchdays, standings/weekly, standings/total e home/last_5 mostravano dati storici della lega nazionale per tutte le leghe private di tipo national.
-- **Fix 1** (`models.py`): Aggiunto `league_id: Optional[str] = None` a `PredictionsBatchRequest`.
-- **Fix 2** (`server.py` - `save_predictions`): Ogni prediction viene salvata con `league_id` quando passato nel body POST.
-- **Fix 3** (`server.py` - `get_available_matchdays`): Per leghe nazionali private, restituisce solo matchday con `predictions.league_id = current_league_id`.
-- **Fix 4** (`server.py` - `get_weekly_standings`): Filtra predictions per `league_id` e mostra solo utenti che hanno giocato per questa lega.
-- **Fix 5** (`server.py` - `get_total_standings`): Usa `predictions.distinct('matchday_id', {league_id: X})` per determinare matchday giocati.
-- **Fix 6** (`server.py` - `home/last_5_performance`): Salta giornate senza `predictions.league_id = current_league_id`.
-- **Fix 7** (`predictions.tsx`): Frontend ora passa `league_id` nel body del POST `/api/predictions/{matchday_id}`.
-- **Risultato**: Una lega nuova parte da 0. Ogni lega vede solo le proprie giornate giocate.
-
-### 20 Feb 2026 - Bugfix: Data Isolation for National-type Private Leagues
-- **Root Cause**: `admin_confirm_matchday` creates score_summaries WITHOUT `league_id`. Queries for national-type private leagues incorrectly filtered by `league_id = private_league_id`, finding nothing.
-- **Fix 1** (`/api/home` - `last_5_performance`): For national-type leagues, skip matchdays where user has no predictions (prevents historical national matchday "leakage").
-- **Fix 2** (`/api/home` - `all_totals`): For national-type leagues, aggregate score_summaries by `matchday_id IN [national_md_ids]` instead of `league_id` filter.
-- **Fix 3** (`/api/standings/total`): For national-type leagues, use national matchday IDs (not `league_id`) in the aggregation pipeline.
-- **Regression confirmed**: Manual leagues (ilio@raimondi.it) continue to work correctly with `league_id` filter.
-
-### 20 Feb 2026 - Feature: Predictions Completeness Validation
-- **Frontend**: Bottone "Conferma Pronostici" disabilitato fino a quando non tutte le partite hanno un pronostico
-- **Frontend**: Progress bar `completedCount/totalCount partite` nel footer della pagina Pronostici
-- **Frontend**: Titolo bottone dinamico: "Completa tutti i pronostici" quando incompleto, "Salva Pronostici" quando completo
-- **Backend**: `POST /api/predictions/{matchday_id}` restituisce HTTP 422 con `PREDICTIONS_INCOMPLETE` se non tutte le partite (non ancora iniziate) hanno un pronostico
-- **Backend**: Logica cumulativa: controlla sia i pronostici nel payload sia quelli già salvati nel DB
-
-### Previous Sessions
-- Implemented private league creation with configurable rules
-- Added manual vs national match source types
-- Created Creator Console for manual leagues
-- Implemented league switcher dropdown
-- Fixed login bounce bug
-- Fixed Google OAuth flow for web and native
-
-### 20 Feb 2026 - Bugfix: CTA Home sempre "INSERISCI PRONOSTICI" ignorando stato COMPLETED
-- **Root Cause**: `getCtaConfig` (corretto) non veniva usato. Il bottone era hardcoded a "INSERISCI PRONOSTICI".
-- **Fix frontend** (`home.tsx`): PrimaryButton ora usa `ctaConfig.label` e `ctaConfig.icon` basati su `matchday.status`.
-- **Fix frontend** (`home.tsx`): Per COMPLETED, mostra `my_points pts` invece di `predictions_count/total partite`.
-- **Fix backend** (`server.py`): Aggiunto `my_points` in `matchday_data` (da score_summaries, solo se COMPLETED).
-- **Risultato**: COMPLETED → "VEDI RISULTATI" | OPEN → "INSERISCI PRONOSTICI" | LIVE → "SEGUI LIVE". Punti mostrati dalla fonte autoritativa (score_summaries).
+## Key Files
+- `/app/backend/server.py` — Main backend (includes Admin v3 endpoints)
+- `/app/frontend/app/admin/index.tsx` — Admin Console v3 (unified)
+- `/app/frontend/app/admin/league.tsx` — Old league admin (deprecated, replaced by v3)
+- `/app/frontend/app/(tabs)/profile.tsx` — Profile with admin console navigation
+- `/app/backend/tests/test_admin_v3_console.py` — Admin v3 test suite
