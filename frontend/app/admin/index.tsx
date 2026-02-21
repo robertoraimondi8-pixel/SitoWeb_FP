@@ -867,9 +867,27 @@ export default function AdminConsoleV3() {
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Modal: Confirmation Dialog */}
+      <Modal visible={confirmModal.visible} transparent animationType="fade">
+        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setConfirmModal(p => ({ ...p, visible: false }))}>
+          <View style={[s.modalContent, { backgroundColor: colors.card }]}>
+            <Text style={[s.modalTitle, { color: colors.text }]}>{confirmModal.title}</Text>
+            <Text style={{ color: colors.textSecondary, fontSize: 15, textAlign: 'center', marginBottom: 20 }}>{confirmModal.message}</Text>
+            <View style={s.modalBtns}>
+              <TouchableOpacity style={[s.modalBtn, { borderColor: colors.border }]}
+                onPress={() => setConfirmModal(p => ({ ...p, visible: false }))}>
+                <Text style={[s.modalBtnText, { color: colors.textSecondary }]}>Chiudi</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.modalBtn, { backgroundColor: colors.accent }]}
+                onPress={confirmModal.onConfirm}>
+                <Text style={[s.modalBtnText, { color: colors.background }]}>Conferma</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
-  );
-}
 
 function getStatusColor(status: string): string {
   switch (status) {
