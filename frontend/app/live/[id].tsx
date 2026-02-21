@@ -23,6 +23,7 @@ interface LiveMatch {
   start_time: string;
   home_score: number | null;
   away_score: number | null;
+  elapsed: number | null;
   status: string;
   my_prediction: string | null;
   my_market: string | null;
