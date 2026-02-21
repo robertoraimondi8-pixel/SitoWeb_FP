@@ -297,23 +297,19 @@ export default function AdminConsoleV3() {
   };
 
   const deleteMatch = async (matchId: string) => {
-    Alert.alert('Elimina Partita', 'Eliminare questa partita?', [
-      { text: 'Annulla', style: 'cancel' },
-      { text: 'Elimina', style: 'destructive', onPress: async () => {
-        if (!selectedMatchday || !selectedLeague) return;
-        setActionLoading(true);
-        try {
-          const endpoint = selectedLeague._is_national
-            ? `/admin/matches/${matchId}`
-            : `/leagues/${selectedLeague.id}/matches/${matchId}`;
-          await apiCall(endpoint, { method: 'DELETE', token });
-          await loadMatches(selectedMatchday.id);
-          await loadMatchdays(selectedLeague.id);
-        } catch (e: any) {
-          Alert.alert('Errore', e.message || 'Errore eliminazione');
-        } finally { setActionLoading(false); }
-      }},
-    ]);
+    if (!(await showConfirm('Elimina Partita', 'Eliminare questa partita?'))) return;
+    if (!selectedMatchday || !selectedLeague) return;
+    setActionLoading(true);
+    try {
+      const endpoint = selectedLeague._is_national
+        ? `/admin/matches/${matchId}`
+        : `/leagues/${selectedLeague.id}/matches/${matchId}`;
+      await apiCall(endpoint, { method: 'DELETE', token });
+      await loadMatches(selectedMatchday.id);
+      await loadMatchdays(selectedLeague.id);
+    } catch (e: any) {
+      showAlert('Errore', e.message || 'Errore eliminazione');
+    } finally { setActionLoading(false); }
   };
 
   const updateMatchResult = (matchId: string, field: 'home' | 'away' | 'status', value: string) => {
