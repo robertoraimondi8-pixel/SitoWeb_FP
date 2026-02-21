@@ -3154,6 +3154,12 @@ async def admin_create_match(req: MatchCreate, admin=Depends(require_admin)):
     # Lookup the matchday to inherit its league_id
     matchday = await matchdays_col.find_one({"id": req.matchday_id}, {"_id": 0, "league_id": 1})
     match_league_id = matchday.get("league_id", NATIONAL_LEAGUE_ID) if matchday else NATIONAL_LEAGUE_ID
+
+    # Validate max matches
+    current_count = await matches_col.count_documents({"matchday_id": req.matchday_id, "league_id": match_league_id})
+    if current_count >= MAX_MATCHES_PER_MATCHDAY:
+        raise HTTPException(400, f"Limite massimo di {MAX_MATCHES_PER_MATCHDAY} partite per giornata raggiunto")
+
     match_id = new_id()
     match = {
         "id": match_id,
