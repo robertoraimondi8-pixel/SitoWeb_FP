@@ -21,6 +21,7 @@ import { colors, spacing, borderRadius, shadows, typography } from '../../src/th
 const { width, height } = Dimensions.get('window');
 
 export default function AuthLanding() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { loginWithToken } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
