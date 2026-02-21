@@ -3300,6 +3300,227 @@ async def admin_recalc_standings(matchday_id: str, admin=Depends(require_admin))
     return await admin_confirm_matchday(matchday_id, admin)
 
 
+# ========================================
+# ADMIN V3 – UNIFIED CONSOLE ENDPOINTS
+# ========================================
+
+VALID_TRANSITIONS = {
+    "DRAFT": ["OPEN"],
+    "OPEN": ["LOCKED"],
+    "LOCKED": ["LIVE"],
+    "LIVE": ["COMPLETED"],
+    "COMPLETED": [],
+}
+
+STATUS_ORDER = ["DRAFT", "OPEN", "LOCKED", "LIVE", "COMPLETED"]
+
+
+@admin_router.get("/v3/leagues")
+async def admin_v3_leagues(user=Depends(get_current_user)):
+    """Ritorna le leghe gestibili dall'utente per la console Admin v3.
+    SUPER_ADMIN (role=admin): tutte le leghe + Lega Nazionale.
+    LEAGUE_ADMIN: solo le leghe di cui è owner.
+    """
+    is_super = user.get("role") in ("admin", "superadmin")
+    results = []
+
+    # Lega Nazionale (solo per SUPER_ADMIN)
+    if is_super:
+        nat = await leagues_col.find_one({"id": NATIONAL_LEAGUE_ID}, {"_id": 0})
+        if nat:
+            nat["_is_national"] = True
+            results.append(nat)
+
+    # Leghe private
+    if is_super:
+        privates = await leagues_col.find({"id": {"$ne": NATIONAL_LEAGUE_ID}}, {"_id": 0}).to_list(200)
+    else:
+        owned_ids = await memberships_col.find(
+            {"user_id": user["id"], "role": {"$in": ["owner", "admin"]}, "status": "active"},
+            {"league_id": 1, "_id": 0}
+        ).to_list(100)
+        league_ids = [m["league_id"] for m in owned_ids]
+        privates = await leagues_col.find({"id": {"$in": league_ids}}, {"_id": 0}).to_list(100) if league_ids else []
+
+    for lg in privates:
+        lg["_is_national"] = False
+        lg["member_count"] = await memberships_col.count_documents({"league_id": lg["id"], "status": "active"})
+        results.append(lg)
+
+    return results
+
+
+@admin_router.get("/v3/matchdays")
+async def admin_v3_matchdays(league_id: str, season_id: str = None, user=Depends(get_current_user)):
+    """Ritorna le giornate arricchite (conteggio partite, risultati, pronostici) per una lega."""
+    is_super = user.get("role") in ("admin", "superadmin")
+
+    # Verifica permessi
+    if not is_super:
+        mem = await memberships_col.find_one(
+            {"user_id": user["id"], "league_id": league_id, "role": {"$in": ["owner", "admin"]}, "status": "active"}
+        )
+        if not mem:
+            raise HTTPException(403, "Non hai i permessi per gestire questa lega")
+
+    query: dict = {"league_id": league_id}
+    if season_id:
+        query["season_id"] = season_id
+    matchdays = await matchdays_col.find(query, {"_id": 0}).sort("number", 1).to_list(100)
+
+    for md in matchdays:
+        md_id = md["id"]
+        # Conteggio partite
+        match_count = await matches_col.count_documents({"matchday_id": md_id, "league_id": league_id})
+        md["match_count"] = match_count
+
+        # Partite con risultato inserito
+        results_count = await matches_col.count_documents({
+            "matchday_id": md_id, "league_id": league_id,
+            "home_score": {"$ne": None}, "away_score": {"$ne": None}
+        })
+        md["results_count"] = results_count
+
+        # Pronostici ricevuti (utenti unici)
+        pred_users = await predictions_col.distinct("user_id", {"matchday_id": md_id, "league_id": league_id})
+        md["predictions_user_count"] = len(pred_users)
+
+        # Auto-lock check: se server time >= first_kickoff e status è OPEN
+        if md.get("status") == "OPEN" and md.get("first_kickoff"):
+            try:
+                kickoff = datetime.fromisoformat(md["first_kickoff"].replace("Z", "+00:00"))
+                if server_now() >= kickoff:
+                    await matchdays_col.update_one({"id": md_id}, {"$set": {"status": "LOCKED"}})
+                    md["status"] = "LOCKED"
+                    logger.info(f"[AUTO-LOCK] Matchday {md_id} auto-locked (kickoff passed)")
+            except Exception:
+                pass
+
+    return matchdays
+
+
+@admin_router.post("/matchday/{matchday_id}/transition")
+async def admin_v3_transition(matchday_id: str, body: dict, user=Depends(get_current_user)):
+    """Endpoint unificato per transizioni di stato giornata.
+    Body: {"league_id": "...", "target_status": "OPEN"|"LOCKED"|"LIVE"|"COMPLETED"}
+    Regole:
+    - Valida stato corrente
+    - Impedisce salto di stati
+    - Impedisce ritorno indietro
+    - Valida permessi ruolo
+    - Valida conteggio partite
+    - Su COMPLETED → calcola punteggi
+    """
+    league_id = body.get("league_id")
+    target_status = body.get("target_status")
+    if not league_id or not target_status:
+        raise HTTPException(400, "league_id e target_status sono obbligatori")
+
+    if target_status not in STATUS_ORDER:
+        raise HTTPException(400, f"target_status non valido: {target_status}")
+
+    is_super = user.get("role") in ("admin", "superadmin")
+
+    # Verifica permessi sulla lega
+    if not is_super:
+        mem = await memberships_col.find_one(
+            {"user_id": user["id"], "league_id": league_id, "role": {"$in": ["owner", "admin"]}, "status": "active"}
+        )
+        if not mem:
+            raise HTTPException(403, "Non hai i permessi per gestire questa lega")
+
+    # Get matchday
+    matchday = await matchdays_col.find_one({"id": matchday_id, "league_id": league_id}, {"_id": 0})
+    if not matchday:
+        raise HTTPException(404, "Giornata non trovata per questa lega")
+
+    current_status = matchday.get("status", "DRAFT")
+
+    # Validazione: non si può modificare COMPLETED (tranne recalc per SUPER_ADMIN)
+    if current_status == "COMPLETED":
+        raise HTTPException(400, "La giornata è già completata. Non è possibile cambiare stato.")
+
+    # Validazione: transizione valida (no salto, no indietro)
+    allowed = VALID_TRANSITIONS.get(current_status, [])
+    if target_status not in allowed:
+        raise HTTPException(400, f"Transizione non permessa: {current_status} → {target_status}. Transizioni valide: {', '.join(allowed) if allowed else 'nessuna'}")
+
+    # Conteggio partite
+    match_count = await matches_col.count_documents({"matchday_id": matchday_id, "league_id": league_id})
+
+    # DRAFT → OPEN: servono almeno 1 partita
+    if target_status == "OPEN":
+        if match_count < 1:
+            raise HTTPException(400, "Impossibile aprire la giornata: inserisci almeno 1 partita")
+        if match_count > 10:
+            raise HTTPException(400, f"La giornata ha {match_count} partite. Il massimo consentito è 10.")
+
+    # LIVE → COMPLETED: tutti i risultati devono essere inseriti
+    if target_status == "COMPLETED":
+        if match_count < 1:
+            raise HTTPException(400, "Impossibile completare: la giornata non ha partite")
+        results_count = await matches_col.count_documents({
+            "matchday_id": matchday_id, "league_id": league_id,
+            "home_score": {"$ne": None}, "away_score": {"$ne": None}
+        })
+        if results_count < match_count:
+            raise HTTPException(400, f"Impossibile completare: risultati inseriti {results_count}/{match_count}. Inserisci tutti i risultati prima di completare.")
+
+    # OPEN → LOCKED: auto-lock delle altre giornate OPEN nella stessa stagione
+    if target_status == "OPEN":
+        season_id = matchday.get("season_id")
+        if season_id:
+            await matchdays_col.update_many(
+                {"season_id": season_id, "league_id": league_id, "id": {"$ne": matchday_id}, "status": "OPEN"},
+                {"$set": {"status": "LOCKED"}}
+            )
+
+    # Esegui transizione
+    await matchdays_col.update_one({"id": matchday_id}, {"$set": {"status": target_status}})
+
+    # Log
+    admin_username = user.get("username", user.get("email", "unknown"))
+    await log_audit(user["id"], admin_username, "TRANSITION", "matchday", matchday_id,
+        {"from": current_status, "to": target_status, "league_id": league_id})
+
+    # Su COMPLETED → calcola punteggi
+    if target_status == "COMPLETED":
+        logger.info(f"[ADMIN_V3] Matchday {matchday_id} COMPLETED - calculating scores for league {league_id}")
+        await recalculate_matchday_scores(matchday_id, league_id)
+
+    return {
+        "status": "ok",
+        "matchday_id": matchday_id,
+        "previous_status": current_status,
+        "new_status": target_status,
+        "league_id": league_id,
+    }
+
+
+@admin_router.post("/matchday/{matchday_id}/recalculate")
+async def admin_v3_recalculate(matchday_id: str, body: dict, user=Depends(get_current_user)):
+    """Ricalcola punteggi per una giornata COMPLETED. Solo SUPER_ADMIN."""
+    is_super = user.get("role") in ("admin", "superadmin")
+    if not is_super:
+        raise HTTPException(403, "Solo il super admin può ricalcolare i punteggi")
+
+    league_id = body.get("league_id")
+    if not league_id:
+        raise HTTPException(400, "league_id obbligatorio")
+
+    matchday = await matchdays_col.find_one({"id": matchday_id, "league_id": league_id}, {"_id": 0})
+    if not matchday:
+        raise HTTPException(404, "Giornata non trovata")
+    if matchday.get("status") != "COMPLETED":
+        raise HTTPException(400, "Il ricalcolo è possibile solo per giornate COMPLETATE")
+
+    await recalculate_matchday_scores(matchday_id, league_id)
+    admin_username = user.get("username", user.get("email", "unknown"))
+    await log_audit(user["id"], admin_username, "RECALCULATE", "matchday", matchday_id, {"league_id": league_id})
+
+    return {"status": "ok", "message": "Ricalcolo completato", "matchday_id": matchday_id}
+
+
 @admin_router.get("/audit-logs")
 async def admin_get_audit_logs(limit: int = 50, admin=Depends(require_admin)):
     logs = await audit_logs_col.find({}, {"_id": 0}).sort("created_at", -1).to_list(limit)
