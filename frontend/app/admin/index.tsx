@@ -185,9 +185,6 @@ export default function AdminConsoleV3() {
   const doTransition = async (targetStatus: string) => {
     if (!selectedMatchday || !selectedLeague) return;
     const label = STATUS_LABELS[targetStatus] || targetStatus;
-    if (targetStatus === 'COMPLETED') {
-      if (!(await showConfirm('Conferma', 'Completare la giornata e calcolare i punteggi?'))) return;
-    }
 
     setActionLoading(true);
     try {
