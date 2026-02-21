@@ -91,6 +91,14 @@ FantaPronostic is a football prediction platform mobile app built with Expo Reac
 - LIVE view: OK (limited test)
 - Weekly/Final prizes: NOT IMPLEMENTED
 
+### 10. i18n Multi-lingua (IT / EN / ES)
+- i18next + react-i18next + expo-localization
+- 3 locale files: `/src/i18n/locales/{it,en,es}/common.json`
+- Language selector in Profile (3 buttons, live switch)
+- localStorage persistence on web, device language detection
+- Screens migrated: Home, Tab nav, Profile, Rankings, Predictions
+- SSR-safe (no AsyncStorage at module init)
+
 ## Completed Refactoring (Feb 21, 2026)
 - TypeScript: Removed all 102 `any` types from frontend codebase
 - Created `/app/frontend/src/types/api.ts` with 30+ shared interfaces
