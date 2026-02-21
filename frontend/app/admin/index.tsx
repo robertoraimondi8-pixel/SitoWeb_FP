@@ -663,6 +663,22 @@ export default function AdminConsoleV3() {
                 </>
               )}
             </View>
+
+            {/* IMPORTA PARTITE REALI Section - only for national league */}
+            {selectedLeague._is_national && canEditMatches && (
+              <ImportFixtures
+                leagueId={selectedLeague.id}
+                matchdayId={selectedMatchday.id}
+                matchdayLabel={selectedMatchday.label || `Giornata ${selectedMatchday.number}`}
+                currentMatchCount={matches.length}
+                token={token!}
+                colors={colors}
+                onImportComplete={async () => {
+                  await loadMatches(selectedMatchday.id);
+                  await loadMatchdays(selectedLeague.id);
+                }}
+              />
+            )}
           </>
         )}
       </ScrollView>
