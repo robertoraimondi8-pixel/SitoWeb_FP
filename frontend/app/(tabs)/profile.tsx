@@ -183,8 +183,8 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* Creator Console - per owner di leghe */}
-        {ownedLeagues.length > 0 && user?.role !== 'admin' && (
+        {/* Creator Console - per owner di leghe manuali */}
+        {ownedLeagues.some(l => l.match_source_type === 'manual' || l.match_source_type === 'custom') && user?.role !== 'admin' && (
           <View style={styles.creatorCard}>
             <Text style={styles.creatorTitle}>GESTISCI LE MIE LEGHE</Text>
             <Text style={styles.creatorSubtitle}>Crea giornate e partite per le tue leghe</Text>
