@@ -1768,6 +1768,7 @@ async def get_predictions(matchday_id: str, league_id: str = None, user=Depends(
     preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday_id, "league_id": league_id}, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
 
+    now = server_now()
     result = []
     for m in matches:
         start = datetime.fromisoformat(m["start_time"].replace("Z", "+00:00"))
