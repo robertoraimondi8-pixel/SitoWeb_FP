@@ -821,7 +821,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
     
     if is_manual_league:
         # MANUAL LEAGUE: cerca matchday SOLO della lega manuale
-        # Priorità: LIVE > OPEN > LOCKED > ultima giornata
+        # Priorità: LIVE > OPEN > ultima giornata
         matchday = await matchdays_col.find_one(
             {"league_id": active_league["id"], "status": "LIVE"},
             {"_id": 0}
@@ -833,19 +833,13 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             )
         if not matchday:
             matchday = await matchdays_col.find_one(
-                {"league_id": active_league["id"], "status": "LOCKED"},
-                {"_id": 0},
-                sort=[("number", -1)]
-            )
-        if not matchday:
-            matchday = await matchdays_col.find_one(
                 {"league_id": active_league["id"]},
                 {"_id": 0},
                 sort=[("number", -1)]
             )
     else:
         # NATIONAL LEAGUE: usa logica standard dalla stagione
-        # Priorità: LIVE > OPEN > LOCKED > current_matchday_id > ultima giornata
+        # Priorità: LIVE > OPEN > current_matchday_id > ultima giornata
         matchday = await matchdays_col.find_one(
             {"season_id": season["id"], "status": "LIVE", "league_id": NATIONAL_LEAGUE_ID},
             {"_id": 0}
@@ -855,13 +849,6 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             matchday = await matchdays_col.find_one(
                 {"season_id": season["id"], "status": "OPEN", "league_id": NATIONAL_LEAGUE_ID},
                 {"_id": 0}
-            )
-        
-        if not matchday:
-            matchday = await matchdays_col.find_one(
-                {"season_id": season["id"], "status": "LOCKED", "league_id": NATIONAL_LEAGUE_ID},
-                {"_id": 0},
-                sort=[("number", -1)]
             )
         
         if not matchday and season.get("current_matchday_id"):
@@ -1549,7 +1536,7 @@ async def create_league_matchday(league_id: str, req: MatchdayCreate, user=Depen
         "label": req.label or f"Giornata {req.number}",
         "half": req.half,
         "first_kickoff": req.first_kickoff,
-        "status": "OPEN",
+        "status": req.status or "DRAFT",
         "created_at": now_utc(),
     }
     await matchdays_col.insert_one(matchday)
