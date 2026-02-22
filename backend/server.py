@@ -392,6 +392,7 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
                 {"$set": {
                     "base_points": base_points,
                     "joker_bonus": joker_bonus,
+                    "special_bonus": special_bonus,
                     "total_points": total_points,
                     "joker_active": joker_active,
                     "valid_matches": points_data["matches_total"],
@@ -407,6 +408,7 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
                 "league_id": league_id,
                 "base_points": base_points,
                 "joker_bonus": joker_bonus,
+                "special_bonus": special_bonus,
                 "total_points": total_points,
                 "joker_active": joker_active,
                 "valid_matches": points_data["matches_total"],
