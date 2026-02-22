@@ -340,7 +340,7 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
         logger.info(f"[SCORING] No matches found for matchday {matchday_id}")
         return
     
-    preds = await predictions_col.find({"match_id": {"$in": match_ids}}).to_list(10000)
+    preds = await predictions_col.find({"match_id": {"$in": match_ids}, "league_id": league_id}).to_list(10000)
     
     # 3. Calculate points for each prediction
     user_points = {}  # user_id -> {base_points, matches_correct, matches_total}
