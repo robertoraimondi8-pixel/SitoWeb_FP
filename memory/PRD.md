@@ -40,6 +40,7 @@ Real-time live standings integrated into the existing Weekly Rankings screen.
   - `get_home()`: Added live ranking computation (live_rank, live_points, total_members) when matchday is LIVE
   - `get_weekly_standings()`: Shows ALL league members for LIVE matchdays (including 0-point users). Added `matchday_status` to response. Computes effective matchday status.
   - `get_available_matchdays()`: Includes OPEN/LIVE matchdays even without predictions. Computes effective status for OPEN matchdays.
+  - `get_user_predictions_transparency()`: Fixed LIVE match points calculation — added `"live"` to match status check so live matches with scores calculate points on the fly (was treating them as "pending" with 0 pts).
   - NO new endpoints created. NO DB changes. NO score_summaries writes.
 - **Frontend**:
   - Home: Replaced LIVE points box with "Classifica LIVE" button showing provisional rank + points. Click navigates to Rankings > Weekly with LIVE matchday auto-selected.
