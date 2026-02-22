@@ -911,8 +911,8 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         match_count = await matches_col.count_documents(_match_source_query(matchday["id"], _md_source_lid))
         total_matches = max(match_count, MATCHES_PER_MATCHDAY)  # Mai mostrare 0/0
         
-        # Predictions count MUST filter by league_id for strict isolation
-        my_predictions = await predictions_col.count_documents({"user_id": user["id"], "matchday_id": matchday["id"], "league_id": active_league["id"]})
+        # Predictions count — predictions are per user+match, NOT per league
+        my_predictions = await predictions_col.count_documents({"user_id": user["id"], "matchday_id": matchday["id"]})
 
         # Per matchday COMPLETED: carica punti da score_summaries (con league_id)
         my_points = None
@@ -939,7 +939,8 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         # Live data if matchday is LIVE
         if matchday["status"] == "LIVE":
             live_matches = await matches_col.find(_match_source_query(matchday["id"], _md_source_lid), {"_id": 0}).to_list(20)
-            preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday["id"], "league_id": active_league["id"]}, {"_id": 0}).to_list(20)
+            # Predictions are per user+match — no league_id filter for own predictions
+            preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday["id"]}, {"_id": 0}).to_list(20)
             preds_dict = {p["match_id"]: p for p in preds}
             joker = await joker_usages_col.find_one({"user_id": user["id"], "matchday_id": matchday["id"]}, {"_id": 0})
             joker_active = joker is not None and joker.get("is_active", False)
