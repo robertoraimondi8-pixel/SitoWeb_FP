@@ -951,7 +951,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
                 pred = preds_dict.get(m["id"])
                 pts = 0.0
                 if pred and m.get("home_score") is not None:
-                    pts, _ = calculate_match_points(pred["prediction_value"], pred.get("market_type", m.get("market_type", "1X2")), m.get("home_score"), m.get("away_score"), m["status"])
+                    pts, _ = calculate_match_points(pred["prediction_value"], pred.get("market_type", m.get("market_type", "1X2")), m.get("home_score"), m.get("away_score"), m["status"], multiplier=m.get("multiplier", 1.0))
                     if m["status"] not in ("void", "postponed", "cancelled"):
                         base_pts_sum += pts
                 live_list.append({
