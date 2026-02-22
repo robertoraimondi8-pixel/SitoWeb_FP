@@ -1,0 +1,142 @@
+{
+  "summary": "Classifica LIVE Feature Testing Complete - All features verified working correctly (Backend: 9/9 tests passed, Frontend: 5/5 flows verified)",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "feature_1_home_classifica_live_box": {
+      "description": "Home page shows 'Classifica LIVE' box with rank position and points when matchday is LIVE",
+      "status": "PASSED",
+      "evidence": [
+        "Screenshot confirms 'Classifica LIVE' box visible on home with '1° • 0.5 pts' for Desylega",
+        "API returns live_rank=1, live_points=3.5, total_members=10 for National League",
+        "Box shows green border, LIVE badge, and chevron-forward icon"
+      ]
+    },
+    "feature_2_navigation_to_rankings": {
+      "description": "Home 'Classifica LIVE' box click navigates to Rankings tab -> Weekly tab with LIVE matchday selected",
+      "status": "PASSED",
+      "evidence": [
+        "Navigation URL: /rankings?tab=weekly&matchdayId=23c88f47-475f-4aa5-8fe8-f13d61d43cbe&leagueId=...",
+        "Weekly tab automatically selected",
+        "LIVE matchday pre-selected in dropdown",
+        "Matchday selector shows 'Giornata 20 LIVE'"
+      ]
+    },
+    "feature_3_all_members_live_standings": {
+      "description": "Weekly standings for LIVE matchday shows ALL 10 league members (including those with 0 pts)",
+      "status": "PASSED",
+      "evidence": [
+        "API returns 10 entries for National League LIVE matchday",
+        "Includes users with 0.0 points (joiner_1771426142, joinuser367daec6, etc.)",
+        "Frontend displays all members correctly"
+      ]
+    },
+    "feature_4_matchday_status_field": {
+      "description": "matchday_status field is returned in weekly standings API response",
+      "status": "PASSED",
+      "evidence": [
+        "API response includes 'matchday_status': 'LIVE'",
+        "Test test_matchday_status_in_response passed"
+      ]
+    },
+    "feature_5_live_badge_styling": {
+      "description": "Rankings matchday selector shows LIVE badge/styling when LIVE matchday selected",
+      "status": "PASSED",
+      "evidence": [
+        "Screenshot shows LIVE badge in matchday selector",
+        "'CLASSIFICA IN TEMPO REALE' green banner displayed",
+        "Matchday selector has green border when LIVE"
+      ]
+    },
+    "feature_6_user_predictions_click": {
+      "description": "Clicking a user in LIVE weekly standings opens user-predictions correctly",
+      "status": "PASSED",
+      "evidence": [
+        "Navigation to /user-predictions with correct params works",
+        "User predictions page loads correctly for users with predictions"
+      ]
+    },
+    "feature_7_nessun_pronostico": {
+      "description": "User-predictions page shows 'Nessun pronostico' for users without predictions",
+      "status": "PASSED",
+      "evidence": [
+        "Screenshot confirms 'Nessun pronostico' message displayed",
+        "Message: 'joiner_1771426142 non ha inserito pronostici per questa giornata'",
+        "Empty icon and proper layout shown"
+      ]
+    },
+    "feature_8_total_standings_regression": {
+      "description": "No regression: Total standings still work correctly",
+      "status": "PASSED",
+      "evidence": [
+        "API returns correct total standings data",
+        "Test test_total_standings_still_works passed"
+      ]
+    },
+    "feature_9_completed_matchday_regression": {
+      "description": "No regression: COMPLETED matchday weekly standings still work (don't show all members)",
+      "status": "PASSED",
+      "evidence": [
+        "COMPLETED matchday G17 shows only 1 entry (only users who played)",
+        "LIVE matchday G20 shows 10 entries (all members)",
+        "Test test_completed_matchday_shows_only_players passed"
+      ]
+    },
+    "feature_10_multi_league_isolation": {
+      "description": "Multi-league isolation: different leagues show different data",
+      "status": "PASSED",
+      "evidence": [
+        "National League: 10 members, live_rank=2 for admin",
+        "Desylega: 1 member, live_rank=1 for desy",
+        "Different points shown per league"
+      ]
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_live_classifica.py",
+    "/app/test_reports/pytest/live_classifica_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend correctly implements LIVE status check at line 2207-2208: 'if not is_manual and matchday[\"status\"] != \"LIVE\"'",
+    "Home API correctly computes live_rank and live_points at lines 979-1022",
+    "Frontend home.tsx correctly shows 'Classifica LIVE' box with data-testid='live-standings-btn'",
+    "Frontend rankings.tsx correctly reads tab/matchdayId params and shows LIVE banner",
+    "User-predictions.tsx correctly handles empty predictions with 'Nessun pronostico' message",
+    "All queries properly filter by league_id for data isolation"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_live_classifica.py (new test file)"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 tests passed)",
+    "frontend": "100% (5 flows verified via Playwright)"
+  },
+  "test_credentials": {
+    "desiree": "desiree@raimondi.it / Roberto95",
+    "admin": "admin@fantapronostic.com / admin123"
+  },
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Classifica LIVE feature fully implemented and tested. Key endpoints: GET /api/home returns live_rank/live_points/total_members for LIVE matchdays. GET /api/standings/weekly/{id}?league_id=X returns ALL members for LIVE matchdays (special behavior per line 2207-2208). Available matchdays includes LIVE. User predictions shows 'Nessun pronostico' for empty predictions. All features verified with both backend tests and frontend Playwright automation.",
+  "verified_endpoints": {
+    "GET /api/home?league_id=X": "Returns live_rank, live_points, total_members when matchday is LIVE",
+    "GET /api/standings/weekly/{matchday_id}?league_id=X": "Returns ALL members for LIVE matchdays, only players for COMPLETED",
+    "GET /api/standings/matchdays?league_id=X": "Includes LIVE matchdays with status field",
+    "GET /api/predictions/user/{user_id}/{matchday_id}?league_id=X": "Returns empty predictions for users who didn't play",
+    "GET /api/standings/total?league_id=X": "Still works correctly (regression verified)"
+  },
+  "screenshots": [
+    ".screenshots/01_home_with_live_box.png - Shows 'Classifica LIVE' box on home page",
+    ".screenshots/02_after_live_click.png - Rankings page after clicking LIVE box",
+    ".screenshots/01_user_predictions_empty.png - 'Nessun pronostico' message"
+  ]
+}
