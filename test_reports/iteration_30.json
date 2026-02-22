@@ -1,0 +1,96 @@
+{
+  "summary": "P0 Bug Fixes Testing Complete - All 3 critical bugs verified FIXED. P0-1 (import duplicates), P0-2 (predictions disappear), P0-3 (stale last_5_performance) all working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "P0-1_import_fixtures_duplicate_check": {
+      "description": "POST /api/admin/real-fixtures/import returns skipped_details with existing_matchday name",
+      "status": "PASSED",
+      "evidence": "Response includes skipped_details: [{fixture_id: 1378114, reason: 'already_imported', existing_matchday: 'Giornata 16', match: 'Atalanta vs Napoli'}]",
+      "backend_location": "/app/backend/server.py lines 3810-3893"
+    },
+    "P0-2_live_predictions_G15": {
+      "description": "GET /api/live/{matchday_id} returns predictions for COMPLETED matchday G15",
+      "status": "PASSED",
+      "evidence": "G15 (id=42666812-114a-4195-b0b7-33d72155d9ad): 4 matches, 4 predictions found, status=COMPLETED",
+      "backend_location": "/app/backend/server.py lines 2745-2833"
+    },
+    "P0-2_live_predictions_G17": {
+      "description": "GET /api/live/{matchday_id} returns predictions for COMPLETED matchday G17",
+      "status": "PASSED",
+      "evidence": "G17 (id=38df601f-49f7-47d1-8f7e-2aa524884f7d): 2 matches, 2 predictions found, status=COMPLETED",
+      "backend_location": "/app/backend/server.py lines 2745-2833"
+    },
+    "P0-3_last_5_performance": {
+      "description": "GET /api/home returns last_5_performance with 5 most recent COMPLETED national matchdays",
+      "status": "PASSED",
+      "evidence": "last_5_performance contains G13, G14, G15, G16, G17 (5 matchdays, not just G16-G17)",
+      "backend_location": "/app/backend/server.py lines 996-1019"
+    },
+    "P0-3_user_summary": {
+      "description": "GET /api/home user_summary shows correct total_points and matchdays_played",
+      "status": "PASSED",
+      "evidence": "user_summary: {total_points: 25, matchdays_played: 9, rank: 1}",
+      "backend_location": "/app/backend/server.py lines 1047-1058"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_p0_bugfixes.py",
+    "/app/test_reports/pytest/p0_bugfixes_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✓ P0-1 Fix: Import fixtures now queries matches collection globally by external_fixture_id and returns detailed skipped_details including existing_matchday label and match teams",
+    "✓ P0-2 Fix: Live endpoint correctly returns predictions for COMPLETED matchdays - predictions no longer disappear",
+    "✓ P0-3 Fix: Home endpoint now queries matchdays collection directly with NATIONAL_LEAGUE_ID instead of predictions (which had inconsistent league_ids), user_matchdays_played uses score_summaries distinct count"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_p0_bugfixes.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123",
+    "test_user": "test@raimondi.it / password123"
+  },
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All P0 bugs fixed and verified. Key test matchday IDs: G15=42666812-114a-4195-b0b7-33d72155d9ad, G16=68523813-a795-4a74-87ec-68bdd0b7ace0, G17=38df601f-49f7-47d1-8f7e-2aa524884f7d. Already imported fixture: 1378114 (Atalanta vs Napoli in G16). NATIONAL_LEAGUE_ID=f1373417-43aa-4043-b6a2-125873181c95.",
+  "detailed_verification": {
+    "P0-1": {
+      "bug": "Import API-Football fixtures fails with wrong duplicate check",
+      "fix": "Returns skipped_details with existing_matchday name when fixture already imported",
+      "verified_data": {
+        "fixture_id": 1378114,
+        "existing_matchday": "Giornata 16",
+        "match": "Atalanta vs Napoli"
+      }
+    },
+    "P0-2": {
+      "bug": "Predictions disappear on LIVE/COMPLETED matchdays",
+      "fix": "Live endpoint returns predictions correctly for COMPLETED matchdays",
+      "verified_data": {
+        "G15": {"predictions_found": 4, "matches_count": 4},
+        "G17": {"predictions_found": 2, "matches_count": 2}
+      }
+    },
+    "P0-3": {
+      "bug": "Home screen 'Ultimi 5 risultati' shows stale data",
+      "fix": "Query matchdays collection directly with NATIONAL_LEAGUE_ID instead of predictions",
+      "verified_data": {
+        "last_5_matchdays": [13, 14, 15, 16, 17],
+        "total_points": 25,
+        "matchdays_played": 9
+      }
+    }
+  }
+}
