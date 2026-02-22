@@ -29,12 +29,9 @@ const MARKET_TYPES = ['1X2', 'GOAL_NGOAL', 'OVER_UNDER', 'EXACT_SCORE'];
 const MATCH_STATUS_OPTIONS = ['scheduled', 'live', 'finished', 'postponed', 'cancelled', 'void'];
 const MAX_MATCHES = 10;
 
-const STATUS_LABELS: Record<string, string> = { DRAFT: 'BOZZA', OPEN: 'APERTA', LOCKED: 'BLOCCATA', LIVE: 'IN CORSO', COMPLETED: 'COMPLETATA' };
+const STATUS_LABELS: Record<string, string> = { DRAFT: 'BOZZA', OPEN: 'APERTA', LIVE: 'IN CORSO', COMPLETED: 'COMPLETATA' };
 const TRANSITION_BTN: Record<string, { label: string; target: string; icon: string }> = {
-  DRAFT: { label: 'Apri Giornata', target: 'OPEN', icon: 'play-circle' },
-  OPEN: { label: 'Blocca Pronostici', target: 'LOCKED', icon: 'lock-closed' },
-  LOCKED: { label: 'Segna come In Corso', target: 'LIVE', icon: 'radio' },
-  LIVE: { label: 'Completa e Calcola', target: 'COMPLETED', icon: 'checkmark-done-circle' },
+  DRAFT: { label: 'Pubblica Giornata', target: 'OPEN', icon: 'rocket' },
 };
 
 export default function AdminConsoleV3() {
