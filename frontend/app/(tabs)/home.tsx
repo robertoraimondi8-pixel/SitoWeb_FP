@@ -127,21 +127,6 @@ export default function HomeScreen() {
     return (sum / perf.length).toFixed(1);
   };
 
-  // Weekly goal
-  const getWeeklyGoal = () => {
-    if (!data?.user_summary) return null;
-    const rank = data.user_summary.rank;
-    if (!rank || rank < 1) return null;
-    const avg = getAvgLast5();
-    const avgNum = avg ? parseFloat(avg) : 2;
-    if (rank === 1) {
-      const target = Math.max(avgNum, 2).toFixed(0);
-      return t('home.goal_keep_position', { points: target, rank: 1 });
-    }
-    const target = (avgNum + 1).toFixed(0);
-    return t('home.goal_climb_position', { points: target, rank: rank - 1 });
-  };
-
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -153,7 +138,6 @@ export default function HomeScreen() {
   const ctaConfig = data?.matchday ? getCtaConfig(data.matchday.status) : null;
   const matchdayMsg = getMatchdayMessage();
   const avg5 = getAvgLast5();
-  const weeklyGoal = getWeeklyGoal();
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
