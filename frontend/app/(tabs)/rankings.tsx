@@ -37,14 +37,33 @@ export default function RankingsScreen() {
   const { t } = useTranslation();
   const { token, user, handleAuthError } = useAuth();
   const { activeLeague } = useLeague();
+  const params = useLocalSearchParams<{ tab?: string; matchdayId?: string; leagueId?: string }>();
   const [tab, setTab] = useState<'total' | 'weekly'>('total');
   const [standings, setStandings] = useState<StandingsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isLiveMatchday, setIsLiveMatchday] = useState(false);
   
   // Weekly specific
   const [matchdays, setMatchdays] = useState<League[]>([]);
   const [selectedMatchday, setSelectedMatchday] = useState<StandingsData | null>(null);
   const [showMatchdayPicker, setShowMatchdayPicker] = useState(false);
+
+  // Handle incoming navigation params (from Home LIVE button)
+  useEffect(() => {
+    if (params.tab === 'weekly') {
+      setTab('weekly');
+    }
+  }, [params.tab]);
+
+  // Auto-select matchday from params once matchdays are loaded
+  useEffect(() => {
+    if (params.matchdayId && matchdays.length > 0) {
+      const targetMd = matchdays.find((m: any) => m.id === params.matchdayId);
+      if (targetMd) {
+        setSelectedMatchday(targetMd);
+      }
+    }
+  }, [params.matchdayId, matchdays]);
 
   // Load matchdays when activeLeague changes
   useEffect(() => {
