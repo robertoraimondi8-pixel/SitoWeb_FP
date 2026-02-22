@@ -3723,7 +3723,7 @@ def _get_apifootball() -> APIFootballClient:
 
 
 @fixtures_router.get("/leagues")
-async def real_fixtures_leagues(admin=Depends(require_admin)):
+async def real_fixtures_leagues(user=Depends(get_current_user)):
     """Top 5 leagues with current season."""
     try:
         client = _get_apifootball()
@@ -3739,7 +3739,7 @@ async def real_fixtures_search(
     season: int = Query(..., description="Season year, e.g. 2025"),
     date_from: Optional[str] = Query(None, alias="from", description="YYYY-MM-DD"),
     date_to: Optional[str] = Query(None, alias="to", description="YYYY-MM-DD"),
-    admin=Depends(require_admin),
+    user=Depends(get_current_user),
 ):
     """Search real fixtures from API-Football."""
     try:
