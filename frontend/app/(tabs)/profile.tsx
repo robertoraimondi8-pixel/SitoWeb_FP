@@ -107,7 +107,7 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{user?.role === 'admin' ? t('profile.role_admin') : ownedLeagues.length > 0 ? t('profile.role_owner') : t('profile.role_player')}</Text>
+              <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>{user?.role === 'admin' ? t('profile.role_admin') : ownedLeagues.length > 0 ? t('profile.role_owner') : t('profile.role_player')}</Text>
               <Text style={styles.statLabel}>{t('profile.role')}</Text>
             </View>
           </View>
