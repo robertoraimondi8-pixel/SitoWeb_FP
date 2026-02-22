@@ -3337,6 +3337,49 @@ async def admin_delete_match(match_id: str, admin=Depends(require_admin)):
     }
 
 
+@admin_router.post("/matches/{match_id}/special")
+async def admin_set_special_match(match_id: str, body: dict = {}, admin=Depends(require_admin)):
+    """Imposta/rimuovi Partita Speciale X3.
+    Body opzionale: {"is_special": true/false}
+    Max 1 partita speciale per giornata. Se ne selezioni una nuova, la precedente perde lo status.
+    """
+    match = await matches_col.find_one({"id": match_id}, {"_id": 0})
+    if not match:
+        raise HTTPException(404, "Partita non trovata")
+    
+    # Toggle: se non specificato, inverti lo stato corrente
+    new_special = body.get("is_special", not match.get("is_special", False))
+    matchday_id = match.get("matchday_id")
+    
+    if new_special:
+        # Rimuovi lo status speciale dalla partita precedente (max 1 per giornata)
+        await matches_col.update_many(
+            {"matchday_id": matchday_id, "is_special": True, "id": {"$ne": match_id}},
+            {"$set": {"is_special": False, "multiplier": 1.0}}
+        )
+        # Imposta questa come speciale
+        await matches_col.update_one(
+            {"id": match_id},
+            {"$set": {"is_special": True, "multiplier": 3.0}}
+        )
+        logger.info(f"[SPECIAL] Match {match_id} set as X3 special in matchday {matchday_id}")
+    else:
+        # Rimuovi lo status speciale
+        await matches_col.update_one(
+            {"id": match_id},
+            {"$set": {"is_special": False, "multiplier": 1.0}}
+        )
+        logger.info(f"[SPECIAL] Match {match_id} unset as special in matchday {matchday_id}")
+    
+    return {
+        "status": "ok",
+        "match_id": match_id,
+        "is_special": new_special,
+        "multiplier": 3.0 if new_special else 1.0,
+    }
+
+
+
 @admin_router.post("/matches/{match_id}/live-update")
 async def admin_live_update(match_id: str, req: LiveUpdateRequest, admin=Depends(require_admin)):
     match = await matches_col.find_one({"id": match_id}, {"_id": 0})
