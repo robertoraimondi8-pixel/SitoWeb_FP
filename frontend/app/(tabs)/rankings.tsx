@@ -101,6 +101,8 @@ export default function RankingsScreen() {
       }
       const res = await apiCall(url, { token });
       setStandings(res);
+      // Track if viewing a LIVE matchday
+      setIsLiveMatchday(tab === 'weekly' && (res?.matchday_status === 'LIVE' || selectedMatchday?.status === 'LIVE'));
     } catch (e: unknown) { 
       if (isAuthError(e)) {
         const didLogout = await handleAuthError(e);
