@@ -24,6 +24,8 @@ interface Prediction {
   prediction_value: string | null;
   outcome: 'correct' | 'wrong' | 'pending' | 'no_prediction';
   points: number;
+  is_special?: boolean;
+  multiplier?: number;
 }
 
 export default function UserPredictionsScreen() {
