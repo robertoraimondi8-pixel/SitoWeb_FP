@@ -450,23 +450,35 @@ export default function AdminConsoleV3() {
         {actionLoading && <ActivityIndicator size="small" color={colors.accent} />}
       </View>
 
-      {/* League Selector */}
-      <TouchableOpacity
-        data-testid="league-selector"
-        style={[s.leagueSelector, { backgroundColor: colors.card, borderColor: colors.border }]}
-        onPress={() => setShowLeagueDropdown(true)}
-      >
-        <Ionicons name={selectedLeague?._is_national ? 'trophy' : 'shield'} size={20} color={colors.accent} />
-        <Text style={[s.leagueSelectorText, { color: colors.text }]} numberOfLines={1}>
-          {selectedLeague?.name || 'Seleziona lega...'}
-        </Text>
-        {selectedLeague?._is_national && (
-          <View style={[s.nationalBadge, { backgroundColor: colors.accent }]}>
-            <Text style={s.nationalBadgeText}>NAZIONALE</Text>
-          </View>
-        )}
-        <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
-      </TouchableOpacity>
+      {/* League Selector: dropdown per super admin, statico per league owner */}
+      {isSuperAdmin ? (
+        <TouchableOpacity
+          data-testid="league-selector"
+          style={[s.leagueSelector, { backgroundColor: colors.card, borderColor: colors.border }]}
+          onPress={() => setShowLeagueDropdown(true)}
+        >
+          <Ionicons name={selectedLeague?._is_national ? 'trophy' : 'shield'} size={20} color={colors.accent} />
+          <Text style={[s.leagueSelectorText, { color: colors.text }]} numberOfLines={1}>
+            {selectedLeague?.name || 'Seleziona lega...'}
+          </Text>
+          {selectedLeague?._is_national && (
+            <View style={[s.nationalBadge, { backgroundColor: colors.accent }]}>
+              <Text style={s.nationalBadgeText}>NAZIONALE</Text>
+            </View>
+          )}
+          <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+      ) : (
+        <View
+          data-testid="league-selector-static"
+          style={[s.leagueSelector, { backgroundColor: colors.card, borderColor: colors.border }]}
+        >
+          <Ionicons name="shield" size={20} color={colors.accent} />
+          <Text style={[s.leagueSelectorText, { color: colors.text }]} numberOfLines={1}>
+            {selectedLeague?.name || 'Nessuna lega attiva'}
+          </Text>
+        </View>
+      )}
 
       <ScrollView
         contentContainerStyle={s.scrollContent}
