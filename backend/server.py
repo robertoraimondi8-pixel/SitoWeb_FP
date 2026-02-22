@@ -2773,7 +2773,8 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
             pred_market = pred.get("market_type", m.get("market_type", "1X2"))
             pts, is_correct = calculate_match_points(
                 pred["prediction_value"], pred_market,
-                m.get("home_score"), m.get("away_score"), m["status"]
+                m.get("home_score"), m.get("away_score"), m["status"],
+                multiplier=m.get("multiplier", 1.0)
             )
             if is_correct is True:
                 outcome = "correct"
