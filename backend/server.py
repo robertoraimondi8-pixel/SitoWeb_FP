@@ -227,6 +227,7 @@ async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
         return {
             "base_points": score_summary.get("base_points", 0),
             "joker_bonus": score_summary.get("joker_bonus", 0),
+            "special_bonus": score_summary.get("special_bonus", 0),
             "total_points": score_summary.get("total_points", 0),
             "joker_active": score_summary.get("joker_active", False),
         }
