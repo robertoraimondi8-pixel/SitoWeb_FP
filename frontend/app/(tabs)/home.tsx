@@ -303,6 +303,20 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* ─── LIVE POINTS BOX ─── */}
+        {data?.matchday?.status?.toUpperCase() === 'LIVE' && (
+          <View style={styles.liveBox} data-testid="live-points-box">
+            <View style={styles.liveBoxBadge}>
+              <View style={styles.liveBoxDot} />
+              <Text style={styles.liveBoxBadgeText}>LIVE</Text>
+            </View>
+            <Text style={styles.liveBoxPoints}>
+              {formatPoints(data.live?.total_provisional ?? 0)} pts
+            </Text>
+            <Text style={styles.liveBoxLabel}>Punti provvisori</Text>
+          </View>
+        )}
+
         {/* ─── 2. PERFORMANCE CARD ─── */}
         {data?.user_summary && (
           <View style={styles.perfCard} data-testid="performance-card">
