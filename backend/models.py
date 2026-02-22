@@ -149,8 +149,8 @@ class MatchdayCreate(BaseModel):
     number: int
     label: Optional[str] = None
     half: int = Field(ge=1, le=2)
-    first_kickoff: Optional[str] = None  # ISO datetime, nullable
-    status: str = "OPEN"
+    first_kickoff: Optional[str] = None  # Auto-computed from matches
+    status: str = "DRAFT"
 
 
 class MatchdayResponse(BaseModel):
