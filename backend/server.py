@@ -2587,8 +2587,11 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
     matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
     matches_dict = {m["id"]: m for m in matches}
 
-    # Get user predictions — predictions are per user+match, NOT per league
-    preds = await predictions_col.find({"user_id": target_user_id, "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    # Get user predictions — predictions are per user+match+league
+    pred_filter = {"user_id": target_user_id, "matchday_id": matchday_id}
+    if league_id:
+        pred_filter["league_id"] = league_id
+    preds = await predictions_col.find(pred_filter, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
 
     # Get joker status
