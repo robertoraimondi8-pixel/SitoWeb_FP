@@ -53,6 +53,7 @@ export default function PredictionsScreen() {
   const [data, setData] = useState<PredictionsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [infoMarket, setInfoMarket] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [preds, setPreds] = useState<Record<string, MatchPred>>({});
   const [joker, setJoker] = useState<JokerState>({ is_active: false, is_locked: false, used_other_matchday: false, half: 1 });
