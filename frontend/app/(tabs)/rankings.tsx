@@ -285,8 +285,35 @@ export default function RankingsScreen() {
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Search Bar */}
+          <View style={styles.searchContainer} data-testid="search-bar">
+            <Ionicons name="search" size={18} color={colors.textMuted} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Cerca utente..."
+              placeholderTextColor={colors.textMuted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+              data-testid="search-input"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')} data-testid="search-clear">
+                <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+            )}
+          </View>
+
           <View style={styles.listCard}>
-            {standings?.entries?.map((entry: StandingEntry, i: number) => renderEntry(entry, i))}
+            {filteredEntries.length > 0 ? (
+              filteredEntries.map((entry: StandingEntry, i: number) => renderEntry(entry, i))
+            ) : (
+              <View style={styles.emptySearch} data-testid="no-results">
+                <Ionicons name="person-outline" size={32} color={colors.textMuted} />
+                <Text style={styles.emptySearchText}>Nessun utente trovato</Text>
+              </View>
+            )}}
           </View>
 
           {standings?.my_position && !standings.entries?.find((e: StandingEntry) => e.is_current_user) && (
