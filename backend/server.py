@@ -882,7 +882,8 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
 
     if matchday:
         # Compute effective status (kickoff-driven auto-transitions)
-        effective_status = await compute_matchday_status(matchday, _md_source_lid if '_md_source_lid' in dir() else active_league["id"])
+        _md_source_lid = active_league["id"] if is_manual_league else NATIONAL_LEAGUE_ID
+        effective_status = await compute_matchday_status(matchday, _md_source_lid)
         matchday["status"] = effective_status
 
         now = server_now()
