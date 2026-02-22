@@ -2587,14 +2587,15 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
             elif pred.get("is_correct") is False:
                 outcome = "wrong"
                 points = 0
-            elif final_match_status in ("finished", "void", "postponed", "cancelled"):
-                # Match is finished, calculate outcome on the fly
+            elif final_match_status in ("finished", "void", "postponed", "cancelled", "live"):
+                # Match is finished or live with scores — calculate outcome on the fly
                 pts, is_correct = calculate_match_points(
                     pred["prediction_value"],
                     pred.get("market_type", "1X2"),
                     m.get("home_score"),
                     m.get("away_score"),
-                    final_match_status
+                    final_match_status,
+                    multiplier=m.get("multiplier", 1.0),
                 )
                 if is_correct is True:
                     outcome = "correct"
@@ -2603,16 +2604,15 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
                     outcome = "wrong"
                     points = 0
                 else:
-                    # calculate_match_points returned None for is_correct
-                    # For COMPLETED matchdays, treat as wrong
                     if matchday["status"] == "COMPLETED":
                         outcome = "wrong"
+                    elif final_match_status == "live":
+                        outcome = "pending"
                     else:
                         outcome = "pending"
             else:
-                # Match not finished yet
+                # Match not started yet (scheduled)
                 if matchday["status"] == "COMPLETED":
-                    # Matchday completed but no stored result - treat as wrong
                     outcome = "wrong"
                 else:
                     outcome = "pending"
