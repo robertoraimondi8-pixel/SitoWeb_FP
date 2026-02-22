@@ -9,8 +9,8 @@ interface StatusBadgeProps {
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, label }) => {
   const isCompleted = status?.toUpperCase() === 'COMPLETED';
-  const backgroundColor = isCompleted ? '#E2E8F0' : getStatusColor(status);
-  const textColor = isCompleted ? '#64748B' : colors.textInverse;
+  const backgroundColor = isCompleted ? '#22C55E' : getStatusColor(status);
+  const textColor = colors.textInverse;
   const displayLabel = label || status;
   
   return (
