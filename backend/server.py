@@ -2177,11 +2177,11 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
     totals = await score_summaries_col.aggregate(pipeline).to_list(1000)
     totals_dict = {t["_id"]: t for t in totals}
 
-    # Get current week points for secondary sort
+    # Get current week points for secondary sort (ISOLAMENTO: filtra per league_id)
     current_week_points = {}
     if current_matchday:
         current_scores = await score_summaries_col.find(
-            {"matchday_id": current_matchday["id"], "user_id": {"$in": member_user_ids}},
+            {"matchday_id": current_matchday["id"], "user_id": {"$in": member_user_ids}, "league_id": league_id},
             {"_id": 0}
         ).to_list(1000)
         current_week_points = {s["user_id"]: s["total_points"] for s in current_scores}
@@ -2407,9 +2407,9 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
     else:
         season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
 
-    # Aggregate total points for this user
+    # Aggregate total points for this user (ISOLAMENTO: filtra per league_id)
     pipeline = [
-        {"$match": {"user_id": target_user_id}},
+        {"$match": {"user_id": target_user_id, "league_id": league_id}},
         {"$group": {
             "_id": "$user_id", 
             "total_points": {"$sum": "$total_points"}, 
@@ -2434,7 +2434,7 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
         if current_matchday:
             last_matchday_id = current_matchday["id"]
             current_score = await score_summaries_col.find_one(
-                {"user_id": target_user_id, "matchday_id": current_matchday["id"]},
+                {"user_id": target_user_id, "matchday_id": current_matchday["id"], "league_id": league_id},
                 {"_id": 0}
             )
             if current_score:
@@ -2452,9 +2452,9 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
     members = await memberships_col.find({"league_id": league_id, "status": "active"}).to_list(1000)
     member_user_ids = [m["user_id"] for m in members]
 
-    # Get all totals for ranking
+    # Get all totals for ranking (ISOLAMENTO: filtra per league_id)
     all_totals_pipeline = [
-        {"$match": {"user_id": {"$in": member_user_ids}}},
+        {"$match": {"user_id": {"$in": member_user_ids}, "league_id": league_id}},
         {"$group": {
             "_id": "$user_id", 
             "total_points": {"$sum": "$total_points"}, 
