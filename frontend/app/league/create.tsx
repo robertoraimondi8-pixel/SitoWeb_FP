@@ -38,7 +38,7 @@ export default function CreateLeagueScreen() {
   const [startMD, setStartMD]       = useState(1);
   const [endMD, setEndMD]           = useState(38);
   const [deadline, setDeadline]     = useState(0);
-  const [sourceType, setSourceType] = useState<'national' | 'custom'>('national');
+  const [sourceType, setSourceType] = useState<'national' | 'custom' | 'api'>('national');
   const [scoring, setScoring]       = useState(DEFAULT_SCORING);
 
   // Dropdown open state
