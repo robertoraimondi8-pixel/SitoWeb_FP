@@ -462,51 +462,6 @@ export default function PredictionsScreen() {
         <StatusBadge status={matchdayStatus} label={getStatusLabel()} />
       </View>
 
-      {/* Jolly Banner */}
-      <View style={[
-        styles.jollyContainer, 
-        joker.is_active && styles.jollyContainerActive
-      ]}>
-        <View style={styles.jollyInfo}>
-          <View style={[styles.jollyIcon, joker.is_active && styles.jollyIconActive]}>
-            <Ionicons name="star" size={20} color={joker.is_active ? colors.textInverse : colors.accent} />
-          </View>
-          <View style={styles.jollyTextContainer}>
-            <Text style={[styles.jollyTitle, joker.is_active && styles.jollyTitleActive]}>
-              JOLLY GIORNATA
-            </Text>
-            <Text style={styles.jollySubtitle}>
-              {joker.half === 1 ? 'Andata' : 'Ritorno'} • Raddoppia tutti i punti
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity
-          testID="jolly-matchday-toggle"
-          onPress={handleJollyToggle}
-          disabled={jollyDisabled || jokerLoading}
-          style={[
-            styles.jollyToggleBtn,
-            joker.is_active && styles.jollyToggleBtnActive,
-            jollyDisabled && styles.jollyToggleBtnDisabled,
-          ]}
-        >
-          {jokerLoading ? (
-            <ActivityIndicator size="small" color={joker.is_active ? colors.accent : colors.textSecondary} />
-          ) : (
-            <>
-              {joker.is_locked && <Ionicons name="lock-closed" size={14} color={colors.textMuted} style={{ marginRight: 4 }} />}
-              <Text style={[
-                styles.jollyToggleText, 
-                joker.is_active && styles.jollyToggleTextActive,
-                jollyDisabled && styles.jollyToggleTextDisabled,
-              ]}>
-                {jollyStatusText}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           {/* Sort matches by start_time */}
