@@ -1,142 +1,114 @@
 <analysis>**original_problem_statement**:
-The user has reported a P0 critical data integrity bug. Data (points, standings, matchdays) is being mixed between different leagues, breaking the core principle of league isolation.
+The user has reported a series of critical bugs and architectural flaws related to data isolation between different fantasy leagues. The core of the project is to ensure that each league operates as a completely separate universe.
 
-PRODUCT REQUIREMENTS (Bugs):
-1.  **P0 — Critical Data Contamination**: Points and match history from one user in a specific league (e.g.,  in Lega Desiree) are incorrectly appearing in another league (e.g., Lega Nazionale). This is a critical data leak.
-2.  **Strict Mandate**: The user has instructed to ONLY fix the league isolation issue and not touch any other part of the application.
-3.  **Technical Requirements**:
-    *   Audit and fix all database queries and aggregations to be strictly filtered by . This includes total standings, weekly standings, home screen summaries, matchdays played counts, and prediction retrieval.
-    *   Implement a server-side guard to validate  consistency when a user saves predictions, rejecting the request if the  belongs to a different league.
-    *   If any contaminated data exists in the database, it must be cleaned or migrated.
+PRODUCT REQUIREMENTS:
+1.  **P0 - Critical Data Contamination**: Fix all instances where data (points, standings, matchdays) from one league leaks into another. This was the top priority.
+2.  **P0 - Architectural Mandate**: Redesign the data model to enforce league isolation at the database level. Specifically, predictions must be unique per .
+3.  **Feature Removal - Rimozione Jolly**: Surgically remove the Jolly (Joker) feature from the application. The user has been extremely specific that this should be done with minimal impact, avoiding changes to core calculation logic.
+4.  **Bug Fix - Weekly Standings**: Fix a bug where the weekly standings page for a private league was incorrectly displaying all matchdays from the national league, instead of only the matchdays the league's members participated in.
+5.  **Strict Mandate**: The user has repeatedly insisted on surgical fixes, with an explicit instruction to not refactor or modify anything beyond the scope of the immediate bug or task.
 
 **User's preferred language**: Italiano
 
 **what currently exists?**
-The agent has started tackling the P0 data contamination bug. An initial database audit revealed that the  collection was the source of contamination, with some entries having a   and others being assigned to the wrong league.
+The agent has successfully addressed all user requests from the session. The last task was to fix a bug in the weekly standings (). The agent identified that for non-manual leagues, the endpoint was incorrectly returning all national league matchdays. A fix was implemented in  to modify the database query, ensuring it only returns matchdays for which members of the specified league have submitted predictions. This fix was tested via curl and is now pending user verification.
 
-A data cleanup script was successfully executed to:
-1.  Delete all  where  was .
-2.  Re-assign the  of a specific user to their correct league.
-
-The agent then began the process of systematically adding  filters to all relevant queries in . The fixes for the  endpoint have been partially implemented, and the agent was in the process of fixing the  endpoint when the session ended.
+Prior to this, the agent completed several major tasks:
+-   A full architectural migration to isolate predictions by .
+-   A comprehensive audit and fix for all endpoints to prevent data leakage between leagues.
+-   The surgical removal of the Jolly feature from both the backend and frontend.
 
 **Last working item**:
--   Last item agent was working: Fixing the critical P0 data contamination bug. The agent was actively editing  to add a  filter to the database query within the  endpoint.
--   Status: IN PROGRESS
--   Agent Testing Done: N
--   Which testing method agent to use? both
+-   Last item agent was working: Fixing a bug where the weekly standings for a private league () showed all matchdays from the national league instead of only the ones played by its members.
+-   Status: USER VERIFICATION PENDING
+-   Agent Testing Done: Y
+-   Which testing method agent to use? frontend testing agent (To verify that the weekly standings dropdown in the UI correctly shows the filtered list of matchdays for a private league like 'legadesy').
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: P0 - Critical Data Contamination Between Leagues (P0 - HIGHEST PRIORITY)
-
-Issues Detail:
--   Issue 1: **P0 - Critical Data Contamination Between Leagues**
-    -   Attempted fixes:
-        -   A one-time data cleanup script was run on the  collection.
-        -   The agent started adding  filters to queries in , beginning with the  endpoint and then moving to .
-    -   Next debug checklist:
-        1.  Resume and complete the fix for the  endpoint in .
-        2.  Systematically audit and fix all other data retrieval endpoints to enforce  filtering. This includes:
-            *   
-            *   
-            *   
-            *   
-        3.  Implement the server-side guard in the  endpoint to prevent users from saving predictions for matchdays outside their league.
-        4.  Conduct thorough testing with at least two different users in two separate leagues to confirm that all data (home screen, standings, match history) is completely isolated.
-    -   Why fix this issue and what will be achieved with the fix? This is a critical data integrity failure. Fixing it is essential to restore user trust and ensure the application's core functionality—isolated fantasy leagues—works as intended.
-    -   Status: IN PROGRESS
-    -   Is recurring issue? Y
-    -   Should Test frontend/backend/both after fix? Both
-    -   Blocked on other issue: None
+There are no pending or in-progress issues. The last working item is considered complete from the agent's side, awaiting user confirmation.
 
 **In progress Task List**:
--   Task 1: Complete the systematic fix for league data isolation.
-    -   Where to resume: Continue editing  at the  endpoint logic to ensure it filters by .
-    -   What will be achieved with this? All backend endpoints will correctly isolate data by league, resolving the P0 contamination bug.
-    -   Status: IN PROGRESS
-    -   Should Test frontend/backend/both after fix? Both
-    -   Blocked on something: None
+There are no in-progress tasks.
 
 **Upcoming and Future Tasks**
--   Upcoming Tasks:
-    -   **Rimozione Jolly**: Remove the legacy Jolly feature from the codebase and database. (P1)
--   Future Tasks:
-    -   Implement Championship Winner Predictions Feature.
-    -   Integrate Stripe for joining the National League.
-    -   Re-enable email verification.
-    -   Implement Push Notifications.
+-   **Upcoming Tasks**:
+    -   None. The agent should await user feedback on the last fix.
+-   **Future Tasks** (From PRD/previous context):
+    -   Implement Championship Winner Predictions Feature. (P2)
+    -   Integrate Stripe for joining the National League. (P2)
+    -   Re-enable email verification. (P2)
+    -   Implement Push Notifications. (P2)
 
 **Completed work in this session**
--   **Bug Fix (Data Scoping)**: Corrected multiple endpoints (, , , etc.) where queries for National League were not correctly aggregating data, leading to inconsistent point totals.
--   **Bug Fix (Admin Panel)**: Ensured the  function is called after fixture imports, fixing a bug where the admin panel showed a false warning about missing kickoff times.
--   **UI Fixes**:
-    -   Restored the green Punti provvisori box on the Home screen.
-    -   Added the X3 special match badge to the  matchday detail screen and the weekly ranking summary.
--   **Data Cleanup**: Executed a one-time migration script to clean the  collection, removing invalid entries and correcting mis-assigned ones.
+-   **Bug Fix (Weekly Standings)**: Corrected the  endpoint to filter matchdays based on league participation, ensuring private leagues only see relevant weekly standings.
+-   **UI Cleanup (Jolly)**: Removed all remaining Jolly related UI elements from the predictions, user detail, and user predictions screens as requested by the user.
+-   **Architectural Refactor (P0 - Prediction Isolation)**: Fundamentally changed the database schema and application logic to make predictions unique per . This included migrating DB indexes and updating all create, read, and update queries across  and .
+-   **Feature Removal (Jolly)**: Surgically disabled the Jolly feature by neutralizing its bonus points at all calculation entry points in  and removing the associated API endpoints and frontend UI components, without altering the core points calculation functions.
+-   **Bug Fix (P0 - Data Contamination)**: Systematically audited and fixed over a dozen data retrieval queries in  to strictly filter by , resolving a critical data integrity bug where user data was leaking between leagues.
 
 **Earlier issues found/mentioned but not fixed**
-None. The current focus is entirely on the P0 bug.
+-   **Dead Code**: After the surgical removal of the Jolly feature, some non-user-facing dead code (type definitions, unreferenced functions, and CSS styles) remains in the frontend files (, ). The agent identified this but left it to minimize risk, per the user's strict instructions. This could be cleaned up in a future refactoring task.
 
 **Known issue recurrence from previous fork**
--   Issue recurrence in previous fork: The current P0 data contamination bug is a more severe and widespread recurrence of previous data-scoping issues. Earlier patches were not systematic, leading to this critical regression.
+-   Issue recurrence in previous fork: **Data Scoping/Contamination**. This was the central theme of the entire session.
 -   Recurrence count: 4+
--   Status: IN PROGRESS
+-   Status: **RESOLVED**. The agent performed a fundamental architectural migration to isolate data by  at the database level, which should prevent this entire class of bugs from recurring.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Data Scoping & Multi-Tenancy**: The application has a critical flaw in its multi-tenancy implementation. The immediate task is to enforce strict  filtering on every relevant database query to ensure data is not shared between leagues.
--   **Data Integrity**: A data cleanup script was necessary to fix corrupted data at its source before applying code-level fixes. This highlights the importance of preventative measures, such as input validation.
+-   **Multi-Tenancy & Data Isolation**: The core principle of the application was reinforced by making  a mandatory part of the primary key for  and . All data access logic was updated to enforce this separation.
+-   **MongoDB Aggregation Pipelines**: Extensively used to perform complex data lookups and filtering, especially in the fix for  which required joining  with  to find active matchdays for a league.
+-   **Surgical Code Modification**: A development approach mandated by the user, focusing on making the smallest possible changes to fix a bug or remove a feature, often by neutralizing its effect at the input stage rather than removing the underlying logic.
 
 **key DB schema**
--   ****: Stores which users belong to which leagues (, ). This is the source of truth for league membership.
--   ****: Caches user points per matchday. This was the source of data contamination and is being fixed to be strictly scoped by .
+-   ****: Now has a unique compound index on .  is a mandatory field.
+-   ****: Has a unique compound index on .
+-   ****: Defines user-league relationships (, ).
 
 **All files of reference**
--   : The single source of all backend logic and the location of all data contamination bugs. This file is the primary focus of the fix.
--   : Frontend component affected by the bug.
--   : Frontend component affected by the bug.
+-   : The central file for all business logic and API endpoints. All major fixes were implemented here.
+-   : Modified to update the unique database indexes for predictions and scores.
+-   : The location of the UI for the most recently fixed bug.
+-   : UI file where Jolly components were removed.
+-   : UI file where Jolly components were removed.
 
 **Areas that need refactoring**:
-The monolithic  file is the root cause of recurring regressions. It urgently needs to be broken down into a structured architecture (e.g., separate files for routes, services, and data access) to improve maintainability and prevent future bugs. However, the user has explicitly forbidden any refactoring until the P0 bug is fixed.
+-   The monolithic nature of  continues to be a high-risk area for regressions. The user has explicitly forbidden refactoring, but it remains a technical debt.
+-   Dead code related to the Jolly feature exists in several frontend files and could be cleaned up.
 
 **key api endpoints**
-The following endpoints are being audited and fixed to enforce  isolation:
--   
--   
--   
--   
--   
--    (to add validation)
+-   : The most recently fixed endpoint. It now correctly returns only the matchdays a league has participated in.
+-   : Updated to save predictions with a .
+-   , , : All were audited and fixed to enforce strict league data isolation.
+-   , : These endpoints were removed.
 
 **Critical Info for New Agent**
--   **TOP PRIORITY**: Your only task is to fix the P0 critical data contamination bug. Do not implement any other features or refactors.
--   **RESUME WORK**: The previous agent began fixing . You must resume this work, starting with the  endpoint.
--   **SYSTEMATIC FIX**: Methodically audit **every** data-related endpoint and ensure every single database query is strictly filtered by . Do not assume any endpoint is correct. The goal is complete league data isolation.
--   **ADD VALIDATION**: A key part of the fix is to add a server-side guard to the prediction saving endpoint (). This guard must validate that the  belongs to the user's current  and reject the request if it doesn't. This is crucial to prevent future data corruption.
--   **TESTING IS CRITICAL**: After implementing all fixes, you must test with at least two users in two different leagues (e.g.,  and ) to confirm that their data on the Home screen and Standings pages is completely separate and accurate.
+-   **USER CAUTION IS PARAMOUNT**: The user is extremely wary of changes causing new bugs. Adhere strictly to the surgical fix mandate. Do not refactor or expand the scope of any task without explicit permission.
+-   **DATA ISOLATION IS NON-NEGOTIABLE**: The application's architecture now strictly enforces data separation between leagues via the  field in the  and  collections. This principle must be maintained in all future work.
+-   **VERIFY LAST FIX**: The first interaction with the user should be to confirm if the last fix (weekly standings matchdays) works as expected.
 
 **documents and test reports created in this job**
--    (Note: This report is from before the current P0 bug was reported and is not relevant to the fix).
+-   : Updated with the completion of major architectural tasks and feature removals.
+-   : Test report from the successful P0 architectural migration.
 
 **Last 10 User Messages and any pending HUMAN messages**
--   10. User gave the go-ahead to proceed with the fix (Risolvi).
--   9. Agent confirmed understanding and presented a plan to fix the data contamination.
--   8. **(LATEST PROBLEM)** User reported a **P0 CRITICAL DATA BUG**: Data from different leagues is being mixed. Provided examples and strict instructions to ONLY fix league isolation and to audit all queries.
--   7. User reported two bugs: a false no kickoff time warning in the admin panel and inconsistent points on the home screen. (Status: **COMPLETED**)
--   6. Agent confirmed the previous UI fixes were visible in the web preview and instructed the user to reload their Expo Go app.
--   5. User reported not seeing the latest UI changes in their app. (Status: **ADDRESSED**)
--   4. Agent finished the previous task, summarizing the UI fixes. (Status: **COMPLETED**, but superseded by new P0 bug)
--   3. User gave strict, targeted instructions for 3 UI-only changes related to the X3 badge and the LIVE points box. (Status: **COMPLETED**)
--   2. Agent finished a task, incorrectly reporting all previous P0 bugs as fixed. (Status: **REGRESSION INTRODUCED**)
--   1. User reported three new P0 regression bugs related to LIVE scoring and the X3 badge. (Status: **PARTIALLY ADDRESSED**, but led to more issues)
+-   **10. (LATEST TASK)** User reported that the weekly standings for  incorrectly show all matchdays from the national league, requesting that it only show matchdays the league participated in. (Status: **FIXED, PENDING USER VERIFICATION**)
+-   **9.** User asked to restart the frontend bundle as they could not see the UI changes for the Jolly removal. (Status: **ADDRESSED**)
+-   **8.** User reported that UI elements for the Jolly feature were still visible after the initial removal attempt. (Status: **RESOLVED**)
+-   **7.** User provided screenshots and specific instructions to remove residual Jolly UI elements from the Predictions and User Profile screens. (Status: **RESOLVED**)
+-   **6.** Agent confirmed the backend removal of the Jolly feature was complete. (Status: **COMPLETED**)
+-   **5.** User approved the ultra-surgical plan to disable the Jolly feature by forcing its bonus to zero at input, without touching internal math. (Status: **COMPLETED**)
+-   **4.** Agent proposed a detailed audit and plan for surgically removing the Jolly feature from both backend and frontend. (Status: **COMPLETED**)
+-   **3.** User expressed significant concern about removing the Jolly feature, fearing it would create new bugs, and demanded an extremely limited, surgical approach. (Status: **ADDRESSED**)
+-   **2.** Agent completed the P0 architectural migration to isolate league data. (Status: **COMPLETED**)
+-   **1.** User approved the plan to proceed with the full architectural migration for multi-league data isolation. (Status: **COMPLETED**)
 
 **Project Health Check:**
--   **Broken**:
-    -   **P0 - League Data Isolation**: The application's core data integrity is compromised. All user-facing data is currently unreliable.
-    -   **Expo Go Tunnel**: A recurring platform-level issue that hinders mobile testing.
+-   **Broken**: None. All reported critical issues have been resolved.
+-   **Mocked**: None.
 
 **3rd Party Integrations**
 -   API-Football (API-Sports)
@@ -144,14 +116,15 @@ The following endpoints are being audited and fixed to enforce  isolation:
 -   Emergent-managed Google Auth
 
 **Testing status**
--   Testing agent used after significant changes: YES
--   Test files created: None
--   Known regressions: A critical P0 data contamination regression was introduced, indicating previous fixes were not comprehensive enough.
+-   Testing agent used after significant changes: YES (for the P0 architectural migration).
+-   Test files created: None.
+-   Known regressions: None. The session was dedicated to fixing a major regression.
 
 **Credentials to test flow:**
 -   **System Admin**:  / 
 -   **User 1 (Lega Desiree)**:  / 
--   **User 2 (Lega Amici)**:  / 
+-   **User 2 (Lega Amici / Nazionale)**:  / 
+-   **User 3 (liga2)**:  / 
 
 **What agent forgot to execute**
-Previous agents failed to implement a systematic data scoping strategy. Fixes were applied on a case-by-case basis to specific endpoints, rather than auditing the entire application to enforce the principle of  filtering everywhere. This whack-a-mole approach led directly to the current critical data contamination regression. The lack of preventative validation on data insertion points (like saving predictions) also contributed to the problem.</analysis>
+-   The agent intentionally did not remove non-visible dead code (type definitions, un-called functions) related to the Jolly feature to minimize risk, which aligns with the user's explicit surgical instructions. This is an acceptable trade-off.</analysis>
