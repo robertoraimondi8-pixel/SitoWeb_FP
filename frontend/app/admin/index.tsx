@@ -38,6 +38,7 @@ const TRANSITION_BTN: Record<string, { label: string; target: string; icon: stri
 export default function AdminConsoleV3() {
   const { colors } = useTheme();
   const { user, token, handleAuthError } = useAuth();
+  const { activeLeague } = useLeague();
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
