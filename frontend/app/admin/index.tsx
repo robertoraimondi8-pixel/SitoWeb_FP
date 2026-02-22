@@ -63,6 +63,7 @@ export default function AdminConsoleV3() {
   const [showCreateMatchday, setShowCreateMatchday] = useState(false);
   const [showAddMatch, setShowAddMatch] = useState(false);
   const [showMatchStatusPicker, setShowMatchStatusPicker] = useState<string | null>(null);
+  const [showOverrideModal, setShowOverrideModal] = useState(false);
 
   // Forms
   const [newMatchday, setNewMatchday] = useState({ number: '', label: '' });
