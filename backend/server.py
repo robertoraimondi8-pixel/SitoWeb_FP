@@ -1014,12 +1014,8 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         total_completed_in_season = len(completed_md_ids)
 
         # Aggregate total points for all members (only COMPLETED matchdays)
-        # Per leghe manuali: filtra per league_id (score_summaries hanno league_id)
-        # Per leghe nazionali/nazionali private: NO filtro league_id (admin_confirm non salva league_id)
-        if is_manual_league:
-            totals_match = {"user_id": {"$in": league_member_ids}, "matchday_id": {"$in": completed_md_ids}, "league_id": first_league["id"]}
-        else:
-            totals_match = {"user_id": {"$in": league_member_ids}, "matchday_id": {"$in": completed_md_ids}}
+        # ALWAYS filter by league_id for strict league isolation
+        totals_match = {"user_id": {"$in": league_member_ids}, "matchday_id": {"$in": completed_md_ids}, "league_id": first_league["id"]}
 
         all_totals = await score_summaries_col.aggregate([
             {"$match": totals_match},
