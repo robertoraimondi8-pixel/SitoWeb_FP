@@ -234,22 +234,39 @@ export default function RankingsScreen() {
 
       {/* Matchday Selector */}
       {tab === 'weekly' && (
-        <TouchableOpacity 
-          testID="matchday-selector"
-          onPress={() => setShowMatchdayPicker(true)}
-          style={styles.matchdaySelector}
-        >
-          <Ionicons name="calendar-outline" size={18} color={colors.primary} />
-          <Text style={styles.matchdaySelectorText}>
-            {selectedMatchday ? `Giornata ${selectedMatchday.number}` : 'Seleziona giornata'}
-          </Text>
-          <View style={styles.matchdaySelectorBadge}>
-            <Text style={styles.matchdaySelectorBadgeText}>
-              {selectedMatchday?.status || ''}
+        <View>
+          <TouchableOpacity 
+            testID="matchday-selector"
+            onPress={() => setShowMatchdayPicker(true)}
+            style={[
+              styles.matchdaySelector,
+              isLiveMatchday && styles.matchdaySelectorLive,
+            ]}
+          >
+            <Ionicons name={isLiveMatchday ? "pulse" : "calendar-outline"} size={18} color={isLiveMatchday ? colors.success : colors.primary} />
+            <Text style={styles.matchdaySelectorText}>
+              {selectedMatchday ? `Giornata ${selectedMatchday.number}` : 'Seleziona giornata'}
             </Text>
-          </View>
-          <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
-        </TouchableOpacity>
+            <View style={[
+              styles.matchdaySelectorBadge,
+              isLiveMatchday && { backgroundColor: 'rgba(34,197,94,0.15)' },
+            ]}>
+              <Text style={[
+                styles.matchdaySelectorBadgeText,
+                isLiveMatchday && { color: colors.success },
+              ]}>
+                {selectedMatchday?.status || ''}
+              </Text>
+            </View>
+            <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+          {isLiveMatchday && (
+            <View style={styles.liveBanner} data-testid="live-standings-banner">
+              <View style={styles.liveBannerDot} />
+              <Text style={styles.liveBannerText}>Classifica in tempo reale</Text>
+            </View>
+          )}
+        </View>
       )}
 
       {/* Standings List */}
