@@ -78,9 +78,10 @@ export default function AdminConsoleV3() {
 
   const isSuperAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   const isCompleted = selectedMatchday?.status === 'COMPLETED';
-  const isLocked = selectedMatchday?.status === 'LOCKED';
   const isLive = selectedMatchday?.status === 'LIVE';
-  const canEditMatches = selectedMatchday && !isCompleted && !isLocked && !isLive;
+  const isOpen = selectedMatchday?.status === 'OPEN';
+  const isDraft = selectedMatchday?.status === 'DRAFT';
+  const canEditMatches = selectedMatchday && isDraft;
 
   // Check access
   useEffect(() => {
