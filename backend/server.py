@@ -2296,13 +2296,31 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
                     {"user_id": {"$in": member_user_ids}, "league_id": league_id}
                 )
                 
+                # Includi anche matchday OPEN/LIVE nazionali (possono essere LIVE senza predictions)
+                season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
+                if season:
+                    active_national_mds = await matchdays_col.find(
+                        {"season_id": season["id"], "league_id": NATIONAL_LEAGUE_ID, "status": {"$in": ["OPEN", "LIVE"]}},
+                        {"_id": 0, "id": 1}
+                    ).to_list(5)
+                    for amd in active_national_mds:
+                        if amd["id"] not in played_md_ids:
+                            played_md_ids.append(amd["id"])
+                
                 if not played_md_ids:
                     return []
                 
                 matchdays = await matchdays_col.find(
                     {"id": {"$in": played_md_ids}, "status": {"$in": ["COMPLETED", "LIVE", "OPEN"]}},
-                    {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}
+                    {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1, "first_kickoff": 1}
                 ).sort("number", -1).to_list(50)
+                
+                # Compute effective status for OPEN matchdays (may be LIVE dynamically)
+                for md in matchdays:
+                    if md["status"] == "OPEN":
+                        md["status"] = await compute_matchday_status(md, NATIONAL_LEAGUE_ID)
+                    md.pop("first_kickoff", None)
+                
                 return matchdays
     
     # Fallback: matchdays dalla stagione attiva (nazionali = league_id == NATIONAL_LEAGUE_ID)
