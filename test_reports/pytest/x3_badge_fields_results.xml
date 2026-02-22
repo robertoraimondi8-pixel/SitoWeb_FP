@@ -1,27 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="0.147" timestamp="2026-02-22T04:17:11.642204+00:00" hostname="agent-env-f1ea7f1e-7c7e-400f-b3e1-83ad6abef74b"><testcase classname="" name="backend.tests.test_x3_badge_fields" time="0.000"><error message="collection failure">/root/.venv/lib/python3.11/site-packages/_pytest/python.py:507: in importtestmodule
-    mod = import_path(
-/root/.venv/lib/python3.11/site-packages/_pytest/pathlib.py:587: in import_path
-    importlib.import_module(module_name)
-/usr/local/lib/python3.11/importlib/__init__.py:126: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-&lt;frozen importlib._bootstrap&gt;:1204: in _gcd_import
-    ???
-&lt;frozen importlib._bootstrap&gt;:1176: in _find_and_load
-    ???
-&lt;frozen importlib._bootstrap&gt;:1147: in _find_and_load_unlocked
-    ???
-&lt;frozen importlib._bootstrap&gt;:690: in _load_unlocked
-    ???
-/root/.venv/lib/python3.11/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
-    source_stat, co = _rewrite_test(fn, self.config)
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/_pytest/assertion/rewrite.py:357: in _rewrite_test
-    tree = ast.parse(source, filename=strfn)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/usr/local/lib/python3.11/ast.py:50: in parse
-    return compile(source, filename, mode, flags,
-E     File "/app/backend/tests/test_x3_badge_fields.py", line 109
-E       print(f"Available matches in G17: {[f'{p.get(\"home_team\")} vs {p.get(\"away_team\")}' for p in predictions]}")
-E                                                                                                                      ^
-E   SyntaxError: f-string expression part cannot include a backslash</error></testcase></testsuite></testsuites>
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="13" time="1.367" timestamp="2026-02-22T04:17:21.276017+00:00" hostname="agent-env-f1ea7f1e-7c7e-400f-b3e1-83ad6abef74b"><testcase classname="backend.tests.test_x3_badge_fields.TestUserPredictionsEndpoint" name="test_user_predictions_returns_is_special_field" time="0.522" /><testcase classname="backend.tests.test_x3_badge_fields.TestUserPredictionsEndpoint" name="test_user_predictions_returns_multiplier_field" time="0.058" /><testcase classname="backend.tests.test_x3_badge_fields.TestUserPredictionsEndpoint" name="test_g17_inter_roma_is_special" time="0.062" /><testcase classname="backend.tests.test_x3_badge_fields.TestLiveEndpoint" name="test_live_endpoint_returns_is_special" time="0.055" /><testcase classname="backend.tests.test_x3_badge_fields.TestLiveEndpoint" name="test_live_endpoint_returns_multiplier" time="0.058" /><testcase classname="backend.tests.test_x3_badge_fields.TestLiveEndpoint" name="test_g17_live_inter_roma_special" time="0.053" /><testcase classname="backend.tests.test_x3_badge_fields.TestHomeEndpoint" name="test_home_endpoint_accessible" time="0.065" /><testcase classname="backend.tests.test_x3_badge_fields.TestHomeEndpoint" name="test_home_returns_live_section" time="0.072" /><testcase classname="backend.tests.test_x3_badge_fields.TestHomeEndpoint" name="test_home_total_provisional_when_no_live" time="0.061" /><testcase classname="backend.tests.test_x3_badge_fields.TestFixturesEndpoint" name="test_fixtures_returns_is_special" time="0.068"><failure message="AssertionError: Match missing is_special field&#10;assert 'is_special' in {'away_score': 0, 'away_team': 'Roma', 'competition': 'Serie A', 'created_at': '2026-02-15T20:10:49.881868+00:00', ...}">backend/tests/test_x3_badge_fields.py:217: in test_fixtures_returns_is_special
+    assert "is_special" in match, f"Match missing is_special field"
+E   AssertionError: Match missing is_special field
+E   assert 'is_special' in {'away_score': 0, 'away_team': 'Roma', 'competition': 'Serie A', 'created_at': '2026-02-15T20:10:49.881868+00:00', ...}</failure></testcase><testcase classname="backend.tests.test_x3_badge_fields.TestFixturesEndpoint" name="test_fixtures_returns_multiplier" time="0.069"><failure message="AssertionError: Match missing multiplier field&#10;assert 'multiplier' in {'away_score': 0, 'away_team': 'Roma', 'competition': 'Serie A', 'created_at': '2026-02-15T20:10:49.881868+00:00', ...}">backend/tests/test_x3_badge_fields.py:235: in test_fixtures_returns_multiplier
+    assert "multiplier" in match, f"Match missing multiplier field"
+E   AssertionError: Match missing multiplier field
+E   assert 'multiplier' in {'away_score': 0, 'away_team': 'Roma', 'competition': 'Serie A', 'created_at': '2026-02-15T20:10:49.881868+00:00', ...}</failure></testcase><testcase classname="backend.tests.test_x3_badge_fields.TestFixturesEndpoint" name="test_fixtures_g17_special_match" time="0.067" /><testcase classname="backend.tests.test_x3_badge_fields.TestFixturesEndpoint" name="test_fixtures_g18_special_match" time="0.067" /></testsuite></testsuites>
