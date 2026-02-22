@@ -2505,6 +2505,10 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
     if not matchday:
         raise HTTPException(404, "Matchday not found")
     
+    # Compute effective status (OPEN may actually be LIVE dynamically)
+    effective_status = await compute_matchday_status(matchday, NATIONAL_LEAGUE_ID)
+    matchday["status"] = effective_status
+    
     # Solo LOCKED, LIVE o COMPLETED
     if matchday["status"] not in ("LOCKED", "LIVE", "COMPLETED"):
         raise HTTPException(403, "Pronostici visibili solo dopo il lock della giornata")
