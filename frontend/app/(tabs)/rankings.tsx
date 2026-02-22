@@ -134,6 +134,14 @@ export default function RankingsScreen() {
 
   const formatPoints = (n: number) => n.toFixed(1);
 
+  // Frontend-only search filter (no API calls, no ranking changes)
+  const filteredEntries = useMemo(() => {
+    const entries = standings?.entries || [];
+    if (!searchQuery.trim()) return entries;
+    const q = searchQuery.trim().toLowerCase();
+    return entries.filter((e: StandingEntry) => e.username.toLowerCase().includes(q));
+  }, [standings?.entries, searchQuery]);
+
   const renderEntry = (entry: StandingEntry, index: number) => {
     const isTop3 = index < 3;
     const isCurrentUser = entry.user_id === user?.id;
