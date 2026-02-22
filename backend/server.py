@@ -238,9 +238,11 @@ async def compute_matchday_points(user_id: str, matchday_id: str, league_id: str
     
     # Calcola al volo
     matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
-    # Predictions are per user+match (not per league) — NO league_id filter here
-    # league_id on predictions is tracking metadata, not isolation boundary
-    preds = await predictions_col.find({"user_id": user_id, "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    # Predictions are per user+match+league — filter by league_id
+    pred_filter = {"user_id": user_id, "matchday_id": matchday_id}
+    if league_id:
+        pred_filter["league_id"] = league_id
+    preds = await predictions_col.find(pred_filter, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
     
     # Get joker status
