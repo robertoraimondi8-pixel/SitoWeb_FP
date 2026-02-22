@@ -1,104 +1,67 @@
 # FantaPronostic - Product Requirements Document
 
 ## Original Problem Statement
-Build and maintain FantaPronostic, an Italian sports prediction app with league management, real-time match tracking, and automated matchday lifecycle. The platform uses Expo/React Native (web + mobile), FastAPI backend, and MongoDB.
+Fantasy football predictions app (FantaPronostic) where users join leagues, make match predictions, and compete on leaderboards. Built with React Native (Expo) frontend + FastAPI backend + MongoDB.
 
-## Core Requirements
-1. **League System**: National league + private leagues (manual/custom/national source types)
-2. **Prediction System**: Users predict match outcomes, earn points based on accuracy
-3. **Matchday Lifecycle**: Automated state machine driven by real match kickoff times
-4. **Admin Console**: Unified admin for managing leagues, matchdays, matches, and scores
-5. **Live Data Integration**: API-Football for real-time match data
-6. **Authentication**: Google OAuth + email/password via JWT
+## Core Architecture
+- **Backend**: FastAPI monolith (`/app/backend/server.py`) with MongoDB
+- **Frontend**: React Native (Expo) at `/app/frontend/`
+- **Database**: MongoDB (fantapronostic)
+- **External APIs**: API-Football (API-Sports), Emergent Google Auth
 
-## Architecture
-- **Frontend**: Expo/React Native Web (port 3000)
-- **Backend**: FastAPI (port 8001, proxied via /api)
-- **Database**: MongoDB (local)
-- **Auth**: JWT + Emergent Google Auth
-- **External APIs**: API-Football (API-Sports)
+## Key Data Model
+- `users`, `leagues`, `memberships` (user-league association)
+- `seasons`, `matchdays`, `matches` (match data)
+- `predictions` (user predictions with league_id)
+- `score_summaries` (cached points per user+matchday+league_id)
+- `standings_cache` (total standings per user+league_id)
 
-## Key Credentials
-- Super Admin: admin@fantapronostic.com / admin123
-- League Owner: ilio@raimondi.it / password123
-- National League Owner: desiree@raimondi.it / Roberto95
+## What's Been Implemented
+- User auth (JWT + Google OAuth)
+- League creation, joining, management
+- Match predictions with multiple market types (1X2, GOAL/NOGOL, etc.)
+- Live scoring and match status updates
+- Standings (total, weekly, user profile)
+- Admin panel for matchday management
+- API-Football integration for real fixtures
 
-## Completed Features
+## P0 Bug Fix - League Data Isolation (Feb 22, 2026) - COMPLETED
+**Problem**: Data (points, standings, matchdays) was being mixed between different leagues, breaking core principle of league isolation.
 
-### P0: Data Leakage Fix (COMPLETED)
-- Fixed `/api/home` endpoint - added `league_id` filters to predictions and score_summaries queries
+**Root Cause**: Multiple database queries across the application lacked `league_id` filtering, causing cross-league data contamination.
 
-### P0: State Sync Fix (COMPLETED)
-- Refactored Home and Rankings screens to use global `LeagueContext`
+**Fixes Applied**:
+1. `compute_matchday_points()` - Added `league_id` parameter, filter on score_summaries and predictions
+2. `/api/home` - All queries already had league_id (verified)
+3. `/api/standings/total` - Fixed `current_week_points` query to filter by league_id
+4. `/api/standings/weekly/{matchday_id}` - Already had league_id filter (verified)
+5. `/api/standings/user/{target_user_id}` - Fixed 4 queries: total points aggregation, current score, ranking pipeline, matchday breakdown
+6. `/api/standings/matchdays` - Already had league_id filter (verified)
+7. `GET /api/predictions/{matchday_id}` - Added league_id filter to predictions query
+8. `POST /api/predictions/{matchday_id}` - Added server-side guard: validates league membership, enforces league_id on all predictions
+9. `POST /api/predictions/{matchday_id}/confirm` - Added league_id filter
+10. `/api/live/{matchday_id}` - Added league_id filter to predictions query
+11. Legacy `/api/live/matchday/{matchday_id}` - Added league_id filter + match source query
+12. `/api/predictions/user/{target_user_id}/{matchday_id}` - Added league_id filters to predictions and score_summary queries
 
-### Feature: Home Screen Gamification (COMPLETED)
-- Dynamic cards for matchday status, user performance, bar chart for recent results
+**Testing**: 16/16 backend tests passed. Verified with two users across different leagues.
 
-### Feature: Smart Predictions Tab (COMPLETED)
-- Auto-redirect to correct screen based on matchday status
-
-### Bug Fix: Navigation Loop (COMPLETED)
-- Fixed back button infinite redirect using router.replace
-
-### Feature: Kickoff-Driven Matchday State Machine (COMPLETED - Feb 22, 2026)
-- **Backend**:
-  - `compute_matchday_status()` auto-computes effective status based on match data
-  - `VALID_TRANSITIONS`: Only DRAFT→OPEN is manual; OPEN→LIVE and LIVE→COMPLETED are automatic
-  - `POST /api/admin/matchday/{id}/transition`: Manual DRAFT→OPEN publish
-  - `POST /api/admin/matchday/{id}/override`: SUPER_ADMIN force any status
-  - Removed LOCKED state from the flow
-  - Auto-compute `first_kickoff` from earliest match when publishing
-- **Frontend Admin Console**:
-  - Removed date/time picker from matchday creation (auto-computed from matches)
-  - State flow: BOZZA → APERTA → LIVE → COMPLETATA (no BLOCCATA)
-  - "Pubblica Giornata" button for DRAFT matchdays
-  - Auto-status info banners (countdown to LIVE, progress to COMPLETED)
-  - SUPER_ADMIN Override modal for emergency status changes
-  - Delete only available for DRAFT matchdays
-
-### Feature: Partita Speciale X3 (COMPLETED - Feb 22, 2026)
-- Admin can designate one match per matchday as "special" with a 3x score multiplier
-- Backend: `PUT /api/admin/matches/{match_id}/special`, updated scoring logic
-- Frontend: Admin UI for setting special match, user predictions show special badge
-
-### P0 Bug Fix: Match Import Clarity (COMPLETED - Feb 22, 2026)
-- Import now returns `skipped_details` with existing matchday name and match teams when fixtures are already imported
-- Frontend displays clear message: "X già presenti in [matchday name]"
-
-### P0 Bug Fix: Predictions Disappear on LIVE/COMPLETED (COMPLETED - Feb 22, 2026)
-- Removed incorrect `league_id` filter from live endpoint prediction query
-- Predictions now correctly visible regardless of matchday status
-
-### P0 Bug Fix: Home Screen Stale Data (COMPLETED - Feb 22, 2026)
-- Root cause: National league completed matchday discovery queried predictions (inconsistent league_ids) instead of matchdays collection
-- Fix: Query matchdays directly with `NATIONAL_LEAGUE_ID` for completed matchdays
-- Fix: Use `score_summaries` for user matchdays_played count instead of predictions
-
-### P0 Bug Fix Sprint 2 — LIVE Scoring & X3 Visibility (COMPLETED - Feb 22, 2026)
-- **P0-1 LIVE scoring**: Removed `league_id` filter from prediction queries in `/api/home` (my_predictions_count, LIVE section). Added `multiplier` param to all `calculate_match_points` calls in home LIVE, live endpoint, and legacy live endpoint.
-- **P0-2 Giornata 16 cleanup**: Deleted test G16 matchday + all associated matches/predictions/scores from DB.
-- **P0-3 X3 badge visibility**: Added `is_special`/`multiplier` to `MatchItem` TypeScript type, `LiveMatch` type, and live endpoint response payload. Frontend already had X3 badge rendering code, now receives the data correctly.
-- **X3 badge in Live screen**: Added orange X3 badge and special border for special matches in live view.
-
-### UI Sprint — X3 Badge + LIVE Box (COMPLETED - Feb 22, 2026)
-- **X3 in COMPLETED live screen**: Orange X3 badge + border now visible for special matches in live/completed view. Backend returns `is_special`/`multiplier` in `/api/live/{id}` response.
-- **X3 in user-predictions detail**: Orange X3 badge + border in rankings weekly user detail. Backend returns `is_special`/`multiplier` in `/api/predictions/user/{id}/{md_id}` response.
-- **Green LIVE box on Home**: New "Punti provvisori" card with green border, LIVE badge, big points text shown when matchday is LIVE.
-
-### Bug Fix: Kickoff + Standings Mismatch (COMPLETED - Feb 22, 2026)
-- **Kickoff warning**: `recompute_matchday_kickoff` now called after fixture import (was only called on DRAFT→OPEN transition). Admin console correctly shows kickoff time after importing matches.
-- **Standings/Performance mismatch**: Fixed standings total endpoint to use matchdays collection directly (same pattern as P0-3). Also fixed standings matchdays list to return ALL national matchdays. Performance and standings now both show consistent 30.5 pts.
-
-## Backlog (Prioritized)
+## Prioritized Backlog
 
 ### P1
 - Remove legacy "Jolly" feature from codebase and database
-- Implement "Championship Winner Predictions" Feature
-- Integrate Stripe for joining the National League
 
 ### P2
+- Implement "Championship Winner Predictions" feature
+- Integrate Stripe for joining National League
 - Re-enable email verification
 - Implement Push Notifications
 
-### Known Issues
-- Expo Go Tunnel: Non-functional (platform issue, use web preview)
+### P3
+- Refactor monolithic server.py into modular architecture (routes, services, data access)
+
+## Credentials
+- Admin: admin@fantapronostic.com / admin123
+- User 1 (Desylega): desiree@raimondi.it / Roberto95
+- User 2 (liga2): ilio@raimondi.it / password123
+- NATIONAL_LEAGUE_ID: f1373417-43aa-4043-b6a2-125873181c95
