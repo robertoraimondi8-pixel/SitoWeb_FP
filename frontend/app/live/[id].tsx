@@ -218,15 +218,6 @@ export default function LiveScreen() {
             </Text>
           </View>
           
-          {data?.jolly_active && (
-            <View style={s.pointsItem}>
-              <Text style={[s.pointsLabel, { color: colors.textSecondary }]}>Bonus Jolly</Text>
-              <Text style={[s.pointsValue, { color: colors.success }]}>
-                +{(data?.joker_bonus || 0).toFixed(1)}
-              </Text>
-            </View>
-          )}
-          
           <View style={s.pointsItem}>
             <Text style={[s.pointsLabel, { color: colors.textSecondary }]}>
               {data?.matchday_status === 'COMPLETED' ? 'Punti Ufficiali' : 'Punti Provvisori'}
@@ -237,12 +228,6 @@ export default function LiveScreen() {
           </View>
         </View>
         
-        {data?.jolly_active && (
-          <View style={[s.jollyBanner, { backgroundColor: 'rgba(245,166,35,0.15)' }]}>
-            <Ionicons name="star" size={16} color={colors.accent} />
-            <Text style={[s.jollyText, { color: colors.accent }]}>JOLLY ATTIVO - x2</Text>
-          </View>
-        )}
       </Animated.View>
 
       {/* Matches List */}
