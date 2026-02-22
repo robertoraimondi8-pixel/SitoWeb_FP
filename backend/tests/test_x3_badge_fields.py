@@ -106,7 +106,8 @@ class TestUserPredictionsEndpoint:
             assert special_match.get("multiplier") == 3.0, f"Inter vs Roma should have multiplier=3.0, got {special_match.get('multiplier')}"
         else:
             # List all matches for debugging
-            print(f"Available matches in G17: {[f'{p.get(\"home_team\")} vs {p.get(\"away_team\")}' for p in predictions]}")
+            matches_list = [f"{p.get('home_team')} vs {p.get('away_team')}" for p in predictions]
+            print(f"Available matches in G17: {matches_list}")
             pytest.fail("Inter vs Roma match not found in G17 predictions")
 
 
