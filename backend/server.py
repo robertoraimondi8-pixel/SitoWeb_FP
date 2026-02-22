@@ -905,22 +905,16 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         match_count = await matches_col.count_documents(_match_source_query(matchday["id"], _md_source_lid))
         total_matches = max(match_count, MATCHES_PER_MATCHDAY)  # Mai mostrare 0/0
         
-        # Predictions are unique per user+match — don't filter by league_id (user may save through different league context)
-        my_predictions = await predictions_col.count_documents({"user_id": user["id"], "matchday_id": matchday["id"]})
+        # Predictions count MUST filter by league_id for strict isolation
+        my_predictions = await predictions_col.count_documents({"user_id": user["id"], "matchday_id": matchday["id"], "league_id": active_league["id"]})
 
-        # Per matchday COMPLETED: carica punti da score_summaries (fonte autorevole)
+        # Per matchday COMPLETED: carica punti da score_summaries (con league_id)
         my_points = None
         if matchday["status"] == "COMPLETED":
-            # Try with league_id first, then without (old data may lack league_id)
             ss = await score_summaries_col.find_one(
                 {"user_id": user["id"], "matchday_id": matchday["id"], "league_id": active_league["id"]},
                 {"_id": 0, "total_points": 1}
             )
-            if not ss:
-                ss = await score_summaries_col.find_one(
-                    {"user_id": user["id"], "matchday_id": matchday["id"]},
-                    {"_id": 0, "total_points": 1}
-                )
             my_points = ss.get("total_points") if ss else 0.0
 
         matchday_data = {
