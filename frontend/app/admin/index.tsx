@@ -885,7 +885,7 @@ export default function AdminConsoleV3() {
         </TouchableOpacity>
       </Modal>
 
-      {/* Modal: Create Matchday */}
+      {/* Modal: Create Matchday (Simplified - no date/time, auto-computed from matches) */}
       <Modal visible={showCreateMatchday} transparent animationType="slide">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.modalOverlay}>
           <ScrollView style={{ width: '100%' }} contentContainerStyle={{ padding: 0 }} keyboardShouldPersistTaps="handled">
@@ -918,30 +918,12 @@ export default function AdminConsoleV3() {
               <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Etichetta (opzionale)</Text>
               <TextInput style={[s.formInput, { color: colors.text, borderColor: colors.border }]} placeholder="Es: Giornata 12" placeholderTextColor={colors.textSecondary}
                 value={newMatchday.label} onChangeText={t => setNewMatchday(p => ({ ...p, label: t }))} />
-              <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Data e Ora Primo Fischio *</Text>
-              <View style={s.dateTimeRow}>
-                <TouchableOpacity style={[s.dateTimeBtn, { borderColor: colors.border }]} onPress={() => setShowDatePicker(true)}>
-                  <Ionicons name="calendar" size={20} color={colors.accent} />
-                  <Text style={[s.dateTimeBtnText, { color: colors.text }]}>{selectedDate.toLocaleDateString('it-IT')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[s.dateTimeBtn, { borderColor: colors.border }]} onPress={() => setShowTimePicker(true)}>
-                  <Ionicons name="time" size={20} color={colors.accent} />
-                  <Text style={[s.dateTimeBtnText, { color: colors.text }]}>{selectedDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</Text>
-                </TouchableOpacity>
+              <View style={[s.autoStatusBanner, { backgroundColor: 'rgba(59,130,246,0.08)', borderColor: 'rgba(59,130,246,0.2)', marginTop: 12 }]}>
+                <Ionicons name="information-circle" size={18} color="rgba(59,130,246,0.9)" />
+                <Text style={[s.autoStatusDesc, { color: colors.textSecondary }]}>
+                  L'orario del primo fischio verrà calcolato automaticamente dalle partite che aggiungerai.
+                </Text>
               </View>
-              {showDatePicker && (isWeb
-                ? <WebDateTimePicker value={selectedDate} mode="date" onChange={d => { setSelectedDate(d); if (isWeb) setShowDatePicker(false); }} minimumDate={new Date()} />
-                : <DateTimePicker value={selectedDate} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={onDateChange} minimumDate={new Date()} />
-              )}
-              {showTimePicker && (isWeb
-                ? <WebDateTimePicker value={selectedDate} mode="time" onChange={d => { setSelectedDate(d); if (isWeb) setShowTimePicker(false); }} />
-                : <DateTimePicker value={selectedDate} mode="time" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={onTimeChange} is24Hour />
-              )}
-              {Platform.OS === 'ios' && (showDatePicker || showTimePicker) && (
-                <TouchableOpacity style={[s.donePickerBtn, { backgroundColor: colors.accent }]} onPress={() => { setShowDatePicker(false); setShowTimePicker(false); }}>
-                  <Text style={[s.donePickerBtnText, { color: colors.background }]}>Fatto</Text>
-                </TouchableOpacity>
-              )}
               <View style={s.modalBtns}>
                 <TouchableOpacity style={[s.modalBtn, { borderColor: colors.border }]}
                   onPress={() => { setShowCreateMatchday(false); setNewMatchday({ number: '', label: '' }); setShowNumberPicker(false); }}>
