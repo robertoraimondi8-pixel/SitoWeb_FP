@@ -321,20 +321,7 @@ export default function HomeScreen() {
           </SectionCard>
         )}
 
-        {/* ─── 4. WEEKLY GOAL ─── */}
-        {weeklyGoal && (
-          <View style={styles.goalCard} data-testid="weekly-goal-card">
-            <View style={styles.goalIconWrap}>
-              <Ionicons name="flag-outline" size={18} color={colors.primary} />
-            </View>
-            <View style={styles.goalContent}>
-              <Text style={styles.goalTitle}>{t('home.weekly_goal')}</Text>
-              <Text style={styles.goalText}>{weeklyGoal}</Text>
-            </View>
-          </View>
-        )}
-
-        {/* ─── 5. RANKINGS PREVIEW ─── */}
+        {/* ─── 4. RANKINGS PREVIEW ─── */}
         {data?.rankings_preview && (
           <View style={styles.rankingsCard} data-testid="rankings-card">
             <View style={styles.rankingsHeader}>
@@ -598,37 +585,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
 
-  // ── 4. Weekly Goal ──
-  goalCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.xl,
-    padding: spacing.xl,
-    gap: spacing.md,
-    ...shadows.card,
-  },
-  goalIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary + '0D',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  goalContent: { flex: 1 },
-  goalTitle: {
-    ...typography.sectionLabel,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  goalText: {
-    ...typography.bodyM,
-    color: colors.textPrimary,
-    lineHeight: 20,
-  },
-
-  // ── 5. Rankings ──
+  // ── 4. Rankings ──
   rankingsCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
