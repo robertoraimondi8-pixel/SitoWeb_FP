@@ -74,6 +74,12 @@ Build and maintain FantaPronostic, an Italian sports prediction app with league 
 - Fix: Query matchdays directly with `NATIONAL_LEAGUE_ID` for completed matchdays
 - Fix: Use `score_summaries` for user matchdays_played count instead of predictions
 
+### P0 Bug Fix Sprint 2 — LIVE Scoring & X3 Visibility (COMPLETED - Feb 22, 2026)
+- **P0-1 LIVE scoring**: Removed `league_id` filter from prediction queries in `/api/home` (my_predictions_count, LIVE section). Added `multiplier` param to all `calculate_match_points` calls in home LIVE, live endpoint, and legacy live endpoint.
+- **P0-2 Giornata 16 cleanup**: Deleted test G16 matchday + all associated matches/predictions/scores from DB.
+- **P0-3 X3 badge visibility**: Added `is_special`/`multiplier` to `MatchItem` TypeScript type, `LiveMatch` type, and live endpoint response payload. Frontend already had X3 badge rendering code, now receives the data correctly.
+- **X3 badge in Live screen**: Added orange X3 badge and special border for special matches in live view.
+
 ## Backlog (Prioritized)
 
 ### P1
