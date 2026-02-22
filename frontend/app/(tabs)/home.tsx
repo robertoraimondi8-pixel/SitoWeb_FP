@@ -738,25 +738,26 @@ const styles = StyleSheet.create({
 
   // ── LIVE Box ──
   liveBox: {
-    marginHorizontal: spacing.xl,
-    marginTop: spacing.md,
     padding: spacing.lg,
     borderRadius: borderRadius.lg,
     backgroundColor: 'rgba(34,197,94,0.10)',
     borderWidth: 2,
     borderColor: colors.success,
+  },
+  liveBoxHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: spacing.sm,
   },
   liveBoxBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-end',
     gap: 6,
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 12,
     backgroundColor: colors.success,
-    marginBottom: spacing.sm,
   },
   liveBoxDot: {
     width: 8,
@@ -770,16 +771,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1,
   },
-  liveBoxPoints: {
-    fontSize: 36,
-    fontWeight: '900',
+  liveBoxTitle: {
+    fontSize: 18,
+    fontWeight: '800',
     color: colors.success,
-    letterSpacing: -1,
+    letterSpacing: -0.5,
   },
-  liveBoxLabel: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    fontWeight: '600',
-    marginTop: 2,
+  liveBoxRank: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginTop: 4,
   },
 });
