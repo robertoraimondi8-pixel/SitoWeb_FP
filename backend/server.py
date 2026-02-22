@@ -3415,9 +3415,8 @@ async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_admin))
     await score_summaries_col.delete_many({"matchday_id": matchday_id})
 
     for (uid, pred_league_id), preds in user_league_preds.items():
-        # Check if joker is active for this matchday (per-matchday, not per-match)
-        joker = await joker_usages_col.find_one({"user_id": uid, "matchday_id": matchday_id}, {"_id": 0})
-        joker_active = joker is not None and joker.get("is_active", False)
+        # Jolly rimosso — forza sempre inattivo in ingresso
+        joker_active = False
 
         match_pts = []
         for p in preds:
