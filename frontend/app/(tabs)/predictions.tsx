@@ -1015,6 +1015,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border,
+    position: 'relative',
+  },
+  marketInfoClose: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    padding: 2,
   },
   marketInfoText: {
     ...typography.bodyS,
