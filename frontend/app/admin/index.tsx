@@ -866,7 +866,8 @@ export default function AdminConsoleV3() {
         )}
       </ScrollView>
 
-      {/* Modal: League Dropdown */}
+      {/* Modal: League Dropdown (solo super admin) */}
+      {isSuperAdmin && (
       <Modal visible={showLeagueDropdown} transparent animationType="slide">
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowLeagueDropdown(false)}>
           <View style={[s.dropdownModal, { backgroundColor: colors.card }]}>
@@ -903,6 +904,7 @@ export default function AdminConsoleV3() {
           </View>
         </TouchableOpacity>
       </Modal>
+      )}
 
       {/* Modal: Matchday Dropdown */}
       <Modal visible={showMatchdayDropdown} transparent animationType="slide">
