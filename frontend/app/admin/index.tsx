@@ -23,7 +23,7 @@ const isWeb = Platform.OS === 'web';
 
 interface League { id: string; name: string; _is_national?: boolean; match_source_type?: string; season_id?: string; owner_id?: string; }
 interface Matchday { id: string; number: number; label?: string; status: string; first_kickoff?: string; season_id?: string; league_id?: string; match_count: number; results_count: number; predictions_user_count: number; }
-interface Match { id: string; home_team: string; away_team: string; home_score: number | null; away_score: number | null; status: string; market_type: string; start_time?: string; }
+interface Match { id: string; home_team: string; away_team: string; home_score: number | null; away_score: number | null; status: string; market_type: string; start_time?: string; is_special?: boolean; multiplier?: number; }
 
 const MARKET_TYPES = ['1X2', 'GOAL_NGOAL', 'OVER_UNDER', 'EXACT_SCORE'];
 const MATCH_STATUS_OPTIONS = ['scheduled', 'live', 'finished', 'postponed', 'cancelled', 'void'];
