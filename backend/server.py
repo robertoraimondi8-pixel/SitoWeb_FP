@@ -257,20 +257,17 @@ async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
         
         # Usa stored is_correct se disponibile
         if pred.get("is_correct") is True:
-            multiplier = m.get("multiplier", 1.0)
-            base_points += pred.get("points", 0) * (multiplier if pred.get("points", 0) > 0 and multiplier != 1.0 and "multiplier_applied" not in pred else 1.0)
-            # If points already include multiplier (from recalculate), just add them
-            if pred.get("multiplier_applied"):
-                base_points -= pred.get("points", 0) * (multiplier if multiplier != 1.0 else 1.0)
-                base_points += pred.get("points", 0)
+            base_points += pred.get("points", 0)
         elif pred.get("is_correct") is None and m.get("home_score") is not None:
             # Calcola al volo - pass "finished" to calculate_match_points when matchday completed
+            multiplier = m.get("multiplier", 1.0)
             pts, is_correct = calculate_match_points(
                 pred["prediction_value"],
                 pred.get("market_type", "1X2"),
                 m.get("home_score"),
                 m.get("away_score"),
-                effective_status  # This is now "finished" for COMPLETED matchdays
+                effective_status,
+                multiplier
             )
             if is_correct:
                 base_points += pts
