@@ -976,6 +976,51 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
                 "joker_active": joker_active,
             }
 
+            # ── LIVE RANKING: compute user's provisional position among league members ──
+            league_members_live = await memberships_col.find(
+                {"league_id": active_league["id"], "status": "active"}, {"_id": 0, "user_id": 1}
+            ).to_list(1000)
+            member_ids_live = [m["user_id"] for m in league_members_live]
+
+            all_live_preds = await predictions_col.find(
+                {"matchday_id": matchday["id"], "league_id": active_league["id"], "user_id": {"$in": member_ids_live}},
+                {"_id": 0}
+            ).to_list(10000)
+
+            # Group predictions by user
+            user_preds_map = {}
+            for p in all_live_preds:
+                uid = p["user_id"]
+                if uid not in user_preds_map:
+                    user_preds_map[uid] = {}
+                user_preds_map[uid][p["match_id"]] = p
+
+            # Calculate points for each member using live match data
+            member_scores = []
+            for uid in member_ids_live:
+                preds_d = user_preds_map.get(uid, {})
+                bp = 0.0
+                for lm in live_matches:
+                    pred_lm = preds_d.get(lm["id"])
+                    if pred_lm and lm.get("home_score") is not None:
+                        lm_pts, _ = calculate_match_points(
+                            pred_lm["prediction_value"],
+                            pred_lm.get("market_type", lm.get("market_type", "1X2")),
+                            lm.get("home_score"), lm.get("away_score"),
+                            lm["status"], multiplier=lm.get("multiplier", 1.0)
+                        )
+                        if lm["status"] not in ("void", "postponed", "cancelled"):
+                            bp += lm_pts
+                member_scores.append((uid, bp))
+
+            member_scores.sort(key=lambda x: -x[1])
+            for i, (uid, pts) in enumerate(member_scores):
+                if uid == user["id"]:
+                    live_data["live_rank"] = i + 1
+                    live_data["live_points"] = pts
+                    break
+            live_data["total_members"] = len(member_ids_live)
+
     # Rankings preview + User Summary + Last 5 Performance
     rankings_preview = None
     user_summary = None
