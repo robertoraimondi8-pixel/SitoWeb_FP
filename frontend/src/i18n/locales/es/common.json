@@ -168,7 +168,7 @@
     "role": "Rol",
     "role_admin": "Admin",
     "role_player": "Jugador",
-    "role_owner": "Creador Liga",
+    "role_owner": "Creador",
     "admin_console_title": "CONSOLA ADMIN",
     "admin_console_desc": "Gestiona temporadas, jornadas y partidos",
     "admin_console_btn": "Abrir Consola",

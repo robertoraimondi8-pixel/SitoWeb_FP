@@ -168,7 +168,7 @@
     "role": "Ruolo",
     "role_admin": "Admin",
     "role_player": "Giocatore",
-    "role_owner": "Creatore Lega",
+    "role_owner": "Creatore",
     "admin_console_title": "CONSOLE ADMIN",
     "admin_console_desc": "Gestisci stagioni, giornate e partite",
     "admin_console_btn": "Apri Console",
