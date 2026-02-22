@@ -127,16 +127,6 @@ export default function UserPredictionsScreen() {
         </View>
       </View>
 
-      {/* Jolly Badge */}
-      {data?.jolly_active && (
-        <View style={[s.jollyBanner, { backgroundColor: 'rgba(245,166,35,0.15)' }]}>
-          <Ionicons name="star" size={20} color={colors.accent} />
-          <Text style={[s.jollyBannerText, { color: colors.accent }]}>
-            JOLLY ATTIVO - Punti x2
-          </Text>
-        </View>
-      )}
-
       {/* Summary */}
       <View style={[s.summaryCard, { backgroundColor: colors.card }]}>
         <View style={s.summaryRow}>
