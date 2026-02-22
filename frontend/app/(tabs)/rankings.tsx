@@ -150,7 +150,7 @@ export default function RankingsScreen() {
           </Text>
           {isTop3 && tab === 'total' && (
             <Text style={styles.entryMeta}>
-              {entry.matchdays_played || 0} giornate • {entry.jolly_used || 0} jolly
+              {entry.matchdays_played || 0} giornate
             </Text>
           )}
         </View>
@@ -161,12 +161,6 @@ export default function RankingsScreen() {
           </Text>
           {tab === 'total' && entry.current_week_points !== undefined && entry.current_week_points > 0 && (
             <Text style={styles.weekBonus}>+{formatPoints(entry.current_week_points)}</Text>
-          )}
-          {tab === 'weekly' && entry.jolly_active && (
-            <View style={styles.jollyBadge}>
-              <Ionicons name="star" size={10} color={colors.accent} />
-              <Text style={styles.jollyText}>x2</Text>
-            </View>
           )}
         </View>
         
