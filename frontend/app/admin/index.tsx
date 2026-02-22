@@ -499,11 +499,11 @@ export default function AdminConsoleV3() {
                 <Ionicons name="git-branch" size={16} /> STATO GIORNATA
               </Text>
 
-              {/* State flow indicator */}
+              {/* State flow indicator (Kickoff-driven: DRAFT → OPEN → LIVE → COMPLETED) */}
               <View style={s.stateFlow}>
-                {['DRAFT', 'OPEN', 'LOCKED', 'LIVE', 'COMPLETED'].map((st, i) => {
+                {['DRAFT', 'OPEN', 'LIVE', 'COMPLETED'].map((st, i) => {
                   const isCurrent = selectedMatchday.status === st;
-                  const isPast = ['DRAFT', 'OPEN', 'LOCKED', 'LIVE', 'COMPLETED'].indexOf(selectedMatchday.status) > i;
+                  const isPast = ['DRAFT', 'OPEN', 'LIVE', 'COMPLETED'].indexOf(selectedMatchday.status) > i;
                   return (
                     <React.Fragment key={st}>
                       {i > 0 && <View style={[s.stateFlowLine, { backgroundColor: isPast ? colors.accent : colors.border }]} />}
@@ -519,17 +519,54 @@ export default function AdminConsoleV3() {
                 })}
               </View>
               <View style={s.stateLabels}>
-                {['BOZZA', 'APERTA', 'BLOCCATA', 'LIVE', 'COMPLETATA'].map((label, i) => (
-                  <Text key={label} style={[s.stateLabel, { color: ['DRAFT', 'OPEN', 'LOCKED', 'LIVE', 'COMPLETED'].indexOf(selectedMatchday.status) >= i ? colors.text : colors.textSecondary }]}>
+                {['BOZZA', 'APERTA', 'LIVE', 'COMPLETATA'].map((label, i) => (
+                  <Text key={label} style={[s.stateLabel, { color: ['DRAFT', 'OPEN', 'LIVE', 'COMPLETED'].indexOf(selectedMatchday.status) >= i ? colors.text : colors.textSecondary }]}>
                     {label}
                   </Text>
                 ))}
               </View>
 
+              {/* Auto-status info banner */}
+              {isOpen && selectedMatchday.first_kickoff && (
+                <View style={[s.autoStatusBanner, { backgroundColor: 'rgba(59,130,246,0.1)', borderColor: 'rgba(59,130,246,0.3)' }]}>
+                  <Ionicons name="time-outline" size={18} color="rgba(59,130,246,0.9)" />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.autoStatusTitle, { color: colors.text }]}>Pronostici aperti</Text>
+                    <Text style={[s.autoStatusDesc, { color: colors.textSecondary }]}>
+                      Diventerà LIVE automaticamente al primo fischio:{'\n'}
+                      {new Date(selectedMatchday.first_kickoff).toLocaleString('it-IT', { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                  </View>
+                </View>
+              )}
+              {isOpen && !selectedMatchday.first_kickoff && (
+                <View style={[s.autoStatusBanner, { backgroundColor: 'rgba(245,166,35,0.1)', borderColor: 'rgba(245,166,35,0.3)' }]}>
+                  <Ionicons name="warning-outline" size={18} color="rgba(245,166,35,0.9)" />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.autoStatusTitle, { color: colors.text }]}>Nessun orario kickoff</Text>
+                    <Text style={[s.autoStatusDesc, { color: colors.textSecondary }]}>
+                      Le partite non hanno un orario di inizio. La transizione LIVE non avverrà automaticamente.
+                    </Text>
+                  </View>
+                </View>
+              )}
+              {isLive && (
+                <View style={[s.autoStatusBanner, { backgroundColor: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)' }]}>
+                  <Ionicons name="radio" size={18} color="rgba(239,68,68,0.9)" />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.autoStatusTitle, { color: colors.text }]}>Giornata in corso</Text>
+                    <Text style={[s.autoStatusDesc, { color: colors.textSecondary }]}>
+                      Diventerà COMPLETATA automaticamente quando tutte le partite saranno finite.
+                    </Text>
+                  </View>
+                </View>
+              )}
+
               {/* Action buttons */}
               <View style={s.transitionActions}>
                 {transitionInfo && (
                   <TouchableOpacity
+                    data-testid="transition-btn"
                     style={[s.transitionBtn, { backgroundColor: getStatusColor(transitionInfo.target) }]}
                     onPress={() => doTransition(transitionInfo.target)}
                     disabled={actionLoading}
@@ -542,6 +579,7 @@ export default function AdminConsoleV3() {
 
                 {isCompleted && isSuperAdmin && (
                   <TouchableOpacity
+                    data-testid="recalculate-btn"
                     style={[s.transitionBtn, { backgroundColor: 'rgba(59,130,246,0.9)' }]}
                     onPress={doRecalculate}
                     disabled={actionLoading}
@@ -552,8 +590,23 @@ export default function AdminConsoleV3() {
                   </TouchableOpacity>
                 )}
 
-                {!isCompleted && (
+                {/* SUPER_ADMIN Override */}
+                {isSuperAdmin && !isCompleted && (
                   <TouchableOpacity
+                    data-testid="override-btn"
+                    style={[s.overrideBtn, { borderColor: 'rgba(245,166,35,0.5)' }]}
+                    onPress={() => setShowOverrideModal(true)}
+                    disabled={actionLoading}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="shield" size={16} color="rgba(245,166,35,0.9)" />
+                    <Text style={[s.overrideBtnText, { color: 'rgba(245,166,35,0.9)' }]}>Override Super Admin</Text>
+                  </TouchableOpacity>
+                )}
+
+                {isDraft && (
+                  <TouchableOpacity
+                    data-testid="delete-matchday-btn"
                     style={[s.deleteBtn]}
                     onPress={deleteMatchday}
                     disabled={actionLoading}
