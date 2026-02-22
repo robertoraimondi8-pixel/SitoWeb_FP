@@ -2829,11 +2829,8 @@ async def get_live_matchday(matchday_id: str, league_id: str = None, user=Depend
     # Use _match_source_query for league isolation
     source_lid = matchday.get("league_id") or NATIONAL_LEAGUE_ID
     matches = await matches_col.find(_match_source_query(matchday_id, source_lid), {"_id": 0}).to_list(20)
-    # ISOLAMENTO: filtra predictions per league_id
-    pred_filter = {"user_id": user["id"], "matchday_id": matchday_id}
-    if league_id:
-        pred_filter["league_id"] = league_id
-    preds = await predictions_col.find(pred_filter, {"_id": 0}).to_list(20)
+    # ISOLAMENTO: filtra predictions senza league_id (predictions sono per utente+match)
+    preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
     
     # Get joker for this matchday (per-matchday logic)
