@@ -241,7 +241,8 @@ export default function UserPredictionsScreen() {
               </View>
             </View>
           </View>
-        ))}
+        ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );
