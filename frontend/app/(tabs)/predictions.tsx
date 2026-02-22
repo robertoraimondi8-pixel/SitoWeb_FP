@@ -63,13 +63,18 @@ export default function PredictionsScreen() {
   // Info lega attiva per empty state
   const [leagueInfo, setLeagueInfo] = useState<{ id: string; isManual: boolean; isOwner: boolean } | null>(null);
 
+  const formatPts = (pts: number) => {
+    const val = pts % 1 === 0 ? pts.toString() : pts.toFixed(1).replace('.', ',');
+    return `${val} ${pts === 1 ? 'punto' : 'punti'}`;
+  };
+
   // Mercati visibili filtrati per scoring_config
   const MARKETS = scoringConfig
     ? ALL_MARKETS.filter(m => scoringConfig[m.configKey]?.enabled !== false).map(m => ({
         ...m,
-        pts: `${scoringConfig[m.configKey]?.points ?? m.defaultPts} pt`,
+        pts: formatPts(scoringConfig[m.configKey]?.points ?? m.defaultPts),
       }))
-    : ALL_MARKETS.map(m => ({ ...m, pts: `${m.defaultPts} pt` }));
+    : ALL_MARKETS.map(m => ({ ...m, pts: formatPts(m.defaultPts) }));
 
   const fetchData = useCallback(async () => {
     try {
