@@ -1,0 +1,152 @@
+{
+  "summary": "API League Fixtures Import Feature Testing Complete - Backend: 16/16 tests passed. Frontend: League creation shows all 3 options after cache clear. Admin panel code correctly configured for API-type leagues.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "test_1_national_league_no_regression": {
+      "description": "National league home/standings still work identically",
+      "status": "PASSED",
+      "evidence": [
+        "GET /api/home?league_id=national returns 200 with matchday data",
+        "GET /api/standings/total?league_id=national returns 200 with standings entries",
+        "Backend tests test_national_home_works and test_national_standings_works passed"
+      ]
+    },
+    "test_2_api_league_creation": {
+      "description": "Creating a league with match_source_type='api' works correctly",
+      "status": "PASSED",
+      "evidence": [
+        "POST /api/leagues with match_source_type='api' returns 200",
+        "Response includes match_source_type='api'",
+        "Owner_id correctly set to creator's user_id"
+      ]
+    },
+    "test_3_owner_access_fixtures_leagues": {
+      "description": "League owner of API-type league can access /api/admin/real-fixtures/leagues",
+      "status": "PASSED",
+      "evidence": [
+        "GET /api/admin/real-fixtures/leagues returns 200 for desy (league owner)",
+        "Returns list of API-Football leagues",
+        "test_owner_can_access_fixtures_leagues passed"
+      ]
+    },
+    "test_4_owner_access_fixtures_search": {
+      "description": "League owner of API-type league can access /api/admin/real-fixtures/search",
+      "status": "PASSED",
+      "evidence": [
+        "GET /api/admin/real-fixtures/search?league=135&season=2024 returns 200",
+        "Returns list of Serie A fixtures",
+        "test_owner_can_search_fixtures passed"
+      ]
+    },
+    "test_5_owner_can_import_own_league": {
+      "description": "League owner can import fixtures into their OWN API-type league",
+      "status": "PASSED",
+      "evidence": [
+        "POST /api/admin/real-fixtures/import returns 200 for owner",
+        "Fixtures imported correctly into matchday",
+        "test_owner_can_import_into_own_api_league passed"
+      ]
+    },
+    "test_6_non_owner_blocked": {
+      "description": "Non-owner user CANNOT import into someone else's API-type league",
+      "status": "PASSED",
+      "evidence": [
+        "POST /api/admin/real-fixtures/import returns 403 for non-owner (ilio)",
+        "Error: 'Solo il creatore della lega o un super admin può importare partite'",
+        "test_non_owner_cannot_import passed"
+      ]
+    },
+    "test_7_non_admin_blocked_national": {
+      "description": "Non-admin user CANNOT import into national league",
+      "status": "PASSED",
+      "evidence": [
+        "POST /api/admin/real-fixtures/import returns 403 for non-admin importing to national",
+        "test_non_admin_cannot_import_national passed"
+      ]
+    },
+    "test_8_super_admin_can_import_anywhere": {
+      "description": "Super admin CAN import into any league including API-type",
+      "status": "PASSED",
+      "evidence": [
+        "POST /api/admin/real-fixtures/import returns 200 for super admin on any league",
+        "test_admin_can_import_into_api_league passed"
+      ]
+    },
+    "test_9_admin_v3_shows_api_leagues": {
+      "description": "Admin V3 leagues endpoint shows API-type leagues with _can_manage_matches=true",
+      "status": "PASSED",
+      "evidence": [
+        "GET /api/admin/v3/leagues returns API league for owner",
+        "API league has _can_manage_matches=true",
+        "Super admin sees all leagues including national and API",
+        "test_admin_v3_shows_api_leagues_for_owner passed"
+      ]
+    },
+    "test_10_frontend_league_creation_form": {
+      "description": "League creation form shows 3 options: Lega Nazionale, Partite da API, Scelte dal creatore",
+      "status": "PASSED",
+      "evidence": [
+        "Screenshot confirms all 3 source type options visible",
+        "Options: 'Lega Nazionale', 'Partite da API', 'Scelte dal creatore'",
+        "Code at /app/frontend/app/league/create.tsx line 249-272 renders all 3 options"
+      ]
+    },
+    "test_11_admin_panel_import_button": {
+      "description": "Admin panel shows 'Importa Partite Reali' button for API-type leagues",
+      "status": "PASSED",
+      "evidence": [
+        "Code at /app/frontend/app/admin/index.tsx line 788: (selectedLeague._is_national || selectedLeague.match_source_type === 'api') && canEditMatches",
+        "ImportFixtures component rendered for API-type leagues",
+        "Condition correctly includes match_source_type === 'api'"
+      ]
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_api_league_fixtures_import.py",
+    "/app/test_reports/pytest/api_league_fixtures_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend server.py correctly adds 'api' to match_source_type checks in ~10 places",
+    "fixtures_router /import endpoint has proper permission checks: super admin or league owner of API-type league",
+    "Admin V3 leagues endpoint correctly sets _can_manage_matches=true for 'api' source type",
+    "Frontend create.tsx correctly renders all 3 source type options",
+    "Frontend admin/index.tsx correctly shows ImportFixtures for API-type leagues"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_api_league_fixtures_import.py (new test file)"
+  ],
+  "success_rate": {
+    "backend": "100% (16/16 tests passed)",
+    "frontend": "100% (2/2 flows verified)"
+  },
+  "test_credentials": {
+    "super_admin": "admin@fantapronostic.com / admin123",
+    "desy_owner": "desiree@raimondi.it / Roberto95",
+    "ilio_non_owner": "ilio@raimondi.it / password123"
+  },
+  "seed_data_creation": "Test creates TEST_API_League leagues during pytest runs",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "API League Fixtures Import feature fully tested. Backend: Owner of API-type league can access fixtures endpoints and import into their own league. Non-owners blocked (403). Super admin can import anywhere. Admin V3 shows API leagues with _can_manage_matches=true. Frontend: League creation form shows all 3 source options (national, api, custom). Admin panel shows ImportFixtures for API-type leagues (condition at line 788). Key endpoints: GET /api/admin/real-fixtures/leagues, GET /api/admin/real-fixtures/search, POST /api/admin/real-fixtures/import.",
+  "verified_endpoints": {
+    "POST /api/leagues": "Creates API-type league when match_source_type='api'",
+    "GET /api/admin/real-fixtures/leagues": "Returns API-Football leagues (200 for any authenticated user)",
+    "GET /api/admin/real-fixtures/search": "Returns fixtures from API-Football (200 for any authenticated user)",
+    "POST /api/admin/real-fixtures/import": "Imports fixtures (200 for owner/admin, 403 for non-owner)",
+    "GET /api/admin/v3/leagues": "Returns leagues with _can_manage_matches flag for API-type",
+    "GET /api/home": "National league home works (no regression)",
+    "GET /api/standings/total": "National league standings works (no regression)"
+  },
+  "screenshots": [
+    ".screenshots/league_create_after_restart.png - Shows all 3 source type options"
+  ]
+}
