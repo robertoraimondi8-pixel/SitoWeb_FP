@@ -34,7 +34,20 @@ Every league is an independent universe. All data must be strictly scoped by lea
 
 ## Changes Applied
 
-### P1 - Classifica LIVE (Feb 22, 2026) - COMPLETED
+### P1 - API-Football Import per Leghe Private (Feb 22, 2026) - COMPLETED
+Extended the national league's API-Football import to private leagues with `match_source_type: "api"`.
+- **Backend**:
+  - Added `"api"` to all ~10 `match_source_type` checks so API-type leagues own their matchdays/matches (like manual leagues).
+  - Updated `_require_league_admin` to allow API-type league owners to manage matchdays.
+  - Changed fixtures search/leagues auth from `require_admin` to `get_current_user` (read-only).
+  - Changed fixtures import auth: super admin OR owner of target API-type league.
+  - `admin_v3_leagues` returns `_can_manage_matches=true` for API-type leagues.
+- **Frontend**:
+  - League creation: Added third option "Partite da API" (`match_source_type: "api"`).
+  - Admin panel: Shows "Importa Partite Reali" + "Risultati Live" for API-type leagues (not just national).
+- **NOT touched**: National league logic, scoring, DB schema, existing match management for manual leagues.
+
+
 Real-time live standings integrated into the existing Weekly Rankings screen.
 - **Backend**:
   - `get_home()`: Added live ranking computation (live_rank, live_points, total_members) when matchday is LIVE
