@@ -70,15 +70,15 @@ export default function RankingsScreen() {
   }, [activeLeague?.id, token, handleAuthError]);
 
   const fetchStandings = useCallback(async () => {
-    if (!selectedLeague) { setLoading(false); return; }
+    if (!activeLeague?.id) { setLoading(false); return; }
     setLoading(true);
     try {
       let url: string;
       if (tab === 'total') {
-        url = `/standings/total?league_id=${selectedLeague}`;
+        url = `/standings/total?league_id=${activeLeague.id}`;
       } else {
         if (!selectedMatchday) { setLoading(false); return; }
-        url = `/standings/weekly/${selectedMatchday.id}?league_id=${selectedLeague}`;
+        url = `/standings/weekly/${selectedMatchday.id}?league_id=${activeLeague.id}`;
       }
       const res = await apiCall(url, { token });
       setStandings(res);
@@ -91,7 +91,7 @@ export default function RankingsScreen() {
       console.error(e); 
     }
     finally { setLoading(false); }
-  }, [token, tab, selectedLeague, selectedMatchday, handleAuthError]);
+  }, [token, tab, activeLeague?.id, selectedMatchday, handleAuthError]);
 
   useEffect(() => { fetchStandings(); }, [fetchStandings]);
 
