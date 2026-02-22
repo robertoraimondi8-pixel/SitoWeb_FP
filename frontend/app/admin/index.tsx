@@ -785,6 +785,7 @@ export default function AdminConsoleV3() {
             </View>
 
             {/* IMPORTA PARTITE REALI Section - for national, api or custom leagues with owner access */}
+            {console.log('[DEBUG ImportFixtures]', 'national:', selectedLeague._is_national, 'source:', selectedLeague.match_source_type, 'matchday:', selectedMatchday?.status, 'result:', (selectedLeague._is_national || selectedLeague.match_source_type === 'api' || selectedLeague.match_source_type === 'custom') && selectedMatchday && selectedMatchday.status !== 'COMPLETED')}
             {(selectedLeague._is_national || selectedLeague.match_source_type === 'api' || selectedLeague.match_source_type === 'custom') && selectedMatchday && selectedMatchday.status !== 'COMPLETED' && (
               <ImportFixtures
                 leagueId={selectedLeague.id}
