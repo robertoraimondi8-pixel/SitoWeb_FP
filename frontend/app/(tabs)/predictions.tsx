@@ -871,6 +871,35 @@ const styles = StyleSheet.create({
   matchCardLocked: {
     opacity: 0.75,
   },
+  matchCardSpecial: {
+    borderWidth: 2,
+    borderColor: colors.accent,
+  },
+  specialX3Badge: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  specialX3Text: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  specialBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 2,
+    marginBottom: 4,
+  },
+  specialBannerText: {
+    ...typography.bodyS,
+    color: colors.accent,
+    fontWeight: '600',
+  },
   matchHeader: { 
     flexDirection: 'row', 
     alignItems: 'center', 
