@@ -176,7 +176,7 @@ export default function LiveScreen() {
     <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity data-testid="live-back-btn" onPress={() => router.replace('/(tabs)/home' as any)} style={s.backBtn}>
+        <TouchableOpacity testID="live-back-btn" accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.replace('/(tabs)/home' as any)} style={s.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <View style={s.headerInfo}>
