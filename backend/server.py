@@ -377,6 +377,7 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
         joker_active = joker is not None and joker.get("is_active", False)
         
         base_points = points_data["base_points"]
+        special_bonus = points_data.get("special_bonus", 0)
         joker_bonus = base_points if joker_active else 0
         total_points = base_points + joker_bonus
         
