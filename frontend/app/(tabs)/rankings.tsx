@@ -99,14 +99,14 @@ export default function RankingsScreen() {
     if (!selectedMatchday) return;
     router.push({
       pathname: '/user-predictions',
-      params: { userId, matchdayId: selectedMatchday.id, leagueId: selectedLeague }
+      params: { userId, matchdayId: selectedMatchday.id, leagueId: activeLeague?.id || '' }
     });
   };
 
   const viewUserProfile = (userId: string) => {
     router.push({
       pathname: '/user-detail',
-      params: { userId, leagueId: selectedLeague }
+      params: { userId, leagueId: activeLeague?.id || '' }
     });
   };
 
