@@ -3433,14 +3433,13 @@ async def admin_recalc_standings(matchday_id: str, admin=Depends(require_admin))
 # ========================================
 
 VALID_TRANSITIONS = {
-    "DRAFT": ["OPEN"],
-    "OPEN": ["LOCKED"],
-    "LOCKED": ["LIVE"],
-    "LIVE": ["COMPLETED"],
+    "DRAFT": ["OPEN"],     # Manual publish by admin
+    "OPEN": [],            # Auto-transition to LIVE at first_kickoff
+    "LIVE": [],            # Auto-transition to COMPLETED when all matches FT
     "COMPLETED": [],
 }
 
-STATUS_ORDER = ["DRAFT", "OPEN", "LOCKED", "LIVE", "COMPLETED"]
+STATUS_ORDER = ["DRAFT", "OPEN", "LIVE", "COMPLETED"]
 
 
 @admin_router.get("/v3/leagues")
@@ -3519,16 +3518,10 @@ async def admin_v3_matchdays(league_id: str, season_id: str = None, user=Depends
         pred_users = await predictions_col.distinct("user_id", {"matchday_id": md_id, "league_id": league_id})
         md["predictions_user_count"] = len(pred_users)
 
-        # Auto-lock check: se server time >= first_kickoff e status è OPEN
-        if md.get("status") == "OPEN" and md.get("first_kickoff"):
-            try:
-                kickoff = datetime.fromisoformat(md["first_kickoff"].replace("Z", "+00:00"))
-                if server_now() >= kickoff:
-                    await matchdays_col.update_one({"id": md_id}, {"$set": {"status": "LOCKED"}})
-                    md["status"] = "LOCKED"
-                    logger.info(f"[AUTO-LOCK] Matchday {md_id} auto-locked (kickoff passed)")
-            except Exception:
-                pass
+        # Kickoff-driven: compute effective status automatically
+        effective_status = await compute_matchday_status(md, league_id)
+        if effective_status != md.get("status"):
+            md["status"] = effective_status
 
     return matchdays
 
