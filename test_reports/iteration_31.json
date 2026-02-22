@@ -1,0 +1,101 @@
+{
+  "summary": "P0 Bug Fixes Verification Complete - All 3 critical bugs verified FIXED (Iteration 31)",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "P0-1_home_predictions_count": {
+      "description": "GET /api/home no longer filters predictions by league_id",
+      "status": "PASSED",
+      "evidence": "my_predictions_count=1 returned for G18, my_points=3.0 for completed matchday",
+      "backend_location": "/app/backend/server.py lines 908-909"
+    },
+    "P0-1_live_is_special_multiplier": {
+      "description": "GET /api/live/{matchday_id} returns is_special and multiplier fields",
+      "status": "PASSED",
+      "evidence": "G17: Inter vs Roma shows is_special=True, multiplier=3.0; G18: Milan vs Napoli shows is_special=True, multiplier=3.0",
+      "backend_location": "/app/backend/server.py lines 2802-2803"
+    },
+    "P0-1_scoring_with_multiplier": {
+      "description": "calculate_match_points receives multiplier parameter in all live scoring paths",
+      "status": "PASSED",
+      "evidence": "multiplier=m.get('multiplier', 1.0) passed to calculate_match_points at lines 954, 2777, 2854",
+      "backend_location": "/app/backend/scoring.py lines 43-84"
+    },
+    "P0-2_g16_deleted": {
+      "description": "Giornata 16 (id=68523813-a795-4a74-87ec-68bdd0b7ace0) deleted from DB",
+      "status": "PASSED",
+      "evidence": "Admin matchday endpoint returns 404 for G16, fixtures list shows 0 matchdays with number=16",
+      "backend_location": "DB deletion confirmed"
+    },
+    "P0-3_fixtures_special_fields": {
+      "description": "GET /api/leagues/{league_id}/fixtures returns is_special and multiplier",
+      "status": "PASSED",
+      "evidence": "2 special matches found: G17 Inter vs Roma (x3.0), G18 Milan vs Napoli (x3.0)",
+      "backend_location": "/app/backend/server.py lines 1494-1498"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_p0_sprint_fixes.py",
+    "/app/test_reports/pytest/p0_sprint_fixes_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✓ P0-1 Fix VERIFIED: Prediction count in home endpoint (line 909) no longer filters by league_id",
+    "✓ P0-1 Fix VERIFIED: calculate_match_points receives multiplier parameter in home LIVE section (line 954) and live endpoint (lines 2777, 2854)",
+    "✓ P0-1 Fix VERIFIED: is_special and multiplier fields added to live endpoint response (lines 2802-2803)",
+    "✓ P0-2 Fix VERIFIED: G16 matchday completely removed from database (404 on access, 0 matchdays with number=16)",
+    "✓ P0-3 Fix VERIFIED: Fixtures endpoint returns matches with is_special/multiplier fields intact",
+    "NOTE: Match status is 'scheduled' for G17 matches, so points calculate to 0 (correct behavior per scoring.py logic)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_p0_sprint_fixes.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123"
+  },
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All P0 bugs from this sprint FIXED: P0-1 (home predictions count + live multiplier), P0-2 (G16 deleted), P0-3 (is_special/multiplier in API responses). Key IDs: G17=38df601f-49f7-47d1-8f7e-2aa524884f7d (Inter vs Roma special), G18=461d6479-2987-45b3-adc8-63f4ec2aed1a (Milan vs Napoli special), G16=68523813-a795-4a74-87ec-68bdd0b7ace0 (DELETED). NATIONAL_LEAGUE_ID=f1373417-43aa-4043-b6a2-125873181c95.",
+  "detailed_verification": {
+    "P0-1": {
+      "bug": "LIVE matchday shows 0.0 pts on Home screen, live scoring had wrong provisional points",
+      "root_cause": "Prediction queries filtered by league_id causing mismatch; multiplier not passed to calculate_match_points",
+      "fix": "Removed league_id filter from prediction queries (line 909), added multiplier parameter to all calculate_match_points calls",
+      "verified_data": {
+        "home_endpoint": "my_predictions_count=1 for G18, my_points=3.0",
+        "live_endpoint": "is_special and multiplier fields present in all match objects"
+      }
+    },
+    "P0-2": {
+      "bug": "Admin test Giornata 16 blocking imports",
+      "root_cause": "Test matchday G16 still in DB",
+      "fix": "Deleted G16 matchday + all associated data from DB",
+      "verified_data": {
+        "g16_matchday_id": "68523813-a795-4a74-87ec-68bdd0b7ace0",
+        "status": "DELETED (404 on access)"
+      }
+    },
+    "P0-3": {
+      "bug": "X3 special match badge not showing in predictions screen",
+      "root_cause": "MatchItem TypeScript interface missing is_special/multiplier fields",
+      "fix": "Added fields to frontend type, and added is_special/multiplier to live endpoint response",
+      "verified_data": {
+        "special_matches": [
+          {"matchday": "G17", "match": "Inter vs Roma", "multiplier": 3.0},
+          {"matchday": "G18", "match": "Milan vs Napoli", "multiplier": 3.0}
+        ]
+      }
+    }
+  }
+}
