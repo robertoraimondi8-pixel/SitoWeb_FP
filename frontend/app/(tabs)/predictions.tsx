@@ -980,8 +980,12 @@ const styles = StyleSheet.create({
     gap: spacing.sm, 
     marginBottom: spacing.md,
   },
+  marketPillWrap: {
+    flex: 1,
+    alignItems: 'center',
+  },
   marketPill: { 
-    flex: 1, 
+    width: '100%',
     paddingVertical: spacing.md, 
     borderRadius: borderRadius.md, 
     backgroundColor: colors.background,
@@ -989,6 +993,23 @@ const styles = StyleSheet.create({
   },
   marketPillActive: {
     backgroundColor: colors.accent,
+  },
+  marketInfoBtn: {
+    marginTop: 4,
+    padding: 2,
+  },
+  marketInfoTooltip: {
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  marketInfoText: {
+    ...typography.bodyS,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
   marketLabel: { 
     ...typography.meta,
