@@ -19,13 +19,12 @@ import { BrandLogo } from '../../src/components/BrandLogo';
 export default function HomeScreen() {
   const { t } = useTranslation();
   const { token, user, handleAuthError } = useAuth();
-  const { refreshLeagues } = useLeague();
+  const { leagues, activeLeague, setActiveLeague, refreshLeagues } = useLeague();
   const router = useRouter();
   const [data, setData] = useState<HomeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const [activeLeagueId, setActiveLeagueId] = useState<string | null>(null);
   const [showLeagueSwitcher, setShowLeagueSwitcher] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
 
