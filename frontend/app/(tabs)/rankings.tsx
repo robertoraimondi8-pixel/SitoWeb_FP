@@ -464,6 +464,11 @@ const styles = StyleSheet.create({
     ...shadows.card,
     gap: spacing.sm,
   },
+  matchdaySelectorLive: {
+    borderWidth: 2,
+    borderColor: colors.success,
+    backgroundColor: 'rgba(34,197,94,0.06)',
+  },
   matchdaySelectorText: { 
     flex: 1, 
     ...typography.bodyM,
