@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countdownDigits: {
-    fontSize: 42,
+    fontSize: 34,
     fontWeight: '800',
     color: colors.accent,
     letterSpacing: 2,
