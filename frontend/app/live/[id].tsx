@@ -29,6 +29,8 @@ interface LiveMatch {
   my_market: string | null;
   points: number;
   outcome: string;
+  is_special?: boolean;
+  multiplier?: number;
 }
 
 export default function LiveScreen() {
