@@ -82,6 +82,14 @@ Fixed critical data isolation bug in `backend/server.py` `real_fixtures_import()
 ### Bug Fix - Admin selectedMatchday Sync (Feb 22, 2026) - COMPLETED
 Fixed bug in `frontend/app/admin/index.tsx` where `selectedMatchday` state was not updated when `matchdays` were reloaded. This caused `first_kickoff` (and other updated fields like status) to not reflect in the UI after importing matches, showing "Nessun orario kickoff" even though the backend had computed the kickoff time. Fixed by syncing `selectedMatchday` with fresh data in `loadMatchdays()`.
 
+### UX - Admin Console League Lock per Owner (Feb 22, 2026) - COMPLETED
+Removed the league dropdown for league owners in the Admin Console. Owners now see only the active league (from Home context) as a static display. Super admins retain the full dropdown to switch between all leagues.
+- **Frontend (`admin/index.tsx`)**:
+  - Added `useLeague()` hook to get `activeLeague` from context
+  - `loadLeagues`: super admin auto-selects first league; owner locks to activeLeague matching admin leagues list
+  - League selector: `TouchableOpacity` with chevron for super admin, plain `View` for owner
+  - League dropdown modal: wrapped in `isSuperAdmin` guard
+
 ## Prioritized Backlog
 
 ### P2
