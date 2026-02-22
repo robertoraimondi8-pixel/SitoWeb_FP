@@ -251,14 +251,12 @@ export default function AdminConsoleV3() {
         number: num,
         label: newMatchday.label || `Giornata ${num}`,
         half,
-        first_kickoff: selectedDate.toISOString(),
         status: 'DRAFT',
       };
       await apiCall(endpoint, { method: 'POST', token, body });
-      showAlert('Fatto!', 'Giornata creata');
+      showAlert('Fatto!', 'Giornata creata in Bozza. Aggiungi le partite e poi pubblicala.');
       setShowCreateMatchday(false);
       setNewMatchday({ number: '', label: '' });
-      setSelectedDate(getDefaultDate());
       await loadMatchdays(selectedLeague.id);
     } catch (e: unknown) {
       showAlert('Errore', e.message || 'Impossibile creare');
