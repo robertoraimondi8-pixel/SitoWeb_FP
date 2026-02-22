@@ -188,7 +188,16 @@ export default function ImportFixtures({ leagueId, matchdayId, matchdayLabel, cu
       const imported = result.imported || 0;
       const skipped = result.skipped || 0;
       let msg = `${imported} partite importate con successo!`;
-      if (skipped > 0) msg += ` (${skipped} già presenti, saltate)`;
+      if (skipped > 0) {
+        const details = result.skipped_details || [];
+        const alreadyIn = details.filter((d: any) => d.reason === 'already_imported');
+        if (alreadyIn.length > 0) {
+          const mdName = alreadyIn[0].existing_matchday || '?';
+          msg += ` (${alreadyIn.length} già presenti in ${mdName})`;
+        }
+        const notFound = details.filter((d: any) => d.reason === 'not_found');
+        if (notFound.length > 0) msg += ` (${notFound.length} non trovate su API)`;
+      }
       setSuccessMsg(msg);
       setFixtures([]);
       setSelectedIds(new Set());
