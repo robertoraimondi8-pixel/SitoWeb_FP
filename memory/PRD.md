@@ -76,6 +76,9 @@ Predictions unique per `(user_id, match_id, league_id)`. Score summaries unique 
 ### Bug Fix - Import Button Condition (Feb 22, 2026) - COMPLETED
 Fixed logical bug in `frontend/app/admin/index.tsx` where the "Importa Partite Reali" section was not visible for private leagues with `match_source_type: "national"`. The condition checked for `_is_national`, `'api'`, `'custom'`, and `'manual'` but missed `'national'`. Fixed by replacing with `['api', 'custom', 'national'].includes(match_source_type)`.
 
+### Bug Fix - Import Duplicate Check Scoped per League (Feb 22, 2026) - COMPLETED
+Fixed critical data isolation bug in `backend/server.py` `real_fixtures_import()`: the duplicate check for `external_fixture_id` was **global** (across all leagues), preventing custom/api leagues from importing matches already present in other leagues (e.g., the National League). Fixed by adding `"league_id": req.league_id` to the duplicate query filter — each league is now independent.
+
 ## Prioritized Backlog
 
 ### P2
