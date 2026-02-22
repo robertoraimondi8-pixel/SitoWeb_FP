@@ -3529,14 +3529,9 @@ async def admin_v3_matchdays(league_id: str, season_id: str = None, user=Depends
 @admin_router.post("/matchday/{matchday_id}/transition")
 async def admin_v3_transition(matchday_id: str, body: dict, user=Depends(get_current_user)):
     """Endpoint unificato per transizioni di stato giornata.
-    Body: {"league_id": "...", "target_status": "OPEN"|"LOCKED"|"LIVE"|"COMPLETED"}
-    Regole:
-    - Valida stato corrente
-    - Impedisce salto di stati
-    - Impedisce ritorno indietro
-    - Valida permessi ruolo
-    - Valida conteggio partite
-    - Su COMPLETED → calcola punteggi
+    Body: {"league_id": "...", "target_status": "OPEN"}
+    Kickoff-driven: solo DRAFT → OPEN è manuale.
+    OPEN → LIVE e LIVE → COMPLETED sono automatiche.
     """
     league_id = body.get("league_id")
     target_status = body.get("target_status")
@@ -3563,14 +3558,10 @@ async def admin_v3_transition(matchday_id: str, body: dict, user=Depends(get_cur
 
     current_status = matchday.get("status", "DRAFT")
 
-    # Validazione: non si può modificare COMPLETED (tranne recalc per SUPER_ADMIN)
-    if current_status == "COMPLETED":
-        raise HTTPException(400, "La giornata è già completata. Non è possibile cambiare stato.")
-
-    # Validazione: transizione valida (no salto, no indietro)
+    # Validazione: transizione valida (solo DRAFT → OPEN è manuale)
     allowed = VALID_TRANSITIONS.get(current_status, [])
     if target_status not in allowed:
-        raise HTTPException(400, f"Transizione non permessa: {current_status} → {target_status}. Transizioni valide: {', '.join(allowed) if allowed else 'nessuna'}")
+        raise HTTPException(400, f"Transizione non permessa: {current_status} → {target_status}. Le transizioni OPEN→LIVE e LIVE→COMPLETED sono automatiche.")
 
     # Conteggio partite
     match_count = await matches_col.count_documents({"matchday_id": matchday_id, "league_id": league_id})
@@ -3578,30 +3569,18 @@ async def admin_v3_transition(matchday_id: str, body: dict, user=Depends(get_cur
     # DRAFT → OPEN: servono almeno 1 partita
     if target_status == "OPEN":
         if match_count < 1:
-            raise HTTPException(400, "Impossibile aprire la giornata: inserisci almeno 1 partita")
-        if match_count > 10:
-            raise HTTPException(400, f"La giornata ha {match_count} partite. Il massimo consentito è 10.")
+            raise HTTPException(400, "Impossibile pubblicare: inserisci almeno 1 partita")
+        # Auto-compute first_kickoff from matches
+        await recompute_matchday_kickoff(matchday_id, league_id)
 
-    # LIVE → COMPLETED: tutti i risultati devono essere inseriti
-    if target_status == "COMPLETED":
-        if match_count < 1:
-            raise HTTPException(400, "Impossibile completare: la giornata non ha partite")
-        results_count = await matches_col.count_documents({
-            "matchday_id": matchday_id, "league_id": league_id,
-            "home_score": {"$ne": None}, "away_score": {"$ne": None}
-        })
-        if results_count < match_count:
-            raise HTTPException(400, f"Impossibile completare: risultati inseriti {results_count}/{match_count}. Inserisci tutti i risultati prima di completare.")
-
-    # OPEN: auto-lock altre giornate OPEN + aggiorna current_matchday_id della stagione
+    # OPEN: close other OPEN matchdays + update current_matchday_id
     if target_status == "OPEN":
         season_id = matchday.get("season_id")
         if season_id:
             await matchdays_col.update_many(
                 {"season_id": season_id, "league_id": league_id, "id": {"$ne": matchday_id}, "status": "OPEN"},
-                {"$set": {"status": "LOCKED"}}
+                {"$set": {"status": "DRAFT"}}
             )
-            # Aggiorna current_matchday_id nella stagione
             await seasons_col.update_one(
                 {"id": season_id},
                 {"$set": {"current_matchday_id": matchday_id}}
@@ -3616,17 +3595,65 @@ async def admin_v3_transition(matchday_id: str, body: dict, user=Depends(get_cur
     await log_audit(user["id"], admin_username, "TRANSITION", "matchday", matchday_id,
         {"from": current_status, "to": target_status, "league_id": league_id})
 
-    # Su COMPLETED → calcola punteggi
-    if target_status == "COMPLETED":
-        logger.info(f"[ADMIN_V3] Matchday {matchday_id} COMPLETED - calculating scores for league {league_id}")
-        await recalculate_matchday_scores(matchday_id, league_id)
-
     return {
         "status": "ok",
         "matchday_id": matchday_id,
         "previous_status": current_status,
         "new_status": target_status,
         "league_id": league_id,
+    }
+
+
+@admin_router.post("/matchday/{matchday_id}/override")
+async def admin_v3_override(matchday_id: str, body: dict, user=Depends(get_current_user)):
+    """SUPER_ADMIN override: forza lo stato di una giornata per emergenze.
+    Body: {"league_id": "...", "target_status": "DRAFT"|"OPEN"|"LIVE"|"COMPLETED"|null}
+    Passare target_status=null per rimuovere l'override e ripristinare lo stato automatico.
+    """
+    is_super = user.get("role") in ("admin", "superadmin")
+    if not is_super:
+        raise HTTPException(403, "Solo il Super Admin può forzare lo stato di una giornata")
+
+    league_id = body.get("league_id")
+    target_status = body.get("target_status")
+    if not league_id:
+        raise HTTPException(400, "league_id obbligatorio")
+
+    matchday = await matchdays_col.find_one({"id": matchday_id, "league_id": league_id}, {"_id": 0})
+    if not matchday:
+        raise HTTPException(404, "Giornata non trovata per questa lega")
+
+    admin_username = user.get("username", user.get("email", "unknown"))
+
+    if target_status is None:
+        # Remove override → restore automatic status
+        await matchdays_col.update_one({"id": matchday_id}, {"$unset": {"status_override": ""}})
+        await log_audit(user["id"], admin_username, "OVERRIDE_CLEAR", "matchday", matchday_id,
+            {"league_id": league_id})
+        return {"status": "ok", "message": "Override rimosso", "matchday_id": matchday_id}
+
+    if target_status not in ("DRAFT", "OPEN", "LIVE", "COMPLETED"):
+        raise HTTPException(400, f"target_status non valido: {target_status}")
+
+    # Set override + also update the stored status
+    await matchdays_col.update_one(
+        {"id": matchday_id},
+        {"$set": {"status_override": target_status, "status": target_status}}
+    )
+
+    # If forcing COMPLETED, trigger score calculation
+    if target_status == "COMPLETED":
+        logger.info(f"[SUPER_ADMIN] Force COMPLETED matchday {matchday_id} — calculating scores")
+        await recalculate_matchday_scores(matchday_id, league_id)
+
+    await log_audit(user["id"], admin_username, "OVERRIDE", "matchday", matchday_id,
+        {"target_status": target_status, "league_id": league_id})
+
+    return {
+        "status": "ok",
+        "message": f"Override forzato a {target_status}",
+        "matchday_id": matchday_id,
+        "new_status": target_status,
     }
 
 
