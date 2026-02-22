@@ -2235,9 +2235,24 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
                 ).sort("number", -1).to_list(50)
                 return matchdays
             else:
-                # Lega nazionale: restituisce TUTTI i matchday nazionali (COMPLETED + LIVE + OPEN)
+                # Lega nazionale privata: restituisce solo i matchday dove almeno
+                # un membro di questa lega ha predictions con league_id = questa lega
+                members = await memberships_col.find(
+                    {"league_id": league_id, "status": "active"}, {"_id": 0, "user_id": 1}
+                ).to_list(1000)
+                member_user_ids = [m["user_id"] for m in members]
+                
+                # Trova matchday_ids con almeno una prediction per questa lega
+                played_md_ids = await predictions_col.distinct(
+                    "matchday_id",
+                    {"user_id": {"$in": member_user_ids}, "league_id": league_id}
+                )
+                
+                if not played_md_ids:
+                    return []
+                
                 matchdays = await matchdays_col.find(
-                    {"league_id": NATIONAL_LEAGUE_ID, "status": {"$in": ["COMPLETED", "LIVE", "OPEN"]}},
+                    {"id": {"$in": played_md_ids}, "status": {"$in": ["COMPLETED", "LIVE", "OPEN"]}},
                     {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}
                 ).sort("number", -1).to_list(50)
                 return matchdays
