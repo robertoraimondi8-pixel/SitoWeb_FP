@@ -1070,12 +1070,8 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         last_5_matchdays.reverse()  # ASC order (oldest first) per display
 
         for md in last_5_matchdays:
-            # Per leghe manuali filtra per league_id; per nazionali NO league_id (score_summaries salvati senza)
-            if is_manual_league:
-                score_filter = {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]}
-            else:
-                # Lega nazionale/privata nazionale: score_summaries non hanno league_id della lega privata
-                score_filter = {"user_id": user["id"], "matchday_id": md["id"]}
+            # ALWAYS filter by league_id for strict league isolation
+            score_filter = {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]}
             score = await score_summaries_col.find_one(score_filter, {"_id": 0, "total_points": 1})
             pts = score.get("total_points", 0.0) if score else 0.0
             last_5_performance.append({
