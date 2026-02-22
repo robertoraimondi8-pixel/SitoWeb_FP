@@ -46,18 +46,19 @@ def calculate_match_points(
     home_score: Optional[int],
     away_score: Optional[int],
     match_status: str,
+    multiplier: float = 1.0,
 ) -> tuple:
     """
     Calculate points for a single match prediction.
     Returns (points, is_correct).
     Void/postponed/cancelled matches return (0, None).
+    multiplier: applied to base points (e.g. 3.0 for Partita Speciale X3).
     """
     # Void matches don't generate points
     if match_status in ("void", "postponed", "cancelled"):
         return (0.0, None)
 
     # Match must be finished or live to calculate points
-    # "live" matches get provisional points; "finished" matches get final points
     if match_status not in ("finished", "live"):
         return (0.0, None)
 
@@ -77,7 +78,8 @@ def calculate_match_points(
         return (0.0, False)
 
     is_correct = prediction_value.upper() == actual.upper()
-    points = MARKET_POINTS.get(market_type, 0.0) if is_correct else 0.0
+    base_pts = MARKET_POINTS.get(market_type, 0.0) if is_correct else 0.0
+    points = base_pts * multiplier
 
     return (points, is_correct)
 
