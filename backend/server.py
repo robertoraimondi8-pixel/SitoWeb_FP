@@ -2185,15 +2185,16 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
     league_doc = await leagues_col.find_one({"id": league_id}, {"_id": 0})
     if not league_doc:
         raise HTTPException(404, "League not found")
+
+    # Compute effective matchday status
+    is_manual = league_doc.get("match_source_type") in ("manual", "custom")
+    source_lid = league_id if is_manual else NATIONAL_LEAGUE_ID
+    effective_status = await compute_matchday_status(matchday, source_lid)
+    matchday["status"] = effective_status
     
     members = await memberships_col.find({"league_id": league_id, "status": "active"}).to_list(1000)
     member_user_ids = [m["user_id"] for m in members]
 
-    # Get predictions filtrate per questa lega
-    # Per leghe nazionali private: usa predictions.league_id = league_id
-    # Per leghe manuali: usa predictions.matchday_id (i matchday sono già unici per lega)
-    is_manual = league_doc.get("match_source_type") in ("manual", "custom")
-    # Dopo la migrazione: ogni prediction ha league_id esplicito — query diretta senza fallback
     pred_filter = {
         "matchday_id": matchday_id,
         "user_id": {"$in": member_user_ids},
@@ -2202,8 +2203,9 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
 
     all_preds = await predictions_col.find(pred_filter, {"_id": 0}).to_list(10000)
 
-    # Per leghe nazionali private: includi solo utenti che hanno giocato questa giornata per questa lega
-    if not is_manual:
+    # Per leghe nazionali private: includi solo utenti che hanno giocato
+    # ECCEZIONE: per giornate LIVE mostra TUTTI i membri (anche con 0 punti)
+    if not is_manual and matchday["status"] != "LIVE":
         users_who_played = {p["user_id"] for p in all_preds}
         member_user_ids = [uid for uid in member_user_ids if uid in users_who_played]
 
