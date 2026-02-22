@@ -30,8 +30,22 @@ Every league is an independent universe. All data must be strictly scoped by lea
 - API-Football integration
 - Full multi-league data isolation (Feb 22, 2026)
 - Jolly removal (Feb 22, 2026)
+- **Classifica LIVE** (Feb 22, 2026)
 
 ## Changes Applied
+
+### P1 - Classifica LIVE (Feb 22, 2026) - COMPLETED
+Real-time live standings integrated into the existing Weekly Rankings screen.
+- **Backend**:
+  - `get_home()`: Added live ranking computation (live_rank, live_points, total_members) when matchday is LIVE
+  - `get_weekly_standings()`: Shows ALL league members for LIVE matchdays (including 0-point users). Added `matchday_status` to response.
+  - `get_available_matchdays()`: Includes OPEN/LIVE matchdays even without predictions. Computes effective status for OPEN matchdays.
+  - NO new endpoints created. NO DB changes. NO score_summaries writes.
+- **Frontend**:
+  - Home: Replaced LIVE points box with "Classifica LIVE" button showing provisional rank + points. Click → navigates to Rankings > Weekly with LIVE matchday auto-selected.
+  - Rankings: Reads navigation params (tab, matchdayId). Auto-switches to weekly tab + selects LIVE matchday. Shows LIVE banner and green styling.
+  - User-predictions: Added "Nessun pronostico" empty state for users without predictions.
+- **NOT touched**: Scoring logic, score_summaries, COMPLETED matchday behavior, admin flows.
 
 ### P0 - League Data Isolation (Feb 22, 2026) - COMPLETED
 Enforced `league_id` on all score_summaries queries.
