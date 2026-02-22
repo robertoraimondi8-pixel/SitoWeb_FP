@@ -262,15 +262,21 @@ export default function LiveScreen() {
             style={[
               s.matchCard, 
               { backgroundColor: colors.card, borderColor: colors.border },
-              match.status === 'live' && { borderColor: colors.success, borderWidth: 2 }
+              match.status === 'live' && { borderColor: colors.success, borderWidth: 2 },
+              match.is_special && { borderColor: colors.accent, borderWidth: 2 }
             ]}
           >
             {/* Match Header */}
             <View style={s.matchHeader}>
-              <Text style={[s.matchNum, { color: colors.textSecondary }]}>{idx + 1}</Text>
+              <Text style={[s.matchNum, { color: match.is_special ? colors.accent : colors.textSecondary }]}>{idx + 1}</Text>
               <Text style={[s.competition, { color: colors.textSecondary }]}>
                 {match.competition}
               </Text>
+              {match.is_special && (
+                <View style={{ backgroundColor: colors.accent, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
+                  <Text style={{ color: '#fff', fontSize: 11, fontWeight: '800', letterSpacing: 1 }}>X3</Text>
+                </View>
+              )}
               {match.status === 'live' && match.elapsed != null && (
                 <View style={s.elapsedBadge}>
                   <Text style={s.elapsedText}>{match.elapsed}'</Text>
