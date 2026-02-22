@@ -881,20 +881,23 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
     live_data = None
 
     if matchday:
+        # Compute effective status (kickoff-driven auto-transitions)
+        effective_status = await compute_matchday_status(matchday, _md_source_lid if '_md_source_lid' in dir() else active_league["id"])
+        matchday["status"] = effective_status
+
         now = server_now()
         # Handle None or invalid first_kickoff
         first_kickoff_str = matchday.get("first_kickoff")
         try:
-            if first_kickoff_str and len(first_kickoff_str) > 10:
-                first_kickoff = datetime.fromisoformat(first_kickoff_str.replace("Z", "+00:00"))
+            if first_kickoff_str and len(str(first_kickoff_str)) > 10:
+                first_kickoff = datetime.fromisoformat(str(first_kickoff_str).replace("Z", "+00:00"))
             else:
-                # Default to 1 hour from now if no kickoff time or invalid
                 first_kickoff = now + timedelta(hours=1)
         except (ValueError, TypeError):
             first_kickoff = now + timedelta(hours=1)
         
-        lock_time = first_kickoff - timedelta(seconds=60)
-        countdown_seconds = max(0, int((lock_time - now).total_seconds()))
+        # Countdown to first_kickoff (lock_window = 0)
+        countdown_seconds = max(0, int((first_kickoff - now).total_seconds())) if effective_status == "OPEN" else 0
 
         # C) Count only relevant matches using source isolation (dopo migrazione: NATIONAL_LEAGUE_ID esplicito)
         _md_source_lid = active_league["id"] if is_manual_league else NATIONAL_LEAGUE_ID
