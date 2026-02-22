@@ -47,6 +47,7 @@ export default function RankingsScreen() {
   const [matchdays, setMatchdays] = useState<League[]>([]);
   const [selectedMatchday, setSelectedMatchday] = useState<StandingsData | null>(null);
   const [showMatchdayPicker, setShowMatchdayPicker] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Handle incoming navigation params (from Home LIVE button)
   useEffect(() => {
