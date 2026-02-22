@@ -168,12 +168,12 @@ export default function HomeScreen() {
         <View style={styles.leagueSwitcherWrap}>
           <TouchableOpacity
             style={styles.leagueSwitcherBtn}
-            onPress={() => (data?.user_leagues?.length || 0) > 1 ? setShowLeagueSwitcher(true) : null}
-            activeOpacity={(data?.user_leagues?.length || 0) > 1 ? 0.7 : 1}
+            onPress={() => leagues.length > 1 ? setShowLeagueSwitcher(true) : null}
+            activeOpacity={leagues.length > 1 ? 0.7 : 1}
           >
             <Ionicons name="trophy-outline" size={16} color={colors.accent} />
             <Text style={styles.leagueSwitcherText} numberOfLines={1}>{data.league.name}</Text>
-            {(data?.user_leagues?.length || 0) > 1 && (
+            {leagues.length > 1 && (
               <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
             )}
           </TouchableOpacity>
@@ -181,7 +181,7 @@ export default function HomeScreen() {
       )}
 
       {/* LEAGUE SWITCHER DROPDOWN */}
-      {showLeagueSwitcher && data?.user_leagues && (
+      {showLeagueSwitcher && leagues.length > 0 && (
         <TouchableOpacity
           style={styles.switcherOverlay}
           activeOpacity={1}
@@ -189,35 +189,39 @@ export default function HomeScreen() {
         >
           <View style={styles.switcherDropdown}>
             <Text style={styles.switcherTitle}>{t('home.switch_league', { defaultValue: 'Cambia Lega' })}</Text>
-            {data.user_leagues.map((lg: League) => (
+            {leagues.map((lg: League) => (
               <TouchableOpacity
                 key={lg.id}
-                style={[styles.switcherItem, lg.id === activeLeagueId && styles.switcherItemActive]}
+                style={[styles.switcherItem, lg.id === activeLeague?.id && styles.switcherItemActive]}
                 onPress={async () => {
                   setShowLeagueSwitcher(false);
-                  setActiveLeagueId(lg.id);
+                  // Reset state immediately to prevent stale data flash
+                  setData(null);
+                  setCountdown(0);
+                  setLoading(true);
+                  // Update global context (triggers re-fetch via useEffect)
+                  setActiveLeague(lg);
+                  // Persist on server
                   const authToken = token || await AsyncStorage.getItem('access_token');
                   if (authToken) {
                     apiCall(`/profile/current-league?league_id=${lg.id}`, { method: 'PATCH', token: authToken }).catch(() => {});
                   }
-                  setLoading(true);
-                  fetchHome(lg.id);
                 }}
               >
                 <Ionicons
-                  name={lg.id === activeLeagueId ? 'trophy' : 'trophy-outline'}
+                  name={lg.id === activeLeague?.id ? 'trophy' : 'trophy-outline'}
                   size={18}
-                  color={lg.id === activeLeagueId ? colors.accent : colors.textSecondary}
+                  color={lg.id === activeLeague?.id ? colors.accent : colors.textSecondary}
                 />
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.switcherItemText, lg.id === activeLeagueId && { color: colors.accent }]}>
+                  <Text style={[styles.switcherItemText, lg.id === activeLeague?.id && { color: colors.accent }]}>
                     {lg.name}
                   </Text>
                   <Text style={styles.switcherItemSub}>
                     {lg.league_type === 'national' ? 'Lega Nazionale' : `${lg.member_count ?? ''} membri`}
                   </Text>
                 </View>
-                {lg.id === activeLeagueId && <Ionicons name="checkmark" size={16} color={colors.accent} />}
+                {lg.id === activeLeague?.id && <Ionicons name="checkmark" size={16} color={colors.accent} />}
               </TouchableOpacity>
             ))}
           </View>
