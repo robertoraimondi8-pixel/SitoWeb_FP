@@ -301,7 +301,8 @@ async def recalculate_match_predictions(match_id: str, league_id: str):
             pred.get("market_type", match.get("market_type", "1X2")),
             match.get("home_score"),
             match.get("away_score"),
-            "finished"
+            "finished",
+            match.get("multiplier", 1.0)
         )
         await predictions_col.update_one(
             {"id": pred["id"]},
