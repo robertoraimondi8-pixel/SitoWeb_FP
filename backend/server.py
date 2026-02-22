@@ -836,7 +836,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
     matchday = None
     
     # "manual" e "custom" sono entrambi tipi di lega gestita manualmente
-    is_manual_league = active_league and active_league.get("match_source_type") in ("manual", "custom")
+    is_manual_league = active_league and active_league.get("match_source_type") in ("manual", "custom", "api")
     
     if is_manual_league:
         # MANUAL LEAGUE: cerca matchday SOLO della lega manuale
