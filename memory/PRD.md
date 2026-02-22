@@ -79,6 +79,9 @@ Fixed logical bug in `frontend/app/admin/index.tsx` where the "Importa Partite R
 ### Bug Fix - Import Duplicate Check Scoped per League (Feb 22, 2026) - COMPLETED
 Fixed critical data isolation bug in `backend/server.py` `real_fixtures_import()`: the duplicate check for `external_fixture_id` was **global** (across all leagues), preventing custom/api leagues from importing matches already present in other leagues (e.g., the National League). Fixed by adding `"league_id": req.league_id` to the duplicate query filter — each league is now independent.
 
+### Bug Fix - Admin selectedMatchday Sync (Feb 22, 2026) - COMPLETED
+Fixed bug in `frontend/app/admin/index.tsx` where `selectedMatchday` state was not updated when `matchdays` were reloaded. This caused `first_kickoff` (and other updated fields like status) to not reflect in the UI after importing matches, showing "Nessun orario kickoff" even though the backend had computed the kickoff time. Fixed by syncing `selectedMatchday` with fresh data in `loadMatchdays()`.
+
 ## Prioritized Backlog
 
 ### P2
