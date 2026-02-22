@@ -36,9 +36,8 @@ interface StandingEntry {
 export default function RankingsScreen() {
   const { t } = useTranslation();
   const { token, user, handleAuthError } = useAuth();
+  const { activeLeague } = useLeague();
   const [tab, setTab] = useState<'total' | 'weekly'>('total');
-  const [leagues, setLeagues] = useState<League[]>([]);
-  const [selectedLeague, setSelectedLeague] = useState('');
   const [standings, setStandings] = useState<StandingsData | null>(null);
   const [loading, setLoading] = useState(true);
   
@@ -47,19 +46,18 @@ export default function RankingsScreen() {
   const [selectedMatchday, setSelectedMatchday] = useState<StandingsData | null>(null);
   const [showMatchdayPicker, setShowMatchdayPicker] = useState(false);
 
+  // Load matchdays when activeLeague changes
   useEffect(() => {
+    if (!activeLeague?.id || !token) return;
+    setStandings(null);
+    setMatchdays([]);
+    setSelectedMatchday(null);
+    setLoading(true);
     (async () => {
       try {
-        const ls = await apiCall('/leagues', { token });
-        setLeagues(ls);
-        if (ls.length > 0) {
-          const firstLeagueId = ls[0].id;
-          setSelectedLeague(firstLeagueId);
-          // Carica matchdays filtrati per la lega
-          const mds = await apiCall(`/standings/matchdays?league_id=${firstLeagueId}`, { token });
-          setMatchdays(mds);
-          if (mds.length > 0) setSelectedMatchday(mds[0]);
-        }
+        const mds = await apiCall(`/standings/matchdays?league_id=${activeLeague.id}`, { token });
+        setMatchdays(mds);
+        if (mds.length > 0) setSelectedMatchday(mds[0]);
       } catch (e: unknown) { 
         if (isAuthError(e)) {
           const didLogout = await handleAuthError(e);
@@ -69,20 +67,7 @@ export default function RankingsScreen() {
         console.error(e); 
       }
     })();
-  }, [token, handleAuthError]);
-
-  // Ricarica matchdays quando cambia la lega selezionata
-  useEffect(() => {
-    if (!selectedLeague) return;
-    (async () => {
-      try {
-        const mds = await apiCall(`/standings/matchdays?league_id=${selectedLeague}`, { token });
-        setMatchdays(mds);
-        if (mds.length > 0) setSelectedMatchday(mds[0]);
-        else setSelectedMatchday(null);
-      } catch (e: unknown) { console.error(e); }
-    })();
-  }, [selectedLeague, token]);
+  }, [activeLeague?.id, token, handleAuthError]);
 
   const fetchStandings = useCallback(async () => {
     if (!selectedLeague) { setLoading(false); return; }
