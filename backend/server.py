@@ -103,6 +103,99 @@ def _match_source_query(matchday_id: str, source_league_id: str) -> dict:
     return {"matchday_id": matchday_id, "league_id": source_league_id}
 
 
+async def compute_matchday_status(matchday: dict, league_id: str) -> str:
+    """
+    Compute the effective matchday status based on kickoff times and match results.
+    Rules:
+      DRAFT  → stays DRAFT (manual publish to OPEN required)
+      OPEN   → LIVE when now >= first_kickoff
+      LIVE   → COMPLETED when ALL matches are finished (FT/finished)
+    status_override (SUPER_ADMIN) takes precedence over auto-computed status.
+    """
+    override = matchday.get("status_override")
+    if override:
+        return override
+
+    stored = matchday.get("status", "DRAFT")
+
+    if stored == "DRAFT":
+        return "DRAFT"
+
+    if stored == "COMPLETED":
+        return "COMPLETED"
+
+    first_kickoff = matchday.get("first_kickoff")
+    now = server_now()
+
+    # Parse first_kickoff
+    kickoff_dt = None
+    if first_kickoff:
+        try:
+            if isinstance(first_kickoff, str):
+                kickoff_dt = datetime.fromisoformat(first_kickoff.replace("Z", "+00:00"))
+            elif isinstance(first_kickoff, datetime):
+                kickoff_dt = first_kickoff
+        except Exception:
+            pass
+
+    if stored in ("OPEN", "LOCKED"):
+        if kickoff_dt and now >= kickoff_dt:
+            # Auto-transition: check if all matches finished
+            matches = await matches_col.find(
+                {"matchday_id": matchday["id"], "league_id": league_id},
+                {"_id": 0, "status": 1}
+            ).to_list(50)
+            if matches and all(m.get("status", "").lower() in ("finished", "ft") for m in matches):
+                # Persist COMPLETED
+                await matchdays_col.update_one({"id": matchday["id"]}, {"$set": {"status": "COMPLETED"}})
+                return "COMPLETED"
+            return "LIVE"
+        return "OPEN"
+
+    if stored == "LIVE":
+        matches = await matches_col.find(
+            {"matchday_id": matchday["id"], "league_id": league_id},
+            {"_id": 0, "status": 1}
+        ).to_list(50)
+        if matches and all(m.get("status", "").lower() in ("finished", "ft") for m in matches):
+            await matchdays_col.update_one({"id": matchday["id"]}, {"$set": {"status": "COMPLETED"}})
+            return "COMPLETED"
+        return "LIVE"
+
+    return stored
+
+
+async def recompute_matchday_kickoff(matchday_id: str, league_id: str):
+    """
+    Auto-compute first_kickoff from the earliest match start_time.
+    Called whenever matches are added/updated/imported for a matchday.
+    """
+    matches = await matches_col.find(
+        {"matchday_id": matchday_id, "league_id": league_id, "start_time": {"$ne": None}},
+        {"_id": 0, "start_time": 1}
+    ).to_list(100)
+    if not matches:
+        return
+    times = []
+    for m in matches:
+        st = m.get("start_time")
+        if st:
+            try:
+                if isinstance(st, str):
+                    times.append(datetime.fromisoformat(st.replace("Z", "+00:00")))
+                elif isinstance(st, datetime):
+                    times.append(st)
+            except Exception:
+                pass
+    if times:
+        first = min(times).isoformat()
+        await matchdays_col.update_one(
+            {"id": matchday_id},
+            {"$set": {"first_kickoff": first}}
+        )
+
+
+
 # B) FUNZIONE CENTRALIZZATA CALCOLO PUNTI GIORNATA
 async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
     """
