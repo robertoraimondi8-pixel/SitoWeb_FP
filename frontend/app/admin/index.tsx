@@ -1,7 +1,7 @@
 /**
  * Admin Console v3 - FantaPronostic
  * Console unificata per Lega Nazionale e leghe private.
- * Flusso guidato: DRAFT → OPEN → LOCKED → LIVE → COMPLETED
+ * Flusso kickoff-driven: DRAFT → OPEN → LIVE (auto) → COMPLETED (auto)
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import {
