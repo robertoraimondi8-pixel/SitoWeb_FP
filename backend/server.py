@@ -2761,9 +2761,9 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
     ).to_list(20)
 
     # Filter predictions by league_id for strict isolation (no fallbacks after migration)
+    # NOTE: Do NOT filter by league_id — predictions are unique per user+match,
+    # and users may save through different leagues (private vs national).
     pred_query: dict = {"user_id": user["id"], "matchday_id": matchday_id}
-    if league_id:
-        pred_query["league_id"] = league_id
     preds = await predictions_col.find(pred_query, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
     
