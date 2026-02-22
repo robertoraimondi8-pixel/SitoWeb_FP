@@ -168,6 +168,7 @@
     "role": "Role",
     "role_admin": "Admin",
     "role_player": "Player",
+    "role_owner": "League Creator",
     "admin_console_title": "ADMIN CONSOLE",
     "admin_console_desc": "Manage seasons, matchdays and matches",
     "admin_console_btn": "Open Console",
