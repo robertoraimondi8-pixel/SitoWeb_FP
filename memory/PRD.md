@@ -38,11 +38,11 @@ Every league is an independent universe. All data must be strictly scoped by lea
 Real-time live standings integrated into the existing Weekly Rankings screen.
 - **Backend**:
   - `get_home()`: Added live ranking computation (live_rank, live_points, total_members) when matchday is LIVE
-  - `get_weekly_standings()`: Shows ALL league members for LIVE matchdays (including 0-point users). Added `matchday_status` to response.
+  - `get_weekly_standings()`: Shows ALL league members for LIVE matchdays (including 0-point users). Added `matchday_status` to response. Computes effective matchday status.
   - `get_available_matchdays()`: Includes OPEN/LIVE matchdays even without predictions. Computes effective status for OPEN matchdays.
   - NO new endpoints created. NO DB changes. NO score_summaries writes.
 - **Frontend**:
-  - Home: Replaced LIVE points box with "Classifica LIVE" button showing provisional rank + points. Click → navigates to Rankings > Weekly with LIVE matchday auto-selected.
+  - Home: Replaced LIVE points box with "Classifica LIVE" button showing provisional rank + points. Click navigates to Rankings > Weekly with LIVE matchday auto-selected.
   - Rankings: Reads navigation params (tab, matchdayId). Auto-switches to weekly tab + selects LIVE matchday. Shows LIVE banner and green styling.
   - User-predictions: Added "Nessun pronostico" empty state for users without predictions.
 - **NOT touched**: Scoring logic, score_summaries, COMPLETED matchday behavior, admin flows.
@@ -55,9 +55,9 @@ Predictions unique per `(user_id, match_id, league_id)`. Score summaries unique 
 
 ### P1 - Jolly Removal (Feb 22, 2026) - COMPLETED
 **Approach**: Neutralize at input, zero changes to math functions.
-- **Backend**: `joker_active = False` forced at all 5 input points (compute_matchday_points, recalculate_matchday_scores, home endpoint, 2x admin recalculation). 3 joker endpoints removed (POST/DELETE/GET). Joker field removed from GET predictions response.
+- **Backend**: `joker_active = False` forced at all 5 input points. 3 joker endpoints removed.
 - **Frontend**: Jolly toggle banner removed from predictions screen. Jolly x2 badge removed from rankings. Bonus Jolly row + JOLLY ATTIVO banner removed from live screen.
-- **NOT touched**: calculate_match_points(), calculate_matchday_total(), database schema, indexes, any other endpoint logic.
+- **NOT touched**: calculate_match_points(), calculate_matchday_total(), database schema, indexes.
 
 ## Prioritized Backlog
 
@@ -69,9 +69,21 @@ Predictions unique per `(user_id, match_id, league_id)`. Score summaries unique 
 
 ### P3
 - Refactor monolithic server.py into modular architecture
+- Clean up dead Jolly code (type definitions, unused functions, CSS)
 
 ## Credentials
 - Admin: admin@fantapronostic.com / admin123
 - User 1 (Desylega): desiree@raimondi.it / Roberto95
 - User 2 (liga2): ilio@raimondi.it / password123
+- User 3: robrai@gmail.com / password
 - NATIONAL_LEAGUE_ID: f1373417-43aa-4043-b6a2-125873181c95
+- LIVE Matchday ID (current): 23c88f47-475f-4aa5-8fe8-f13d61d43cbe
+
+## Key Files
+- `/app/backend/server.py`: All business logic and API endpoints
+- `/app/backend/scoring.py`: Points calculation engine
+- `/app/backend/database.py`: MongoDB connection and indexes
+- `/app/frontend/app/(tabs)/home.tsx`: Home screen with Classifica LIVE
+- `/app/frontend/app/(tabs)/rankings.tsx`: Rankings with LIVE mode
+- `/app/frontend/app/user-predictions.tsx`: User predictions detail
+- `/app/frontend/app/live/[id].tsx`: Live match view
