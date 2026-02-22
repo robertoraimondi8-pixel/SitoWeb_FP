@@ -1110,6 +1110,11 @@ const s = StyleSheet.create({
   transitionBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
   deleteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 10, backgroundColor: 'rgba(239,68,68,0.1)' },
   deleteBtnText: { fontSize: 14, fontWeight: '600' },
+  overrideBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 10, borderWidth: 1 },
+  overrideBtnText: { fontSize: 13, fontWeight: '600' },
+  autoStatusBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 12, borderRadius: 10, borderWidth: 1, marginBottom: 12 },
+  autoStatusTitle: { fontSize: 14, fontWeight: '700', marginBottom: 2 },
+  autoStatusDesc: { fontSize: 12, lineHeight: 18 },
 
   // Progress
   progressRow: { marginBottom: 12 },
