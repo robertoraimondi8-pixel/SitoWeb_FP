@@ -85,6 +85,10 @@ Build and maintain FantaPronostic, an Italian sports prediction app with league 
 - **X3 in user-predictions detail**: Orange X3 badge + border in rankings weekly user detail. Backend returns `is_special`/`multiplier` in `/api/predictions/user/{id}/{md_id}` response.
 - **Green LIVE box on Home**: New "Punti provvisori" card with green border, LIVE badge, big points text shown when matchday is LIVE.
 
+### Bug Fix: Kickoff + Standings Mismatch (COMPLETED - Feb 22, 2026)
+- **Kickoff warning**: `recompute_matchday_kickoff` now called after fixture import (was only called on DRAFT→OPEN transition). Admin console correctly shows kickoff time after importing matches.
+- **Standings/Performance mismatch**: Fixed standings total endpoint to use matchdays collection directly (same pattern as P0-3). Also fixed standings matchdays list to return ALL national matchdays. Performance and standings now both show consistent 30.5 pts.
+
 ## Backlog (Prioritized)
 
 ### P1
