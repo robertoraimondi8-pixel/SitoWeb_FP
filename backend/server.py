@@ -1037,7 +1037,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         
         # Get only COMPLETED matchday IDs for THIS LEAGUE
         # IMPORTANTE: filtrare per league_id se lega manuale
-        is_manual_league = first_league.get("match_source_type") in ("manual", "custom")
+        is_manual_league = first_league.get("match_source_type") in ("manual", "custom", "api")
         
         if is_manual_league:
             # Lega manuale: matchdays con league_id = questa lega
@@ -1482,7 +1482,7 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
         raise HTTPException(404, "Lega non trovata")
 
     # "manual" e "custom" sono entrambi tipi di lega gestita manualmente
-    is_manual_league = league.get("match_source_type") in ("manual", "custom")
+    is_manual_league = league.get("match_source_type") in ("manual", "custom", "api")
 
     # === DIAGNOSTIC LOG 4: Fixtures Query ===
     logger.info("=" * 60)
@@ -1797,14 +1797,14 @@ async def get_predictions(matchday_id: str, league_id: str = None, user=Depends(
     # If league_id provided, check if it's a manual league
     if league_id:
         league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
-        if league and league.get("match_source_type") == "manual":
-            # Manual league: fetch only matches created for this league
+        if league and league.get("match_source_type") in ("manual", "custom", "api"):
+            # Manual/API league: fetch only matches created for this league
             match_query["league_id"] = league_id
     else:
         # Fallback: check if matchday belongs to a manual league
         if matchday.get("league_id"):
             league = await leagues_col.find_one({"id": matchday["league_id"]}, {"_id": 0})
-            if league and league.get("match_source_type") == "manual":
+            if league and league.get("match_source_type") in ("manual", "custom", "api"):
                 match_query["league_id"] = matchday["league_id"]
 
     matches = await matches_col.find(match_query, {"_id": 0}).to_list(20)
