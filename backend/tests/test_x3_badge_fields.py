@@ -199,40 +199,38 @@ class TestHomeEndpoint:
 class TestFixturesEndpoint:
     """Tests for GET /api/leagues/{league_id}/fixtures - X3 badge fields"""
     
-    def test_fixtures_returns_is_special(self, authenticated_client):
-        """Verify fixtures endpoint returns is_special field for matches"""
+    def test_fixtures_returns_is_special_for_special_matches(self, authenticated_client):
+        """Verify fixtures endpoint returns is_special=True for special matches"""
         response = authenticated_client.get(f"{BASE_URL}/api/leagues/{NATIONAL_LEAGUE_ID}/fixtures")
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         
         data = response.json()
-        matchdays = data.get("matchdays", data) if isinstance(data, dict) else data
+        matchdays = data.get("matchdays", [])
         
-        # Find a matchday with matches
-        found_match = False
-        for md in matchdays if isinstance(matchdays, list) else [matchdays]:
-            matches = md.get("matches", []) if isinstance(md, dict) else []
-            if matches:
-                for match in matches:
-                    found_match = True
-                    assert "is_special" in match, f"Match missing is_special field"
-                break
+        # Find special matches
+        special_matches_found = 0
+        for md in matchdays:
+            for match in md.get("matches", []):
+                if match.get("is_special") == True:
+                    special_matches_found += 1
+                    assert "multiplier" in match, "Special match should have multiplier field"
+                    print(f"Special match found: {match.get('home_team')} vs {match.get('away_team')}, multiplier={match.get('multiplier')}")
         
-        if not found_match:
-            print("No matches found in fixtures - checking response structure")
-            print(f"Response: {data}")
+        print(f"Total special matches found in fixtures: {special_matches_found}")
+        assert special_matches_found >= 1, "At least one special match should exist"
     
-    def test_fixtures_returns_multiplier(self, authenticated_client):
-        """Verify fixtures endpoint returns multiplier field for matches"""
+    def test_fixtures_special_matches_have_multiplier(self, authenticated_client):
+        """Verify special matches in fixtures have multiplier=3.0"""
         response = authenticated_client.get(f"{BASE_URL}/api/leagues/{NATIONAL_LEAGUE_ID}/fixtures")
         assert response.status_code == 200
         
         data = response.json()
-        matchdays = data.get("matchdays", data) if isinstance(data, dict) else data
+        matchdays = data.get("matchdays", [])
         
-        for md in matchdays if isinstance(matchdays, list) else [matchdays]:
-            matches = md.get("matches", []) if isinstance(md, dict) else []
-            for match in matches:
-                assert "multiplier" in match, f"Match missing multiplier field"
+        for md in matchdays:
+            for match in md.get("matches", []):
+                if match.get("is_special") == True:
+                    assert match.get("multiplier") == 3.0, f"Special match should have multiplier=3.0, got {match.get('multiplier')}"
     
     def test_fixtures_g17_special_match(self, authenticated_client):
         """Verify G17 Inter vs Roma has is_special=True in fixtures"""
