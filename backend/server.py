@@ -1854,7 +1854,7 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
         
         # Per leghe manuali: verifica che il matchday appartenga alla lega
         league_doc = await leagues_col.find_one({"id": pred_league_id}, {"_id": 0})
-        if league_doc and league_doc.get("match_source_type") in ("manual", "custom"):
+        if league_doc and league_doc.get("match_source_type") in ("manual", "custom", "api"):
             if matchday.get("league_id") != pred_league_id:
                 raise HTTPException(400, "Questa giornata non appartiene alla tua lega")
     else:
@@ -2057,7 +2057,7 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
     # Aggregate total points and matchdays per user
     # Per leghe manuali: filtra per league_id (score_summaries hanno league_id)
     # Per leghe nazionali private: usa predictions.league_id per identificare matchday giocati
-    is_national_type = league_doc.get("match_source_type") not in ("manual", "custom")
+    is_national_type = league_doc.get("match_source_type") not in ("manual", "custom", "api")
     if is_national_type:
         # Per leghe nazionali: usa matchdays COMPLETED direttamente (non predictions)
         completed_mds = await matchdays_col.find(
@@ -2186,7 +2186,7 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
         raise HTTPException(404, "League not found")
 
     # Compute effective matchday status
-    is_manual = league_doc.get("match_source_type") in ("manual", "custom")
+    is_manual = league_doc.get("match_source_type") in ("manual", "custom", "api")
     source_lid = league_id if is_manual else NATIONAL_LEAGUE_ID
     effective_status = await compute_matchday_status(matchday, source_lid)
     matchday["status"] = effective_status
@@ -2273,7 +2273,7 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
     if league_id:
         league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
         if league:
-            is_manual = league.get("match_source_type") in ("manual", "custom")
+            is_manual = league.get("match_source_type") in ("manual", "custom", "api")
             if is_manual:
                 # Lega manuale: matchdays con league_id = questa lega
                 matchdays = await matchdays_col.find(
@@ -3468,7 +3468,7 @@ async def admin_v3_leagues(user=Depends(get_current_user)):
     for lg in privates:
         lg["_is_national"] = False
         source = lg.get("match_source_type", "")
-        lg["_can_manage_matches"] = source in ("manual", "custom") or is_super
+        lg["_can_manage_matches"] = source in ("manual", "custom", "api") or is_super
         lg["member_count"] = await memberships_col.count_documents({"league_id": lg["id"], "status": "active"})
         results.append(lg)
 
