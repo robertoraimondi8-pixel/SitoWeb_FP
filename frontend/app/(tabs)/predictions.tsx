@@ -576,7 +576,10 @@ export default function PredictionsScreen() {
                           <TouchableOpacity
                             data-testid={`market-info-${mk.key}`}
                             style={styles.marketInfoBtn}
-                            onPress={() => setInfoMarket(infoMarket === mk.key ? null : mk.key)}
+                            onPress={() => {
+                              const key = `${m.id}:${mk.key}`;
+                              setInfoMarket(infoMarket === key ? null : key);
+                            }}
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                           >
                             <Ionicons name="information-circle-outline" size={16} color={colors.textSecondary} />
@@ -585,13 +588,22 @@ export default function PredictionsScreen() {
                       ))}
                     </View>
                     {/* Info tooltip */}
-                    {infoMarket && MARKETS.find(mk => mk.key === infoMarket) && (
-                      <View style={styles.marketInfoTooltip}>
-                        <Text style={styles.marketInfoText}>
-                          {MARKETS.find(mk => mk.key === infoMarket)?.info}
-                        </Text>
-                      </View>
-                    )}
+                    {infoMarket?.startsWith(`${m.id}:`) && (() => {
+                      const marketKey = infoMarket.split(':')[1];
+                      const market = MARKETS.find(mk => mk.key === marketKey);
+                      return market ? (
+                        <View style={styles.marketInfoTooltip}>
+                          <Text style={styles.marketInfoText}>{market.info}</Text>
+                          <TouchableOpacity
+                            style={styles.marketInfoClose}
+                            onPress={() => setInfoMarket(null)}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          >
+                            <Ionicons name="close" size={14} color={colors.textSecondary} />
+                          </TouchableOpacity>
+                        </View>
+                      ) : null;
+                    })()}
 
                     {/* Value Input */}
                     {selectedMarket && selectedMarket !== 'EXACT_SCORE' && (
