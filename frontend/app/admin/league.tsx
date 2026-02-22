@@ -51,7 +51,7 @@ interface Match {
   league_id: string;
 }
 
-const STATUS_OPTIONS = ['DRAFT', 'OPEN', 'LOCKED', 'LIVE', 'COMPLETED'];
+const STATUS_OPTIONS = ['DRAFT', 'OPEN', 'LIVE', 'COMPLETED'];
 const MATCH_STATUS_OPTIONS = ['scheduled', 'live', 'finished', 'postponed', 'cancelled', 'void'];
 const MARKET_TYPES = ['1X2', 'GOAL_NGOAL', 'OVER_UNDER', 'EXACT_SCORE'];
 
