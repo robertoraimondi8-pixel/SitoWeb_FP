@@ -1157,6 +1157,10 @@ const s = StyleSheet.create({
 
   // Match card
   matchCard: { borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 10 },
+  specialBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, marginRight: 4 },
+  specialBadgeText: { color: '#fff', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  specialToggle: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(0,0,0,0.1)' },
+  specialToggleText: { fontSize: 12, fontWeight: '600' },
   matchTeamsRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   teamName: { flex: 1, fontSize: 14, fontWeight: '600' },
   vsText: { fontSize: 12 },
