@@ -486,6 +486,33 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   
+  // LIVE banner
+  liveBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    backgroundColor: 'rgba(34,197,94,0.10)',
+  },
+  liveBannerDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.success,
+  },
+  liveBannerText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.success,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+
   // List
   scrollContent: { 
     padding: spacing.lg, 
