@@ -35,12 +35,11 @@ export default function HomeScreen() {
   const fetchHome = useCallback(async (overrideLeagueId?: string) => {
     const authToken = token || await AsyncStorage.getItem('access_token');
     if (!authToken) { setLoading(false); return; }
-    const leagueParam = overrideLeagueId || activeLeagueId;
+    const leagueParam = overrideLeagueId || activeLeague?.id;
     try {
       const url = leagueParam ? `/home?league_id=${leagueParam}` : '/home';
       const res = await apiCall(url, { token: authToken });
       setData(res);
-      if (res.league?.id) setActiveLeagueId(res.league.id);
       if (res.matchday?.countdown_seconds) setCountdown(res.matchday.countdown_seconds);
       Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
     } catch (e: unknown) {
@@ -54,9 +53,17 @@ export default function HomeScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token, handleAuthError, router, fadeAnim]);
+  }, [token, activeLeague?.id, handleAuthError, router, fadeAnim]);
 
-  useEffect(() => { fetchHome(); }, [fetchHome]);
+  // Re-fetch when activeLeague changes (e.g. from context)
+  useEffect(() => {
+    if (activeLeague?.id) {
+      setData(null);
+      setCountdown(0);
+      setLoading(true);
+      fetchHome(activeLeague.id);
+    }
+  }, [activeLeague?.id]);
 
   useEffect(() => {
     if (countdown <= 0) return;
