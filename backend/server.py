@@ -3875,6 +3875,10 @@ async def real_fixtures_import(req: ImportFixturesRequest, admin=Depends(require
         "fixture_ids": req.fixture_ids,
     })
 
+    # Auto-compute first_kickoff from imported match times
+    if imported:
+        await recompute_matchday_kickoff(req.matchday_id, req.league_id)
+
     return {
         "imported": len(imported),
         "skipped": len(skipped),
