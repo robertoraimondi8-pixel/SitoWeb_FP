@@ -197,19 +197,23 @@ async def recompute_matchday_kickoff(matchday_id: str, league_id: str):
 
 
 # B) FUNZIONE CENTRALIZZATA CALCOLO PUNTI GIORNATA
-async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
+async def compute_matchday_points(user_id: str, matchday_id: str, league_id: str = None) -> dict:
     """
     Calcola i punti di un utente per una giornata.
     Ritorna: {base_points, joker_bonus, total_points, joker_active}
     Usa prima score_summaries se esistono E sono validi, altrimenti calcola al volo.
+    IMPORTANTE: league_id DEVE essere passato per isolamento dati tra leghe.
     """
     # Get matchday to check status
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
     matchday_completed = matchday and matchday.get("status") == "COMPLETED"
     
-    # Controlla se abbiamo già score_summaries
+    # Controlla se abbiamo già score_summaries (FILTRO OBBLIGATORIO: league_id)
+    ss_filter = {"user_id": user_id, "matchday_id": matchday_id}
+    if league_id:
+        ss_filter["league_id"] = league_id
     score_summary = await score_summaries_col.find_one(
-        {"user_id": user_id, "matchday_id": matchday_id},
+        ss_filter,
         {"_id": 0}
     )
     
@@ -234,7 +238,11 @@ async def compute_matchday_points(user_id: str, matchday_id: str) -> dict:
     
     # Calcola al volo
     matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
-    preds = await predictions_col.find({"user_id": user_id, "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    # ISOLAMENTO DATI: filtra predictions per league_id
+    pred_filter = {"user_id": user_id, "matchday_id": matchday_id}
+    if league_id:
+        pred_filter["league_id"] = league_id
+    preds = await predictions_col.find(pred_filter, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
     
     # Get joker status
@@ -2286,7 +2294,7 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
         u = await users_col.find_one({"id": uid}, {"_id": 0, "password": 0})
         
         # Usa la funzione centralizzata che ritorna gli stessi valori di /predictions/user
-        points_data = await compute_matchday_points(uid, matchday_id)
+        points_data = await compute_matchday_points(uid, matchday_id, league_id=league_id)
         
         stats = user_pred_stats.get(uid, {"total_correct": 0, "1x2_correct": 0})
         
