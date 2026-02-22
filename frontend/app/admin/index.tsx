@@ -685,8 +685,17 @@ export default function AdminConsoleV3() {
                     const isModified = modifiedMatches.has(match.id);
                     const matchTime = match.start_time ? new Date(match.start_time) : null;
                     return (
-                      <View key={match.id} style={[s.matchCard, { borderColor: isModified ? colors.accent : colors.border }, isModified && { borderWidth: 2 }]}>
+                      <View key={match.id} style={[
+                        s.matchCard,
+                        { borderColor: match.is_special ? colors.accent : isModified ? colors.accent : colors.border },
+                        (isModified || match.is_special) && { borderWidth: 2 }
+                      ]}>
                         <View style={s.matchTeamsRow}>
+                          {match.is_special && (
+                            <View style={[s.specialBadge, { backgroundColor: colors.accent }]}>
+                              <Text style={s.specialBadgeText}>X3</Text>
+                            </View>
+                          )}
                           <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>{match.home_team}</Text>
                           <Text style={[s.vsText, { color: colors.textSecondary }]}>vs</Text>
                           <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>{match.away_team}</Text>
@@ -729,7 +738,31 @@ export default function AdminConsoleV3() {
                             <Text style={s.statusSelectorText}>{(editingResults[match.id]?.status || match.status).toUpperCase().slice(0, 4)}</Text>
                           </TouchableOpacity>
                         </View>
-                        <Text style={[s.matchMeta, { color: colors.textSecondary }]}>{isModified && 'Modificato'}</Text>
+                        {/* X3 Toggle + Modified indicator */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+                          <Text style={[s.matchMeta, { color: colors.textSecondary }]}>{isModified && 'Modificato'}</Text>
+                          {!isCompleted && (
+                            <TouchableOpacity
+                              data-testid={`special-toggle-${match.id}`}
+                              style={[s.specialToggle, match.is_special && { backgroundColor: `${colors.accent}15`, borderColor: colors.accent }]}
+                              onPress={async () => {
+                                try {
+                                  await apiCall(`/admin/matches/${match.id}/special`, {
+                                    method: 'POST', token,
+                                    body: { is_special: !match.is_special },
+                                  });
+                                  await loadMatchdays(selectedLeague!.id);
+                                  await loadMatches(selectedMatchday!.id);
+                                } catch (e: any) { showAlert('Errore', e.message); }
+                              }}
+                            >
+                              <Ionicons name={match.is_special ? 'star' : 'star-outline'} size={14} color={match.is_special ? colors.accent : colors.textSecondary} />
+                              <Text style={[s.specialToggleText, { color: match.is_special ? colors.accent : colors.textSecondary }]}>
+                                {match.is_special ? 'Partita X3' : 'Imposta X3'}
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
                       </View>
                     );
                   })}
