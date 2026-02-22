@@ -13,22 +13,12 @@ Fantasy football predictions app where users join leagues, make match prediction
 Every league is an independent universe. All data must be strictly scoped by league_id.
 
 ### Predictions: unique per `(user_id, match_id, league_id)`
-- A user can have DIFFERENT predictions for the same match in different leagues
 - Compound unique index: `user_match_league_unique`
 - All prediction queries MUST include league_id filter
-- POST /api/predictions requires league_id (422 if missing), validates membership (403 if non-member)
 
 ### Score Summaries: unique per `(user_id, matchday_id, league_id)`
-- Points are calculated per league
 - Compound unique index: `user_matchday_league_unique`
 - All score_summaries queries MUST include league_id filter
-- Admin recalculation groups by (user_id, league_id) when creating summaries
-
-### Why (Product Rationale)
-1. Leagues have different rules/multipliers (e.g., X3 special match in one league but not another)
-2. Future: leagues can have different pricing (paid national, free private)
-3. Auditability: each prediction is deterministically traceable to its league
-4. Scalability: clean multi-tenancy prevents data corruption at any scale
 
 ## What's Been Implemented
 - User auth (JWT + Google OAuth)
@@ -38,31 +28,24 @@ Every league is an independent universe. All data must be strictly scoped by lea
 - Standings (total, weekly, user profile)
 - Admin panel for matchday management
 - API-Football integration
-- **FULL multi-league data isolation (Feb 22, 2026)**
+- Full multi-league data isolation (Feb 22, 2026)
+- Jolly removal (Feb 22, 2026)
 
-## Bug Fixes Applied
+## Changes Applied
 
 ### P0 - League Data Isolation (Feb 22, 2026) - COMPLETED
-Enforced `league_id` on all score_summaries queries. 16/16 backend tests passed.
+Enforced `league_id` on all score_summaries queries.
 
 ### P0 - Multi-League Predictions Architecture (Feb 22, 2026) - COMPLETED
-**Migration**: Changed predictions from `(user_id, match_id)` unique to `(user_id, match_id, league_id)`. Score summaries from `(user_id, matchday_id)` to `(user_id, matchday_id, league_id)`.
+Predictions unique per `(user_id, match_id, league_id)`. Score summaries unique per `(user_id, matchday_id, league_id)`.
 
-**Changes applied**:
-- database.py: New compound unique indexes
-- server.py: ALL prediction queries updated to filter by league_id
-- save_predictions: lookup/upsert by (user_id, match_id, league_id)
-- compute_matchday_points: predictions filtered by league_id
-- home, live, standings, transparency endpoints: all prediction queries scoped
-- Admin recalculation: groups predictions by (user_id, league_id)
-- Server-side validation: league_id required (422), membership check (403)
-
-**Testing**: 13/13 tests passed (iteration_35). Full cross-league isolation verified.
+### P1 - Jolly Removal (Feb 22, 2026) - COMPLETED
+**Approach**: Neutralize at input, zero changes to math functions.
+- **Backend**: `joker_active = False` forced at all 5 input points (compute_matchday_points, recalculate_matchday_scores, home endpoint, 2x admin recalculation). 3 joker endpoints removed (POST/DELETE/GET). Joker field removed from GET predictions response.
+- **Frontend**: Jolly toggle banner removed from predictions screen. Jolly x2 badge removed from rankings. Bonus Jolly row + JOLLY ATTIVO banner removed from live screen.
+- **NOT touched**: calculate_match_points(), calculate_matchday_total(), database schema, indexes, any other endpoint logic.
 
 ## Prioritized Backlog
-
-### P1
-- Remove legacy "Jolly" feature from codebase and database
 
 ### P2
 - Implement "Championship Winner Predictions" feature
