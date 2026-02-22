@@ -911,17 +911,16 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         # Per matchday COMPLETED: carica punti da score_summaries (fonte autorevole)
         my_points = None
         if matchday["status"] == "COMPLETED":
+            # Try with league_id first, then without (old data may lack league_id)
             ss = await score_summaries_col.find_one(
                 {"user_id": user["id"], "matchday_id": matchday["id"], "league_id": active_league["id"]},
                 {"_id": 0, "total_points": 1}
             )
             if not ss:
-                # Fallback: score_summary senza league_id (vecchi dati), ma solo se ci sono predictions in questa lega
-                if my_predictions > 0:
-                    ss = await score_summaries_col.find_one(
-                        {"user_id": user["id"], "matchday_id": matchday["id"]},
-                        {"_id": 0, "total_points": 1}
-                    )
+                ss = await score_summaries_col.find_one(
+                    {"user_id": user["id"], "matchday_id": matchday["id"]},
+                    {"_id": 0, "total_points": 1}
+                )
             my_points = ss.get("total_points") if ss else 0.0
 
         matchday_data = {
