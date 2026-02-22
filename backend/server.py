@@ -3291,14 +3291,26 @@ async def admin_delete_match(match_id: str, admin=Depends(require_admin)):
 
 
 @admin_router.post("/matches/{match_id}/special")
-async def admin_set_special_match(match_id: str, body: dict = {}, admin=Depends(require_admin)):
+async def admin_set_special_match(match_id: str, body: dict = {}, user=Depends(get_current_user)):
     """Imposta/rimuovi Partita Speciale X3.
     Body opzionale: {"is_special": true/false}
     Max 1 partita speciale per giornata. Se ne selezioni una nuova, la precedente perde lo status.
+    Permesso: super admin OR owner della lega a cui appartiene la partita.
     """
     match = await matches_col.find_one({"id": match_id}, {"_id": 0})
     if not match:
         raise HTTPException(404, "Partita non trovata")
+    
+    # Permission check: super admin OR league owner
+    is_super = user.get("role") in ("admin", "superadmin")
+    if not is_super:
+        match_league_id = match.get("league_id")
+        if match_league_id:
+            league_of_match = await leagues_col.find_one({"id": match_league_id}, {"_id": 0})
+            if not league_of_match or league_of_match.get("owner_id") != user["id"]:
+                raise HTTPException(403, "Solo il creatore della lega o un super admin può impostare X3")
+        else:
+            raise HTTPException(403, "Solo un super admin può impostare X3 sulle partite nazionali")
     
     # Toggle: se non specificato, inverti lo stato corrente
     new_special = body.get("is_special", not match.get("is_special", False))
