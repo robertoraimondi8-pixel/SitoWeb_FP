@@ -2629,7 +2629,7 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
                 outcome = "no_prediction"
         
         # Only count valid matches towards base points
-        if final_match_status not in ("void", "postponed", "cancelled") and outcome == "correct":
+        if final_match_status not in ("void", "postponed", "cancelled") and outcome in ("correct",):
             total_base_points += points
         
         predictions_list.append({
