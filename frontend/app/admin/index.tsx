@@ -221,6 +221,27 @@ export default function AdminConsoleV3() {
 
   // === REFRESH LIVE SCORES ===
   const [liveRefreshing, setLiveRefreshing] = useState(false);
+
+  // === SUPER_ADMIN OVERRIDE ===
+  const doOverride = async (targetStatus: string | null) => {
+    if (!selectedMatchday || !selectedLeague) return;
+    setActionLoading(true);
+    try {
+      await apiCall(`/admin/matchday/${selectedMatchday.id}/override`, {
+        method: 'POST', token,
+        body: { league_id: selectedLeague.id, target_status: targetStatus },
+      });
+      const msg = targetStatus ? `Stato forzato a ${STATUS_LABELS[targetStatus] || targetStatus}` : 'Override rimosso';
+      showAlert('Fatto!', msg);
+      setShowOverrideModal(false);
+      await loadMatchdays(selectedLeague.id);
+      if (targetStatus) {
+        setSelectedMatchday(prev => prev ? { ...prev, status: targetStatus } : null);
+      }
+    } catch (e: unknown) {
+      showAlert('Errore', e.message || 'Override fallito');
+    } finally { setActionLoading(false); }
+  };
   const doRefreshLive = async () => {
     setLiveRefreshing(true);
     try {
