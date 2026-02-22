@@ -98,7 +98,7 @@
     "you_scored": "Has hecho {{points}} puntos",
     "current_position": "Posición actual",
     "total_points": "Puntos totales",
-    "matchday_points": "Puntos jornada",
+    "matchday_points": "Esta jornada",
     "avg_last_5": "Media últimas 5",
     "weekly_goal": "OBJETIVO SEMANAL",
     "goal_keep_position": "Haz al menos {{points}} pts para mantener el {{rank}}° puesto",

@@ -98,7 +98,7 @@
     "you_scored": "You scored {{points}} points",
     "current_position": "Current position",
     "total_points": "Total points",
-    "matchday_points": "Matchday points",
+    "matchday_points": "This matchday",
     "avg_last_5": "Avg last 5",
     "weekly_goal": "WEEKLY GOAL",
     "goal_keep_position": "Score at least {{points}} pts to keep #{{rank}} spot",

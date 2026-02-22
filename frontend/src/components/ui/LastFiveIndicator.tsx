@@ -38,7 +38,7 @@ export const LastFiveIndicator: React.FC<LastFiveIndicatorProps> = ({ data, labe
                     styles.bar,
                     {
                       height: barH,
-                      backgroundColor: isLatest ? colors.accent : colors.primary + '22',
+                      backgroundColor: isLatest ? colors.accent : colors.accent + '38',
                     },
                     isLatest && styles.barHighlight,
                   ]}
