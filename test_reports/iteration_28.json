@@ -1,0 +1,66 @@
+{
+  "summary": "Multi-league context bug fix verified. Rankings screen correctly removed horizontal league tabs and now uses single league header from LeagueContext.activeLeague. Home league switcher dropdown works correctly for switching between leagues.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Rankings screen correctly shows single league header with trophy icon + activeLeague.name (singleLeagueHeader style)",
+    "NO horizontal scrollable league chips/tabs on Rankings - bug is fixed",
+    "Home league switcher dropdown ('Cambia Lega') works correctly - shows all user leagues with trophy icons",
+    "LeagueContext.activeLeague is properly used as source of truth for both Home and Rankings",
+    "Home correctly resets data/countdown when activeLeague changes (via useEffect on activeLeague?.id)",
+    "Rankings correctly fetches standings for activeLeague.id when league changes"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only test)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "league_owner": "ilio@raimondi.it / password123 (username: robrai888888888)",
+    "has_leagues": ["liga2 (private)", "Lega Nazionale FantaPronostic (national)", "Test Owner Role Check d83162", "Test Owner Role", "liga3", "ilio Lega", "facd"]
+  },
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Multi-league context bug fix is complete. User ilio@raimondi.it has multiple leagues. On Home screen: league switcher dropdown shows all leagues with 'Cambia Lega' title. On Rankings screen: shows single league header with trophy + activeLeague.name (NO horizontal scrollable league chips). Rankings uses LeagueContext.activeLeague for data fetching. When user switches leagues on Home, Rankings correctly updates to show new league standings.",
+  "tested_features": {
+    "home_league_switcher": {
+      "status": "PASS",
+      "details": "League dropdown shows 'Cambia Lega' title, lists all user leagues with trophy icons, highlights current league with checkmark"
+    },
+    "home_league_data_scoping": {
+      "status": "PASS",
+      "details": "Home shows league-scoped data (matchday, performance, rankings preview) for activeLeague"
+    },
+    "rankings_single_league_header": {
+      "status": "PASS",
+      "details": "Rankings shows single league header with trophy icon + league name (singleLeagueHeader style)"
+    },
+    "rankings_no_multi_league_tabs": {
+      "status": "PASS",
+      "details": "NO horizontal scrollable league chips/tabs on Rankings screen - bug fixed"
+    },
+    "rankings_total_weekly_tabs": {
+      "status": "PASS",
+      "details": "Total/Weekly tabs visible and functional on Rankings"
+    },
+    "league_context_sync": {
+      "status": "PASS",
+      "details": "When league switched on Home, Rankings correctly updates to show new league data"
+    }
+  },
+  "verification_screenshots": [
+    "Rankings screen showing 'Rankings' header + trophy + 'liga2' + Total/Weekly tabs + standings list",
+    "Home screen showing league switcher with 'Cambia Lega' dropdown listing all leagues",
+    "Rankings after league switch showing 'Lega Nazionale FantaPronostic'"
+  ]
+}
