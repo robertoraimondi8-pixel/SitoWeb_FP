@@ -2260,6 +2260,7 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
         "matchday_id": matchday_id,
         "matchday_number": matchday["number"],
         "matchday_label": matchday.get("label", f"Giornata {matchday['number']}"),
+        "matchday_status": matchday["status"],
         "entries": entries[:50],
         "my_position": my_pos,
     }
