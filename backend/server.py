@@ -2133,14 +2133,12 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
     # Per leghe nazionali private: usa predictions.league_id per identificare matchday giocati
     is_national_type = league_doc.get("match_source_type") not in ("manual", "custom")
     if is_national_type:
-        # Trova matchday_ids dove questa lega ha effettivamente predictions
-        league_played_md_ids = await predictions_col.distinct(
-            "matchday_id",
-            {
-                "league_id": league_id,
-                "user_id": {"$in": member_user_ids}
-            }
-        )
+        # Per leghe nazionali: usa matchdays COMPLETED direttamente (non predictions)
+        completed_mds = await matchdays_col.find(
+            {"league_id": NATIONAL_LEAGUE_ID, "status": "COMPLETED"},
+            {"_id": 0, "id": 1}
+        ).to_list(200)
+        league_played_md_ids = [m["id"] for m in completed_mds]
         if not league_played_md_ids:
             # Nessuna giornata giocata: restituisci standings vuota con solo i membri
             entries = []
