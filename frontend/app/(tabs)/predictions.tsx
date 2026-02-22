@@ -528,11 +528,12 @@ export default function PredictionsScreen() {
                 style={[
                   styles.matchCard,
                   isLocked && styles.matchCardLocked,
+                  m.is_special && styles.matchCardSpecial,
                 ]}
               >
                 {/* Match Header */}
                 <View style={styles.matchHeader}>
-                  <View style={styles.matchNumBadge}>
+                  <View style={[styles.matchNumBadge, m.is_special && { backgroundColor: colors.accent }]}>
                     <Text style={styles.matchNum}>{idx + 1}</Text>
                   </View>
                   <View style={styles.matchMeta}>
@@ -541,6 +542,11 @@ export default function PredictionsScreen() {
                       <Text style={styles.matchTime}>{formatMatchTime(m.start_time)}</Text>
                     )}
                   </View>
+                  {m.is_special && (
+                    <View style={styles.specialX3Badge}>
+                      <Text style={styles.specialX3Text}>X3</Text>
+                    </View>
+                  )}
                   {item.is_locked && (
                     <View style={styles.lockBadge}>
                       <Ionicons name="lock-closed" size={12} color={colors.error} />
@@ -548,6 +554,14 @@ export default function PredictionsScreen() {
                     </View>
                   )}
                 </View>
+
+                {/* Special match banner */}
+                {m.is_special && (
+                  <View style={styles.specialBanner}>
+                    <Ionicons name="star" size={14} color={colors.accent} />
+                    <Text style={styles.specialBannerText}>Partita speciale – punti triplicati</Text>
+                  </View>
+                )}
 
                 {/* Teams */}
                 <View style={styles.teamsRow}>
