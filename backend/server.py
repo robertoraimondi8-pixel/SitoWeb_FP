@@ -3845,7 +3845,7 @@ async def real_fixtures_import(req: ImportFixturesRequest, user=Depends(get_curr
         match.pop("_id", None)
         imported.append(match)
 
-    await log_audit(admin["id"], admin["username"], "IMPORT_FIXTURES", "match", req.matchday_id, {
+    await log_audit(user["id"], user["username"], "IMPORT_FIXTURES", "match", req.matchday_id, {
         "imported_count": len(imported),
         "skipped_count": len(skipped),
         "fixture_ids": req.fixture_ids,
