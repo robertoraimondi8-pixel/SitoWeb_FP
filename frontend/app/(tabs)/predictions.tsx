@@ -582,30 +582,47 @@ export default function PredictionsScreen() {
                     {/* Market Selector */}
                     <View style={styles.marketRow}>
                       {MARKETS.map(mk => (
-                        <TouchableOpacity
-                          key={mk.key}
-                          testID={`market-${idx}-${mk.key}`}
-                          onPress={() => setMarket(m.id, mk.key)}
-                          style={[
-                            styles.marketPill,
-                            selectedMarket === mk.key && styles.marketPillActive,
-                          ]}
-                        >
-                          <Text style={[
-                            styles.marketLabel, 
-                            selectedMarket === mk.key && styles.marketLabelActive
-                          ]}>
-                            {mk.label}
-                          </Text>
-                          <Text style={[
-                            styles.marketPts, 
-                            selectedMarket === mk.key && styles.marketPtsActive
-                          ]}>
-                            {mk.pts}
-                          </Text>
-                        </TouchableOpacity>
+                        <View key={mk.key} style={styles.marketPillWrap}>
+                          <TouchableOpacity
+                            testID={`market-${idx}-${mk.key}`}
+                            onPress={() => setMarket(m.id, mk.key)}
+                            style={[
+                              styles.marketPill,
+                              selectedMarket === mk.key && styles.marketPillActive,
+                            ]}
+                          >
+                            <Text style={[
+                              styles.marketLabel, 
+                              selectedMarket === mk.key && styles.marketLabelActive
+                            ]}>
+                              {mk.label}
+                            </Text>
+                            <Text style={[
+                              styles.marketPts, 
+                              selectedMarket === mk.key && styles.marketPtsActive
+                            ]}>
+                              {mk.pts}
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            data-testid={`market-info-${mk.key}`}
+                            style={styles.marketInfoBtn}
+                            onPress={() => setInfoMarket(infoMarket === mk.key ? null : mk.key)}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          >
+                            <Ionicons name="information-circle-outline" size={16} color={colors.textSecondary} />
+                          </TouchableOpacity>
+                        </View>
                       ))}
                     </View>
+                    {/* Info tooltip */}
+                    {infoMarket && MARKETS.find(mk => mk.key === infoMarket) && (
+                      <View style={styles.marketInfoTooltip}>
+                        <Text style={styles.marketInfoText}>
+                          {MARKETS.find(mk => mk.key === infoMarket)?.info}
+                        </Text>
+                      </View>
+                    )}
 
                     {/* Value Input */}
                     {selectedMarket && selectedMarket !== 'EXACT_SCORE' && (
