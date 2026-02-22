@@ -80,6 +80,11 @@ Build and maintain FantaPronostic, an Italian sports prediction app with league 
 - **P0-3 X3 badge visibility**: Added `is_special`/`multiplier` to `MatchItem` TypeScript type, `LiveMatch` type, and live endpoint response payload. Frontend already had X3 badge rendering code, now receives the data correctly.
 - **X3 badge in Live screen**: Added orange X3 badge and special border for special matches in live view.
 
+### UI Sprint — X3 Badge + LIVE Box (COMPLETED - Feb 22, 2026)
+- **X3 in COMPLETED live screen**: Orange X3 badge + border now visible for special matches in live/completed view. Backend returns `is_special`/`multiplier` in `/api/live/{id}` response.
+- **X3 in user-predictions detail**: Orange X3 badge + border in rankings weekly user detail. Backend returns `is_special`/`multiplier` in `/api/predictions/user/{id}/{md_id}` response.
+- **Green LIVE box on Home**: New "Punti provvisori" card with green border, LIVE badge, big points text shown when matchday is LIVE.
+
 ## Backlog (Prioritized)
 
 ### P1
