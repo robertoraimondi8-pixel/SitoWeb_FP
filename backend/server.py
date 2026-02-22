@@ -3751,10 +3751,7 @@ async def real_fixtures_search(
 
 
 class ImportFixturesRequest(PydanticBaseModel):
-    league_id: str          # Our internal league_id (national)
-    matchday_id: str        # Our internal matchday_id
-    fixture_ids: List[int]  # API-Football fixture IDs to import
-    league_id: str          # Our internal league_id (national)
+    league_id: str          # Our internal league_id
     matchday_id: str        # Our internal matchday_id
     fixture_ids: List[int]  # API-Football fixture IDs to import
 
