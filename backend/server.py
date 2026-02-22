@@ -2353,26 +2353,9 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
                 ).sort("number", -1).to_list(50)
                 return matchdays
             else:
-                # Lega nazionale privata: restituisce SOLO matchday dove esistono predictions
-                # con league_id = questo league_id OPPURE senza league_id (retrocompatibilità)
-                # Filtrato per memberships della lega (solo giornate dove i propri membri hanno giocato)
-                league_members_snap = await memberships_col.find(
-                    {"league_id": league_id, "status": "active"}, {"_id": 0, "user_id": 1}
-                ).to_list(1000)
-                member_ids_snap = [m["user_id"] for m in league_members_snap]
-
-                # Lega nazionale privata: matchday dove i membri hanno predictions con league_id = questo
-                played_md_ids = await predictions_col.distinct(
-                    "matchday_id",
-                    {
-                        "league_id": league_id,
-                        "user_id": {"$in": member_ids_snap}
-                    }
-                )
-                if not played_md_ids:
-                    return []  # Lega nuova: nessuna giornata giocata ancora
+                # Lega nazionale: restituisce TUTTI i matchday nazionali (COMPLETED + LIVE + OPEN)
                 matchdays = await matchdays_col.find(
-                    {"id": {"$in": played_md_ids}},
+                    {"league_id": NATIONAL_LEAGUE_ID, "status": {"$in": ["COMPLETED", "LIVE", "OPEN"]}},
                     {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}
                 ).sort("number", -1).to_list(50)
                 return matchdays
