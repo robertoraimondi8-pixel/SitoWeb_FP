@@ -164,16 +164,6 @@ export default function UserDetailScreen() {
             <Text style={[s.statValue, { color: colors.text }]}>{data.total_base_points.toFixed(1)}</Text>
             <Text style={[s.statLabel, { color: colors.textSecondary }]}>Punti Base</Text>
           </View>
-          <View style={[s.statCard, { backgroundColor: colors.card }]}>
-            <Ionicons name="star" size={24} color="#FFD700" />
-            <Text style={[s.statValue, { color: colors.text }]}>+{data.total_joker_bonus.toFixed(1)}</Text>
-            <Text style={[s.statLabel, { color: colors.textSecondary }]}>Bonus Jolly</Text>
-          </View>
-          <View style={[s.statCard, { backgroundColor: colors.card }]}>
-            <Ionicons name="flash" size={24} color={colors.success} />
-            <Text style={[s.statValue, { color: colors.text }]}>{data.jolly_used}/2</Text>
-            <Text style={[s.statLabel, { color: colors.textSecondary }]}>Jolly Usati</Text>
-          </View>
         </View>
 
         {/* Current Week Highlight */}
@@ -237,11 +227,6 @@ export default function UserDetailScreen() {
                       <Text style={[s.breakdownPointsValue, { color: colors.accent }]}>
                         {md.total_points.toFixed(1)}
                       </Text>
-                      {md.joker_bonus > 0 && (
-                        <Text style={[s.breakdownJolly, { color: colors.success }]}>
-                          (+{md.joker_bonus.toFixed(1)} jolly)
-                        </Text>
-                      )}
                     </View>
                     <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
                   </View>

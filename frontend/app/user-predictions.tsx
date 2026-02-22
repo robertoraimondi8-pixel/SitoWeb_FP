@@ -146,14 +146,6 @@ export default function UserPredictionsScreen() {
               {(data?.base_points || 0).toFixed(1)}
             </Text>
           </View>
-          {data?.jolly_active && (
-            <View style={s.summaryItem}>
-              <Text style={[s.summaryLabel, { color: colors.textSecondary }]}>Bonus Jolly</Text>
-              <Text style={[s.summaryValue, { color: colors.success }]}>
-                +{(data?.joker_bonus || 0).toFixed(1)}
-              </Text>
-            </View>
-          )}
           <View style={s.summaryItem}>
             <Text style={[s.summaryLabel, { color: colors.textSecondary }]}>Totale</Text>
             <Text style={[s.summaryValueBig, { color: colors.accent }]}>
