@@ -341,12 +341,14 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
         if not match or match.get("home_score") is None:
             continue
         
+        multiplier = match.get("multiplier", 1.0)
         pts, is_correct = calculate_match_points(
             pred.get("prediction_value"),
             pred.get("market_type", match.get("market_type", "1X2")),
             match.get("home_score"),
             match.get("away_score"),
-            "finished"
+            "finished",
+            multiplier
         )
         
         # Update prediction
@@ -357,12 +359,16 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
         
         user_id = pred.get("user_id")
         if user_id not in user_points:
-            user_points[user_id] = {"base_points": 0, "matches_correct": 0, "matches_total": 0}
+            user_points[user_id] = {"base_points": 0, "matches_correct": 0, "matches_total": 0, "special_bonus": 0}
         
         user_points[user_id]["matches_total"] += 1
         if is_correct:
             user_points[user_id]["base_points"] += pts
             user_points[user_id]["matches_correct"] += 1
+            if multiplier > 1.0:
+                # Track bonus from special match
+                base_market_pts = pts / multiplier
+                user_points[user_id]["special_bonus"] += pts - base_market_pts
     
     # 4. Update score_summaries for each user
     for user_id, points_data in user_points.items():
