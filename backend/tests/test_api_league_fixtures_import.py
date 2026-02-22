@@ -117,8 +117,10 @@ class TestNationalLeagueRegression:
         )
         assert resp.status_code == 200, f"National standings failed: {resp.text}"
         data = resp.json()
-        assert isinstance(data, list), "Standings should be a list"
-        print(f"✓ National league standings works - {len(data)} entries")
+        # Response is an object with 'entries' list
+        assert "entries" in data, "Standings should have entries field"
+        assert isinstance(data["entries"], list), "Standings entries should be a list"
+        print(f"✓ National league standings works - {len(data['entries'])} entries")
 
 
 class TestAPILeagueCreation:
