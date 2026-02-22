@@ -147,7 +147,16 @@ export default function UserPredictionsScreen() {
 
       {/* Predictions List */}
       <ScrollView contentContainerStyle={s.scrollContent}>
-        {data?.predictions?.map((pred: Prediction, idx: number) => (
+        {data?.predictions?.length === 0 || data?.predictions?.every((p: Prediction) => !p.prediction_value) ? (
+          <View style={s.noPredictions} data-testid="no-predictions-message">
+            <Ionicons name="document-text-outline" size={48} color={colors.textSecondary} />
+            <Text style={[s.noPredTitle, { color: colors.text }]}>Nessun pronostico</Text>
+            <Text style={[s.noPredSub, { color: colors.textSecondary }]}>
+              {data?.username} non ha inserito pronostici per questa giornata
+            </Text>
+          </View>
+        ) : (
+        data?.predictions?.map((pred: Prediction, idx: number) => (
           <View 
             key={pred.match_id} 
             style={[
