@@ -990,6 +990,34 @@ export default function AdminConsoleV3() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* Modal: Super Admin Override */}
+      <Modal visible={showOverrideModal} transparent animationType="fade">
+        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowOverrideModal(false)}>
+          <View style={[s.modalContent, { backgroundColor: colors.card }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 4 }}>
+              <Ionicons name="shield" size={22} color="rgba(245,166,35,0.9)" />
+              <Text style={[s.modalTitle, { color: colors.text, marginBottom: 0 }]}>Override Super Admin</Text>
+            </View>
+            <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center', marginBottom: 16 }}>
+              Forza lo stato della giornata. Usa solo in caso di emergenza.
+            </Text>
+            {['DRAFT', 'OPEN', 'LIVE', 'COMPLETED'].map((st) => (
+              <TouchableOpacity key={st} style={[s.modalOption, { borderColor: colors.border }]}
+                onPress={() => doOverride(st)}>
+                <View style={[s.statusDot, { backgroundColor: getStatusColor(st) }]} />
+                <Text style={[s.modalOptionText, { color: colors.text }]}>{STATUS_LABELS[st] || st}</Text>
+                {selectedMatchday?.status === st && <Ionicons name="checkmark" size={18} color={colors.accent} />}
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={[s.modalOption, { borderColor: colors.border }]}
+              onPress={() => doOverride(null)}>
+              <Ionicons name="refresh-outline" size={14} color={colors.textSecondary} />
+              <Text style={[s.modalOptionText, { color: colors.textSecondary }]}>Rimuovi Override (stato automatico)</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* Modal: Confirmation Dialog */}
       <Modal visible={confirmModal.visible} transparent animationType="fade">
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setConfirmModal(p => ({ ...p, visible: false }))}>
