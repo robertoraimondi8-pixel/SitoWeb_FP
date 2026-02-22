@@ -2799,6 +2799,8 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
             "my_market": pred.get("market_type") if pred else None,
             "points": pts,
             "outcome": outcome if pred else "no_prediction",
+            "is_special": m.get("is_special", False),
+            "multiplier": m.get("multiplier", 1.0),
         })
 
     # Calculate totals with joker
