@@ -126,7 +126,7 @@ export default function CreateLeagueScreen() {
             <Text style={[s.rulesTitle, { color: colors.text }]}>Regole configurate</Text>
             <Text style={[s.rulesRow, { color: colors.textSecondary }]}>📅 Giornate: {created.start_matchday} → {created.end_matchday}</Text>
             <Text style={[s.rulesRow, { color: colors.textSecondary }]}>⏱ Termine giocata: {created.bet_deadline_minutes} min prima</Text>
-            <Text style={[s.rulesRow, { color: colors.textSecondary }]}>🎯 Partite: {created.match_source_type === 'national' ? 'Lega Nazionale' : 'Scelte dal creatore'}</Text>
+            <Text style={[s.rulesRow, { color: colors.textSecondary }]}>🎯 Partite: {created.match_source_type === 'national' ? 'Lega Nazionale' : created.match_source_type === 'api' ? 'Partite da API' : 'Scelte dal creatore'}</Text>
           </View>
 
           <TouchableOpacity style={[s.shareBtn, { backgroundColor: colors.accent }]} onPress={handleShare}>
