@@ -1765,7 +1765,11 @@ async def get_predictions(matchday_id: str, league_id: str = None, user=Depends(
                 match_query["league_id"] = matchday["league_id"]
 
     matches = await matches_col.find(match_query, {"_id": 0}).to_list(20)
-    preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    # ISOLAMENTO DATI: filtra predictions per league_id
+    pred_filter = {"user_id": user["id"], "matchday_id": matchday_id}
+    if league_id:
+        pred_filter["league_id"] = league_id
+    preds = await predictions_col.find(pred_filter, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
 
     # Get joker status for this matchday
@@ -1861,6 +1865,24 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
 
     # league_id associata a queste predictions (per isolamento dati nelle leghe private nazionali)
     pred_league_id = req.league_id if req.league_id else None
+
+    # SERVER-SIDE GUARD: Validazione cross-league
+    # Verifica che l'utente appartenga alla lega indicata e che il matchday sia coerente
+    if pred_league_id:
+        user_membership = await memberships_col.find_one({
+            "user_id": user["id"], "league_id": pred_league_id, "status": "active"
+        })
+        if not user_membership:
+            raise HTTPException(403, "Non sei membro di questa lega")
+        
+        # Per leghe nazionali: verifica che il matchday appartenga alla stagione nazionale
+        league_doc = await leagues_col.find_one({"id": pred_league_id}, {"_id": 0})
+        if league_doc and league_doc.get("match_source_type") in ("manual", "custom"):
+            # Lega manuale: matchday deve avere league_id = questa lega
+            if matchday.get("league_id") != pred_league_id:
+                raise HTTPException(400, "Questa giornata non appartiene alla tua lega")
+    else:
+        raise HTTPException(400, "league_id è obbligatorio per salvare i pronostici")
 
     for p in req.predictions:
         match = await matches_col.find_one({"id": p.match_id, "matchday_id": matchday_id}, {"_id": 0})
