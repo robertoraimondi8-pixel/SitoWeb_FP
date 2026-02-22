@@ -355,38 +355,6 @@ const styles = StyleSheet.create({
   },
   
   // League selector
-  leagueScroll: { 
-    maxHeight: 52,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-  },
-  leagueContent: { 
-    paddingHorizontal: spacing.lg, 
-    paddingVertical: spacing.md,
-    gap: spacing.md, 
-    flexDirection: 'row' 
-  },
-  leagueChip: { 
-    paddingHorizontal: spacing.xl, 
-    paddingVertical: spacing.md, 
-    borderRadius: borderRadius.pill, 
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  leagueChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  leagueChipText: { 
-    ...typography.meta,
-    color: colors.textSecondary,
-  },
-  leagueChipTextActive: {
-    color: colors.textInverse,
-    fontWeight: '600',
-  },
   singleLeagueHeader: {
     flexDirection: 'row',
     alignItems: 'center',
