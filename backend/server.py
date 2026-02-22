@@ -2152,8 +2152,8 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
                 "my_position": my_pos,
                 "current_matchday": current_matchday["number"] if current_matchday else None,
             }
-        # Usa score_summaries filtrati per i matchday giocati da questa lega (no league_id filter)
-        standings_match = {"user_id": {"$in": member_user_ids}, "matchday_id": {"$in": league_played_md_ids}}
+        # ALWAYS filter by league_id for strict league isolation
+        standings_match = {"user_id": {"$in": member_user_ids}, "matchday_id": {"$in": league_played_md_ids}, "league_id": league_id}
     else:
         standings_match = {"user_id": {"$in": member_user_ids}, "league_id": league_id}
 
