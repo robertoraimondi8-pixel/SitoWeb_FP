@@ -246,21 +246,30 @@ export default function CreateLeagueScreen() {
           {/* Source Type */}
           <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>PARTITE DA PRONOSTICARE</Text>
           <View style={s.row}>
-            {(['national', 'custom'] as const).map(type => (
+            {(['national', 'api', 'custom'] as const).map(type => {
+              const config = {
+                national: { icon: 'flag-outline' as const, label: 'Lega Nazionale', desc: 'Partite uguali alla Lega Nazionale' },
+                api: { icon: 'football-outline' as const, label: 'Partite da API', desc: 'Importa partite reali da API Football' },
+                custom: { icon: 'person-outline' as const, label: 'Scelte dal creatore', desc: 'Il creatore inserisce le partite manualmente' },
+              };
+              const c = config[type];
+              return (
               <TouchableOpacity
                 key={type}
                 style={[s.sourceOption, { borderColor: sourceType === type ? colors.accent : colors.border, backgroundColor: sourceType === type ? colors.accent + '18' : colors.card }]}
                 onPress={() => setSourceType(type)}
+                data-testid={`source-type-${type}`}
               >
-                <Ionicons name={type === 'national' ? 'flag-outline' : 'person-outline'} size={22} color={sourceType === type ? colors.accent : colors.textSecondary} />
+                <Ionicons name={c.icon} size={22} color={sourceType === type ? colors.accent : colors.textSecondary} />
                 <Text style={[s.sourceLabel, { color: sourceType === type ? colors.accent : colors.text }]}>
-                  {type === 'national' ? 'Lega Nazionale' : 'Scelte dal creatore'}
+                  {c.label}
                 </Text>
                 <Text style={[s.sourceDesc, { color: colors.textSecondary }]}>
-                  {type === 'national' ? 'Partite uguali alla Lega Nazionale' : 'Il creatore inserisce le partite manualmente'}
+                  {c.desc}
                 </Text>
               </TouchableOpacity>
-            ))}
+              );
+            })}
           </View>
 
           {/* Scoring Config */}
