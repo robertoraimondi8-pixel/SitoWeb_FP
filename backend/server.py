@@ -3827,20 +3827,28 @@ async def real_fixtures_import(req: ImportFixturesRequest, admin=Depends(require
     if existing + len(req.fixture_ids) > MAX_MATCHES_PER_MATCHDAY:
         raise HTTPException(400, f"Superato il limite di {MAX_MATCHES_PER_MATCHDAY} partite (già {existing} presenti)")
 
-    # Check for duplicate external_fixture_id
+    # Check for duplicate external_fixture_id (globally - same physical match shouldn't exist twice)
     already_imported = await matches_col.find(
         {"external_fixture_id": {"$in": req.fixture_ids}},
-        {"_id": 0, "external_fixture_id": 1}
+        {"_id": 0, "external_fixture_id": 1, "matchday_id": 1, "home_team": 1, "away_team": 1}
     ).to_list(100)
-    already_set = {m["external_fixture_id"] for m in already_imported}
+    already_dict = {m["external_fixture_id"]: m for m in already_imported}
 
     client = _get_apifootball()
     imported = []
     skipped = []
 
     for fid in req.fixture_ids:
-        if fid in already_set:
-            skipped.append({"fixture_id": fid, "reason": "already_imported"})
+        if fid in already_dict:
+            existing = already_dict[fid]
+            existing_md = await matchdays_col.find_one({"id": existing["matchday_id"]}, {"_id": 0, "number": 1, "label": 1})
+            skipped.append({
+                "fixture_id": fid,
+                "reason": "already_imported",
+                "existing_matchday": existing_md.get("label", f"G{existing_md['number']}") if existing_md else existing["matchday_id"],
+                "match": f"{existing.get('home_team', '?')} vs {existing.get('away_team', '?')}",
+            })
+            logger.info(f"[IMPORT] Skip fid={fid} ({existing.get('home_team')} vs {existing.get('away_team')}): already in {existing_md.get('label') if existing_md else existing['matchday_id']}")
             continue
 
         fx = await client.get_fixture_by_id(fid)
