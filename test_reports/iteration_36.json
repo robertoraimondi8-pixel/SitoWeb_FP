@@ -23,7 +23,7 @@
       "description": "Home 'Classifica LIVE' box click navigates to Rankings tab -> Weekly tab with LIVE matchday selected",
       "status": "PASSED",
       "evidence": [
-        "Navigation URL: /rankings?tab=weekly&matchdayId=23c88f47-475f-4aa5-8fe8-f13d61d43cbe&leagueId=...",
+        "Navigation URL: /rankings?tab=weekly&matchdayId=api-match-import&leagueId=...",
         "Weekly tab automatically selected",
         "LIVE matchday pre-selected in dropdown",
         "Matchday selector shows 'Giornata 20 LIVE'"
