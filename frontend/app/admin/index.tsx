@@ -131,6 +131,12 @@ export default function AdminConsoleV3() {
     try {
       const data = await apiCall(`/admin/v3/matchdays?league_id=${leagueId}`, { token });
       setMatchdays(data);
+      // Sync selectedMatchday with fresh data (e.g. first_kickoff, status)
+      setSelectedMatchday(prev => {
+        if (!prev) return null;
+        const updated = data.find((md: Matchday) => md.id === prev.id);
+        return updated || prev;
+      });
     } catch (e: unknown) {
       if (await authErr(e)) return;
       console.error(e);
