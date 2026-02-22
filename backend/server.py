@@ -905,7 +905,8 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         match_count = await matches_col.count_documents(_match_source_query(matchday["id"], _md_source_lid))
         total_matches = max(match_count, MATCHES_PER_MATCHDAY)  # Mai mostrare 0/0
         
-        my_predictions = await predictions_col.count_documents({"user_id": user["id"], "matchday_id": matchday["id"], "league_id": active_league["id"]})
+        # Predictions are unique per user+match — don't filter by league_id (user may save through different league context)
+        my_predictions = await predictions_col.count_documents({"user_id": user["id"], "matchday_id": matchday["id"]})
 
         # Per matchday COMPLETED: carica punti da score_summaries (fonte autorevole)
         my_points = None
