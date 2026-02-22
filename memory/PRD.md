@@ -9,12 +9,26 @@ Fantasy football predictions app where users join leagues, make match prediction
 - **Database**: MongoDB (fantapronostic)
 - **External APIs**: API-Football (API-Sports), Emergent Google Auth
 
-## Data Isolation Model (CRITICAL)
-Two distinct isolation boundaries:
-1. **score_summaries** → ALWAYS filtered by `league_id` (points/standings are per-league)
-2. **predictions** → NEVER filtered by `league_id` for retrieval (predictions are per user+match, shared across leagues)
+## Data Isolation Model (NON-NEGOTIABLE)
+Every league is an independent universe. All data must be strictly scoped by league_id.
 
-The `league_id` on predictions is tracking metadata (which league context the user saved from), NOT an isolation boundary. Score summaries hold the league-specific scoring.
+### Predictions: unique per `(user_id, match_id, league_id)`
+- A user can have DIFFERENT predictions for the same match in different leagues
+- Compound unique index: `user_match_league_unique`
+- All prediction queries MUST include league_id filter
+- POST /api/predictions requires league_id (422 if missing), validates membership (403 if non-member)
+
+### Score Summaries: unique per `(user_id, matchday_id, league_id)`
+- Points are calculated per league
+- Compound unique index: `user_matchday_league_unique`
+- All score_summaries queries MUST include league_id filter
+- Admin recalculation groups by (user_id, league_id) when creating summaries
+
+### Why (Product Rationale)
+1. Leagues have different rules/multipliers (e.g., X3 special match in one league but not another)
+2. Future: leagues can have different pricing (paid national, free private)
+3. Auditability: each prediction is deterministically traceable to its league
+4. Scalability: clean multi-tenancy prevents data corruption at any scale
 
 ## What's Been Implemented
 - User auth (JWT + Google OAuth)
@@ -24,24 +38,26 @@ The `league_id` on predictions is tracking metadata (which league context the us
 - Standings (total, weekly, user profile)
 - Admin panel for matchday management
 - API-Football integration
+- **FULL multi-league data isolation (Feb 22, 2026)**
 
 ## Bug Fixes Applied
 
 ### P0 - League Data Isolation (Feb 22, 2026) - COMPLETED
 Enforced `league_id` on all score_summaries queries. 16/16 backend tests passed.
 
-### P0 - Predictions "Spariti" su Matchday LIVE (Feb 22, 2026) - COMPLETED
-**Root Cause**: Previous league isolation fix applied `league_id` filter too aggressively on predictions queries. When user saved predictions from "Lega Nazionale" but viewed live from "Lega Amici", predictions disappeared because the `league_id` didn't match.
+### P0 - Multi-League Predictions Architecture (Feb 22, 2026) - COMPLETED
+**Migration**: Changed predictions from `(user_id, match_id)` unique to `(user_id, match_id, league_id)`. Score summaries from `(user_id, matchday_id)` to `(user_id, matchday_id, league_id)`.
 
-**Fix**: Removed `league_id` filter from ALL prediction retrieval endpoints (live, home, GET predictions, transparency). Predictions are per user+match and should always be visible regardless of league context. Score_summaries retain strict league_id isolation for standings/rankings.
+**Changes applied**:
+- database.py: New compound unique indexes
+- server.py: ALL prediction queries updated to filter by league_id
+- save_predictions: lookup/upsert by (user_id, match_id, league_id)
+- compute_matchday_points: predictions filtered by league_id
+- home, live, standings, transparency endpoints: all prediction queries scoped
+- Admin recalculation: groups predictions by (user_id, league_id)
+- Server-side validation: league_id required (422), membership check (403)
 
-**Endpoints fixed**:
-- `GET /api/live/{matchday_id}` — predictions visible regardless of league context
-- `GET /api/live/matchday/{matchday_id}` — same fix
-- `GET /api/home` — predictions count and live data no longer filtered by league_id
-- `GET /api/predictions/{matchday_id}` — user's own predictions always visible
-- `/api/predictions/user/{target_user_id}/{matchday_id}` — transparency view
-- `compute_matchday_points()` — predictions fetched without league_id filter
+**Testing**: 13/13 tests passed (iteration_35). Full cross-league isolation verified.
 
 ## Prioritized Backlog
 
