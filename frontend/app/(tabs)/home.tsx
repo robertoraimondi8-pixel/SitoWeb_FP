@@ -255,8 +255,26 @@ export default function HomeScreen() {
                   {data.matchday.label || `Giornata ${data.matchday.number}`}
                 </Text>
 
-                {/* Dynamic micro-message */}
-                {matchdayMsg !== '' && (
+                {/* Match count */}
+                {data.matchday.status?.toUpperCase() === 'OPEN' && (
+                  <Text style={styles.matchdaySubInfo}>
+                    {data.matchday.my_predictions_count}/{Math.min(data.matchday.total_matches || 0, 10)} partite
+                  </Text>
+                )}
+
+                {/* COUNTDOWN TIMER — prominent orange HH:MM:SS */}
+                {data.matchday.status?.toUpperCase() === 'OPEN' && countdown > 0 && (
+                  <View style={styles.countdownWrap} data-testid="countdown-timer">
+                    <Text style={styles.countdownLabel}>Chiude tra</Text>
+                    <View style={styles.countdownRow}>
+                      <Ionicons name="time-outline" size={28} color={colors.accent} style={{ marginRight: 8 }} />
+                      <Text style={styles.countdownDigits}>{formatCountdown(countdown)}</Text>
+                    </View>
+                  </View>
+                )}
+
+                {/* Dynamic micro-message (for non-OPEN states) */}
+                {data.matchday.status?.toUpperCase() !== 'OPEN' && matchdayMsg !== '' && (
                   <Text style={[
                     styles.matchdayMessage,
                     data.matchday.status?.toUpperCase() === 'COMPLETED' && styles.matchdayMessageHighlight,
