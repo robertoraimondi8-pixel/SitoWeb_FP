@@ -53,6 +53,11 @@ export interface MatchItem {
   away_score?: number | null;
   status?: string;
   market_type?: string;
+  is_special?: boolean;
+  multiplier?: number;
+  home_logo?: string;
+  away_logo?: string;
+  league_id?: string;
 }
 
 export interface Season {
