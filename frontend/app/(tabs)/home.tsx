@@ -547,6 +547,34 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
+  matchdaySubInfo: {
+    ...typography.bodyS,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  countdownWrap: {
+    marginTop: spacing.md,
+    marginBottom: spacing.md,
+  },
+  countdownLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  countdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  countdownDigits: {
+    fontSize: 42,
+    fontWeight: '800',
+    color: colors.accent,
+    letterSpacing: 2,
+    fontVariant: ['tabular-nums'],
+  },
   matchdayMessage: {
     ...typography.bodyS,
     color: colors.textSecondary,
