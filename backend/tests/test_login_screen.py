@@ -9,7 +9,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://admin-matchday.preview.emergentagent.com"
+BASE_URL = "https://p0-bugfix-sprint.preview.emergentagent.com"
 
 
 class TestLoginEmailPassword:

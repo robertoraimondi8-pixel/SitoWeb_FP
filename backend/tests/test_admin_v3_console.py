@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://admin-matchday.preview.emergentagent.com")
+BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://p0-bugfix-sprint.preview.emergentagent.com")
 
 # Credentials
 SUPER_ADMIN_EMAIL = "admin@fantapronostic.com"
