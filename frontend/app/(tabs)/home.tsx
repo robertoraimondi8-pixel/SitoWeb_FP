@@ -303,18 +303,31 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ─── LIVE POINTS BOX ─── */}
+        {/* ─── CLASSIFICA LIVE ─── */}
         {data?.matchday?.status?.toUpperCase() === 'LIVE' && (
-          <View style={styles.liveBox} data-testid="live-points-box">
-            <View style={styles.liveBoxBadge}>
-              <View style={styles.liveBoxDot} />
-              <Text style={styles.liveBoxBadgeText}>LIVE</Text>
+          <TouchableOpacity
+            style={styles.liveBox}
+            data-testid="live-standings-btn"
+            activeOpacity={0.7}
+            onPress={() => {
+              router.push({
+                pathname: '/(tabs)/rankings',
+                params: { tab: 'weekly', matchdayId: data.matchday?.id, leagueId: data.league?.id }
+              } as any);
+            }}
+          >
+            <View style={styles.liveBoxHeader}>
+              <View style={styles.liveBoxBadge}>
+                <View style={styles.liveBoxDot} />
+                <Text style={styles.liveBoxBadgeText}>LIVE</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.success} />
             </View>
-            <Text style={styles.liveBoxPoints}>
-              {formatPoints(data.live?.total_provisional ?? 0)} pts
+            <Text style={styles.liveBoxTitle}>Classifica LIVE</Text>
+            <Text style={styles.liveBoxRank}>
+              {data.live?.live_rank ? `${data.live.live_rank}°` : '-'} {'\u2022'} {formatPoints(data.live?.live_points ?? 0)} pts
             </Text>
-            <Text style={styles.liveBoxLabel}>Punti provvisori</Text>
-          </View>
+          </TouchableOpacity>
         )}
 
         {/* ─── 2. PERFORMANCE CARD ─── */}
