@@ -3408,15 +3408,16 @@ async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_admin))
     # Get all predictions for this matchday
     all_preds = await predictions_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(10000)
 
-    # Group by user
-    user_preds = {}
+    # Group by (user_id, league_id) — predictions are per league
+    user_league_preds = {}
     for p in all_preds:
-        user_preds.setdefault(p["user_id"], []).append(p)
+        key = (p["user_id"], p.get("league_id", matchday.get("league_id", NATIONAL_LEAGUE_ID)))
+        user_league_preds.setdefault(key, []).append(p)
 
-    # Calculate scores for each user (idempotent - delete old scores first)
+    # Calculate scores for each user+league (idempotent - delete old scores first)
     await score_summaries_col.delete_many({"matchday_id": matchday_id})
 
-    for uid, preds in user_preds.items():
+    for (uid, pred_league_id), preds in user_league_preds.items():
         # Check if joker is active for this matchday (per-matchday, not per-match)
         joker = await joker_usages_col.find_one({"user_id": uid, "matchday_id": matchday_id}, {"_id": 0})
         joker_active = joker is not None and joker.get("is_active", False)
@@ -3447,6 +3448,7 @@ async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_admin))
             "id": new_id(),
             "user_id": uid,
             "matchday_id": matchday_id,
+            "league_id": pred_league_id,
             "base_points": totals["base_points"],
             "joker_bonus": totals["joker_bonus"],
             "total_points": totals["total_points"],
