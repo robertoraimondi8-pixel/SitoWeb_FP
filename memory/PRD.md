@@ -1,72 +1,51 @@
 # FantaPronostic - PRD
 
 ## Problem Statement
-Fantasy sports prediction app (FantaPronostic) where users join leagues, predict match outcomes (1X2, Goal/NoGoal, Over/Under, Exact Score), and compete on leaderboards.
+Fantasy sports prediction app where users join leagues, predict match outcomes, and compete on leaderboards.
 
 ## Core Architecture
-- **Frontend**: React Native (Expo) - web + mobile
-- **Backend**: FastAPI + MongoDB
-- **Auth**: JWT + Emergent-managed Google Auth
-- **Sports Data**: API-Football integration for live fixtures/scores
+- Frontend: React Native (Expo) - web + mobile
+- Backend: FastAPI + MongoDB
+- Auth: JWT + Google OAuth
+- Sports Data: API-Football
 
 ## What's Been Implemented
-- User auth (email/password + Google OAuth)
-- League system (create, join, manage)
-- Matchday/fixtures management (manual + API import)
-- Predictions CRUD with market types (1X2, GNG, O/U, Exact Score)
-- Live score tracking with polling
-- Rankings/leaderboard
-- Admin console with fixture import + refresh results
-- i18n (Italian/English/Spanish)
-- Joker/Jolly system (double points)
-- Smart navigation hub (shared routing logic)
-- Home Gamification v2 (Elegant)
-- National League setup (free, with 3 initial members)
+- Auth, Leagues, Matchdays, Predictions, Rankings, Admin, i18n, Joker
+- Smart navigation hub (shared routing)
+- Home Gamification v2 (elegant)
+- National League (free, 3 members)
+- **LeagueContext as single source of truth** for active league across all screens
 
 ## Recent Changes (Feb 2026)
 
-### Bug Fix: Back Button from Live Screen (Feb 22)
-- Fixed infinite redirect loop: Predictions tab now uses `router.replace` (not `push`) to avoid back→predictions→redirect→live loop
-- Back button on live screen always navigates to Home via `router.replace('/(tabs)/home')`
+### P0 Fix: League Scoping (Feb 22)
+- **P0-1 Fixed**: Home now uses `LeagueContext.activeLeague` instead of local state. Resets data/countdown when league changes.
+- **P0-2 Fixed**: Rankings removed multi-league tabs. Shows only active league from context.
+- All screens (Home, Rankings, Predictions) now use `LeagueContext` as single source of truth.
+
+### Bug Fix: Back Button (Feb 22)
+- Predictions tab uses `router.replace` for smart redirect (prevents loop)
+- Live screen back button always goes to Home
 
 ### National League Setup (Feb 22)
-- Lega Nazionale FantaPronostic set as free (no Stripe required)
-- Added members: admin@fantapronostic.com (admin), desiree@raimondi.it (player), ilio@raimondi.it (player)
-- Total members: 10 (including test users from previous sessions)
+- Free, 10 members (admin, desiree, ilio + test users)
 
-### Home Gamification v2 Refinements (Feb 22)
-- Trend bars: unified to brand orange (38% opacity for past, 100% for current)
-- Performance labels: "Questa giornata" instead of "Punti giornata"
-- Weekly Goal: REMOVED (no reliable backend logic)
-
-### Home Gamification v2 (Feb 21)
-- Card Giornata: dynamic micro-messages (OPEN→countdown, LIVE→In corso, COMPLETED→Hai fatto X punti)
-- Performance Card: large position (1°) + total/matchday/avg stats
-- Trend Bar Chart: replaced colored circles
-- Visual hierarchy: orange only for CTA
-
-### Smart Predictions Tab (Feb 21)
-- Shared `goToPredictionsHub()` in navigation.ts
+### Home Gamification v2 + Refinements (Feb 21-22)
+- Dynamic matchday card, Performance card, Trend bar chart
+- Orange-only bars, natural labels, Weekly Goal removed
 
 ## Pending Issues
-- **i18n "Save Prediction" bug (P0)**: User verification pending
-- **Expo Go Tunnel (P1)**: BLOCKED - platform issue
+- i18n "Save Prediction" bug (P0): User verification pending
+- Expo Go Tunnel (P1): BLOCKED
 
 ## Upcoming Tasks
-- Championship Winner Predictions feature
-- Stripe integration for National League
-- Re-enable email verification
+- Championship Winner Predictions
+- Stripe for National League
+- Email verification
 - Push Notifications
 - Refactor server.py
 
-## Key Credentials
+## Credentials
 - Admin: admin@fantapronostic.com / admin123
 - League Owner: ilio@raimondi.it / password123
-- League Owner (National): desiree@raimondi.it / Roberto95
-
-## National League
-- ID: f1373417-43aa-4043-b6a2-125873181c95
-- Name: Lega Nazionale FantaPronostic
-- Type: national
-- Status: free (no payment required)
-- Members: admin@fantapronostic.com, desiree@raimondi.it, ilio@raimondi.it + 7 test users
+- League Owner: desiree@raimondi.it / Roberto95
