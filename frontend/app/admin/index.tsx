@@ -784,8 +784,8 @@ export default function AdminConsoleV3() {
               )}
             </View>
 
-            {/* IMPORTA PARTITE REALI Section - only for national league */}
-            {selectedLeague._is_national && canEditMatches && (
+            {/* IMPORTA PARTITE REALI Section - for national league OR api-type leagues */}
+            {(selectedLeague._is_national || selectedLeague.match_source_type === 'api') && canEditMatches && (
               <ImportFixtures
                 leagueId={selectedLeague.id}
                 matchdayId={selectedMatchday.id}
@@ -800,8 +800,8 @@ export default function AdminConsoleV3() {
               />
             )}
 
-            {/* AGGIORNA RISULTATI LIVE - only for national league, super admin */}
-            {selectedLeague._is_national && isSuperAdmin && (
+            {/* AGGIORNA RISULTATI LIVE - for national league OR api-type leagues with super admin */}
+            {(selectedLeague._is_national || selectedLeague.match_source_type === 'api') && isSuperAdmin && (
               <View style={[s.section, { backgroundColor: colors.card }]}>
                 <Text style={[s.sectionTitle, { color: colors.accent, marginBottom: 12 }]}>
                   <Ionicons name="sync" size={16} /> RISULTATI LIVE
