@@ -72,12 +72,10 @@ export default function HomeScreen() {
   }, [countdown]);
 
   const formatCountdown = (s: number) => {
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const sec = s % 60;
-    if (h > 0) return `${h}${t('home.countdown_hours')} ${m}${t('home.countdown_minutes')}`;
-    if (m > 0) return `${m}${t('home.countdown_minutes')} ${sec}${t('home.countdown_seconds')}`;
-    return `${sec}${t('home.countdown_seconds')}`;
+    const h = Math.floor(s / 3600).toString().padStart(2, '0');
+    const m = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
+    const sec = (s % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${sec}`;
   };
 
   const formatPoints = (n: number | undefined | null) => {
