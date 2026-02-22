@@ -1763,11 +1763,8 @@ async def get_predictions(matchday_id: str, league_id: str = None, user=Depends(
                 match_query["league_id"] = matchday["league_id"]
 
     matches = await matches_col.find(match_query, {"_id": 0}).to_list(20)
-    # ISOLAMENTO DATI: filtra predictions per league_id
-    pred_filter = {"user_id": user["id"], "matchday_id": matchday_id}
-    if league_id:
-        pred_filter["league_id"] = league_id
-    preds = await predictions_col.find(pred_filter, {"_id": 0}).to_list(20)
+    # Predictions are per user+match (NOT per league) — no league_id filter for own predictions
+    preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
 
     # Get joker status for this matchday
@@ -2747,10 +2744,9 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
         {"_id": 0}
     ).to_list(20)
 
-    # Filter predictions by league_id for strict isolation
+    # Filter predictions: predictions are per user+match (NOT per league)
+    # league_id on predictions is tracking metadata, not isolation boundary
     pred_query: dict = {"user_id": user["id"], "matchday_id": matchday_id}
-    if league_id:
-        pred_query["league_id"] = league_id
     preds = await predictions_col.find(pred_query, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
     
