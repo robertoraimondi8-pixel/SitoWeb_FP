@@ -3760,8 +3760,21 @@ class ImportFixturesRequest(PydanticBaseModel):
 
 
 @fixtures_router.post("/import")
-async def real_fixtures_import(req: ImportFixturesRequest, admin=Depends(require_admin)):
-    """Import real fixtures as matches into our DB (max 10 per matchday)."""
+async def real_fixtures_import(req: ImportFixturesRequest, user=Depends(get_current_user)):
+    """Import real fixtures as matches into our DB (max 10 per matchday).
+    Super admin can import for any league. League owner can import for their own API-type league.
+    """
+    is_super = user.get("role") in ("admin", "superadmin")
+    if not is_super:
+        # League owner permission check
+        league_check = await leagues_col.find_one({"id": req.league_id}, {"_id": 0})
+        if not league_check:
+            raise HTTPException(404, "Lega non trovata")
+        if league_check.get("owner_id") != user["id"]:
+            raise HTTPException(403, "Solo il creatore della lega o un super admin può importare partite")
+        if league_check.get("match_source_type") != "api":
+            raise HTTPException(400, "Questa lega non usa l'importazione da API")
+
     if len(req.fixture_ids) > MAX_MATCHES_PER_MATCHDAY:
         raise HTTPException(400, f"Massimo {MAX_MATCHES_PER_MATCHDAY} partite per giornata")
 
