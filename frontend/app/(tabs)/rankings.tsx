@@ -554,6 +554,36 @@ const styles = StyleSheet.create({
     padding: spacing.lg, 
     paddingBottom: 100 
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    height: 44,
+    ...shadows.card,
+  },
+  searchIcon: {
+    marginRight: spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    ...typography.body,
+    color: colors.text,
+    height: '100%',
+    paddingVertical: 0,
+  },
+  emptySearch: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xxl,
+    gap: spacing.sm,
+  },
+  emptySearchText: {
+    ...typography.body,
+    color: colors.textMuted,
+  },
   listCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
