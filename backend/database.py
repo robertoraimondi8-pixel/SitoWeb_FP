@@ -69,7 +69,8 @@ async def create_indexes():
         # Predictions - unique per user+match
         await predictions_col.create_index("id", unique=True)
         await predictions_col.create_index(
-            [("user_id", 1), ("match_id", 1)], unique=True
+            [("user_id", 1), ("match_id", 1), ("league_id", 1)], unique=True,
+            name="user_match_league_unique"
         )
         await predictions_col.create_index([("user_id", 1), ("matchday_id", 1)])
 
@@ -85,10 +86,11 @@ async def create_indexes():
             [("user_id", 1), ("season_id", 1), ("competition", 1)], unique=True
         )
 
-        # ScoreSummary - unique per user+matchday
+        # ScoreSummary - unique per user+matchday+league
         await score_summaries_col.create_index("id", unique=True)
         await score_summaries_col.create_index(
-            [("user_id", 1), ("matchday_id", 1)], unique=True
+            [("user_id", 1), ("matchday_id", 1), ("league_id", 1)], unique=True,
+            name="user_matchday_league_unique"
         )
 
         # StandingsCache
