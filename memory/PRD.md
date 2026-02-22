@@ -56,9 +56,28 @@ Build and maintain FantaPronostic, an Italian sports prediction app with league 
   - SUPER_ADMIN Override modal for emergency status changes
   - Delete only available for DRAFT matchdays
 
+### Feature: Partita Speciale X3 (COMPLETED - Feb 22, 2026)
+- Admin can designate one match per matchday as "special" with a 3x score multiplier
+- Backend: `PUT /api/admin/matches/{match_id}/special`, updated scoring logic
+- Frontend: Admin UI for setting special match, user predictions show special badge
+
+### P0 Bug Fix: Match Import Clarity (COMPLETED - Feb 22, 2026)
+- Import now returns `skipped_details` with existing matchday name and match teams when fixtures are already imported
+- Frontend displays clear message: "X già presenti in [matchday name]"
+
+### P0 Bug Fix: Predictions Disappear on LIVE/COMPLETED (COMPLETED - Feb 22, 2026)
+- Removed incorrect `league_id` filter from live endpoint prediction query
+- Predictions now correctly visible regardless of matchday status
+
+### P0 Bug Fix: Home Screen Stale Data (COMPLETED - Feb 22, 2026)
+- Root cause: National league completed matchday discovery queried predictions (inconsistent league_ids) instead of matchdays collection
+- Fix: Query matchdays directly with `NATIONAL_LEAGUE_ID` for completed matchdays
+- Fix: Use `score_summaries` for user matchdays_played count instead of predictions
+
 ## Backlog (Prioritized)
 
 ### P1
+- Remove legacy "Jolly" feature from codebase and database
 - Implement "Championship Winner Predictions" Feature
 - Integrate Stripe for joining the National League
 
