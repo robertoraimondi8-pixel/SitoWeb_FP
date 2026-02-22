@@ -168,14 +168,23 @@ export default function UserPredictionsScreen() {
         {data?.predictions?.map((pred: Prediction, idx: number) => (
           <View 
             key={pred.match_id} 
-            style={[s.predCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={[
+              s.predCard, 
+              { backgroundColor: colors.card, borderColor: colors.border },
+              pred.is_special && { borderColor: colors.accent, borderWidth: 2 }
+            ]}
           >
             {/* Match Info */}
             <View style={s.matchHeader}>
-              <Text style={[s.matchNum, { color: colors.textSecondary }]}>{idx + 1}</Text>
+              <Text style={[s.matchNum, { color: pred.is_special ? colors.accent : colors.textSecondary }]}>{idx + 1}</Text>
               <Text style={[s.competition, { color: colors.textSecondary }]}>
                 {pred.competition}
               </Text>
+              {pred.is_special && (
+                <View style={{ backgroundColor: colors.accent, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
+                  <Text style={{ color: '#fff', fontSize: 10, fontWeight: '800', letterSpacing: 1 }}>X3</Text>
+                </View>
+              )}
               {pred.match_status === 'live' && (
                 <View style={[s.liveBadge, { backgroundColor: colors.error }]}>
                   <Text style={s.liveText}>LIVE</Text>
