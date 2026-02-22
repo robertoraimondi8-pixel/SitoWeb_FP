@@ -245,9 +245,8 @@ async def compute_matchday_points(user_id: str, matchday_id: str, league_id: str
     preds = await predictions_col.find(pred_filter, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
     
-    # Get joker status
-    joker = await joker_usages_col.find_one({"user_id": user_id, "matchday_id": matchday_id}, {"_id": 0})
-    joker_active = joker is not None and joker.get("is_active", False)
+    # Jolly rimosso — forza sempre inattivo in ingresso
+    joker_active = False
     
     base_points = 0.0
     for m in matches:
@@ -381,9 +380,8 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
     
     # 4. Update score_summaries for each user
     for user_id, points_data in user_points.items():
-        # Check joker
-        joker = await joker_usages_col.find_one({"user_id": user_id, "matchday_id": matchday_id}, {"_id": 0})
-        joker_active = joker is not None and joker.get("is_active", False)
+        # Jolly rimosso — forza sempre inattivo in ingresso
+        joker_active = False
         
         base_points = points_data["base_points"]
         special_bonus = points_data.get("special_bonus", 0)
@@ -944,8 +942,8 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             # Predictions per user+match+league — filter by league_id
             preds = await predictions_col.find({"user_id": user["id"], "matchday_id": matchday["id"], "league_id": active_league["id"]}, {"_id": 0}).to_list(20)
             preds_dict = {p["match_id"]: p for p in preds}
-            joker = await joker_usages_col.find_one({"user_id": user["id"], "matchday_id": matchday["id"]}, {"_id": 0})
-            joker_active = joker is not None and joker.get("is_active", False)
+            # Jolly rimosso — forza sempre inattivo in ingresso
+            joker_active = False
 
             # Calculate base points for all matches
             base_pts_sum = 0.0
@@ -3187,9 +3185,8 @@ async def _calculate_matchday_scores(matchday_id: str, admin: dict):
     await score_summaries_col.delete_many({"matchday_id": matchday_id})
 
     for (uid, pred_league_id), preds in user_league_preds.items():
-        # Check if joker is active for this matchday
-        joker = await joker_usages_col.find_one({"user_id": uid, "matchday_id": matchday_id}, {"_id": 0})
-        joker_active = joker is not None and joker.get("is_active", False)
+        # Jolly rimosso — forza sempre inattivo in ingresso
+        joker_active = False
 
         match_pts = []
         for p in preds:
