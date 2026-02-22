@@ -2472,9 +2472,9 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
     # NEW: Get breakdown per matchday (P2 fix)
     matchday_breakdown = []
     if season:
-        # Get all score summaries for this user in this season
+        # Get all score summaries for this user in this season (ISOLAMENTO: filtra per league_id)
         user_scores = await score_summaries_col.find(
-            {"user_id": target_user_id},
+            {"user_id": target_user_id, "league_id": league_id},
             {"_id": 0}
         ).to_list(100)
         
@@ -2570,17 +2570,23 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
     matches = await matches_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(20)
     matches_dict = {m["id"]: m for m in matches}
 
-    # Get user predictions
-    preds = await predictions_col.find({"user_id": target_user_id, "matchday_id": matchday_id}, {"_id": 0}).to_list(20)
+    # Get user predictions (ISOLAMENTO: filtra per league_id)
+    pred_filter = {"user_id": target_user_id, "matchday_id": matchday_id}
+    if league_id:
+        pred_filter["league_id"] = league_id
+    preds = await predictions_col.find(pred_filter, {"_id": 0}).to_list(20)
     preds_dict = {p["match_id"]: p for p in preds}
 
     # Get joker status
     joker = await joker_usages_col.find_one({"user_id": target_user_id, "matchday_id": matchday_id}, {"_id": 0})
     jolly_active = joker is not None and joker.get("is_active", False)
 
-    # Get score summary
+    # Get score summary (ISOLAMENTO: filtra per league_id)
+    ss_filter = {"user_id": target_user_id, "matchday_id": matchday_id}
+    if league_id:
+        ss_filter["league_id"] = league_id
     score_summary = await score_summaries_col.find_one(
-        {"user_id": target_user_id, "matchday_id": matchday_id}, 
+        ss_filter, 
         {"_id": 0}
     )
 
