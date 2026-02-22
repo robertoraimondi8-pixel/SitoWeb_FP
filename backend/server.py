@@ -1539,8 +1539,7 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
 def _require_league_admin(league: dict, user: dict):
     if league.get("owner_id") != user["id"]:
         raise HTTPException(403, "Solo il creatore della lega può gestire le partite")
-    # "manual" e "custom" sono entrambi tipi di lega gestita manualmente
-    if league.get("match_source_type") not in ("manual", "custom"):
+    if league.get("match_source_type") not in ("manual", "custom", "api"):
         raise HTTPException(400, "Questa lega usa le partite della Lega Nazionale")
 
 
