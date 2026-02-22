@@ -722,4 +722,51 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: '700',
   },
+
+  // ── LIVE Box ──
+  liveBox: {
+    marginHorizontal: spacing.xl,
+    marginTop: spacing.md,
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
+    backgroundColor: 'rgba(34,197,94,0.10)',
+    borderWidth: 2,
+    borderColor: colors.success,
+    alignItems: 'center',
+  },
+  liveBoxBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 12,
+    backgroundColor: colors.success,
+    marginBottom: spacing.sm,
+  },
+  liveBoxDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#fff',
+  },
+  liveBoxBadgeText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  liveBoxPoints: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: colors.success,
+    letterSpacing: -1,
+  },
+  liveBoxLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    marginTop: 2,
+  },
 });
