@@ -1839,9 +1839,9 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
             unlocked_match_ids.add(m["id"])
 
     if unlocked_match_ids:
-        # Already saved predictions for this matchday
+        # Already saved predictions for this matchday (ISOLAMENTO: filtra per league_id)
         existing_preds = await predictions_col.find(
-            {"user_id": user["id"], "matchday_id": matchday_id}, {"_id": 0}
+            {"user_id": user["id"], "matchday_id": matchday_id, "league_id": pred_league_id}, {"_id": 0}
         ).to_list(100)
         existing_pred_match_ids = {p["match_id"] for p in existing_preds}
         incoming_match_ids = {p.match_id for p in req.predictions}
@@ -1944,7 +1944,7 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
 
 # C) REGOLA 11 PARTITE: Endpoint per verificare/confermare pronostici completi
 @prediction_router.post("/{matchday_id}/confirm")
-async def confirm_predictions(matchday_id: str, user=Depends(get_current_user)):
+async def confirm_predictions(matchday_id: str, league_id: str = None, user=Depends(get_current_user)):
     """
     Verifica che l'utente abbia inserito tutti gli 11 pronostici.
     Ritorna errore 400 se < 11 pronostici.
@@ -1960,11 +1960,11 @@ async def confirm_predictions(matchday_id: str, user=Depends(get_current_user)):
     total_matches = await matches_col.count_documents({"matchday_id": matchday_id})
     required_matches = max(total_matches, MATCHES_PER_MATCHDAY)
     
-    # Count user predictions
-    user_predictions = await predictions_col.count_documents({
-        "user_id": user["id"], 
-        "matchday_id": matchday_id
-    })
+    # Count user predictions (ISOLAMENTO: filtra per league_id)
+    pred_filter = {"user_id": user["id"], "matchday_id": matchday_id}
+    if league_id:
+        pred_filter["league_id"] = league_id
+    user_predictions = await predictions_col.count_documents(pred_filter)
     
     if user_predictions < required_matches:
         raise HTTPException(400, {
