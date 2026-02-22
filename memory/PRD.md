@@ -20,26 +20,30 @@ Fantasy sports prediction app (FantaPronostic) where users join leagues, predict
 - i18n (Italian/English/Spanish)
 - Joker/Jolly system (double points)
 - Smart navigation hub (shared routing logic)
+- **Home Gamification v2 (Elegant)**
 
 ## Recent Changes (Feb 2026)
-### Smart Predictions Tab (Feb 21)
-- Created shared `goToPredictionsHub()` function in `/app/frontend/src/utils/navigation.ts`
-- Tab "Predictions" now mirrors the Home CTA button logic:
-  - OPEN → predictions edit form
-  - LOCKED → predictions read-only
-  - LIVE → live screen redirect
-  - COMPLETED → results screen redirect
-  - No matchday → empty state
-- Both Home CTA and Predictions tab use the same shared function
-- Tested: 100% pass rate
 
-### i18n Overhaul (Previous session)
-- Fixed hardcoded strings across login, onboarding, profile, predictions
-- Corrected fallback language to Italian
-- Added Spanish flag to language selector
+### Home Gamification v2 (Feb 21)
+Complete redesign of the Home screen for elegant gamification:
+1. **Matchday Card** - Dynamic micro-messages: OPEN→countdown, LIVE→"In corso", COMPLETED→"Hai fatto X punti"
+2. **Performance Card** - Replaced rigid stat table with narrative layout: large position (1°), total/matchday/avg stats
+3. **Trend Bar Chart** - Replaced colored circles with elegant mini bar chart (orange highlight on latest matchday)
+4. **Visual Hierarchy** - Orange reserved for CTA only, better spacing, premium feel
+5. **Weekly Goal** - New motivational section: "Fai almeno X punti per mantenere il Y° posto"
+6. **Removed**: Old "Stats coming soon" placeholder, colored circles, live preview card (merged into matchday card)
+
+Files changed:
+- `/app/frontend/app/(tabs)/home.tsx` - Complete rewrite
+- `/app/frontend/src/components/ui/LastFiveIndicator.tsx` - Bar chart redesign
+- `/app/frontend/src/i18n/locales/{it,en,es}/common.json` - New gamification keys
+
+### Smart Predictions Tab (Feb 21)
+- Created shared `goToPredictionsHub()` in `/app/frontend/src/utils/navigation.ts`
+- Predictions tab mirrors Home CTA logic (OPEN→edit, LOCKED→readonly, LIVE→live screen, COMPLETED→results)
 
 ## Pending Issues
-- **i18n "Save Prediction" bug (P0)**: User verification pending - text may show English instead of Italian after Metro bundler cache clear
+- **i18n "Save Prediction" bug (P0)**: User verification pending after Metro cache clear
 - **Expo Go Tunnel (P1)**: BLOCKED - platform infrastructure issue
 
 ## Upcoming Tasks
