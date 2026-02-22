@@ -183,41 +183,15 @@ export default function RankingsScreen() {
         <View style={styles.accentLine} />
       </View>
 
-      {/* League Header - show league name, selector only if multiple leagues */}
-      {leagues.length > 1 ? (
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          style={styles.leagueScroll} 
-          contentContainerStyle={styles.leagueContent}
-        >
-          {leagues.map(l => (
-            <TouchableOpacity 
-              key={l.id} 
-              testID={`league-filter-${l.id}`} 
-              onPress={() => setSelectedLeague(l.id)} 
-              style={[
-                styles.leagueChip, 
-                selectedLeague === l.id && styles.leagueChipActive
-              ]}
-            >
-              <Text style={[
-                styles.leagueChipText, 
-                selectedLeague === l.id && styles.leagueChipTextActive
-              ]}>
-                {l.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      ) : leagues.length === 1 ? (
+      {/* League Header - single active league from context */}
+      {activeLeague && (
         <View style={styles.singleLeagueHeader}>
           <Ionicons name="trophy" size={16} color={colors.accent} />
           <Text style={styles.singleLeagueText}>
-            {leagues[0].name}
+            {activeLeague.name}
           </Text>
         </View>
-      ) : null}
+      )}
 
       {/* Tab Toggle */}
       <View style={styles.tabContainer}>
