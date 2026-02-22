@@ -1915,9 +1915,8 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
                 "market_type": p.market_type,
                 "prediction_value": p.prediction_value,
                 "updated_at": ts,
+                "league_id": pred_league_id,  # SEMPRE impostare league_id
             }
-            if pred_league_id:
-                update_fields["league_id"] = pred_league_id
             await predictions_col.update_one(
                 {"user_id": user["id"], "match_id": p.match_id},
                 {"$set": update_fields}
@@ -1928,6 +1927,7 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
                 "user_id": user["id"],
                 "match_id": p.match_id,
                 "matchday_id": matchday_id,
+                "league_id": pred_league_id,  # SEMPRE impostare league_id
                 "market_type": p.market_type,
                 "prediction_value": p.prediction_value,
                 "points": None,
@@ -1936,8 +1936,6 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
                 "created_at": ts,
                 "updated_at": ts,
             }
-            if pred_league_id:
-                doc["league_id"] = pred_league_id
             await predictions_col.insert_one(doc)
         saved.append({"match_id": p.match_id, "market_type": p.market_type, "value": p.prediction_value})
 
