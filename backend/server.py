@@ -2695,6 +2695,8 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
             "prediction_value": pred.get("prediction_value") if pred else None,
             "outcome": outcome if pred else "no_prediction",
             "points": points,
+            "is_special": m.get("is_special", False),
+            "multiplier": m.get("multiplier", 1.0),
         })
 
     # Calculate totals
