@@ -13,7 +13,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://p0-bugfix-sprint.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://league-scoping-v2.preview.emergentagent.com')
 
 # Test credentials
 USER1_EMAIL = "email@email.com"

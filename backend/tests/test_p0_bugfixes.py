@@ -19,7 +19,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://p0-bugfix-sprint.preview.emergentagent.com")
+BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://league-scoping-v2.preview.emergentagent.com")
 
 # Known matchday IDs from context
 MATCHDAY_G15_ID = "42666812-114a-4195-b0b7-33d72155d9ad"
@@ -189,7 +189,7 @@ class TestP02LivePredictionsVisibility:
     def test_live_endpoint_returns_predictions_for_completed_matchday_g15(self, admin_client):
         """
         P0-2 Fix: Verify /api/live/{matchday_id} returns predictions 
-        for COMPLETED matchday G15 (id=42666812-114a-4195-b0b7-33d72155d9ad)
+        for COMPLETED matchday G15 (id=league-scoping-v2)
         """
         response = admin_client.get(f"{BASE_URL}/api/live/{MATCHDAY_G15_ID}")
         print(f"Live G15 response status: {response.status_code}")
@@ -217,7 +217,7 @@ class TestP02LivePredictionsVisibility:
     def test_live_endpoint_returns_predictions_for_completed_matchday_g17(self, admin_client):
         """
         P0-2 Fix: Verify /api/live/{matchday_id} returns predictions 
-        for COMPLETED matchday G17 (id=38df601f-49f7-47d1-8f7e-2aa524884f7d)
+        for COMPLETED matchday G17 (id=league-scoping-v2)
         """
         response = admin_client.get(f"{BASE_URL}/api/live/{MATCHDAY_G17_ID}")
         print(f"Live G17 response status: {response.status_code}")

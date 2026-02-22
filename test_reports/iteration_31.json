@@ -29,7 +29,7 @@
       "backend_location": "/app/backend/scoring.py lines 43-84"
     },
     "P0-2_g16_deleted": {
-      "description": "Giornata 16 (id=68523813-a795-4a74-87ec-68bdd0b7ace0) deleted from DB",
+      "description": "Giornata 16 (id=league-scoping-v2) deleted from DB",
       "status": "PASSED",
       "evidence": "Admin matchday endpoint returns 404 for G16, fixtures list shows 0 matchdays with number=16",
       "backend_location": "DB deletion confirmed"
@@ -66,7 +66,7 @@
   "seed_data_creation": "",
   "retest_needed": false,
   "should_main_agent_self_test": false,
-  "context_for_next_testing_agent": "All P0 bugs from this sprint FIXED: P0-1 (home predictions count + live multiplier), P0-2 (G16 deleted), P0-3 (is_special/multiplier in API responses). Key IDs: G17=38df601f-49f7-47d1-8f7e-2aa524884f7d (Inter vs Roma special), G18=461d6479-2987-45b3-adc8-63f4ec2aed1a (Milan vs Napoli special), G16=68523813-a795-4a74-87ec-68bdd0b7ace0 (DELETED). NATIONAL_LEAGUE_ID=f1373417-43aa-4043-b6a2-125873181c95.",
+  "context_for_next_testing_agent": "All P0 bugs from this sprint FIXED: P0-1 (home predictions count + live multiplier), P0-2 (G16 deleted), P0-3 (is_special/multiplier in API responses). Key IDs: G17=league-scoping-v2 (Inter vs Roma special), G18=league-scoping-v2 (Milan vs Napoli special), G16=league-scoping-v2 (DELETED). NATIONAL_LEAGUE_ID=league-scoping-v2.",
   "detailed_verification": {
     "P0-1": {
       "bug": "LIVE matchday shows 0.0 pts on Home screen, live scoring had wrong provisional points",

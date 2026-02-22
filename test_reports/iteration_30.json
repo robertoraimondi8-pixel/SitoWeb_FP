@@ -19,13 +19,13 @@
     "P0-2_live_predictions_G15": {
       "description": "GET /api/live/{matchday_id} returns predictions for COMPLETED matchday G15",
       "status": "PASSED",
-      "evidence": "G15 (id=42666812-114a-4195-b0b7-33d72155d9ad): 4 matches, 4 predictions found, status=COMPLETED",
+      "evidence": "G15 (id=league-scoping-v2): 4 matches, 4 predictions found, status=COMPLETED",
       "backend_location": "/app/backend/server.py lines 2745-2833"
     },
     "P0-2_live_predictions_G17": {
       "description": "GET /api/live/{matchday_id} returns predictions for COMPLETED matchday G17",
       "status": "PASSED",
-      "evidence": "G17 (id=38df601f-49f7-47d1-8f7e-2aa524884f7d): 2 matches, 2 predictions found, status=COMPLETED",
+      "evidence": "G17 (id=league-scoping-v2): 2 matches, 2 predictions found, status=COMPLETED",
       "backend_location": "/app/backend/server.py lines 2745-2833"
     },
     "P0-3_last_5_performance": {
@@ -64,7 +64,7 @@
   "seed_data_creation": "",
   "retest_needed": false,
   "should_main_agent_self_test": false,
-  "context_for_next_testing_agent": "All P0 bugs fixed and verified. Key test matchday IDs: G15=42666812-114a-4195-b0b7-33d72155d9ad, G16=68523813-a795-4a74-87ec-68bdd0b7ace0, G17=38df601f-49f7-47d1-8f7e-2aa524884f7d. Already imported fixture: 1378114 (Atalanta vs Napoli in G16). NATIONAL_LEAGUE_ID=f1373417-43aa-4043-b6a2-125873181c95.",
+  "context_for_next_testing_agent": "All P0 bugs fixed and verified. Key test matchday IDs: G15=league-scoping-v2, G16=league-scoping-v2, G17=league-scoping-v2. Already imported fixture: 1378114 (Atalanta vs Napoli in G16). NATIONAL_LEAGUE_ID=league-scoping-v2.",
   "detailed_verification": {
     "P0-1": {
       "bug": "Import API-Football fixtures fails with wrong duplicate check",

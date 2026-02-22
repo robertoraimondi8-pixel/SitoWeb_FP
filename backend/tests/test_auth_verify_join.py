@@ -14,7 +14,7 @@ import os
 import uuid
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://p0-bugfix-sprint.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://league-scoping-v2.preview.emergentagent.com')
 
 class TestUserRegistrationWithUsername:
     """Test registration flow with custom username"""

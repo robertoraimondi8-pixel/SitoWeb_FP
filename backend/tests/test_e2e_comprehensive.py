@@ -9,7 +9,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://p0-bugfix-sprint.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://league-scoping-v2.preview.emergentagent.com')
 
 # Test credentials
 NATIONAL_LEAGUE_USER = {"email": "desiree@raimondi.it", "password": "Roberto95"}  # Desylega - national
