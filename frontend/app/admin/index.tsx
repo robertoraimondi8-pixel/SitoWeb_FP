@@ -120,8 +120,23 @@ export default function AdminConsoleV3() {
       setLoading(true); setError('');
       const data = await apiCall('/admin/v3/leagues', { token });
       setLeagues(data);
-      if (data.length > 0 && !selectedLeague) {
-        setSelectedLeague(data[0]);
+      if (isSuperAdmin) {
+        // Super admin: keep dropdown, auto-select first league if none selected
+        if (data.length > 0 && !selectedLeague) {
+          setSelectedLeague(data[0]);
+        }
+      } else {
+        // League owner: lock to active league from Home context
+        if (activeLeague) {
+          const match = data.find((l: League) => l.id === activeLeague.id);
+          if (match) {
+            setSelectedLeague(match);
+          } else {
+            setError('Non hai i permessi di admin per questa lega. Torna alla Home e seleziona una lega che gestisci.');
+          }
+        } else {
+          setError('Nessuna lega attiva. Torna alla Home e seleziona una lega.');
+        }
       }
     } catch (e: unknown) {
       if (await authErr(e)) return;
