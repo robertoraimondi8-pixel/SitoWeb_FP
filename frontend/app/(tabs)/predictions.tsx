@@ -240,6 +240,7 @@ export default function PredictionsScreen() {
   );
 
   // Smart redirect: se stato è LIVE o COMPLETED, naviga alla schermata Live
+  // Usa replace (non push) per evitare loop back→predictions→redirect→live
   useFocusEffect(
     useCallback(() => {
       if (!data?.matchday || redirectedRef.current) return;
@@ -248,7 +249,8 @@ export default function PredictionsScreen() {
         redirectedRef.current = true;
         const leagueId = leagueInfo?.id || '';
         const matchdayId = data.matchday.id;
-        goToPredictionsHub(router, status, matchdayId, leagueId);
+        const qs = leagueId ? `?league_id=${leagueId}` : '';
+        router.replace(`/live/${matchdayId}${qs}` as Href);
       }
     }, [data?.matchday, leagueInfo, router])
   );
