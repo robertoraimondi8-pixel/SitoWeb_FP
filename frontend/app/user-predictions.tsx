@@ -320,4 +320,9 @@ const s = StyleSheet.create({
   // Outcome
   outcomeCol: { alignItems: 'center', gap: 2 },
   pointsText: { fontSize: 12, fontWeight: '700' },
+
+  // No predictions
+  noPredictions: { alignItems: 'center', justifyContent: 'center', paddingTop: 60, gap: 12 },
+  noPredTitle: { fontSize: 18, fontWeight: '700' },
+  noPredSub: { fontSize: 13, textAlign: 'center', paddingHorizontal: 32 },
 });
