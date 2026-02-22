@@ -311,7 +311,11 @@ export default function HomeScreen() {
               <View style={styles.perfStatSep} />
               <View style={styles.perfStatItem}>
                 <Text style={styles.perfStatValue}>
-                  {formatPoints(data.matchday?.my_points ?? data.live?.total_provisional ?? 0)}
+                  {formatPoints(
+                    (data.matchday?.my_predictions_count || 0) > 0
+                      ? (data.matchday?.my_points ?? data.live?.total_provisional ?? 0)
+                      : 0
+                  )}
                 </Text>
                 <Text style={styles.perfStatLabel}>{t('home.matchday_points')}</Text>
               </View>
