@@ -1032,10 +1032,10 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         if is_manual_league:
             user_matchdays_played = total_completed_in_season
         else:
-            # Conta matchdays con score_summaries per questo utente (non filtrare per league_id)
+            # Conta matchdays con score_summaries per questo utente E questa lega
             user_played_md_ids = await score_summaries_col.distinct(
                 "matchday_id",
-                {"user_id": user["id"], "matchday_id": {"$in": completed_md_ids}}
+                {"user_id": user["id"], "matchday_id": {"$in": completed_md_ids}, "league_id": first_league["id"]}
             )
             user_matchdays_played = len(user_played_md_ids)
         
