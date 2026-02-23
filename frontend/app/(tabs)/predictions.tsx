@@ -64,6 +64,7 @@ export default function PredictionsScreen() {
   const [competitionName, setCompetitionName] = useState<string>('');
   // Info lega attiva per empty state
   const [leagueInfo, setLeagueInfo] = useState<{ id: string; isManual: boolean; isOwner: boolean } | null>(null);
+  const [previewMatchId, setPreviewMatchId] = useState<string | null>(null);
 
   const formatPts = (pts: number) => {
     const val = pts % 1 === 0 ? pts.toString() : pts.toFixed(1).replace('.', ',');
