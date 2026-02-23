@@ -110,6 +110,15 @@ New "Statistiche" tab with real football data from API-Football.
   - **Round Picker**: Added dropdown to select specific matchday (Giornata) in Results/Upcoming tabs. Bottom-sheet modal with list of rounds. Auto-selects first round on load.
   - **League chips fix**: Applied `flexShrink: 0` to prevent text truncation on horizontal scroll
 
+### Feature - Match Preview Stats Button (Feb 23, 2026) - COMPLETED
+Added "Statistiche" button on each API-imported match card in the Predictions screen. Opens a bottom sheet with:
+- **Last 5 matches** for both teams (W/D/L badges + scores)
+- **Head-to-Head** last 5 encounters
+- **Current league standing position** (rank, points, played)
+Only visible for API-Football matches (not manual). No navigation, no schema changes.
+- Backend: `GET /api/stats/match-preview/{match_id}` endpoint
+- Frontend: `MatchPreviewSheet.tsx` component + integration in `predictions.tsx`
+
 ### Bug Fix - Predictions Screen Shows OPEN Instead of LIVE (Feb 23, 2026) - COMPLETED
 The `/api/leagues/{league_id}/fixtures` endpoint returned raw matchday status from DB without computing effective status. This caused the Predictions tab to show "APERTA" (OPEN) for matchdays that should be "LIVE" (first kickoff already passed). Fixed by adding `compute_matchday_status()` call in the fixtures loop so OPEN→LIVE and LIVE→COMPLETED transitions are applied.
 
