@@ -3149,6 +3149,10 @@ async def _calculate_matchday_scores(matchday_id: str, admin: dict):
                 m.get("multiplier", 1.0)
             )
             match_pts.append((m["id"], pts, is_correct))
+            # Track special bonus from X3 multiplier
+            multiplier = m.get("multiplier", 1.0)
+            if is_correct and multiplier > 1.0:
+                special_bonus += pts - (pts / multiplier)
 
             # Update individual prediction
             await predictions_col.update_one(
@@ -3392,6 +3396,10 @@ async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_admin))
                 m.get("multiplier", 1.0)
             )
             match_pts.append((m["id"], pts, is_correct))
+            # Track special bonus from X3 multiplier
+            multiplier = m.get("multiplier", 1.0)
+            if is_correct and multiplier > 1.0:
+                special_bonus += pts - (pts / multiplier)
 
             # Update individual prediction
             await predictions_col.update_one(
