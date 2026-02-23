@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, Animated } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, RefreshControl, ActivityIndicator, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../../src/api/client';
-import { HomeData, League, RankingsPreviewEntry, getErrorMessage } from '../../src/types/api';
+import { HomeData, League } from '../../src/types/api';
 import { goToPredictionsHub } from '../../src/utils/navigation';
 
 // Design System
