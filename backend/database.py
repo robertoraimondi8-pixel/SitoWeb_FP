@@ -96,7 +96,7 @@ async def create_indexes():
         # StandingsCache
         await standings_cache_col.create_index("id", unique=True)
         await standings_cache_col.create_index(
-            [("league_id", 1), ("matchday_id", 1), ("type", 1)], unique=True
+            [("user_id", 1), ("league_id", 1), ("matchday_id", 1), ("type", 1)], unique=True
         )
 
         # AuditLog
