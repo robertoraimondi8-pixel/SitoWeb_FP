@@ -58,6 +58,8 @@ export interface MatchItem {
   home_logo?: string;
   away_logo?: string;
   league_id?: string;
+  external_fixture_id?: number | null;
+  league_name?: string;
 }
 
 export interface Season {
