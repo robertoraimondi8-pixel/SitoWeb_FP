@@ -246,11 +246,10 @@ export default function CreateLeagueScreen() {
           {/* Source Type */}
           <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>PARTITE DA PRONOSTICARE</Text>
           <View style={s.row}>
-            {(['national', 'api', 'custom'] as const).map(type => {
+            {(['national', 'custom'] as const).map(type => {
               const config = {
-                national: { icon: 'flag-outline' as const, label: 'Lega Nazionale', desc: 'Partite uguali alla Lega Nazionale' },
-                api: { icon: 'football-outline' as const, label: 'Partite da API', desc: 'Importa partite reali da API Football' },
-                custom: { icon: 'person-outline' as const, label: 'Scelte dal creatore', desc: 'Il creatore inserisce le partite manualmente' },
+                national: { icon: 'flag-outline' as const, label: 'Lega Nazionale', desc: 'Le partite da pronosticare vengono selezionate automaticamente ogni settimana dalla Lega Nazionale', recommended: true },
+                custom: { icon: 'create-outline' as const, label: 'Personalizzate', desc: 'Le partite da pronosticare vengono scelte ogni settimana dal creatore della lega', recommended: false },
               };
               const c = config[type];
               return (
@@ -264,6 +263,9 @@ export default function CreateLeagueScreen() {
                 <Text style={[s.sourceLabel, { color: sourceType === type ? colors.accent : colors.text }]}>
                   {c.label}
                 </Text>
+                {c.recommended && (
+                  <Text style={[s.recommendedBadge, { color: colors.accent }]}>Consigliato</Text>
+                )}
                 <Text style={[s.sourceDesc, { color: colors.textSecondary }]}>
                   {c.desc}
                 </Text>
