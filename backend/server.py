@@ -1517,7 +1517,10 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
         else:
             # National-type league: use _match_source_query with NATIONAL_LEAGUE_ID
             matches = await matches_col.find(_match_source_query(md["id"], NATIONAL_LEAGUE_ID), {"_id": 0}).to_list(20)
-        result.append({**md, "matches": matches})
+        # Compute effective matchday status (OPEN→LIVE, LIVE→COMPLETED)
+        _source_lid = league_id if is_manual_league else NATIONAL_LEAGUE_ID
+        effective_status = await compute_matchday_status(md, _source_lid)
+        result.append({**md, "status": effective_status, "matches": matches})
 
     logger.info("=" * 60)
     return {"league_id": league_id, "source_league_id": source_id, "matchdays": result}
