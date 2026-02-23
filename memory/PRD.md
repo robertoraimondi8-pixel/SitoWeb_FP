@@ -96,6 +96,18 @@ Removed the league dropdown for league owners in the Admin Console. Owners now s
   - League selector: `TouchableOpacity` with chevron for super admin, plain `View` for owner
   - League dropdown modal: wrapped in `isSuperAdmin` guard
 
+### Feature - Statistics Section (Feb 23, 2026) - COMPLETED
+New "Statistiche" tab with real football data from API-Football.
+- **Backend**:
+  - Added `stats_router` with 4 endpoints: `GET /api/stats/leagues`, `GET /api/stats/standings/{league_id}`, `GET /api/stats/results/{league_id}`, `GET /api/stats/upcoming/{league_id}`
+  - Added `get_standings()`, `get_recent_results()`, `get_upcoming_fixtures()` methods to `apifootball.py` with TTL caching
+  - Fixed leagues: Serie A (135), Premier League (39), La Liga (140), Bundesliga (78), Ligue 1 (61)
+- **Frontend**:
+  - Created `/app/frontend/app/(tabs)/statistics.tsx`: League chip selector, sub-tabs (Classifica/Risultati/Prossime), standings table with team logos, fixture cards with scores
+  - Updated `_layout.tsx`: 5-tab bar: Home > Statistiche > Pronostici > Classifiche > Profilo
+  - Removed CLASSIFICHE preview section from `home.tsx`
+  - Updated i18n (it, en, es) with `tabs.statistics` and `stats.*` keys
+
 ## Prioritized Backlog
 
 ### P2
@@ -118,9 +130,12 @@ Removed the league dropdown for league owners in the Admin Console. Owners now s
 
 ## Key Files
 - `/app/backend/server.py`: All business logic and API endpoints
+- `/app/backend/apifootball.py`: API-Football client with caching (standings, fixtures, results)
 - `/app/backend/scoring.py`: Points calculation engine
 - `/app/backend/database.py`: MongoDB connection and indexes
 - `/app/frontend/app/(tabs)/home.tsx`: Home screen with Classifica LIVE
+- `/app/frontend/app/(tabs)/statistics.tsx`: Statistics page (real league data)
 - `/app/frontend/app/(tabs)/rankings.tsx`: Rankings with LIVE mode
+- `/app/frontend/app/(tabs)/_layout.tsx`: Tab bar layout (5 tabs)
 - `/app/frontend/app/user-predictions.tsx`: User predictions detail
 - `/app/frontend/app/live/[id].tsx`: Live match view
