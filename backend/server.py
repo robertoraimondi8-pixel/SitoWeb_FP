@@ -68,6 +68,7 @@ live_router = APIRouter(prefix="/api/live", tags=["Live"])
 payment_router = APIRouter(prefix="/api/payments", tags=["Payments"])
 admin_router = APIRouter(prefix="/api/admin", tags=["Admin"])
 fixtures_router = APIRouter(prefix="/api/admin/real-fixtures", tags=["Real Fixtures"])
+stats_router = APIRouter(prefix="/api/stats", tags=["Statistics"])
 
 
 # ===== UTILITY =====
