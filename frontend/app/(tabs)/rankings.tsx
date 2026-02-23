@@ -331,9 +331,9 @@ export default function RankingsScreen() {
           {(!standings?.entries || standings.entries.length === 0) && (
             <View style={styles.emptyState}>
               <Ionicons name="trophy-outline" size={48} color={colors.textMuted} />
-              <Text style={styles.emptyTitle}>Nessun dato disponibile</Text>
+              <Text style={styles.emptyTitle}>In attesa del kickoff</Text>
               <Text style={styles.emptySubtitle}>
-                La classifica sarà disponibile dopo la prima giornata
+                La classifica sarà disponibile dopo l'inizio delle partite
               </Text>
             </View>
           )}
