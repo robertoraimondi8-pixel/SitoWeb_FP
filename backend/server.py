@@ -2180,6 +2180,20 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
     source_lid = league_id if is_manual else NATIONAL_LEAGUE_ID
     effective_status = await compute_matchday_status(matchday, source_lid)
     matchday["status"] = effective_status
+
+    # Pronostici visibili solo da LIVE in poi (non durante OPEN/DRAFT)
+    if effective_status in ("DRAFT", "OPEN"):
+        return {
+            "league_id": league_id,
+            "league_name": league_doc["name"],
+            "standings_type": "weekly",
+            "matchday_id": matchday_id,
+            "matchday_number": matchday.get("number"),
+            "matchday_label": matchday.get("label"),
+            "matchday_status": effective_status,
+            "entries": [],
+            "my_position": None,
+        }
     
     members = await memberships_col.find({"league_id": league_id, "status": "active"}).to_list(1000)
     member_user_ids = [m["user_id"] for m in members]
