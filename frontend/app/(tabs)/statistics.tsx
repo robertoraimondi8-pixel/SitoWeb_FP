@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
-  RefreshControl, ActivityIndicator, Image,
+  RefreshControl, ActivityIndicator, Image, Modal, FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -48,11 +48,21 @@ type FixtureEntry = {
 type TabView = 'standings' | 'results' | 'upcoming';
 
 const COUNTRY_FLAGS: Record<string, string> = {
-  Italy: '🇮🇹',
-  England: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-  Spain: '🇪🇸',
-  Germany: '🇩🇪',
-  France: '🇫🇷',
+  Italy: '\u{1F1EE}\u{1F1F9}',
+  England: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}',
+  Spain: '\u{1F1EA}\u{1F1F8}',
+  Germany: '\u{1F1E9}\u{1F1EA}',
+  France: '\u{1F1EB}\u{1F1F7}',
+};
+
+const formatRound = (round?: string) => {
+  if (!round) return '';
+  return round.replace('Regular Season - ', 'Giornata ');
+};
+
+const formatRoundShort = (round?: string) => {
+  if (!round) return '';
+  return round.replace('Regular Season - ', 'G');
 };
 
 export default function StatisticsScreen() {
@@ -68,8 +78,8 @@ export default function StatisticsScreen() {
   const [loading, setLoading] = useState(true);
   const [tabLoading, setTabLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedRound, setSelectedRound] = useState<string | null>(null);
 
-  // Fetch available leagues
   const fetchLeagues = useCallback(async () => {
     if (!token) return;
     try {
@@ -85,7 +95,6 @@ export default function StatisticsScreen() {
     }
   }, [token]);
 
-  // Fetch data for the selected tab
   const fetchTabData = useCallback(async (tab: TabView, league: StatsLeague) => {
     if (!token || !league) return;
     setTabLoading(true);
@@ -98,12 +107,12 @@ export default function StatisticsScreen() {
         setStandings(data.standings || []);
       } else if (tab === 'results') {
         const data = await apiCall<{ fixtures: FixtureEntry[] }>(
-          `/stats/results/${league.league_id}?season=${season}&last=20`, { token }
+          `/stats/results/${league.league_id}?season=${season}&last=30`, { token }
         );
         setResults(data.fixtures || []);
       } else if (tab === 'upcoming') {
         const data = await apiCall<{ fixtures: FixtureEntry[] }>(
-          `/stats/upcoming/${league.league_id}?season=${season}&next=20`, { token }
+          `/stats/upcoming/${league.league_id}?season=${season}&next=30`, { token }
         );
         setUpcoming(data.fixtures || []);
       }
@@ -117,7 +126,10 @@ export default function StatisticsScreen() {
   useEffect(() => { fetchLeagues(); }, [fetchLeagues]);
 
   useEffect(() => {
-    if (selectedLeague) fetchTabData(activeTab, selectedLeague);
+    if (selectedLeague) {
+      setSelectedRound(null);
+      fetchTabData(activeTab, selectedLeague);
+    }
   }, [selectedLeague, activeTab]);
 
   const onRefresh = async () => {
@@ -136,11 +148,6 @@ export default function StatisticsScreen() {
     return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
   };
 
-  const formatRound = (round?: string) => {
-    if (!round) return '';
-    return round.replace('Regular Season - ', 'G');
-  };
-
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -148,6 +155,8 @@ export default function StatisticsScreen() {
       </View>
     );
   }
+
+  const currentFixtures = activeTab === 'results' ? results : upcoming;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -176,9 +185,9 @@ export default function StatisticsScreen() {
               {lg.logo ? (
                 <Image source={{ uri: lg.logo }} style={styles.leagueLogo} />
               ) : (
-                <Text style={styles.leagueFlag}>{COUNTRY_FLAGS[lg.country] || '⚽'}</Text>
+                <Text style={styles.leagueFlag}>{COUNTRY_FLAGS[lg.country] || '\u26BD'}</Text>
               )}
-              <Text style={[styles.leagueChipText, isActive && styles.leagueChipTextActive]} numberOfLines={1}>
+              <Text style={[styles.leagueChipText, isActive && styles.leagueChipTextActive]}>
                 {lg.name}
               </Text>
             </TouchableOpacity>
@@ -221,10 +230,15 @@ export default function StatisticsScreen() {
           </View>
         ) : activeTab === 'standings' ? (
           <StandingsTable entries={standings} />
-        ) : activeTab === 'results' ? (
-          <FixturesList fixtures={results} showScore formatDate={formatDate} formatTime={formatTime} formatRound={formatRound} />
         ) : (
-          <FixturesList fixtures={upcoming} formatDate={formatDate} formatTime={formatTime} formatRound={formatRound} />
+          <FixturesWithRoundPicker
+            fixtures={currentFixtures}
+            showScore={activeTab === 'results'}
+            formatDate={formatDate}
+            formatTime={formatTime}
+            selectedRound={selectedRound}
+            onSelectRound={setSelectedRound}
+          />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -239,7 +253,6 @@ function StandingsTable({ entries }: { entries: StandingEntry[] }) {
 
   return (
     <View style={styles.tableCard}>
-      {/* Table header */}
       <View style={styles.tableHeaderRow}>
         <Text style={[styles.tableHeaderCell, { width: 30 }]}>#</Text>
         <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Squadra</Text>
@@ -275,63 +288,140 @@ function StandingsTable({ entries }: { entries: StandingEntry[] }) {
   );
 }
 
-/* ─── FIXTURES LIST ─── */
-function FixturesList({
+/* ─── FIXTURES WITH ROUND PICKER ─── */
+function FixturesWithRoundPicker({
   fixtures,
   showScore,
   formatDate,
   formatTime,
-  formatRound,
+  selectedRound,
+  onSelectRound,
 }: {
   fixtures: FixtureEntry[];
   showScore?: boolean;
   formatDate: (iso: string) => string;
   formatTime: (iso: string) => string;
-  formatRound: (r?: string) => string;
+  selectedRound: string | null;
+  onSelectRound: (round: string | null) => void;
 }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  // Extract unique rounds preserving order
+  const rounds = useMemo(() => {
+    const seen = new Set<string>();
+    const list: string[] = [];
+    for (const f of fixtures) {
+      const r = f.round || '';
+      if (r && !seen.has(r)) {
+        seen.add(r);
+        list.push(r);
+      }
+    }
+    return list;
+  }, [fixtures]);
+
+  // Auto-select first round when data loads and no round selected
+  useEffect(() => {
+    if (rounds.length > 0 && !selectedRound) {
+      onSelectRound(rounds[0]);
+    }
+  }, [rounds]);
+
+  // Filter fixtures by selected round
+  const filtered = useMemo(() => {
+    if (!selectedRound) return fixtures;
+    return fixtures.filter(f => f.round === selectedRound);
+  }, [fixtures, selectedRound]);
+
   if (fixtures.length === 0) {
     return <Text style={styles.emptyText}>Nessun dato disponibile</Text>;
   }
 
-  // Group by round
-  const grouped: Record<string, FixtureEntry[]> = {};
-  for (const f of fixtures) {
-    const key = f.round || 'Altro';
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(f);
-  }
-
   return (
     <View>
-      {Object.entries(grouped).map(([round, fixes]) => (
-        <View key={round} style={styles.roundGroup}>
-          <Text style={styles.roundLabel}>{formatRound(round)}</Text>
-          {fixes.map((f) => (
-            <View key={f.fixture_id} style={styles.fixtureCard} data-testid={`fixture-${f.fixture_id}`}>
-              <View style={styles.fixtureTeams}>
-                <View style={styles.fixtureTeamRow}>
-                  {f.home_logo && <Image source={{ uri: f.home_logo }} style={styles.fixtureTeamLogo} />}
-                  <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.home_team}</Text>
-                  {showScore && f.home_goals != null && (
-                    <Text style={styles.fixtureScore}>{f.home_goals}</Text>
-                  )}
-                </View>
-                <View style={styles.fixtureTeamRow}>
-                  {f.away_logo && <Image source={{ uri: f.away_logo }} style={styles.fixtureTeamLogo} />}
-                  <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.away_team}</Text>
-                  {showScore && f.away_goals != null && (
-                    <Text style={styles.fixtureScore}>{f.away_goals}</Text>
-                  )}
-                </View>
-              </View>
-              <View style={styles.fixtureMeta}>
-                <Text style={styles.fixtureDate}>{formatDate(f.date)}</Text>
-                {!showScore && <Text style={styles.fixtureTime}>{formatTime(f.date)}</Text>}
-              </View>
+      {/* Round Picker Button */}
+      {rounds.length > 0 && (
+        <TouchableOpacity
+          style={styles.roundPickerBtn}
+          onPress={() => setPickerOpen(true)}
+          data-testid="round-picker-button"
+        >
+          <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+          <Text style={styles.roundPickerText}>
+            {selectedRound ? formatRound(selectedRound) : 'Tutte le giornate'}
+          </Text>
+          <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+        </TouchableOpacity>
+      )}
+
+      {/* Filtered fixtures */}
+      {filtered.map((f) => (
+        <View key={f.fixture_id} style={styles.fixtureCard} data-testid={`fixture-${f.fixture_id}`}>
+          <View style={styles.fixtureTeams}>
+            <View style={styles.fixtureTeamRow}>
+              {f.home_logo && <Image source={{ uri: f.home_logo }} style={styles.fixtureTeamLogo} />}
+              <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.home_team}</Text>
+              {showScore && f.home_goals != null && (
+                <Text style={styles.fixtureScore}>{f.home_goals}</Text>
+              )}
             </View>
-          ))}
+            <View style={styles.fixtureTeamRow}>
+              {f.away_logo && <Image source={{ uri: f.away_logo }} style={styles.fixtureTeamLogo} />}
+              <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.away_team}</Text>
+              {showScore && f.away_goals != null && (
+                <Text style={styles.fixtureScore}>{f.away_goals}</Text>
+              )}
+            </View>
+          </View>
+          <View style={styles.fixtureMeta}>
+            <Text style={styles.fixtureDate}>{formatDate(f.date)}</Text>
+            {!showScore && <Text style={styles.fixtureTime}>{formatTime(f.date)}</Text>}
+          </View>
         </View>
       ))}
+
+      {/* Round Picker Modal */}
+      <Modal visible={pickerOpen} transparent animationType="slide" onRequestClose={() => setPickerOpen(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setPickerOpen(false)}>
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Seleziona Giornata</Text>
+
+            {/* "All rounds" option */}
+            <TouchableOpacity
+              style={[styles.modalItem, !selectedRound && styles.modalItemActive]}
+              onPress={() => { onSelectRound(null); setPickerOpen(false); }}
+              data-testid="round-option-all"
+            >
+              <Text style={[styles.modalItemText, !selectedRound && styles.modalItemTextActive]}>
+                Tutte le giornate
+              </Text>
+              {!selectedRound && <Ionicons name="checkmark" size={18} color={colors.accent} />}
+            </TouchableOpacity>
+
+            <FlatList
+              data={rounds}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => {
+                const isActive = selectedRound === item;
+                return (
+                  <TouchableOpacity
+                    style={[styles.modalItem, isActive && styles.modalItemActive]}
+                    onPress={() => { onSelectRound(item); setPickerOpen(false); }}
+                    data-testid={`round-option-${item}`}
+                  >
+                    <Text style={[styles.modalItemText, isActive && styles.modalItemTextActive]}>
+                      {formatRound(item)}
+                    </Text>
+                    {isActive && <Ionicons name="checkmark" size={18} color={colors.accent} />}
+                  </TouchableOpacity>
+                );
+              }}
+              style={{ maxHeight: 400 }}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -357,7 +447,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
 
-  // League selector
+  // League selector — chips must NOT shrink
   leagueSelector: {
     backgroundColor: colors.card,
     borderBottomWidth: 1,
@@ -368,6 +458,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
+    flexDirection: 'row',
   },
   leagueChip: {
     flexDirection: 'row',
@@ -379,6 +470,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
+    flexShrink: 0,
   },
   leagueChipActive: {
     backgroundColor: colors.primary,
@@ -388,6 +480,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: colors.textSecondary,
+    flexShrink: 0,
   },
   leagueChipTextActive: {
     color: '#fff',
@@ -499,16 +592,79 @@ const styles = StyleSheet.create({
   rankTop: { backgroundColor: colors.primaryLight },
   rankBottom: { backgroundColor: colors.error },
 
+  // ── Round Picker ──
+  roundPickerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.card,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.md,
+    ...shadows.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  roundPickerText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+
+  // ── Modal ──
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  modalSheet: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 40,
+    maxHeight: '60%',
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  modalItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  modalItemActive: {
+    backgroundColor: colors.background,
+  },
+  modalItemText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: colors.textPrimary,
+  },
+  modalItemTextActive: {
+    color: colors.accent,
+    fontWeight: '700',
+  },
+
   // ── Fixtures ──
-  roundGroup: {
-    marginBottom: spacing.lg,
-  },
-  roundLabel: {
-    ...typography.sectionLabel,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
-    paddingLeft: spacing.xs,
-  },
   fixtureCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
