@@ -166,6 +166,104 @@ class APIFootballClient:
         }
 
     # ------------------------------------------------------------------
+    async def get_standings(self, league_id: int, season: int) -> List[Dict[str, Any]]:
+        """Get league table standings."""
+        cache_key = f"standings:{league_id}:{season}"
+        cached = _cache_get(cache_key)
+        if cached is not None:
+            return cached
+
+        data = await self._get("/standings", {"league": league_id, "season": season})
+        resp = data.get("response", [])
+        if not resp:
+            return []
+
+        standings_data = resp[0].get("league", {}).get("standings", [])
+        if not standings_data:
+            return []
+
+        # standings_data is a list of groups; for single-group leagues take first
+        group = standings_data[0] if standings_data else []
+        entries = []
+        for row in group:
+            team = row.get("team", {})
+            all_stats = row.get("all", {})
+            entries.append({
+                "rank": row.get("rank"),
+                "team_name": team.get("name"),
+                "team_logo": team.get("logo"),
+                "points": row.get("points"),
+                "played": all_stats.get("played"),
+                "win": all_stats.get("win"),
+                "draw": all_stats.get("draw"),
+                "lose": all_stats.get("lose"),
+                "goals_for": all_stats.get("goals", {}).get("for"),
+                "goals_against": all_stats.get("goals", {}).get("against"),
+                "goal_diff": row.get("goalsDiff"),
+                "form": row.get("form"),
+            })
+
+        _cache_set(cache_key, entries, CACHE_TTL_STANDINGS)
+        return entries
+
+    # ------------------------------------------------------------------
+    async def get_recent_results(self, league_id: int, season: int, last: int = 15) -> List[Dict[str, Any]]:
+        """Get last N finished fixtures for a league."""
+        cache_key = f"results:{league_id}:{season}:{last}"
+        cached = _cache_get(cache_key)
+        if cached is not None:
+            return cached
+
+        data = await self._get("/fixtures", {"league": league_id, "season": season, "last": last, "status": "FT-AET-PEN"})
+        fixtures = []
+        for f in data.get("response", []):
+            fix = f.get("fixture", {})
+            teams = f.get("teams", {})
+            goals = f.get("goals", {})
+            league = f.get("league", {})
+            fixtures.append({
+                "fixture_id": fix.get("id"),
+                "date": fix.get("date"),
+                "home_team": teams.get("home", {}).get("name"),
+                "home_logo": teams.get("home", {}).get("logo"),
+                "away_team": teams.get("away", {}).get("name"),
+                "away_logo": teams.get("away", {}).get("logo"),
+                "home_goals": goals.get("home"),
+                "away_goals": goals.get("away"),
+                "round": league.get("round"),
+            })
+
+        _cache_set(cache_key, fixtures, CACHE_TTL_FIXTURES)
+        return fixtures
+
+    # ------------------------------------------------------------------
+    async def get_upcoming_fixtures(self, league_id: int, season: int, next_count: int = 15) -> List[Dict[str, Any]]:
+        """Get next N upcoming fixtures for a league."""
+        cache_key = f"upcoming:{league_id}:{season}:{next_count}"
+        cached = _cache_get(cache_key)
+        if cached is not None:
+            return cached
+
+        data = await self._get("/fixtures", {"league": league_id, "season": season, "next": next_count, "status": "NS-TBD"})
+        fixtures = []
+        for f in data.get("response", []):
+            fix = f.get("fixture", {})
+            teams = f.get("teams", {})
+            league = f.get("league", {})
+            fixtures.append({
+                "fixture_id": fix.get("id"),
+                "date": fix.get("date"),
+                "home_team": teams.get("home", {}).get("name"),
+                "home_logo": teams.get("home", {}).get("logo"),
+                "away_team": teams.get("away", {}).get("name"),
+                "away_logo": teams.get("away", {}).get("logo"),
+                "round": league.get("round"),
+            })
+
+        _cache_set(cache_key, fixtures, CACHE_TTL_FIXTURES)
+        return fixtures
+
+    # ------------------------------------------------------------------
     async def get_live_fixtures_by_ids(self, fixture_ids: List[int]) -> List[Dict[str, Any]]:
         """Batch fetch multiple fixtures (for live refresh)."""
         # API-Football accepts comma-separated IDs in the `ids` param (undocumented but works)
