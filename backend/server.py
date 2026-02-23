@@ -4079,7 +4079,7 @@ async def stats_available_leagues(user=Depends(get_current_user)):
 @stats_router.get("/standings/{league_id}")
 async def stats_league_standings(
     league_id: int,
-    season: int = Query(2024, description="Season year"),
+    season: int = Query(2025, description="Season year"),
     user=Depends(get_current_user),
 ):
     """Get league table standings from API-Football."""
@@ -4100,7 +4100,7 @@ async def stats_league_standings(
 @stats_router.get("/results/{league_id}")
 async def stats_recent_results(
     league_id: int,
-    season: int = Query(2024, description="Season year"),
+    season: int = Query(2025, description="Season year"),
     last: int = Query(15, ge=1, le=30),
     user=Depends(get_current_user),
 ):
@@ -4122,7 +4122,7 @@ async def stats_recent_results(
 @stats_router.get("/upcoming/{league_id}")
 async def stats_upcoming_fixtures(
     league_id: int,
-    season: int = Query(2024, description="Season year"),
+    season: int = Query(2025, description="Season year"),
     next_count: int = Query(15, ge=1, le=30, alias="next"),
     user=Depends(get_current_user),
 ):
