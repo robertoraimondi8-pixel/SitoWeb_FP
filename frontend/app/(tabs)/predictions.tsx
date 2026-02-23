@@ -717,11 +717,15 @@ export default function PredictionsScreen() {
           />
         </View>
       )}
-    </SafeAreaView>
-  );
-}
 
-const styles = StyleSheet.create({
+      {/* Match Preview Sheet */}
+      <MatchPreviewSheet
+        matchId={previewMatchId || ''}
+        token={token || ''}
+        visible={!!previewMatchId}
+        onClose={() => setPreviewMatchId(null)}
+      />
+    </SafeAreaView>
   container: { 
     flex: 1, 
     backgroundColor: colors.background,
