@@ -19,7 +19,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://api-match-import.preview.emergentagent.com")
+BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://match-import.preview.emergentagent.com")
 
 # Known matchday IDs from context
 MATCHDAY_G15_ID = "42666812-114a-4195-b0b7-33d72155d9ad"

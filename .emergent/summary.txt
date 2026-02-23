@@ -1,130 +1,129 @@
 <analysis>**original_problem_statement**:
-The user has reported a series of critical bugs and architectural flaws related to data isolation between different fantasy leagues. The core of the project is to ensure that each league operates as a completely separate universe.
-
-PRODUCT REQUIREMENTS:
-1.  **P0 - Critical Data Contamination**: Fix all instances where data (points, standings, matchdays) from one league leaks into another. This was the top priority.
-2.  **P0 - Architectural Mandate**: Redesign the data model to enforce league isolation at the database level. Specifically, predictions must be unique per .
-3.  **Feature Removal - Rimozione Jolly**: Surgically remove the Jolly (Joker) feature from the application. The user has been extremely specific that this should be done with minimal impact, avoiding changes to core calculation logic.
-4.  **Bug Fix - Weekly Standings**: Fix a bug where the weekly standings page for a private league was incorrectly displaying all matchdays from the national league, instead of only the matchdays the league's members participated in.
-5.  **Strict Mandate**: The user has repeatedly insisted on surgical fixes, with an explicit instruction to not refactor or modify anything beyond the scope of the immediate bug or task.
+The user initiated a series of feature requests, UI/UX enhancements, and critical bug fixes. The main goals were:
+1.  **Bug Fixes**:
+    *   Fix a critical scoring bug where the X3 multiplier was ignored when a matchday was completed. This required a deep dive into the backend scoring logic, fixing database index issues, and recalculating all historical scores for affected leagues.
+    *   Resolve multiple issues preventing the import of the same real-world match into different leagues or different matchdays of the same league.
+    *   Fix visibility rules for matchdays, ensuring  matchdays are not visible on the home screen and that predictions for  matchdays are not visible in the weekly rankings.
+    *   Address several UI bugs, including a stale state issue in the admin console, a global tooltip bug on the predictions screen, and a backend crash loop due to a bad database index.
+2.  **UI/UX Enhancements**:
+    *   Modify the Admin Console to restrict league owners to managing only their currently active league, removing the ability to switch leagues from within the console.
+    *   Add a client-side search bar to the Rankings page.
+    *   Improve the user's role display on the Profile page to show Creatore (Creator) for league owners.
+    *   Simplify the Create League screen by removing an option and refining the text and icons for the remaining choices.
+    *   Change the LIVE status badge color to red for better visibility.
+3.  **Clarifications**:
+    *   The user requested detailed explanations of the app's architecture, deployment process for app stores, and code/database backup strategies.
 
 **User's preferred language**: Italiano
 
 **what currently exists?**
-The agent has successfully addressed all user requests from the session. The last task was to fix a bug in the weekly standings (). The agent identified that for non-manual leagues, the endpoint was incorrectly returning all national league matchdays. A fix was implemented in  to modify the database query, ensuring it only returns matchdays for which members of the specified league have submitted predictions. This fix was tested via curl and is now pending user verification.
-
-Prior to this, the agent completed several major tasks:
--   A full architectural migration to isolate predictions by .
--   A comprehensive audit and fix for all endpoints to prevent data leakage between leagues.
--   The surgical removal of the Jolly feature from both the backend and frontend.
+The application is in a stable state. The agent successfully addressed a long and complex series of critical bug fixes and UI/UX improvements. The most significant work involved a deep refactoring of the scoring and match import logic in , including fixing database index issues and backfilling incorrect historical data. Numerous frontend components were also updated to improve user experience and fix UI bugs. All immediate user requests from the session have been implemented.
 
 **Last working item**:
--   Last item agent was working: Fixing a bug where the weekly standings for a private league () showed all matchdays from the national league instead of only the ones played by its members.
+-   Last item agent was working: The agent modified the Create League screen () as per the user's request. This involved removing one of the three options (), updating the icons and descriptive text for the two remaining options, and adding a Consigliato (Recommended) badge to the Lega Nazionale option.
 -   Status: USER VERIFICATION PENDING
 -   Agent Testing Done: Y
--   Which testing method agent to use? frontend testing agent (To verify that the weekly standings dropdown in the UI correctly shows the filtered list of matchdays for a private league like 'legadesy').
+-   Which testing method agent to use? frontend testing agent. The agent should navigate to the Create League screen and verify that only two options are present, that the text and icons match the user's request, and that the Consigliato badge is visible on the correct option.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
-There are no pending or in-progress issues. The last working item is considered complete from the agent's side, awaiting user confirmation.
+-   **Issue 1**: **(P0)** User needs to verify the latest UI changes on the Create League screen.
 
 **In progress Task List**:
-There are no in-progress tasks.
+-   None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   None. The agent should await user feedback on the last fix.
--   **Future Tasks** (From PRD/previous context):
-    -   Implement Championship Winner Predictions Feature. (P2)
-    -   Integrate Stripe for joining the National League. (P2)
-    -   Re-enable email verification. (P2)
-    -   Implement Push Notifications. (P2)
+    -   **(P1)** Refactor the frontend rendering condition in  for better readability, as discussed in a previous session.
+-   **Future Tasks**:
+    -   **(P2)** Deploy the web application to a custom domain.
+    -   **(P2)** Prepare and submit the application to the Apple App Store and Google Play Store.
+    -   **(P2)** Implement Championship Winner Predictions Feature.
+    -   **(P2)** Integrate Stripe for joining the National League.
+    -   **(P2)** Re-enable email verification for user registration.
+    -   **(P2)** Implement Push Notifications for key events.
 
 **Completed work in this session**
--   **Bug Fix (Weekly Standings)**: Corrected the  endpoint to filter matchdays based on league participation, ensuring private leagues only see relevant weekly standings.
--   **UI Cleanup (Jolly)**: Removed all remaining Jolly related UI elements from the predictions, user detail, and user predictions screens as requested by the user.
--   **Architectural Refactor (P0 - Prediction Isolation)**: Fundamentally changed the database schema and application logic to make predictions unique per . This included migrating DB indexes and updating all create, read, and update queries across  and .
--   **Feature Removal (Jolly)**: Surgically disabled the Jolly feature by neutralizing its bonus points at all calculation entry points in  and removing the associated API endpoints and frontend UI components, without altering the core points calculation functions.
--   **Bug Fix (P0 - Data Contamination)**: Systematically audited and fixed over a dozen data retrieval queries in  to strictly filter by , resolving a critical data integrity bug where user data was leaking between leagues.
+-   **Critical Bug Fix (X3 Scoring)**: Corrected the backend scoring logic in  to properly apply the X3 multiplier for completed matchdays and backfilled all historical data. This also involved fixing related database index and permission bugs.
+-   **Bug Fix (Match Import)**: Updated  to allow the same real-world match to be imported into different leagues and different matchdays of the same league.
+-   **Bug Fix (Backend Stability)**: Resolved a backend crash loop by removing faulty database index creation logic in .
+-   **UX Improvement (Admin Console)**: Modified  to restrict league owners to their active league, enhancing usability and preventing errors.
+-   **Feature (Rankings Search)**: Added a client-side search bar to .
+-   **UX Fix (Matchday/Prediction Visibility)**: Adjusted backend logic in  to hide  matchdays from the home screen and  matchday predictions from weekly rankings.
+-   **UI Fix (Profile Role)**: Updated  to correctly display Creatore for league owners and fixed related text alignment issues.
+-   **UI Fix (Create League)**: Simplified the UI in  by removing an option and improving text/icons.
+-   **UI Fix (LIVE Badge)**: Changed the LIVE status badge color to red for better distinction in .
 
 **Earlier issues found/mentioned but not fixed**
--   **Dead Code**: After the surgical removal of the Jolly feature, some non-user-facing dead code (type definitions, unreferenced functions, and CSS styles) remains in the frontend files (, ). The agent identified this but left it to minimize risk, per the user's strict instructions. This could be cleaned up in a future refactoring task.
+-   **Dead Code**: Non-user-facing dead code related to the previously removed Jolly feature still exists in frontend files like  and . This is a low-priority refactoring task.
 
 **Known issue recurrence from previous fork**
--   Issue recurrence in previous fork: **Data Scoping/Contamination**. This was the central theme of the entire session.
--   Recurrence count: 4+
--   Status: **RESOLVED**. The agent performed a fundamental architectural migration to isolate data by  at the database level, which should prevent this entire class of bugs from recurring.
+-   None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Multi-Tenancy & Data Isolation**: The core principle of the application was reinforced by making  a mandatory part of the primary key for  and . All data access logic was updated to enforce this separation.
--   **MongoDB Aggregation Pipelines**: Extensively used to perform complex data lookups and filtering, especially in the fix for  which required joining  with  to find active matchdays for a league.
--   **Surgical Code Modification**: A development approach mandated by the user, focusing on making the smallest possible changes to fix a bug or remove a feature, often by neutralizing its effect at the input stage rather than removing the underlying logic.
+-   **Backend Scoring Logic**: The core scoring functions (, ) were refactored to handle multipliers correctly and track bonus points via a new  field.
+-   **Database Indexing**: Debugged and fixed critical issues with MongoDB unique indexes on the  collection, which were causing backend crashes. This involved dropping bad indexes and ensuring the correct ones are created at startup.
+-   **State Management (React/Expo)**: Addressed multiple UI bugs caused by incomplete frontend state synchronization, particularly in the admin console and predictions screen.
+-   **Role-Based UI/UX**: Implemented logic to render different UI elements and behaviors based on the user's role (super admin vs. league owner).
+-   **Data Backfilling**: Executed scripts to recalculate historical scores after fixing the core scoring bug, ensuring data integrity.
 
 **key DB schema**
--   ****: Now has a unique compound index on .  is a mandatory field.
--   ****: Has a unique compound index on .
--   ****: Defines user-league relationships (, ).
+-   ****:
+    -   :  (e.g., 3.0 for X3). Central to the scoring bug fix.
+-   ****:
+    - A faulty unique index on  was dropped and replaced with the correct index: .
+-   ****:
+    -   : . This field was added to explicitly track points awarded from multipliers (like X3) for better data clarity and debugging.
 
 **All files of reference**
--   : The central file for all business logic and API endpoints. All major fixes were implemented here.
--   : Modified to update the unique database indexes for predictions and scores.
--   : The location of the UI for the most recently fixed bug.
--   : UI file where Jolly components were removed.
--   : UI file where Jolly components were removed.
-
-**Areas that need refactoring**:
--   The monolithic nature of  continues to be a high-risk area for regressions. The user has explicitly forbidden refactoring, but it remains a technical debt.
--   Dead code related to the Jolly feature exists in several frontend files and could be cleaned up.
-
-**key api endpoints**
--   : The most recently fixed endpoint. It now correctly returns only the matchdays a league has participated in.
--   : Updated to save predictions with a .
--   , , : All were audited and fixed to enforce strict league data isolation.
--   , : These endpoints were removed.
+-   : Underwent major changes to fix scoring, match import validation, DB index management, and API data visibility rules.
+-   : UX logic for the league selector was modified.
+-   : A search bar feature was added.
+-   : UI logic for displaying the user's role was updated.
+-   : UI was simplified and updated based on user feedback.
+-   : The color for the LIVE badge was changed.
+-   : New translation keys were added and existing ones modified.
 
 **Critical Info for New Agent**
--   **USER CAUTION IS PARAMOUNT**: The user is extremely wary of changes causing new bugs. Adhere strictly to the surgical fix mandate. Do not refactor or expand the scope of any task without explicit permission.
--   **DATA ISOLATION IS NON-NEGOTIABLE**: The application's architecture now strictly enforces data separation between leagues via the  field in the  and  collections. This principle must be maintained in all future work.
--   **VERIFY LAST FIX**: The first interaction with the user should be to confirm if the last fix (weekly standings matchdays) works as expected.
-
-**documents and test reports created in this job**
--   : Updated with the completion of major architectural tasks and feature removals.
--   : Test report from the successful P0 architectural migration.
+-   **Scoring Logic is Sensitive**: The scoring and recalculation logic in  (especially ) is complex and has been fixed multiple times. Any changes require extreme care and thorough testing. The system now correctly uses  and tracks a .
+-   **Database Indexes**: A bad unique index on  previously caused a persistent backend crash. The code in  now ensures the correct index  is created. Be mindful of this if modifying related collections.
+-   **User is Tech-Savvy**: The user has a strong technical understanding of the application's logic and data model. Provide precise, detailed explanations and be prepared for specific technical feedback.
+-   **Production Path**: The user is actively considering deploying to production. Be prepared to assist with tasks related to custom domains, app store builds (), and database backups ().
 
 **Last 10 User Messages and any pending HUMAN messages**
--   **10. (LATEST TASK)** User reported that the weekly standings for  incorrectly show all matchdays from the national league, requesting that it only show matchdays the league participated in. (Status: **FIXED, PENDING USER VERIFICATION**)
--   **9.** User asked to restart the frontend bundle as they could not see the UI changes for the Jolly removal. (Status: **ADDRESSED**)
--   **8.** User reported that UI elements for the Jolly feature were still visible after the initial removal attempt. (Status: **RESOLVED**)
--   **7.** User provided screenshots and specific instructions to remove residual Jolly UI elements from the Predictions and User Profile screens. (Status: **RESOLVED**)
--   **6.** Agent confirmed the backend removal of the Jolly feature was complete. (Status: **COMPLETED**)
--   **5.** User approved the ultra-surgical plan to disable the Jolly feature by forcing its bonus to zero at input, without touching internal math. (Status: **COMPLETED**)
--   **4.** Agent proposed a detailed audit and plan for surgically removing the Jolly feature from both backend and frontend. (Status: **COMPLETED**)
--   **3.** User expressed significant concern about removing the Jolly feature, fearing it would create new bugs, and demanded an extremely limited, surgical approach. (Status: **ADDRESSED**)
--   **2.** Agent completed the P0 architectural migration to isolate league data. (Status: **COMPLETED**)
--   **1.** User approved the plan to proceed with the full architectural migration for multi-league data isolation. (Status: **COMPLETED**)
+1.  **LATEST**: Asked to simplify the Create League screen by removing an option and updating text/icons. (Implemented)
+2.  Asked for confirmation on the settings of a specific league (Desylega). (Answered)
+3.  Requested to change the LIVE status badge color to red. (Implemented)
+4.  Requested to change the empty state text in the weekly rankings. (Implemented)
+5.  Reported that the weekly rankings were incorrectly showing predictions for  matchdays. (Fixed)
+6.  Reported that a private league (iliolega) had incorrect X3 scores, which stemmed from the deeper scoring bug. (Fixed)
+7.  Reported that  matchdays were incorrectly visible on the home screen. (Fixed)
+8.  Reported that the application preview was not loading. (Fixed a backend crash loop).
+9.  Re-reported an issue with importing duplicate matches, revealing a new edge case. (Fixed)
+10. Reported the critical bug where the X3 multiplier was ignored for  matchdays. (Fixed)
 
 **Project Health Check:**
--   **Broken**: None. All reported critical issues have been resolved.
+-   **Broken**: None.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
 -   API-Football (API-Sports)
--   Stripe (Payments) - Not yet integrated
+-   Stripe (Payments) - Not yet integrated, but in the backlog.
 -   Emergent-managed Google Auth
+-   Expo (React Native framework and build services)
 
 **Testing status**
--   Testing agent used after significant changes: YES (for the P0 architectural migration).
--   Test files created: None.
--   Known regressions: None. The session was dedicated to fixing a major regression.
+-   Testing agent used after significant changes: YES
+-   Test files created: None
+-   Known regressions: None. Several were introduced and fixed during the session.
 
 **Credentials to test flow:**
+-   **League Owner**:  / 
 -   **System Admin**:  / 
--   **User 1 (Lega Desiree)**:  / 
--   **User 2 (Lega Amici / Nazionale)**:  / 
--   **User 3 (liga2)**:  / 
+-   **Standard User**:  / 
 
 **What agent forgot to execute**
--   The agent intentionally did not remove non-visible dead code (type definitions, un-called functions) related to the Jolly feature to minimize risk, which aligns with the user's explicit surgical instructions. This is an acceptable trade-off.</analysis>
+-   The agent successfully addressed all explicit user requests made during this lengthy session. No tasks were forgotten.</analysis>

@@ -14,7 +14,7 @@ import pytest
 import requests
 import random
 
-BASE_URL = "https://api-match-import.preview.emergentagent.com"
+BASE_URL = "https://match-import.preview.emergentagent.com"
 
 
 @pytest.fixture

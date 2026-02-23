@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"id":{"$numberInt":"1"}},"name":"id_1","unique":true},{"v":{"$numberInt":"2"},"key":{"invite_code":{"$numberInt":"1"}},"name":"invite_code_1","unique":true,"sparse":true}],"uuid":"0ea3251e282c4b138f5d6a2e99e1667b","collectionName":"leagues","type":"collection"}
