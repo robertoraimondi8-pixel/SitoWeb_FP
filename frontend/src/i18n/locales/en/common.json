@@ -63,6 +63,7 @@
   },
   "tabs": {
     "home": "Home",
+    "statistics": "Statistics",
     "predictions": "Predictions",
     "rankings": "Rankings",
     "profile": "Profile"
@@ -229,5 +230,11 @@
     "LOCKED": "LOCKED",
     "LIVE": "LIVE",
     "COMPLETED": "COMPLETED"
+  },
+  "stats": {
+    "title": "Statistics",
+    "standings": "Standings",
+    "results": "Results",
+    "upcoming": "Upcoming"
   }
 }
