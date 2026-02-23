@@ -4153,6 +4153,7 @@ app.include_router(live_router)
 app.include_router(payment_router)
 app.include_router(admin_router)
 app.include_router(fixtures_router)
+app.include_router(stats_router)
 
 
 @app.on_event("startup")
