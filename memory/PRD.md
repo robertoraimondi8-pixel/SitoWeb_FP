@@ -79,7 +79,13 @@ Fixed logical bug in `frontend/app/admin/index.tsx` where the "Importa Partite R
 ### Bug Fix - Import Duplicate Check Scoped per League (Feb 22, 2026) - COMPLETED
 Fixed critical data isolation bug in `backend/server.py` `real_fixtures_import()`: the duplicate check for `external_fixture_id` was **global** (across all leagues), preventing custom/api leagues from importing matches already present in other leagues (e.g., the National League). Fixed by adding `"league_id": req.league_id` to the duplicate query filter — each league is now independent.
 
-### Bug Fix - Admin selectedMatchday Sync (Feb 22, 2026) - COMPLETED
+### Bug Fix - X3 Multiplier Ignored at COMPLETED (Feb 23, 2026) - COMPLETED
+Critical scoring bug: `_calculate_matchday_scores` called `calculate_match_points` without `multiplier` parameter, defaulting to 1.0. X3 bonus worked during LIVE but was lost when matchday transitioned to COMPLETED. Fixed by adding `m.get("multiplier", 1.0)` to both occurrences. Also fixed:
+- `recalculate_user_total_standings`: replaced find+insert with `update_one(upsert=True)` to prevent DuplicateKeyError
+- `standings_cache` index: recreated with `user_id` to allow per-user records
+- `force_recalculate_matchday`: added super admin bypass
+- All 8 affected matchdays ricalculated to correct historical scores
+
 Fixed bug in `frontend/app/admin/index.tsx` where `selectedMatchday` state was not updated when `matchdays` were reloaded. This caused `first_kickoff` (and other updated fields like status) to not reflect in the UI after importing matches, showing "Nessun orario kickoff" even though the backend had computed the kickoff time. Fixed by syncing `selectedMatchday` with fresh data in `loadMatchdays()`.
 
 ### UX - Admin Console League Lock per Owner (Feb 22, 2026) - COMPLETED
