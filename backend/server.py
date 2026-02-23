@@ -835,8 +835,9 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
                 {"_id": 0}
             )
         if not matchday:
+            # Fallback: ultima giornata NON in bozza (DRAFT non visibile agli utenti)
             matchday = await matchdays_col.find_one(
-                {"league_id": active_league["id"]},
+                {"league_id": active_league["id"], "status": {"$ne": "DRAFT"}},
                 {"_id": 0},
                 sort=[("number", -1)]
             )
