@@ -3154,7 +3154,8 @@ async def _calculate_matchday_scores(matchday_id: str, admin: dict):
             pred_market = p.get("market_type", m.get("market_type", "1X2"))
             pts, is_correct = calculate_match_points(
                 p["prediction_value"], pred_market,
-                m.get("home_score"), m.get("away_score"), m["status"]
+                m.get("home_score"), m.get("away_score"), m["status"],
+                m.get("multiplier", 1.0)
             )
             match_pts.append((m["id"], pts, is_correct))
 
@@ -3396,7 +3397,8 @@ async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_admin))
             pred_market = p.get("market_type", m.get("market_type", "1X2"))
             pts, is_correct = calculate_match_points(
                 p["prediction_value"], pred_market,
-                m.get("home_score"), m.get("away_score"), m["status"]
+                m.get("home_score"), m.get("away_score"), m["status"],
+                m.get("multiplier", 1.0)
             )
             match_pts.append((m["id"], pts, is_correct))
 
