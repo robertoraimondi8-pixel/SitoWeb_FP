@@ -38,7 +38,7 @@ export const colors = {
   
   // Matchday status
   statusOpen: '#2563EB',
-  statusLive: '#16A34A',
+  statusLive: '#DC2626',
   statusLocked: '#F59E0B',
   statusCompleted: '#94A3B8', // Lighter grey for COMPLETED badge
   
