@@ -230,5 +230,11 @@
     "LOCKED": "BLOCCATA",
     "LIVE": "LIVE",
     "COMPLETED": "COMPLETATA"
+  },
+  "stats": {
+    "title": "Statistiche",
+    "standings": "Classifica",
+    "results": "Risultati",
+    "upcoming": "Prossime"
   }
 }
