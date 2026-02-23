@@ -4061,6 +4061,87 @@ async def seed_data():
 
 
 # ========================================
+# STATISTICS ENDPOINTS (PUBLIC API-FOOTBALL DATA)
+# ========================================
+from apifootball import TOP_LEAGUES
+
+@stats_router.get("/leagues")
+async def stats_available_leagues(user=Depends(get_current_user)):
+    """Return the 5 fixed leagues with current season info."""
+    try:
+        client = _get_apifootball()
+        leagues = await client.get_top_leagues()
+        return leagues
+    except Exception as e:
+        raise HTTPException(502, f"Errore API-Football: {e}")
+
+
+@stats_router.get("/standings/{league_id}")
+async def stats_league_standings(
+    league_id: int,
+    season: int = Query(2024, description="Season year"),
+    user=Depends(get_current_user),
+):
+    """Get league table standings from API-Football."""
+    try:
+        client = _get_apifootball()
+        entries = await client.get_standings(league_id, season)
+        league_info = next((lg for lg in TOP_LEAGUES if lg["id"] == league_id), None)
+        return {
+            "league_id": league_id,
+            "league_name": league_info["name"] if league_info else str(league_id),
+            "season": season,
+            "standings": entries,
+        }
+    except Exception as e:
+        raise HTTPException(502, f"Errore API-Football: {e}")
+
+
+@stats_router.get("/results/{league_id}")
+async def stats_recent_results(
+    league_id: int,
+    season: int = Query(2024, description="Season year"),
+    last: int = Query(15, ge=1, le=30),
+    user=Depends(get_current_user),
+):
+    """Get recent finished fixtures from API-Football."""
+    try:
+        client = _get_apifootball()
+        fixtures = await client.get_recent_results(league_id, season, last)
+        league_info = next((lg for lg in TOP_LEAGUES if lg["id"] == league_id), None)
+        return {
+            "league_id": league_id,
+            "league_name": league_info["name"] if league_info else str(league_id),
+            "season": season,
+            "fixtures": fixtures,
+        }
+    except Exception as e:
+        raise HTTPException(502, f"Errore API-Football: {e}")
+
+
+@stats_router.get("/upcoming/{league_id}")
+async def stats_upcoming_fixtures(
+    league_id: int,
+    season: int = Query(2024, description="Season year"),
+    next_count: int = Query(15, ge=1, le=30, alias="next"),
+    user=Depends(get_current_user),
+):
+    """Get upcoming fixtures from API-Football."""
+    try:
+        client = _get_apifootball()
+        fixtures = await client.get_upcoming_fixtures(league_id, season, next_count)
+        league_info = next((lg for lg in TOP_LEAGUES if lg["id"] == league_id), None)
+        return {
+            "league_id": league_id,
+            "league_name": league_info["name"] if league_info else str(league_id),
+            "season": season,
+            "fixtures": fixtures,
+        }
+    except Exception as e:
+        raise HTTPException(502, f"Errore API-Football: {e}")
+
+
+# ========================================
 # INCLUDE ROUTERS
 # ========================================
 app.include_router(auth_router)
