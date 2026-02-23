@@ -1,0 +1,106 @@
+{
+  "summary": "Statistics (Statistiche) feature testing complete - All tests PASSED. Backend APIs for /api/stats/* returning real data from API-Football. Frontend Statistics tab fully functional with league selector, sub-tabs, and real-time standings/results/fixtures data.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Statistics tab label",
+        "issues": ["Tab shows 'Statistics' (English) instead of 'Statistiche' (Italian) - translation key uses English fallback. The i18n key tabs.statistics defaults to 'Statistiche' but the app shows English. Minor localization issue."]
+      }
+    ]
+  },
+  "test_results": {
+    "backend_api_tests": {
+      "GET /api/stats/leagues": {
+        "status": "PASSED",
+        "details": "Returns 5 leagues (Serie A, Premier League, La Liga, Bundesliga, Ligue 1) with league_id, name, country, logo, current_season"
+      },
+      "GET /api/stats/standings/{league_id}": {
+        "status": "PASSED",
+        "details": "Returns full standings table with rank, team_name, team_logo, points, played, win, draw, lose, goal_diff - tested for all 5 leagues"
+      },
+      "GET /api/stats/results/{league_id}": {
+        "status": "PASSED",
+        "details": "Returns recent finished fixtures with home/away teams, goals, dates"
+      },
+      "GET /api/stats/upcoming/{league_id}": {
+        "status": "PASSED",
+        "details": "Returns upcoming fixtures with home/away teams, dates"
+      },
+      "Authentication required": {
+        "status": "PASSED",
+        "details": "All stats endpoints return 401/403 when no auth token provided"
+      }
+    },
+    "frontend_ui_tests": {
+      "5_tabs_in_bottom_bar": {
+        "status": "PASSED",
+        "details": "Home, Statistics, Predictions, Rankings, Profile - all 5 tabs visible and clickable"
+      },
+      "statistics_tab_navigation": {
+        "status": "PASSED",
+        "details": "Clicking Statistics tab navigates to /statistics page"
+      },
+      "league_chips_display": {
+        "status": "PASSED",
+        "details": "All 5 league chips visible: Serie A, Premier League, La Liga, Bundesliga, Ligue 1"
+      },
+      "sub_tabs_display": {
+        "status": "PASSED",
+        "details": "All 3 sub-tabs visible: Standings, Results, Upcoming"
+      },
+      "standings_data_loads": {
+        "status": "PASSED",
+        "details": "Serie A standings shows all 20 teams with points, W/D/L, goal diff"
+      },
+      "results_data_loads": {
+        "status": "PASSED",
+        "details": "Recent results shown grouped by matchday with scores"
+      },
+      "upcoming_data_loads": {
+        "status": "PASSED",
+        "details": "Upcoming fixtures shown with dates and times"
+      },
+      "league_switching": {
+        "status": "PASSED",
+        "details": "Clicking Premier League chip loads PL standings correctly"
+      },
+      "home_no_classifiche": {
+        "status": "PASSED",
+        "details": "CLASSIFICHE section correctly removed from Home page"
+      }
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_statistics_api.py",
+    "/app/test_reports/pytest/statistics_api_results.xml"
+  ],
+  "action_items": [
+    "MINOR: Tab label shows 'Statistics' instead of 'Statistiche' - check i18n language detection in _layout.tsx"
+  ],
+  "critical_code_review_comments": [
+    "Backend: stats_router endpoints correctly use APIFootballClient with caching (TTL 5-15 min)",
+    "Frontend: statistics.tsx properly uses useAuth for token and apiCall for authenticated requests",
+    "Tab layout (_layout.tsx) correctly includes statistics tab between home and predictions",
+    "Home.tsx correctly removed rankings_preview section as requested"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_statistics_api.py"
+  ],
+  "success_rate": {
+    "backend": "100% (18/18 tests passed)",
+    "frontend": "100% (all UI tests passed)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123"
+  },
+  "seed_data_creation": "None - using live API-Football data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Statistics feature fully implemented and tested. Backend uses API-Football integration with caching. Frontend has 5-tab bottom bar with Statistics between Home and Predictions. All CRUD flows for standings/results/upcoming work correctly. Minor issue: tab label shows English 'Statistics' instead of Italian 'Statistiche'."
+}
