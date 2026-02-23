@@ -726,6 +726,10 @@ export default function PredictionsScreen() {
         onClose={() => setPreviewMatchId(null)}
       />
     </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: colors.background,
