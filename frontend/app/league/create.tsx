@@ -339,6 +339,7 @@ const makeStyles = (colors: typeof import("../../src/theme/designSystem").colors
   sourceOption: { flex: 1, borderWidth: 1.5, borderRadius: 12, padding: 14, alignItems: 'center', gap: 6 },
   sourceLabel: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   sourceDesc: { fontSize: 11, textAlign: 'center', lineHeight: 15 },
+  recommendedBadge: { fontSize: 10, fontWeight: '700', marginTop: 2, marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
   scoringCard: { borderWidth: 1, borderRadius: 14, padding: 16, gap: 4, marginBottom: 4 },
   marketRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' },
   marketLabel: { fontSize: 14, fontWeight: '600' },
