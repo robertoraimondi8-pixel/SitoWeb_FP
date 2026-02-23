@@ -63,6 +63,7 @@
   },
   "tabs": {
     "home": "Inicio",
+    "statistics": "Estadísticas",
     "predictions": "Pronósticos",
     "rankings": "Clasificación",
     "profile": "Perfil"
