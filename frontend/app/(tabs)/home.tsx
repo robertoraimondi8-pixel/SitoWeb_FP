@@ -508,9 +508,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderWidth: 1,
     borderColor: colors.border,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+    boxShadow: '0 8px 12px rgba(0, 0, 0, 0.15)',
     elevation: 8,
   },
   switcherTitle: {

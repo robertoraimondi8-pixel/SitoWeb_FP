@@ -129,31 +129,19 @@ export const borderRadius = {
 // PREMIUM iOS-style shadows
 export const shadows = {
   card: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
+    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.04)',
     elevation: 3,
   },
   cardHover: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 14,
+    boxShadow: '0 6px 14px rgba(0, 0, 0, 0.08)',
     elevation: 5,
   },
   button: {
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
+    boxShadow: '0 3px 6px rgba(245, 158, 11, 0.25)',
     elevation: 4,
   },
   tabBar: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
+    boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.03)',
     elevation: 4,
   },
 };
