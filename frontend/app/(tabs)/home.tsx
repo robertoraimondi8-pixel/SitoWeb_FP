@@ -381,41 +381,6 @@ export default function HomeScreen() {
           </SectionCard>
         )}
 
-        {/* ─── 4. RANKINGS PREVIEW ─── */}
-        {data?.rankings_preview && (
-          <View style={styles.rankingsCard} data-testid="rankings-card">
-            <View style={styles.rankingsHeader}>
-              <Text style={styles.sectionLabel}>{t('home.rankings_section')}</Text>
-              <TouchableOpacity
-                style={styles.rankingsMore}
-                onPress={() => router.push('/(tabs)/rankings')}
-              >
-                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.leagueName}>{data.rankings_preview.league_name}</Text>
-
-            {data.rankings_preview.top?.map((entry: RankingsPreviewEntry, i: number) => {
-              const isCurrentUser = entry.user_id === user?.id;
-              return (
-                <View
-                  key={entry.user_id || i}
-                  style={[styles.rankRow, isCurrentUser && styles.rankRowHighlight]}
-                >
-                  {isCurrentUser && <View style={styles.rankRowAccent} />}
-                  <Text style={[styles.rankPosition, i < 3 && styles.rankPositionTop3]}>
-                    {entry.rank}
-                  </Text>
-                  <Text style={[styles.rankName, isCurrentUser && styles.rankNameBold]}>
-                    {entry.username}
-                  </Text>
-                  <Text style={styles.rankPoints}>{formatPoints(entry.total_points)}</Text>
-                </View>
-              );
-            })}
-          </View>
-        )}
       </Animated.ScrollView>
     </SafeAreaView>
   );
