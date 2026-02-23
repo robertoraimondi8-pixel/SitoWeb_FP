@@ -1609,7 +1609,9 @@ async def force_recalculate_matchday(league_id: str, matchday_id: str, user=Depe
         _require_league_admin(league, user)
     
     logger.info(f"[SCORING] Manual recalculation triggered for matchday {matchday_id} in league {league_id}")
-    await recalculate_matchday_scores(matchday_id, league_id)
+    # Use _calculate_matchday_scores which handles cross-league match sources
+    # (e.g. private leagues with match_source_type='national')
+    await _calculate_matchday_scores(matchday_id, user)
     
     return {"message": "Ricalcolo completato", "matchday_id": matchday_id, "league_id": league_id}
 
