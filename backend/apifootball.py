@@ -12,6 +12,7 @@ _cache: Dict[str, Dict[str, Any]] = {}
 CACHE_TTL_LEAGUES = 900       # 15 min
 CACHE_TTL_FIXTURES = 300      # 5 min
 CACHE_TTL_STANDINGS = 600     # 10 min
+CACHE_TTL_PREVIEW = 1800      # 30 min (match preview / H2H)
 CACHE_TTL_LIVE = 0            # never cache live (caller decides refresh interval)
 
 # Top 5 leagues with their API-Football IDs
