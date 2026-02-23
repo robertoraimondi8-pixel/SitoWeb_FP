@@ -265,6 +265,79 @@ class APIFootballClient:
         return fixtures
 
     # ------------------------------------------------------------------
+    async def get_team_last_matches(self, team_id: int, last: int = 5) -> List[Dict[str, Any]]:
+        """Get last N finished matches for a team (all competitions)."""
+        cache_key = f"team_last:{team_id}:{last}"
+        cached = _cache_get(cache_key)
+        if cached is not None:
+            return cached
+
+        data = await self._get("/fixtures", {"team": team_id, "last": last, "status": "FT-AET-PEN"})
+        matches = []
+        for f in data.get("response", []):
+            teams = f.get("teams", {})
+            goals = f.get("goals", {})
+            fix = f.get("fixture", {})
+            league = f.get("league", {})
+            home_id = teams.get("home", {}).get("id")
+            is_home = home_id == team_id
+            home_goals = goals.get("home", 0) or 0
+            away_goals = goals.get("away", 0) or 0
+            if is_home:
+                result = "W" if home_goals > away_goals else ("D" if home_goals == away_goals else "L")
+            else:
+                result = "W" if away_goals > home_goals else ("D" if home_goals == away_goals else "L")
+            matches.append({
+                "date": fix.get("date"),
+                "home_team": teams.get("home", {}).get("name"),
+                "away_team": teams.get("away", {}).get("name"),
+                "home_goals": home_goals,
+                "away_goals": away_goals,
+                "result": result,
+                "competition": league.get("name", ""),
+            })
+
+        _cache_set(cache_key, matches, CACHE_TTL_PREVIEW)
+        return matches
+
+    # ------------------------------------------------------------------
+    async def get_h2h(self, team1_id: int, team2_id: int, last: int = 5) -> List[Dict[str, Any]]:
+        """Get head-to-head matches between two teams."""
+        cache_key = f"h2h:{team1_id}-{team2_id}:{last}"
+        cached = _cache_get(cache_key)
+        if cached is not None:
+            return cached
+
+        data = await self._get("/fixtures/headtohead", {"h2h": f"{team1_id}-{team2_id}", "last": last})
+        matches = []
+        for f in data.get("response", []):
+            teams = f.get("teams", {})
+            goals = f.get("goals", {})
+            fix = f.get("fixture", {})
+            matches.append({
+                "date": fix.get("date"),
+                "home_team": teams.get("home", {}).get("name"),
+                "away_team": teams.get("away", {}).get("name"),
+                "home_goals": goals.get("home"),
+                "away_goals": goals.get("away"),
+            })
+
+        _cache_set(cache_key, matches, CACHE_TTL_PREVIEW)
+        return matches
+
+    # ------------------------------------------------------------------
+    async def get_team_standing_position(self, team_id: int, league_id: int, season: int) -> Optional[Dict[str, Any]]:
+        """Get a team's current position in a league's standings."""
+        standings = await self.get_standings(league_id, season)
+        for row in standings:
+            logo = row.get("team_logo", "")
+            if logo and f"/teams/{team_id}." in logo:
+                return {"rank": row["rank"], "points": row["points"], "played": row["played"]}
+            if row.get("team_id") == team_id:
+                return {"rank": row["rank"], "points": row["points"], "played": row["played"]}
+        return None
+
+    # ------------------------------------------------------------------
     async def get_live_fixtures_by_ids(self, fixture_ids: List[int]) -> List[Dict[str, Any]]:
         """Batch fetch multiple fixtures (for live refresh)."""
         # API-Football accepts comma-separated IDs in the `ids` param (undocumented but works)
