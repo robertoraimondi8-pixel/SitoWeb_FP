@@ -24,7 +24,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen name="home" options={{ title: t('tabs.home'), tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} /> }} />
-      <Tabs.Screen name="statistics" options={{ title: t('tabs.statistics', { defaultValue: 'Statistiche' }), tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart" size={size} color={color} /> }} />
+      <Tabs.Screen name="statistics" options={{ title: t('tabs.statistics'), tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart" size={size} color={color} /> }} />
       <Tabs.Screen name="predictions" options={{ title: t('tabs.predictions'), tabBarIcon: ({ color, size }) => <Ionicons name="football" size={size} color={color} /> }} />
       <Tabs.Screen name="rankings" options={{ title: t('tabs.rankings'), tabBarIcon: ({ color, size }) => <Ionicons name="trophy" size={size} color={color} /> }} />
       <Tabs.Screen name="profile" options={{ title: t('tabs.profile'), tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} /> }} />
