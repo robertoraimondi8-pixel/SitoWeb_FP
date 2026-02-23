@@ -3790,9 +3790,9 @@ async def real_fixtures_import(req: ImportFixturesRequest, user=Depends(get_curr
     if existing + len(req.fixture_ids) > MAX_MATCHES_PER_MATCHDAY:
         raise HTTPException(400, f"Superato il limite di {MAX_MATCHES_PER_MATCHDAY} partite (già {existing} presenti)")
 
-    # Check for duplicate external_fixture_id within this league only (each league is independent)
+    # Check for duplicate external_fixture_id within this league AND matchday only
     already_imported = await matches_col.find(
-        {"external_fixture_id": {"$in": req.fixture_ids}, "league_id": req.league_id},
+        {"external_fixture_id": {"$in": req.fixture_ids}, "league_id": req.league_id, "matchday_id": req.matchday_id},
         {"_id": 0, "external_fixture_id": 1, "matchday_id": 1, "home_team": 1, "away_team": 1}
     ).to_list(100)
     already_dict = {m["external_fixture_id"]: m for m in already_imported}
