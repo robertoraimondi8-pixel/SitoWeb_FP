@@ -3136,6 +3136,7 @@ async def _calculate_matchday_scores(matchday_id: str, admin: dict):
         joker_active = False
 
         match_pts = []
+        special_bonus = 0.0
         for p in preds:
             m = matches_dict.get(p["match_id"])
             if not m:
