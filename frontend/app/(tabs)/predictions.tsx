@@ -535,6 +535,18 @@ export default function PredictionsScreen() {
                   </View>
                 </View>
 
+                {/* Statistiche Button — only for API matches */}
+                {m.external_fixture_id && (
+                  <TouchableOpacity
+                    style={styles.statsBtn}
+                    onPress={() => setPreviewMatchId(m.id)}
+                    data-testid={`stats-btn-${m.id}`}
+                  >
+                    <Ionicons name="stats-chart" size={14} color={colors.primary} />
+                    <Text style={styles.statsBtnText}>Statistiche</Text>
+                  </TouchableOpacity>
+                )}
+
                 {isLocked ? (
                   <View style={styles.lockedArea}>
                     {selectedValue ? (
