@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { PredictionsData, Matchday, PredictionEntry, MatchItem, getErrorMessage } from '../../src/types/api';
 import type { Href } from 'expo-router';
 import { goToPredictionsHub } from '../../src/utils/navigation';
+import { MatchPreviewSheet } from '../../src/components/MatchPreviewSheet';
 
 // Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
