@@ -107,6 +107,8 @@ New "Statistiche" tab with real football data from API-Football.
   - Updated `_layout.tsx`: 5-tab bar: Home > Statistiche > Pronostici > Classifiche > Profilo
   - Removed CLASSIFICHE preview section from `home.tsx`
   - Updated i18n (it, en, es) with `tabs.statistics` and `stats.*` keys
+  - **Round Picker**: Added dropdown to select specific matchday (Giornata) in Results/Upcoming tabs. Bottom-sheet modal with list of rounds. Auto-selects first round on load.
+  - **League chips fix**: Applied `flexShrink: 0` to prevent text truncation on horizontal scroll
 
 ## Prioritized Backlog
 
