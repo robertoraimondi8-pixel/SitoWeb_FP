@@ -1618,7 +1618,9 @@ async def force_recalculate_matchday(league_id: str, matchday_id: str, user=Depe
     league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
     if not league:
         raise HTTPException(404, "Lega non trovata")
-    _require_league_admin(league, user)
+    is_super = user.get("role") in ("admin", "superadmin")
+    if not is_super:
+        _require_league_admin(league, user)
     
     logger.info(f"[SCORING] Manual recalculation triggered for matchday {matchday_id} in league {league_id}")
     await recalculate_matchday_scores(matchday_id, league_id)
