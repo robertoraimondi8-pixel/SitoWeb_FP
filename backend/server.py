@@ -1312,6 +1312,14 @@ async def get_notifications(user=Depends(get_current_user)):
     ).sort("created_at", -1).to_list(50)
     return notifs
 
+
+@user_router.get("/notifications/unread-count")
+async def get_unread_count(user=Depends(get_current_user)):
+    """Conteggio notifiche non lette."""
+    count = await notifications_col.count_documents({"user_id": user["id"], "read": False})
+    return {"count": count}
+
+
 @user_router.patch("/notifications/{notif_id}/read")
 async def mark_notification_read(notif_id: str, user=Depends(get_current_user)):
     await notifications_col.update_one(
@@ -1319,6 +1327,53 @@ async def mark_notification_read(notif_id: str, user=Depends(get_current_user)):
         {"$set": {"read": True}}
     )
     return {"message": "OK"}
+
+
+@user_router.patch("/notifications/read-all")
+async def mark_all_notifications_read(user=Depends(get_current_user)):
+    """Segna tutte le notifiche come lette."""
+    await notifications_col.update_many(
+        {"user_id": user["id"], "read": False},
+        {"$set": {"read": True}}
+    )
+    return {"message": "OK"}
+
+
+# ── Notification Helper ──
+async def create_notification(
+    user_id: str,
+    notif_type: str,
+    title: str,
+    message: str,
+    link: str = "",
+):
+    """Create an internal notification for a user."""
+    doc = {
+        "id": new_id(),
+        "user_id": user_id,
+        "type": notif_type,
+        "title": title,
+        "message": message,
+        "link": link,
+        "read": False,
+        "created_at": now_utc(),
+    }
+    await notifications_col.insert_one(doc)
+
+
+async def create_notification_for_league(
+    league_id: str,
+    notif_type: str,
+    title: str,
+    message: str,
+    link: str = "",
+):
+    """Create notification for all active members of a league."""
+    members = await memberships_col.find(
+        {"league_id": league_id, "status": "active"}, {"user_id": 1, "_id": 0}
+    ).to_list(500)
+    for m in members:
+        await create_notification(m["user_id"], notif_type, title, message, link)
 async def complete_profile(req: CompleteProfileRequest, user=Depends(get_current_user)):
     """Complete missing profile fields (mandatory after Google OAuth or partial registration)."""
     from datetime import date as _date
