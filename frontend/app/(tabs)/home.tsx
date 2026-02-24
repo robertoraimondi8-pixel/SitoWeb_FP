@@ -391,6 +391,9 @@ export default function HomeScreen() {
         )}
 
       </Animated.ScrollView>
+
+      {/* Side Menu */}
+      <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
     </SafeAreaView>
   );
 }
