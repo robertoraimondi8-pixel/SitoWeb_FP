@@ -8,11 +8,28 @@ import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall } from '../../src/api/client';
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
 
-const MARKET_LABELS: Record<string, string> = {
-  '1X2': 'Esito finale (1X2)',
-  'EXACT_SCORE': 'Risultato esatto',
-  'BOTH': '1X2 + Risultato esatto',
-};
+type ScoringItem = { enabled: boolean; points: number } | number;
+
+function getPoints(val: ScoringItem | undefined): number | null {
+  if (val == null) return null;
+  if (typeof val === 'number') return val;
+  if (typeof val === 'object' && val.enabled) return val.points;
+  return null;
+}
+
+function isEnabled(val: ScoringItem | undefined): boolean {
+  if (val == null) return false;
+  if (typeof val === 'number') return true;
+  if (typeof val === 'object') return val.enabled;
+  return false;
+}
+
+const SCORING_LABELS: { key: string; label: string }[] = [
+  { key: '1x2', label: 'Esito corretto (1X2)' },
+  { key: 'exact_score', label: 'Risultato esatto' },
+  { key: 'over_under', label: 'Under/Over' },
+  { key: 'goal_no_goal', label: 'Goal/NoGoal' },
+];
 
 export default function RulesScreen() {
   const router = useRouter();
@@ -37,6 +54,12 @@ export default function RulesScreen() {
 
   const sc = league?.scoring_config || {};
 
+  const matchSourceLabel = () => {
+    const type = league?.league_type || league?.match_source_type;
+    if (type === 'national') return 'Lega Nazionale';
+    return 'Partite personalizzate';
+  };
+
   return (
     <SafeAreaView style={s.container} edges={['top']}>
       <View style={s.header}>
@@ -52,23 +75,24 @@ export default function RulesScreen() {
         <ScrollView contentContainerStyle={s.content}>
           <Text style={s.leagueName}>{league.name}</Text>
 
-          {/* Scoring Rules */}
+          {/* Scoring Rules — only show enabled ones */}
           <View style={s.card}>
             <Text style={s.cardTitle}>Punteggi</Text>
-            <RuleRow label="Esito corretto (1X2)" value={`${sc.correct_outcome ?? 3} pts`} />
-            <RuleRow label="Risultato esatto" value={`${sc.exact_score ?? 5} pts`} />
-            <RuleRow label="Differenza gol corretta" value={`${sc.correct_goal_difference ?? 1} pts`} />
-            <RuleRow label="Gol casa corretti" value={`${sc.correct_home_goals ?? 0.5} pts`} />
-            <RuleRow label="Gol trasferta corretti" value={`${sc.correct_away_goals ?? 0.5} pts`} />
+            {SCORING_LABELS.map(({ key, label }) => {
+              if (!isEnabled(sc[key])) return null;
+              const pts = getPoints(sc[key]);
+              return (
+                <RuleRow key={key} label={label} value={`${pts} pts`} />
+              );
+            })}
           </View>
 
           {/* League Settings */}
           <View style={s.card}>
             <Text style={s.cardTitle}>Impostazioni Lega</Text>
-            <RuleRow label="Tipo mercato" value={MARKET_LABELS[league.default_market_type] || league.default_market_type || '1X2'} />
+            <RuleRow label="Partite da pronosticare" value={matchSourceLabel()} />
             <RuleRow label="Giornata iniziale" value={league.start_matchday || 1} />
             <RuleRow label="Giornata finale" value={league.end_matchday || 38} />
-            <RuleRow label="Regole bloccate" value={league.rules_locked ? 'Si' : 'No'} />
           </View>
         </ScrollView>
       ) : (
@@ -82,7 +106,7 @@ function RuleRow({ label, value }: { label: string; value: string | number }) {
   return (
     <View style={s.ruleRow}>
       <Text style={s.ruleLabel}>{label}</Text>
-      <Text style={s.ruleValue}>{value}</Text>
+      <Text style={s.ruleValue}>{String(value)}</Text>
     </View>
   );
 }
