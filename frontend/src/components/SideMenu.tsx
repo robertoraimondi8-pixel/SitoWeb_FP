@@ -45,7 +45,7 @@ function PressableMenuItem({ item, onPress }: { item: MenuItem; onPress: () => v
         activeOpacity={0.7}
         data-testid={item.testId}
       >
-        <Ionicons name={item.icon} size={20} color={colors.textSecondary} />
+        <Ionicons name={item.icon} size={20} color={colors.textPrimary} />
         <Text style={s.menuItemText}>{item.label}</Text>
         <Ionicons name="chevron-forward" size={16} color={colors.border} />
       </TouchableOpacity>
