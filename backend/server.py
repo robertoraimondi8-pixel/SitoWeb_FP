@@ -1223,7 +1223,11 @@ async def set_current_league(league_id: str = None, user=Depends(get_current_use
 @user_router.put("/profile/password")
 async def change_password(req: PasswordChangeRequest, user=Depends(get_current_user)):
     """Cambio password utente."""
-    if not verify_password(req.current_password, user.get("password", "")):
+    stored_password = user.get("password", "")
+    # Handle users with no password (e.g., Google OAuth users)
+    if not stored_password:
+        raise HTTPException(400, "Questo account non ha una password impostata (utente Google)")
+    if not verify_password(req.current_password, stored_password):
         raise HTTPException(400, "Password attuale non corretta")
     if len(req.new_password) < 6:
         raise HTTPException(400, "La nuova password deve avere almeno 6 caratteri")
