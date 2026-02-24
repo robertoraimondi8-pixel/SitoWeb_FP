@@ -110,6 +110,15 @@ New "Statistiche" tab with real football data from API-Football.
   - **Round Picker**: Added dropdown to select specific matchday (Giornata) in Results/Upcoming tabs. Bottom-sheet modal with list of rounds. Auto-selects first round on load.
   - **League chips fix**: Applied `flexShrink: 0` to prevent text truncation on horizontal scroll
 
+### Feature - Hamburger Side Menu (Feb 24, 2026) - COMPLETED
+Added sidebar drawer menu accessible via hamburger icon (3 lines) in top-left of Home page.
+- **Structure**: 
+  - ACCOUNT: Profilo (edit username/password/delete account), Lingua, Logout
+  - LEGA: Le mie leghe, Partecipanti (current league members), Regolamento (scoring rules), I miei inviti (join via code)
+  - COMUNICAZIONI: News (admin announcements), Notifiche
+- **Backend**: Added `PUT /api/profile/password`, `DELETE /api/profile`, `GET /api/leagues/{id}/members`, `GET/POST /api/news`, `GET /api/notifications`, `PATCH /api/notifications/{id}/read`
+- **Frontend**: SideMenu.tsx drawer component, 8 menu pages under `/menu/*`, hamburger icon in home.tsx
+
 ### Feature - Match Preview Stats Button (Feb 23, 2026) - COMPLETED
 Added "Statistiche" button on each API-imported match card in the Predictions screen. Opens a bottom sheet with:
 - **Last 5 matches** for both teams (W/D/L badges + scores)
