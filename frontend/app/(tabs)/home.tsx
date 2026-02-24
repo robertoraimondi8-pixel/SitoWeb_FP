@@ -460,6 +460,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   logoSpacing: { marginTop: 0, marginBottom: 0 },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   headerButton: {
     width: 42,
     height: 42,
@@ -469,6 +474,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  bellBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#fff',
   },
 
   // ── League Switcher ──
