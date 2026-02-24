@@ -426,6 +426,10 @@ const styles = StyleSheet.create({
   hamburgerBtn: {
     padding: 4,
     marginTop: 2,
+    minWidth: 34,
+    minHeight: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerLeft: { flex: 1 },
   greeting: {
