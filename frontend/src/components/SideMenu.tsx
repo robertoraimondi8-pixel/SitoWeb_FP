@@ -158,8 +158,10 @@ export function SideMenu({ visible, onClose }: Props) {
             )}
 
             {renderSection('ACCOUNT', 'person-circle-outline', accountItems)}
+            {renderSection('LEGA', 'trophy-outline', leagueItems)}
+            {renderSection('COMUNICAZIONI', 'megaphone-outline', commsItems)}
 
-            {/* Logout — separated visually at end of ACCOUNT */}
+            {/* Logout — in fondo a tutto */}
             <View style={s.logoutWrap}>
               <View style={s.logoutDivider} />
               <PressableMenuItem
@@ -167,9 +169,6 @@ export function SideMenu({ visible, onClose }: Props) {
                 onPress={handleLogout}
               />
             </View>
-
-            {renderSection('LEGA', 'trophy-outline', leagueItems)}
-            {renderSection('COMUNICAZIONI', 'megaphone-outline', commsItems)}
           </ScrollView>
         </Animated.View>
       </View>
