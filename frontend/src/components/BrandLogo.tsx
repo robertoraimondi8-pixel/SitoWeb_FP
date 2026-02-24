@@ -8,6 +8,7 @@ type LogoSize = 'sm' | 'md' | 'lg';
 interface BrandLogoProps {
   variant?: LogoVariant;
   size?: LogoSize;
+  light?: boolean;
 }
 
 // Size mappings for height (width auto via aspectRatio)
@@ -27,7 +28,19 @@ const WORDMARK_SIZE_MAP = {
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   variant = 'wordmark',
   size = 'md',
+  light = false,
 }) => {
+  // On orange/dark backgrounds, use text fallback in white
+  if (light) {
+    const fontSize = size === 'sm' ? 14 : size === 'md' ? 18 : 24;
+    return (
+      <View style={styles.fallbackContainer}>
+        <Text style={[styles.fallbackFanta, { fontSize, color: '#fff' }]}>FANTA</Text>
+        <Text style={[styles.fallbackPronostic, { fontSize, color: 'rgba(255,255,255,0.85)' }]}>Pronostic</Text>
+      </View>
+    );
+  }
+
   const sizeMap = variant === 'full' ? SIZE_MAP : WORDMARK_SIZE_MAP;
   const dimensions = sizeMap[size];
   const calculatedWidth = dimensions.height * dimensions.aspectRatio;
