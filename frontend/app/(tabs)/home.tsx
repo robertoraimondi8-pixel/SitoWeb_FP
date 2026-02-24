@@ -175,11 +175,11 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.headerButton}
             onPress={() => router.push('/menu/notifications')}
-            data-testid="notification-bell-btn"
+            testID="notification-bell-btn"
           >
             <Ionicons name="notifications-outline" size={22} color={colors.primary} />
             {unreadCount > 0 && (
-              <View style={styles.bellBadge} data-testid="notification-badge">
+              <View style={styles.bellBadge} testID="notification-badge">
                 <Text style={styles.bellBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
               </View>
             )}
