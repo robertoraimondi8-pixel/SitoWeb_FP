@@ -155,7 +155,7 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.hamburgerBtn}
           onPress={() => setMenuOpen(true)}
-          data-testid="hamburger-menu-btn"
+          testID="hamburger-menu-btn"
         >
           <Ionicons name="menu" size={26} color={colors.textPrimary} />
         </TouchableOpacity>
