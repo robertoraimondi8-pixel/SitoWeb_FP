@@ -54,7 +54,7 @@ export default function NotificationsScreen() {
   return (
     <SafeAreaView style={s.container} edges={['top']}>
       <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} data-testid="back-btn">
+        <TouchableOpacity onPress={() => router.back()} testID="back-btn">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Notifiche</Text>
@@ -71,7 +71,7 @@ export default function NotificationsScreen() {
             <TouchableOpacity
               style={[s.notifCard, !item.read && s.notifUnread]}
               onPress={() => !item.read && markRead(item.id)}
-              data-testid={`notif-${item.id}`}
+              testID={`notif-${item.id}`}
             >
               <View style={[s.dot, item.read && s.dotRead]} />
               <View style={s.notifBody}>
