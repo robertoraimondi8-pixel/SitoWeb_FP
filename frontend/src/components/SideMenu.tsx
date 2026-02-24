@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Modal, Animated,
-  Dimensions, ScrollView,
+  Dimensions, ScrollView, Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -25,6 +25,34 @@ interface Props {
   onClose: () => void;
 }
 
+function PressableMenuItem({ item, onPress }: { item: MenuItem; onPress: () => void }) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Animated.timing(scaleAnim, { toValue: 0.97, duration: 80, useNativeDriver: true }).start();
+  };
+  const onPressOut = () => {
+    Animated.timing(scaleAnim, { toValue: 1, duration: 120, useNativeDriver: true }).start();
+  };
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        style={s.menuItem}
+        onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        activeOpacity={0.7}
+        data-testid={item.testId}
+      >
+        <Ionicons name={item.icon} size={20} color={colors.textSecondary} />
+        <Text style={s.menuItemText}>{item.label}</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.border} />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
 export function SideMenu({ visible, onClose }: Props) {
   const { user, logout } = useAuth();
   const { activeLeague } = useLeague();
@@ -35,8 +63,8 @@ export function SideMenu({ visible, onClose }: Props) {
   useEffect(() => {
     if (visible) {
       Animated.parallel([
-        Animated.timing(slideAnim, { toValue: 0, duration: 250, useNativeDriver: true }),
-        Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 240, useNativeDriver: true }),
+        Animated.timing(overlayAnim, { toValue: 1, duration: 240, useNativeDriver: true }),
       ]).start();
     } else {
       Animated.parallel([
@@ -62,7 +90,6 @@ export function SideMenu({ visible, onClose }: Props) {
   const accountItems: MenuItem[] = [
     { icon: 'person-outline', label: 'Profilo', route: '/menu/profile-edit', testId: 'menu-profile' },
     { icon: 'language-outline', label: 'Lingua', route: '/menu/language', testId: 'menu-language' },
-    { icon: 'log-out-outline', label: 'Logout', action: handleLogout, testId: 'menu-logout' },
   ];
 
   const leagueItems: MenuItem[] = [
@@ -84,16 +111,11 @@ export function SideMenu({ visible, onClose }: Props) {
         <Text style={s.sectionTitle}>{title}</Text>
       </View>
       {items.map((item) => (
-        <TouchableOpacity
+        <PressableMenuItem
           key={item.testId}
-          style={s.menuItem}
+          item={item}
           onPress={() => item.action ? item.action() : item.route ? navigate(item.route) : null}
-          data-testid={item.testId}
-        >
-          <Ionicons name={item.icon} size={20} color={colors.textSecondary} />
-          <Text style={s.menuItemText}>{item.label}</Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.border} />
-        </TouchableOpacity>
+        />
       ))}
     </View>
   );
@@ -110,8 +132,8 @@ export function SideMenu({ visible, onClose }: Props) {
 
         {/* Drawer */}
         <Animated.View style={[s.drawer, { transform: [{ translateX: slideAnim }] }]}>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {/* User Header */}
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+            {/* User Header — Brand orange */}
             <View style={s.userHeader}>
               <View style={s.avatar}>
                 <Text style={s.avatarText}>
@@ -123,7 +145,7 @@ export function SideMenu({ visible, onClose }: Props) {
                 <Text style={s.userEmail}>{user?.email || ''}</Text>
               </View>
               <TouchableOpacity onPress={onClose} style={s.closeBtn} data-testid="menu-close">
-                <Ionicons name="close" size={24} color={colors.textSecondary} />
+                <Ionicons name="close" size={24} color="rgba(255,255,255,0.8)" />
               </TouchableOpacity>
             </View>
 
@@ -136,6 +158,16 @@ export function SideMenu({ visible, onClose }: Props) {
             )}
 
             {renderSection('ACCOUNT', 'person-circle-outline', accountItems)}
+
+            {/* Logout — separated visually at end of ACCOUNT */}
+            <View style={s.logoutWrap}>
+              <View style={s.logoutDivider} />
+              <PressableMenuItem
+                item={{ icon: 'log-out-outline', label: 'Logout', action: handleLogout, testId: 'menu-logout' }}
+                onPress={handleLogout}
+              />
+            </View>
+
             {renderSection('LEGA', 'trophy-outline', leagueItems)}
             {renderSection('COMUNICAZIONI', 'megaphone-outline', commsItems)}
           </ScrollView>
@@ -164,7 +196,7 @@ const s = StyleSheet.create({
     paddingTop: 54,
     paddingHorizontal: 18,
     paddingBottom: 18,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.accent,
     gap: 12,
   },
   avatar: {
@@ -244,5 +276,14 @@ const s = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     color: colors.textPrimary,
+  },
+  logoutWrap: {
+    paddingHorizontal: 18,
+    marginTop: 4,
+  },
+  logoutDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginBottom: 4,
   },
 });
