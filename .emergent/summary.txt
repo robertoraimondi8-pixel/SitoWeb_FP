@@ -1,61 +1,68 @@
 <analysis>**original_problem_statement**:
-The user initiated a series of feature requests, UI/UX enhancements, and critical bug fixes. The main goals were:
-1.  **Bug Fixes**:
-    *   Fix a critical scoring bug where the X3 multiplier was ignored when a matchday was completed. This required a deep dive into the backend scoring logic, fixing database index issues, and recalculating all historical scores for affected leagues.
-    *   Resolve multiple issues preventing the import of the same real-world match into different leagues or different matchdays of the same league.
-    *   Fix visibility rules for matchdays, ensuring  matchdays are not visible on the home screen and that predictions for  matchdays are not visible in the weekly rankings.
-    *   Address several UI bugs, including a stale state issue in the admin console, a global tooltip bug on the predictions screen, and a backend crash loop due to a bad database index.
-2.  **UI/UX Enhancements**:
-    *   Modify the Admin Console to restrict league owners to managing only their currently active league, removing the ability to switch leagues from within the console.
-    *   Add a client-side search bar to the Rankings page.
-    *   Improve the user's role display on the Profile page to show Creatore (Creator) for league owners.
-    *   Simplify the Create League screen by removing an option and refining the text and icons for the remaining choices.
-    *   Change the LIVE status badge color to red for better visibility.
-3.  **Clarifications**:
-    *   The user requested detailed explanations of the app's architecture, deployment process for app stores, and code/database backup strategies.
+The user wants to implement a comprehensive notification system, including both push notifications and an in-app notification center. The agreed-upon plan is to first build the in-app center (database, API endpoints, and UI) and then integrate Expo Push notifications in a later phase.
+
+This request follows a series of major feature implementations and UI/UX enhancements, including:
+1.  **New Statistics Tab**: A new section in the app to display real-world league data (standings, results, fixtures) from API-Football.
+2.  **Match Stats Pop-up**: A Statistics button on each match card that opens a bottom sheet with detailed head-to-head stats, team form, and league position.
+3.  **Hamburger Menu**: A full side-drawer menu providing access to user profile management, league details (members, rules), invites, news, and notifications.
+4.  **UI/UX Polish**: Numerous refinements to the app's visual design, including header colors, icon consistency, button styles, and micro-interactions to create a more premium feel.
+5.  **Bug Fixes**: Addressed a bug causing incorrect matchday status (LIVE vs. OPEN) and another bug that incorrectly displayed scoring rules.
 
 **User's preferred language**: Italiano
 
 **what currently exists?**
-The application is in a stable state. The agent successfully addressed a long and complex series of critical bug fixes and UI/UX improvements. The most significant work involved a deep refactoring of the scoring and match import logic in , including fixing database index issues and backfilling incorrect historical data. Numerous frontend components were also updated to improve user experience and fix UI bugs. All immediate user requests from the session have been implemented.
+The application is stable. All user-requested features up to the notification system have been fully implemented and refined based on feedback. The backend has been significantly expanded with new endpoints and database collections to support statistics, the hamburger menu, and the initial phase of the notification system. The frontend features a new Statistics tab, a Match Preview bottom sheet, and a functional side menu.
+
+The groundwork for the in-app notification center is laid:
+-   **Backend**: A  collection exists in the database. API endpoints for fetching, counting, and marking notifications as read () are implemented. Triggers have been added to key business logic (e.g., creating news, opening a matchday, joining a league) to create notification documents in the database.
+-   **Frontend**: A notification bell icon with an unread count badge is present in the home page header. The unread count is fetched and displayed when the app loads.
 
 **Last working item**:
--   Last item agent was working: The agent modified the Create League screen () as per the user's request. This involved removing one of the three options (), updating the icons and descriptive text for the two remaining options, and adding a Consigliato (Recommended) badge to the Lega Nazionale option.
--   Status: USER VERIFICATION PENDING
--   Agent Testing Done: Y
--   Which testing method agent to use? frontend testing agent. The agent should navigate to the Create League screen and verify that only two options are present, that the text and icons match the user's request, and that the Consigliato badge is visible on the correct option.
+-   Last item agent was working: Implementing the in-app notification center. The agent had just finished setting up the backend triggers and adding the notification bell icon with an unread count to the home page header. The feature is functional on the backend but incomplete on the frontend.
+-   Status: IN PROGRESS
+-   Agent Testing Done: N
+-   Which testing method agent to use? both
+    -   **Backend testing**: Use  to manually test the new notification endpoints (, , ). Trigger events like creating news or changing a matchday status to verify that notification documents are correctly created in the database.
+    -   **Frontend testing**: Use the  to verify the bell icon and its unread count badge are visible on the home page. Then, implement the notifications page and use the testing agent to verify navigation and functionality.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: **(P0)** User needs to verify the latest UI changes on the Create League screen.
+-   **Issue 1**: **(P0)** The notification bell shows an unread count, but there is no way for the user to view the actual notifications.
 
 **In progress Task List**:
--   None.
+-   **Task 1**: **(P0) Complete the Notification Center UI**
+    -   Where to resume:
+        1.  Create a new page at  (or a similar location).
+        2.  Implement logic on this page to fetch and display a list of notifications from the  endpoint.
+        3.  Make the bell icon in the  header a pressable button that navigates to this new notifications page.
+        4.  When the notifications page is loaded, trigger a call to the  endpoint to clear the unread count.
+    -   What will be achieved with this?: A fully functional in-app notification center, allowing users to view alerts and updates.
+    -   Status: NOT STARTED
+    -   Should Test frontend/backend/both after fix?: both
+    -   Blocked on something: None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P1)** Refactor the frontend rendering condition in  for better readability, as discussed in a previous session.
+    -   **(P1)** Implement Push Notifications using Expo Push. This involves saving user push tokens and triggering push notifications from the backend for the events that already create in-app notifications.
 -   **Future Tasks**:
+    -   **(P2)** Refactor the frontend rendering condition in .
     -   **(P2)** Deploy the web application to a custom domain.
     -   **(P2)** Prepare and submit the application to the Apple App Store and Google Play Store.
     -   **(P2)** Implement Championship Winner Predictions Feature.
     -   **(P2)** Integrate Stripe for joining the National League.
     -   **(P2)** Re-enable email verification for user registration.
-    -   **(P2)** Implement Push Notifications for key events.
 
 **Completed work in this session**
--   **Critical Bug Fix (X3 Scoring)**: Corrected the backend scoring logic in  to properly apply the X3 multiplier for completed matchdays and backfilled all historical data. This also involved fixing related database index and permission bugs.
--   **Bug Fix (Match Import)**: Updated  to allow the same real-world match to be imported into different leagues and different matchdays of the same league.
--   **Bug Fix (Backend Stability)**: Resolved a backend crash loop by removing faulty database index creation logic in .
--   **UX Improvement (Admin Console)**: Modified  to restrict league owners to their active league, enhancing usability and preventing errors.
--   **Feature (Rankings Search)**: Added a client-side search bar to .
--   **UX Fix (Matchday/Prediction Visibility)**: Adjusted backend logic in  to hide  matchdays from the home screen and  matchday predictions from weekly rankings.
--   **UI Fix (Profile Role)**: Updated  to correctly display Creatore for league owners and fixed related text alignment issues.
--   **UI Fix (Create League)**: Simplified the UI in  by removing an option and improving text/icons.
--   **UI Fix (LIVE Badge)**: Changed the LIVE status badge color to red for better distinction in .
+-   **Feature (Statistics Tab)**: Implemented a new Statistics tab with backend support () to display real-world league data from API-Football.
+-   **Feature (Match Statistics)**: Added a Statistiche button on match cards that opens a bottom sheet with detailed H2H, form, and standings info from a new  endpoint.
+-   **Feature (Hamburger Menu)**: Created a side-drawer menu () with pages for Profile, My Leagues, Rules, Invites, News, etc., supported by new backend endpoints.
+-   **Bug Fix (Matchday Status)**: Corrected the logic in  to ensure LIVE matchdays are shown with the correct status on the predictions screen.
+-   **Bug Fix (Rules Page)**: Fixed the display of scoring configuration on the Regolamento page to correctly parse and show point values.
+-   **UI/UX Polish**: Applied numerous user-requested visual improvements to the side menu, statistics page (league chips), and headers for a more refined look and feel.
+-   **Feature (Notification Center Backend)**: Built the backend infrastructure for notifications, including the DB schema, API endpoints, and event triggers.
 
 **Earlier issues found/mentioned but not fixed**
--   **Dead Code**: Non-user-facing dead code related to the previously removed Jolly feature still exists in frontend files like  and . This is a low-priority refactoring task.
+-   **Dead Code**: Non-user-facing code related to a deprecated Jolly feature still exists in files like . This is a low-priority technical debt item.
 
 **Known issue recurrence from previous fork**
 -   None.
@@ -64,46 +71,40 @@ The application is in a stable state. The agent successfully addressed a long an
 
 
 **Key Technical Concepts**
--   **Backend Scoring Logic**: The core scoring functions (, ) were refactored to handle multipliers correctly and track bonus points via a new  field.
--   **Database Indexing**: Debugged and fixed critical issues with MongoDB unique indexes on the  collection, which were causing backend crashes. This involved dropping bad indexes and ensuring the correct ones are created at startup.
--   **State Management (React/Expo)**: Addressed multiple UI bugs caused by incomplete frontend state synchronization, particularly in the admin console and predictions screen.
--   **Role-Based UI/UX**: Implemented logic to render different UI elements and behaviors based on the user's role (super admin vs. league owner).
--   **Data Backfilling**: Executed scripts to recalculate historical scores after fixing the core scoring bug, ensuring data integrity.
+-   **API Integration (API-Football)**: Extended the existing client to fetch league standings, team form, and head-to-head records.
+-   **Backend Development (FastAPI)**: Added numerous new endpoints and database collections (, ) to support major new features. Implemented a notification triggering system within existing business logic.
+-   **Frontend State Management**: Used React Context and component state to manage the UI for the side menu, match preview sheet, and the new notification unread count.
+-   **UI Components (React Native Web)**: Created new, reusable components like  and  and integrated new UI elements (icons, badges) into existing pages.
 
 **key DB schema**
--   ****:
-    -   :  (e.g., 3.0 for X3). Central to the scoring bug fix.
--   ****:
-    - A faulty unique index on  was dropped and replaced with the correct index: .
--   ****:
-    -   : . This field was added to explicitly track points awarded from multipliers (like X3) for better data clarity and debugging.
+-   **** (New Collection): Stores app-wide news announcements (, , ).
+-   **** (New Collection): Stores user-specific notifications (, , , , , , ).
 
 **All files of reference**
--   : Underwent major changes to fix scoring, match import validation, DB index management, and API data visibility rules.
--   : UX logic for the league selector was modified.
--   : A search bar feature was added.
--   : UI logic for displaying the user's role was updated.
--   : UI was simplified and updated based on user feedback.
--   : The color for the LIVE badge was changed.
--   : New translation keys were added and existing ones modified.
+-   : The most heavily modified file, containing new endpoints for statistics, the hamburger menu, notifications, and bug fixes.
+-   : Updated with new methods to call API-Football.
+-   : Modified to include the hamburger icon and notification bell.
+-   : New file for the statistics feature.
+-   : New file for the side menu component.
+-   : New file for the match statistics component.
+-   : New directory containing all pages linked from the side menu.
 
 **Critical Info for New Agent**
--   **Scoring Logic is Sensitive**: The scoring and recalculation logic in  (especially ) is complex and has been fixed multiple times. Any changes require extreme care and thorough testing. The system now correctly uses  and tracks a .
--   **Database Indexes**: A bad unique index on  previously caused a persistent backend crash. The code in  now ensures the correct index  is created. Be mindful of this if modifying related collections.
--   **User is Tech-Savvy**: The user has a strong technical understanding of the application's logic and data model. Provide precise, detailed explanations and be prepared for specific technical feedback.
--   **Production Path**: The user is actively considering deploying to production. Be prepared to assist with tasks related to custom domains, app store builds (), and database backups ().
+-   **Finish the Notification Feature**: The immediate priority is to build the frontend page that lists notifications, making the in-app notification system fully functional.
+-   **User is Highly Engaged in UI/UX**: The user frequently provides specific feedback on visual details. Expect iterative cycles of UI refinement.
+-   **Follow Phased Implementation**: For large features like notifications, the user prefers a phased approach (e.g., in-app first, then push). Propose and follow similar breakdowns for future complex tasks.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **LATEST**: Asked to simplify the Create League screen by removing an option and updating text/icons. (Implemented)
-2.  Asked for confirmation on the settings of a specific league (Desylega). (Answered)
-3.  Requested to change the LIVE status badge color to red. (Implemented)
-4.  Requested to change the empty state text in the weekly rankings. (Implemented)
-5.  Reported that the weekly rankings were incorrectly showing predictions for  matchdays. (Fixed)
-6.  Reported that a private league (iliolega) had incorrect X3 scores, which stemmed from the deeper scoring bug. (Fixed)
-7.  Reported that  matchdays were incorrectly visible on the home screen. (Fixed)
-8.  Reported that the application preview was not loading. (Fixed a backend crash loop).
-9.  Re-reported an issue with importing duplicate matches, revealing a new edge case. (Fixed)
-10. Reported the critical bug where the X3 multiplier was ignored for  matchdays. (Fixed)
+1.  **LATEST**: Requested to integrate a notification system (Push + In-app). (In Progress)
+2.  Approved the notification architecture and specified the implementation order: in-app center first, push notifications second. (Agent acknowledged and started work)
+3.  Requested UI polish for league selection chips in the Statistics tab. (Implemented after two iterations)
+4.  Reported that the league chips still looked the same, prompting a more significant style change. (Implemented)
+5.  Reported a bug and requested layout changes on the Rules menu page. (Fixed)
+6.  Requested UI improvements for the hamburger menu (header contrast, icon weight, league box style). (Implemented)
+7.  Requested to move the Logout button to the absolute bottom of the side menu. (Implemented)
+8.  Provided corrective feedback, stating that a new orange header color should only apply to the side menu, not the main home page. (Fixed)
+9.  Requested a set of UI improvements for a more premium feel (orange header, new logout position, micro-interactions). (Implemented and then adjusted based on feedback)
+10. Asked for a bundle restart to see the latest UI changes. (Agent complied)
 
 **Project Health Check:**
 -   **Broken**: None.
@@ -111,14 +112,14 @@ The application is in a stable state. The agent successfully addressed a long an
 
 **3rd Party Integrations**
 -   API-Football (API-Sports)
--   Stripe (Payments) - Not yet integrated, but in the backlog.
+-   Expo (including Expo Push for a future task)
+-   Stripe (Payments) - In backlog
 -   Emergent-managed Google Auth
--   Expo (React Native framework and build services)
 
 **Testing status**
 -   Testing agent used after significant changes: YES
 -   Test files created: None
--   Known regressions: None. Several were introduced and fixed during the session.
+-   Known regressions: A minor UI regression (wrong header color) was introduced and immediately fixed per user feedback.
 
 **Credentials to test flow:**
 -   **League Owner**:  / 
@@ -126,4 +127,4 @@ The application is in a stable state. The agent successfully addressed a long an
 -   **Standard User**:  / 
 
 **What agent forgot to execute**
--   The agent successfully addressed all explicit user requests made during this lengthy session. No tasks were forgotten.</analysis>
+-   Nothing was forgotten. The current task (notification center) is logically paused mid-implementation at a good stopping point (backend/UI-placeholder complete, frontend page pending).</analysis>

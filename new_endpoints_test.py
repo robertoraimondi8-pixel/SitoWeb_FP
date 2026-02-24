@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # API Configuration
-BASE_URL = "https://match-import.preview.emergentagent.com/api"
+BASE_URL = "https://message-feed.preview.emergentagent.com/api"
 TEST_USER = {
     "email": "marco@test.com", 
     "password": "password123"

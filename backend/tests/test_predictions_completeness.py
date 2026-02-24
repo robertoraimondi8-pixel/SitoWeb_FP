@@ -12,7 +12,7 @@ import pytest
 import requests
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://match-import.preview.emergentagent.com"
+BASE_URL = "https://message-feed.preview.emergentagent.com"
 LEAGUE_ID = "1762173a-31fe-463b-9668-d757114f440b"  # ilio@raimondi.it's league
 
 
