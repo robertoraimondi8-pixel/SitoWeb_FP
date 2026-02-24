@@ -1220,7 +1220,101 @@ async def set_current_league(league_id: str = None, user=Depends(get_current_use
     return {"current_league_id": league_id}
 
 
-@user_router.post("/users/me/complete-profile")
+@user_router.put("/profile/password")
+async def change_password(req: PasswordChangeRequest, user=Depends(get_current_user)):
+    """Cambio password utente."""
+    if not verify_password(req.current_password, user.get("password", "")):
+        raise HTTPException(400, "Password attuale non corretta")
+    if len(req.new_password) < 6:
+        raise HTTPException(400, "La nuova password deve avere almeno 6 caratteri")
+    hashed = hash_password(req.new_password)
+    await users_col.update_one({"id": user["id"]}, {"$set": {"password": hashed}})
+    return {"message": "Password aggiornata con successo"}
+
+
+@user_router.delete("/profile")
+async def delete_account(user=Depends(get_current_user)):
+    """Eliminazione account utente."""
+    uid = user["id"]
+    await memberships_col.delete_many({"user_id": uid})
+    await predictions_col.delete_many({"user_id": uid})
+    await score_summaries_col.delete_many({"user_id": uid})
+    await standings_cache_col.delete_many({"user_id": uid})
+    await users_col.delete_one({"id": uid})
+    return {"message": "Account eliminato"}
+
+
+# ── League Members ──
+@league_router.get("/{league_id}/members")
+async def get_league_members(league_id: str, user=Depends(get_current_user)):
+    """Lista partecipanti di una lega."""
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    mem = await memberships_col.find_one({"user_id": user["id"], "league_id": league_id, "status": "active"})
+    if not mem and league.get("league_type") != "national":
+        raise HTTPException(403, "Non sei membro di questa lega")
+    members = await memberships_col.find({"league_id": league_id, "status": "active"}, {"_id": 0}).to_list(500)
+    user_ids = [m["user_id"] for m in members]
+    users = await users_col.find({"id": {"$in": user_ids}}, {"_id": 0, "password": 0}).to_list(500)
+    user_map = {u["id"]: u for u in users}
+    result = []
+    for m in members:
+        u = user_map.get(m["user_id"], {})
+        result.append({
+            "user_id": m["user_id"],
+            "username": u.get("username", ""),
+            "email": u.get("email", ""),
+            "role": m.get("role", "player"),
+            "joined_at": m.get("created_at", ""),
+        })
+    result.sort(key=lambda x: (0 if x["role"] in ("owner", "admin") else 1, x["username"].lower()))
+    return {"league_id": league_id, "league_name": league.get("name"), "members": result}
+
+
+# ── News (Announcements) ──
+news_router = APIRouter(prefix="/api/news", tags=["News"])
+
+@news_router.get("")
+async def get_news(user=Depends(get_current_user)):
+    """Lista news/comunicazioni."""
+    news = await db["news"].find({}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    return news
+
+@news_router.post("")
+async def create_news(req: NewsCreate, user=Depends(get_current_user)):
+    """Crea una news (solo super admin)."""
+    if user.get("role") != "super_admin":
+        raise HTTPException(403, "Solo il super admin può creare news")
+    doc = {
+        "id": new_id(),
+        "title": req.title,
+        "body": req.body,
+        "author_id": user["id"],
+        "author_name": user.get("username", "Admin"),
+        "created_at": now_utc(),
+    }
+    await db["news"].insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+# ── Notifications ──
+@user_router.get("/notifications")
+async def get_notifications(user=Depends(get_current_user)):
+    """Lista notifiche utente."""
+    notifs = await notifications_col.find(
+        {"user_id": user["id"]}, {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+    return notifs
+
+@user_router.patch("/notifications/{notif_id}/read")
+async def mark_notification_read(notif_id: str, user=Depends(get_current_user)):
+    await notifications_col.update_one(
+        {"id": notif_id, "user_id": user["id"]},
+        {"$set": {"read": True}}
+    )
+    return {"message": "OK"}
 async def complete_profile(req: CompleteProfileRequest, user=Depends(get_current_user)):
     """Complete missing profile fields (mandatory after Google OAuth or partial registration)."""
     from datetime import date as _date
