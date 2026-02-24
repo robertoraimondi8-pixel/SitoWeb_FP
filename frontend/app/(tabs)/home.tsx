@@ -157,7 +157,7 @@ export default function HomeScreen() {
           onPress={() => setMenuOpen(true)}
           testID="hamburger-menu-btn"
         >
-          <Ionicons name="menu" size={26} color={colors.textPrimary} />
+          <Ionicons name="menu" size={26} color="#fff" />
         </TouchableOpacity>
         <View style={styles.headerLeft}>
           <Text style={styles.greeting}>{t('home.greeting', { name: user?.username })}</Text>
@@ -169,7 +169,7 @@ export default function HomeScreen() {
           style={styles.headerButton}
           onPress={() => router.push('/league/list')}
         >
-          <Ionicons name="people-outline" size={22} color={colors.primary} />
+          <Ionicons name="people-outline" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
 
