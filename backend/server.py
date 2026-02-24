@@ -1620,6 +1620,16 @@ async def join_league(req: LeagueJoinRequest, user=Depends(get_current_user)):
         await leagues_col.update_one({"id": league["id"]}, {"$set": {"rules_locked": True}})
         logger.info(f"[League] rules_locked=True for league {league['id'][:8]} (members: {member_count})")
 
+    # ── Notification: Invito ricevuto (notify league owner) ──
+    owner_mem = await memberships_col.find_one({"league_id": league["id"], "role": {"$in": ["owner", "admin"]}}, {"user_id": 1, "_id": 0})
+    if owner_mem:
+        await create_notification(
+            owner_mem["user_id"], "member_joined",
+            "Nuovo membro!",
+            f"{user.get('username', 'Un utente')} si e' unito alla lega {league.get('name', '')}.",
+            link="/menu/members",
+        )
+
     return {"message": "Iscrizione completata", "league": league}
 
 
