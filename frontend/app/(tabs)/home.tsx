@@ -421,6 +421,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    gap: 12,
+  },
+  hamburgerBtn: {
+    padding: 4,
+    marginTop: 2,
   },
   headerLeft: { flex: 1 },
   greeting: {
