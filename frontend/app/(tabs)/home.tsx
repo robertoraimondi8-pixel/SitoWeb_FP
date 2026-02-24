@@ -10,6 +10,7 @@ import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { HomeData, League } from '../../src/types/api';
 import { goToPredictionsHub } from '../../src/utils/navigation';
+import { SideMenu } from '../../src/components/SideMenu';
 
 // Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
