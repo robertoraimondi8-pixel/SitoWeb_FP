@@ -3275,10 +3275,38 @@ async def admin_update_matchday(matchday_id: str, req: AdminMatchdayUpdate, admi
     await matchdays_col.update_one({"id": matchday_id}, {"$set": updates})
     await log_audit(admin["id"], admin["username"], "UPDATE", "matchday", matchday_id, updates)
     
+    # ── Notification: Matchday OPEN ──
+    if updates.get("status") == "OPEN":
+        matchday = matchday or await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+        if matchday:
+            md_num = matchday.get("number", "?")
+            league_id_for_notif = matchday.get("league_id", NATIONAL_LEAGUE_ID)
+            leagues_using = await leagues_col.find({"$or": [{"id": league_id_for_notif}, {"league_type": "national"}]}, {"_id": 0, "id": 1, "name": 1}).to_list(50)
+            for lg in leagues_using:
+                await create_notification_for_league(
+                    lg["id"], "matchday_open",
+                    f"Giornata {md_num} aperta!",
+                    f"I pronostici per la Giornata {md_num} sono ora aperti. Inserisci i tuoi pronostici!",
+                    link=f"/predictions?matchday={matchday_id}",
+                )
+
     # AUTO-CALCULATE SCORES: Quando status diventa COMPLETED, calcola tutti i punteggi
     if updates.get("status") == "COMPLETED":
         logger.info(f"[ADMIN] Matchday {matchday_id} set to COMPLETED - calculating scores...")
         await _calculate_matchday_scores(matchday_id, admin)
+        # ── Notification: Classifica aggiornata ──
+        matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+        if matchday:
+            md_num = matchday.get("number", "?")
+            league_id_for_notif = matchday.get("league_id", NATIONAL_LEAGUE_ID)
+            leagues_using = await leagues_col.find({"$or": [{"id": league_id_for_notif}, {"league_type": "national"}]}, {"_id": 0, "id": 1}).to_list(50)
+            for lg in leagues_using:
+                await create_notification_for_league(
+                    lg["id"], "standings_updated",
+                    f"Classifica aggiornata!",
+                    f"I risultati della Giornata {md_num} sono stati calcolati. Controlla la classifica!",
+                    link="/rankings",
+                )
     
     return await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
 
