@@ -27,6 +27,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [showLeagueSwitcher, setShowLeagueSwitcher] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
