@@ -171,12 +171,26 @@ export default function HomeScreen() {
             <BrandLogo variant="wordmark" size="lg" />
           </View>
         </View>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => router.push('/league/list')}
-        >
-          <Ionicons name="people-outline" size={22} color={colors.primary} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => router.push('/menu/notifications')}
+            data-testid="notification-bell-btn"
+          >
+            <Ionicons name="notifications-outline" size={22} color={colors.primary} />
+            {unreadCount > 0 && (
+              <View style={styles.bellBadge} data-testid="notification-badge">
+                <Text style={styles.bellBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => router.push('/league/list')}
+          >
+            <Ionicons name="people-outline" size={22} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* LEAGUE SWITCHER */}

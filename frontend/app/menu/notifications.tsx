@@ -27,6 +27,8 @@ export default function NotificationsScreen() {
       try {
         const data = await apiCall<Notification[]>('/notifications', { token });
         setNotifs(data);
+        // Mark all as read when page opens
+        await apiCall('/notifications/read-all', { token, method: 'PATCH' }).catch(() => {});
       } catch (e) {
         console.error(e);
       } finally {
