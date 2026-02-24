@@ -430,6 +430,8 @@ const styles = StyleSheet.create({
     minHeight: 34,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.1)',
+    borderRadius: 8,
   },
   headerLeft: { flex: 1 },
   greeting: {
