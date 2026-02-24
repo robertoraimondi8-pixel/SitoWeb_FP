@@ -162,7 +162,7 @@ export default function HomeScreen() {
         <View style={styles.headerLeft}>
           <Text style={styles.greeting}>{t('home.greeting', { name: user?.username })}</Text>
           <View style={styles.logoSpacing}>
-            <BrandLogo variant="wordmark" size="lg" />
+            <BrandLogo variant="wordmark" size="lg" light />
           </View>
         </View>
         <TouchableOpacity
