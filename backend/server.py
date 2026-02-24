@@ -1300,6 +1300,15 @@ async def create_news(req: NewsCreate, user=Depends(get_current_user)):
     }
     await db["news"].insert_one(doc)
     doc.pop("_id", None)
+    # ── Notification: Nuova News per tutti gli utenti ──
+    all_users = await users_col.find({}, {"_id": 0, "id": 1}).to_list(5000)
+    for u in all_users:
+        await create_notification(
+            u["id"], "news",
+            req.title,
+            req.body[:100] + ("..." if len(req.body) > 100 else ""),
+            link="/menu/news",
+        )
     return doc
 
 
