@@ -157,19 +157,19 @@ export default function HomeScreen() {
           onPress={() => setMenuOpen(true)}
           testID="hamburger-menu-btn"
         >
-          <Ionicons name="menu" size={26} color="#fff" />
+          <Ionicons name="menu" size={26} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerLeft}>
           <Text style={styles.greeting}>{t('home.greeting', { name: user?.username })}</Text>
           <View style={styles.logoSpacing}>
-            <BrandLogo variant="wordmark" size="lg" light />
+            <BrandLogo variant="wordmark" size="lg" />
           </View>
         </View>
         <TouchableOpacity
           style={styles.headerButton}
           onPress={() => router.push('/league/list')}
         >
-          <Ionicons name="people-outline" size={22} color="#fff" />
+          <Ionicons name="people-outline" size={22} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -418,14 +418,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xl,
     paddingBottom: spacing.md,
-    backgroundColor: colors.accent,
-    borderBottomWidth: 0,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
     gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
   },
   hamburgerBtn: {
     padding: 4,
@@ -434,13 +430,13 @@ const styles = StyleSheet.create({
     minHeight: 34,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(15, 23, 42, 0.1)',
     borderRadius: 8,
   },
   headerLeft: { flex: 1 },
   greeting: {
     ...typography.bodyS,
-    color: 'rgba(255,255,255,0.85)',
+    color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
   logoSpacing: { marginTop: 0, marginBottom: 0 },
@@ -448,10 +444,11 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: borderRadius.md,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 0,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
 
   // ── League Switcher ──
