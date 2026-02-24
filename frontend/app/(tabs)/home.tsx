@@ -152,6 +152,13 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* HEADER */}
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.hamburgerBtn}
+          onPress={() => setMenuOpen(true)}
+          data-testid="hamburger-menu-btn"
+        >
+          <Ionicons name="menu" size={26} color={colors.textPrimary} />
+        </TouchableOpacity>
         <View style={styles.headerLeft}>
           <Text style={styles.greeting}>{t('home.greeting', { name: user?.username })}</Text>
           <View style={styles.logoSpacing}>
