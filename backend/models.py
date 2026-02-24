@@ -370,3 +370,11 @@ class AdminMatchdayUpdate(BaseModel):
 class ProfileUpdate(BaseModel):
     username: Optional[str] = None
     language: Optional[str] = None
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+class NewsCreate(BaseModel):
+    title: str
+    body: str
