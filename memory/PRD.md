@@ -137,11 +137,15 @@ The `/api/leagues/{league_id}/fixtures` endpoint returned raw matchday status fr
 
 ## Prioritized Backlog
 
+### P1
+- Implement Push Notifications using Expo Push (save user push tokens, trigger push from backend)
+
 ### P2
 - Implement "Championship Winner Predictions" feature
 - Integrate Stripe for joining National League
 - Re-enable email verification
-- Implement Push Notifications
+- Deploy to custom domain
+- Publish to App Store / Play Store
 
 ### P3
 - Refactor monolithic server.py into modular architecture
@@ -166,3 +170,5 @@ The `/api/leagues/{league_id}/fixtures` endpoint returned raw matchday status fr
 - `/app/frontend/app/(tabs)/_layout.tsx`: Tab bar layout (5 tabs)
 - `/app/frontend/app/user-predictions.tsx`: User predictions detail
 - `/app/frontend/app/live/[id].tsx`: Live match view
+- `/app/frontend/app/menu/notifications.tsx`: Notifications page (in-app center)
+- `/app/frontend/src/components/SideMenu.tsx`: Side menu component
