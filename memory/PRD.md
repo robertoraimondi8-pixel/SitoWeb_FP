@@ -110,6 +110,10 @@ New "Statistiche" tab with real football data from API-Football.
   - **Round Picker**: Added dropdown to select specific matchday (Giornata) in Results/Upcoming tabs. Bottom-sheet modal with list of rounds. Auto-selects first round on load.
   - **League chips fix**: Applied `flexShrink: 0` to prevent text truncation on horizontal scroll
 
+### UI Polish - Premium Look (Feb 24, 2026) - COMPLETED
+- Header arancione brand con logo bianco, icone bianche su sfondo semi-trasparente, ombra soft
+- Menu hamburger: header arancione, Logout separato con divider, micro-interazioni (scale 0.97 sui bottoni, animazione slide 240ms)
+
 ### Feature - Hamburger Side Menu (Feb 24, 2026) - COMPLETED
 Added sidebar drawer menu accessible via hamburger icon (3 lines) in top-left of Home page.
 - **Structure**: 
