@@ -157,7 +157,7 @@ export default function HomeScreen() {
           onPress={() => setMenuOpen(true)}
           testID="hamburger-menu-btn"
         >
-          <Ionicons name="menu" size={26} color={colors.textPrimary} />
+          <Text style={{ fontSize: 22, color: colors.textPrimary }}>☰</Text>
         </TouchableOpacity>
         <View style={styles.headerLeft}>
           <Text style={styles.greeting}>{t('home.greeting', { name: user?.username })}</Text>
