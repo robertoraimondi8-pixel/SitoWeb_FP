@@ -45,6 +45,11 @@ export default function HomeScreen() {
       setData(res);
       if (res.matchday?.countdown_seconds) setCountdown(res.matchday.countdown_seconds);
       Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+      // Fetch unread notification count
+      try {
+        const nc = await apiCall<{ count: number }>('/notifications/unread-count', { token: authToken });
+        setUnreadCount(nc.count);
+      } catch {}
     } catch (e: unknown) {
       if (isAuthError(e)) {
         const didLogout = await handleAuthError(e);
