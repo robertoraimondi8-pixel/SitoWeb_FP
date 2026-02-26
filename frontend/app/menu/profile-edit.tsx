@@ -19,6 +19,22 @@ export default function ProfileEditScreen() {
   const [emailPwd, setEmailPwd] = useState('');
   const [emailSaving, setEmailSaving] = useState(false);
 
+  const changeEmail = async () => {
+    if (!newEmail.trim() || !emailPwd) return;
+    setEmailSaving(true);
+    try {
+      const res = await apiCall<{ email: string }>('/profile/email', { token, method: 'PUT', body: { new_email: newEmail.trim(), password: emailPwd } });
+      updateUser({ email: res.email });
+      Alert.alert('Salvato', 'Email aggiornata con successo');
+      setNewEmail('');
+      setEmailPwd('');
+    } catch (e: any) {
+      Alert.alert('Errore', e.message || 'Errore nel cambio email');
+    } finally {
+      setEmailSaving(false);
+    }
+  };
+
   const saveUsername = async () => {
     if (!username.trim() || username === user?.username) return;
     setSaving(true);
@@ -79,10 +95,17 @@ export default function ProfileEditScreen() {
         <View style={{ width: 24 }} />
       </View>
       <ScrollView contentContainerStyle={s.content}>
-        {/* Info */}
+        {/* Email */}
         <View style={s.card}>
           <Text style={s.label}>Email</Text>
           <Text style={s.value}>{user?.email}</Text>
+          <View style={s.divider} />
+          <Text style={[s.label, { marginTop: 12 }]}>Cambia Email</Text>
+          <TextInput style={s.input} value={newEmail} onChangeText={setNewEmail} placeholder="Nuova email" keyboardType="email-address" autoCapitalize="none" placeholderTextColor={colors.textMuted} data-testid="new-email-input" />
+          <TextInput style={[s.input, { marginTop: 8 }]} value={emailPwd} onChangeText={setEmailPwd} placeholder="Conferma con password" secureTextEntry placeholderTextColor={colors.textMuted} data-testid="email-pwd-input" />
+          <TouchableOpacity style={s.saveBtn} onPress={changeEmail} disabled={emailSaving} data-testid="change-email-btn">
+            {emailSaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>Aggiorna Email</Text>}
+          </TouchableOpacity>
         </View>
 
         {/* Username */}
