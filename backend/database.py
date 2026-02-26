@@ -31,6 +31,7 @@ score_summaries_col = db.score_summaries
 standings_cache_col = db.standings_cache
 audit_logs_col = db.audit_logs
 notifications_col = db.notifications
+push_tokens_col = db.push_tokens
 
 
 async def create_indexes():
@@ -106,6 +107,10 @@ async def create_indexes():
         # Notifications
         await notifications_col.create_index("id", unique=True)
         await notifications_col.create_index([("user_id", 1), ("read", 1)])
+
+        # Push Tokens
+        await push_tokens_col.create_index([("user_id", 1), ("token", 1)], unique=True)
+        await push_tokens_col.create_index("user_id")
 
         logger.info("All database indexes created successfully")
     except Exception as e:
