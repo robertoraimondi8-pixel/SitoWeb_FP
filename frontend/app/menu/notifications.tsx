@@ -59,7 +59,9 @@ export default function NotificationsScreen() {
       case 'standings_updated': return 'podium-outline';
       case 'news': return 'newspaper-outline';
       case 'member_joined': return 'person-add-outline';
-      case 'reminder': return 'alarm-outline';
+      case 'reminder':
+      case 'reminder_24h':
+      case 'reminder_2h': return 'alarm-outline';
       default: return 'notifications-outline';
     }
   };
