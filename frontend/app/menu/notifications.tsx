@@ -53,6 +53,17 @@ export default function NotificationsScreen() {
     return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
 
+  const getNotifIcon = (type?: string): React.ComponentProps<typeof Ionicons>['name'] => {
+    switch (type) {
+      case 'matchday_open': return 'football-outline';
+      case 'standings_updated': return 'podium-outline';
+      case 'news': return 'newspaper-outline';
+      case 'member_joined': return 'person-add-outline';
+      case 'reminder': return 'alarm-outline';
+      default: return 'notifications-outline';
+    }
+  };
+
   return (
     <SafeAreaView style={s.container} edges={['top']}>
       <View style={s.header}>
@@ -78,12 +89,15 @@ export default function NotificationsScreen() {
               }}
               testID={`notif-${item.id}`}
             >
-              <View style={[s.dot, item.read && s.dotRead]} />
+              <View style={[s.iconWrap, item.read && s.iconWrapRead]}>
+                <Ionicons name={getNotifIcon(item.type)} size={18} color={item.read ? colors.textMuted : colors.accent} />
+              </View>
               <View style={s.notifBody}>
                 {item.title && <Text style={s.notifTitle}>{item.title}</Text>}
                 <Text style={s.notifMessage}>{item.message}</Text>
                 <Text style={s.notifDate}>{formatDate(item.created_at)}</Text>
               </View>
+              {item.link ? <Ionicons name="chevron-forward" size={16} color={colors.textMuted} style={{ alignSelf: 'center' }} /> : null}
             </TouchableOpacity>
           )}
           ListEmptyComponent={
@@ -105,8 +119,8 @@ const s = StyleSheet.create({
   content: { padding: spacing.lg, gap: 8 },
   notifCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: colors.card, borderRadius: borderRadius.lg, padding: spacing.md, ...shadows.card },
   notifUnread: { borderLeftWidth: 3, borderLeftColor: colors.accent },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent, marginTop: 6 },
-  dotRead: { backgroundColor: colors.border },
+  iconWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.accent + '15', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  iconWrapRead: { backgroundColor: colors.border + '40' },
   notifBody: { flex: 1 },
   notifTitle: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, marginBottom: 2 },
   notifMessage: { fontSize: 13, color: colors.textSecondary, lineHeight: 19 },
