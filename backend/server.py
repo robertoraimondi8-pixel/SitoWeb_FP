@@ -12,7 +12,7 @@ import string
 import asyncio
 import time
 from datetime import datetime, timezone, timedelta
-from pathlib import Path
+import httpx
 
 # Load env
 ROOT_DIR = Path(__file__).parent
