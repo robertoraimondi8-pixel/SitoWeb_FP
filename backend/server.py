@@ -1221,6 +1221,27 @@ async def set_current_league(league_id: str = None, user=Depends(get_current_use
     return {"current_league_id": league_id}
 
 
+@user_router.put("/profile/email")
+async def change_email(req: dict = Body(...), user=Depends(get_current_user)):
+    """Cambio email utente con verifica password."""
+    new_email = req.get("new_email", "").strip().lower()
+    password = req.get("password", "")
+    if not new_email or "@" not in new_email:
+        raise HTTPException(400, "Email non valida")
+    if new_email == user.get("email"):
+        raise HTTPException(400, "La nuova email è uguale a quella attuale")
+    stored_password = user.get("password", "")
+    if not stored_password:
+        raise HTTPException(400, "Questo account non ha una password impostata (utente Google)")
+    if not verify_password(password, stored_password):
+        raise HTTPException(400, "Password non corretta")
+    existing = await users_col.find_one({"email": new_email, "id": {"$ne": user["id"]}})
+    if existing:
+        raise HTTPException(400, "Questa email è già in uso")
+    await users_col.update_one({"id": user["id"]}, {"$set": {"email": new_email}})
+    return {"message": "Email aggiornata con successo", "email": new_email}
+
+
 @user_router.put("/profile/password")
 async def change_password(req: PasswordChangeRequest, user=Depends(get_current_user)):
     """Cambio password utente."""

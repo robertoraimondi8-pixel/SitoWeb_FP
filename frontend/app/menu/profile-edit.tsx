@@ -15,6 +15,9 @@ export default function ProfileEditScreen() {
   const [newPwd, setNewPwd] = useState('');
   const [saving, setSaving] = useState(false);
   const [pwdSaving, setPwdSaving] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailPwd, setEmailPwd] = useState('');
+  const [emailSaving, setEmailSaving] = useState(false);
 
   const saveUsername = async () => {
     if (!username.trim() || username === user?.username) return;
