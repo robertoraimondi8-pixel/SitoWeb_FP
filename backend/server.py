@@ -1561,6 +1561,10 @@ async def _get_leagues_for_matchday(md: dict) -> list:
             {"league_type": "national"}, {"_id": 0, "id": 1}
         ).to_list(50)
     return leagues
+
+
+@user_router.patch("/profile/complete")
+async def complete_profile(req: CompleteProfileRequest, user=Depends(get_current_user)):
     """Complete missing profile fields (mandatory after Google OAuth or partial registration)."""
     from datetime import date as _date
     updates: dict = {}
