@@ -1221,11 +1221,16 @@ async def set_current_league(league_id: str = None, user=Depends(get_current_use
     return {"current_league_id": league_id}
 
 
+class EmailChangeRequest(PydanticBaseModel):
+    new_email: str
+    password: str
+
+
 @user_router.put("/profile/email")
-async def change_email(req: dict = Body(...), user=Depends(get_current_user)):
+async def change_email(req: EmailChangeRequest, user=Depends(get_current_user)):
     """Cambio email utente con verifica password."""
-    new_email = req.get("new_email", "").strip().lower()
-    password = req.get("password", "")
+    new_email = req.new_email.strip().lower()
+    password = req.password
     if not new_email or "@" not in new_email:
         raise HTTPException(400, "Email non valida")
     if new_email == user.get("email"):
