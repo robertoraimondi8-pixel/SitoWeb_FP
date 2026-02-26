@@ -9,8 +9,10 @@ import { colors, typography, spacing, borderRadius, shadows } from '../../src/th
 
 type Notification = {
   id: string;
+  type?: string;
   title?: string;
   message: string;
+  link?: string;
   read: boolean;
   created_at: string;
 };
@@ -70,7 +72,10 @@ export default function NotificationsScreen() {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={[s.notifCard, !item.read && s.notifUnread]}
-              onPress={() => !item.read && markRead(item.id)}
+              onPress={() => {
+                if (!item.read) markRead(item.id);
+                if (item.link) router.push(item.link as any);
+              }}
               testID={`notif-${item.id}`}
             >
               <View style={[s.dot, item.read && s.dotRead]} />
