@@ -23,7 +23,7 @@ from database import (
     memberships_col, payments_col, matchdays_col, matches_col,
     predictions_col, joker_usages_col, champion_picks_col,
     score_summaries_col, standings_cache_col, audit_logs_col,
-    notifications_col
+    notifications_col, push_tokens_col
 )
 from models import (
     RegisterRequest, LoginRequest, TokenResponse, RefreshRequest,
