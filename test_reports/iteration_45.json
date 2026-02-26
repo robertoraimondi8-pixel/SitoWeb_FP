@@ -1,0 +1,132 @@
+{
+  "summary": "Iteration 45: Email Change Feature and Password Change Bug Fix - Backend 100% PASSED (10/10 tests). Frontend code verified through code review. All email change API scenarios tested successfully. Password change bug fix confirmed working.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Playwright Login Automation",
+        "issue": "Cannot automate login in React Native Web - TouchableOpacity button clicks not registering via Playwright",
+        "affected_selectors": ["TouchableOpacity", "div[role='button']"],
+        "priority": "LOW",
+        "note": "Known limitation from iteration_43/44. Code review confirms frontend implementation is correct."
+      }
+    ],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend": {
+      "PUT /api/profile/email (no auth)": {
+        "status": "PASSED",
+        "details": "Returns 401 Unauthorized without authentication"
+      },
+      "PUT /api/profile/email (wrong password)": {
+        "status": "PASSED",
+        "details": "Returns 400 with 'Password non corretta' when password is incorrect"
+      },
+      "PUT /api/profile/email (same email)": {
+        "status": "PASSED",
+        "details": "Returns 400 with 'La nuova email è uguale a quella attuale'"
+      },
+      "PUT /api/profile/email (duplicate email)": {
+        "status": "PASSED",
+        "details": "Returns 400 with 'Questa email è già in uso' when email belongs to another user"
+      },
+      "PUT /api/profile/email (success)": {
+        "status": "PASSED",
+        "details": "Successfully changes email and reverts back. Email persisted in profile."
+      },
+      "PUT /api/profile/password (no auth)": {
+        "status": "PASSED",
+        "details": "Returns 401 Unauthorized without authentication"
+      },
+      "PUT /api/profile/password (wrong current password)": {
+        "status": "PASSED",
+        "details": "Returns 400 with 'Password attuale non corretta' - BUG FIX VERIFIED"
+      },
+      "PUT /api/profile/password (success)": {
+        "status": "PASSED",
+        "details": "Successfully changes password, login with new password works, old password rejected, reverted. BUG FIX VERIFIED - password now correctly fetched from DB"
+      },
+      "PUT /api/profile/password (too short)": {
+        "status": "PASSED",
+        "details": "Returns 400 with '6 caratteri' when new password < 6 chars"
+      },
+      "PUT /api/profile/email (invalid format)": {
+        "status": "PASSED",
+        "details": "Returns 400 for invalid email format (missing @)"
+      }
+    },
+    "frontend_code_review": {
+      "email_section_ui": {
+        "status": "CODE VERIFIED",
+        "file": "/app/frontend/app/menu/profile-edit.tsx",
+        "lines": "99-109",
+        "elements": [
+          "Current email display: line 101 - {user?.email}",
+          "'Cambia Email' label: line 103",
+          "New email input: line 104 - placeholder='Nuova email', data-testid='new-email-input'",
+          "Password confirm input: line 105 - placeholder='Conferma con password', data-testid='email-pwd-input'",
+          "'Aggiorna Email' button: lines 106-108 - data-testid='change-email-btn'"
+        ]
+      },
+      "changeEmail_function": {
+        "status": "CODE VERIFIED",
+        "file": "/app/frontend/app/menu/profile-edit.tsx",
+        "lines": "22-36",
+        "implementation": "Correctly calls PUT /profile/email with {new_email, password}, updates user context on success, shows Alert on success/error"
+      },
+      "password_change_function": {
+        "status": "CODE VERIFIED",
+        "file": "/app/frontend/app/menu/profile-edit.tsx",
+        "lines": "52-65",
+        "implementation": "Correctly calls PUT /profile/password with {current_password, new_password}"
+      }
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_profile_email_change.py",
+    "/app/test_reports/pytest/profile_email_change_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend PUT /api/profile/email correctly fetches password from DB (line 1239 in server.py) since get_current_user excludes it",
+    "Backend PUT /api/profile/password bug fixed: now fetches password separately from users_col (line 1255 in server.py)",
+    "Frontend email change section properly integrated with correct API call and error handling",
+    "data-testid attributes correctly added: new-email-input, email-pwd-input, change-email-btn",
+    "Email change requires password confirmation for security - matches requirements"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_profile_email_change.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 pytest tests passed)",
+    "frontend": "CODE VERIFIED (UI automation limited due to RN Web/Playwright compatibility)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123",
+    "test_user": "ilio@raimondi.it / password123"
+  },
+  "seed_data_creation": "Tests used existing admin and test_user accounts. All email/password changes were reverted after testing.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Email change feature fully implemented and tested. Backend tests confirm all edge cases work correctly. Password change bug fix verified - password is now correctly fetched from DB. Frontend code review confirms UI is implemented with correct data-testid attributes. Playwright has known issues with React Native Web TouchableOpacity - recommend manual testing or native testing approaches for UI verification.",
+  "verified_features": [
+    "1. Backend: PUT /api/profile/email - success case (change email with correct password) - PASSED",
+    "2. Backend: PUT /api/profile/email - wrong password returns 400 - PASSED",
+    "3. Backend: PUT /api/profile/email - same email returns 400 - PASSED",
+    "4. Backend: PUT /api/profile/email - duplicate email returns 400 - PASSED",
+    "5. Backend: PUT /api/profile/email - no auth returns 401 - PASSED",
+    "6. Backend: PUT /api/profile/password - verify it still works (bug fix confirmed) - PASSED",
+    "7. Frontend: Profile edit page email change section - CODE VERIFIED (UI elements present with correct data-testid attributes)"
+  ],
+  "bug_fix_verification": {
+    "issue": "Password change was failing because get_current_user() excludes password field",
+    "root_cause": "auth.py line 83: users_col.find_one({\"id\": payload[\"sub\"]}, {\"_id\": 0, \"password\": 0})",
+    "fix": "Both change_email (line 1239) and change_password (line 1255) now fetch password separately from users_col",
+    "status": "VERIFIED WORKING"
+  }
+}
