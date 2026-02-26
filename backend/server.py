@@ -1369,6 +1369,8 @@ async def create_notification(
         "created_at": now_utc(),
     }
     await notifications_col.insert_one(doc)
+    # Also send push notification if enabled
+    await send_expo_push(user_id, title, message, {"type": notif_type, "link": link})
 
 
 async def create_notification_for_league(
