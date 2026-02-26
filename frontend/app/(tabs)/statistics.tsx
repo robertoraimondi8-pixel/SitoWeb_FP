@@ -441,6 +441,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    flexShrink: 0,
   },
   headerTitle: {
     ...typography.titleL,
@@ -452,7 +453,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    maxHeight: 64,
+    flexShrink: 0,
+    minHeight: 64,
   },
   leagueSelectorContent: {
     paddingHorizontal: spacing.lg,
@@ -495,6 +497,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     paddingHorizontal: spacing.lg,
+    flexShrink: 0,
   },
   tabItem: {
     flex: 1,
