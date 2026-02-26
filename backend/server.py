@@ -4608,22 +4608,30 @@ app.include_router(news_router)
 
 @app.on_event("startup")
 async def startup():
-    global _live_task
+    global _live_task, _reminder_task
     await create_indexes()
     # Add index for external_fixture_id
     await matches_col.create_index("external_fixture_id", sparse=True)
     # Start live-refresh background task
     _live_task = asyncio.create_task(_live_fixtures_loop())
+    # Start reminder scheduler for push notifications
+    _reminder_task = asyncio.create_task(_reminder_scheduler_loop())
     logger.info("FantaPronostic API started - indexes created - live refresh started")
 
 
 @app.on_event("shutdown")
 async def shutdown():
-    global _live_task, _apifootball_client
+    global _live_task, _apifootball_client, _reminder_task
     if _live_task:
         _live_task.cancel()
         try:
             await _live_task
+        except asyncio.CancelledError:
+            pass
+    if _reminder_task:
+        _reminder_task.cancel()
+        try:
+            await _reminder_task
         except asyncio.CancelledError:
             pass
     if _apifootball_client:
