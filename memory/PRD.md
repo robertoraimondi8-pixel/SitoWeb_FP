@@ -33,6 +33,7 @@ Every league is an independent universe. All data must be strictly scoped by lea
 - **Classifica LIVE** (Feb 22, 2026)
 - **In-App Notification Center** (Feb 24, 2026) - Bell icon with unread badge in header, notifications page with mark-all-as-read on open
 - **Push Notification Infrastructure** (Feb 26, 2026) - Expo Push API integration, push token management, reminder scheduler (24h/2h before deadline). Disabled by default, activate via PUSH_NOTIFICATIONS_ENABLED=true env var
+- **Email Change in Profile** (Feb 26, 2026) - Users can change email with password confirmation. Also fixed change_password bug (password not fetched from DB)
 
 ## Changes Applied
 
