@@ -32,6 +32,7 @@ Every league is an independent universe. All data must be strictly scoped by lea
 - Jolly removal (Feb 22, 2026)
 - **Classifica LIVE** (Feb 22, 2026)
 - **In-App Notification Center** (Feb 24, 2026) - Bell icon with unread badge in header, notifications page with mark-all-as-read on open
+- **Push Notification Infrastructure** (Feb 26, 2026) - Expo Push API integration, push token management, reminder scheduler (24h/2h before deadline). Disabled by default, activate via PUSH_NOTIFICATIONS_ENABLED=true env var
 
 ## Changes Applied
 
@@ -139,7 +140,7 @@ The `/api/leagues/{league_id}/fixtures` endpoint returned raw matchday status fr
 ## Prioritized Backlog
 
 ### P1
-- Implement Push Notifications using Expo Push (save user push tokens, trigger push from backend)
+- Activate Push Notifications when app is published to stores (set PUSH_NOTIFICATIONS_ENABLED=true, install expo-notifications on frontend, register push tokens on login)
 
 ### P2
 - Implement "Championship Winner Predictions" feature
