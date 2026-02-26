@@ -145,6 +145,7 @@ const s = StyleSheet.create({
   card: { backgroundColor: colors.card, borderRadius: borderRadius.lg, padding: spacing.lg, ...shadows.card },
   label: { fontSize: 12, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
   value: { fontSize: 15, color: colors.textPrimary, fontWeight: '500' },
+  divider: { height: 1, backgroundColor: colors.border, marginVertical: 12 },
   input: { backgroundColor: colors.background, borderRadius: borderRadius.md, padding: 12, fontSize: 15, color: colors.textPrimary, borderWidth: 1, borderColor: colors.border },
   saveBtn: { backgroundColor: colors.primary, borderRadius: borderRadius.md, paddingVertical: 10, alignItems: 'center', marginTop: 10 },
   saveBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
