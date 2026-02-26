@@ -1235,7 +1235,9 @@ async def change_email(req: EmailChangeRequest, user=Depends(get_current_user)):
         raise HTTPException(400, "Email non valida")
     if new_email == user.get("email"):
         raise HTTPException(400, "La nuova email è uguale a quella attuale")
-    stored_password = user.get("password", "")
+    # Fetch password from DB since get_current_user excludes it
+    full_user = await users_col.find_one({"id": user["id"]}, {"_id": 0, "password": 1})
+    stored_password = full_user.get("password", "") if full_user else ""
     if not stored_password:
         raise HTTPException(400, "Questo account non ha una password impostata (utente Google)")
     if not verify_password(password, stored_password):
