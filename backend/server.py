@@ -1252,7 +1252,8 @@ async def change_email(req: EmailChangeRequest, user=Depends(get_current_user)):
 @user_router.put("/profile/password")
 async def change_password(req: PasswordChangeRequest, user=Depends(get_current_user)):
     """Cambio password utente."""
-    stored_password = user.get("password", "")
+    full_user = await users_col.find_one({"id": user["id"]}, {"_id": 0, "password": 1})
+    stored_password = full_user.get("password", "") if full_user else ""
     # Handle users with no password (e.g., Google OAuth users)
     if not stored_password:
         raise HTTPException(400, "Questo account non ha una password impostata (utente Google)")
