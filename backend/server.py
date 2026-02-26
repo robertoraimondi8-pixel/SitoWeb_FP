@@ -1384,7 +1384,183 @@ async def create_notification_for_league(
     ).to_list(500)
     for m in members:
         await create_notification(m["user_id"], notif_type, title, message, link)
-async def complete_profile(req: CompleteProfileRequest, user=Depends(get_current_user)):
+
+
+# ── Push Notification System ──
+EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
+PUSH_ENABLED = os.environ.get("PUSH_NOTIFICATIONS_ENABLED", "false").lower() == "true"
+
+
+class PushTokenRequest(PydanticBaseModel):
+    token: str
+    device_type: Optional[str] = "unknown"
+
+
+@user_router.post("/push-token")
+async def register_push_token(req: PushTokenRequest, user=Depends(get_current_user)):
+    """Register/update an Expo Push Token for the current user."""
+    if not req.token or not req.token.startswith("ExponentPushToken["):
+        raise HTTPException(400, "Token Expo Push non valido")
+    await push_tokens_col.update_one(
+        {"user_id": user["id"], "token": req.token},
+        {"$set": {
+            "user_id": user["id"],
+            "token": req.token,
+            "device_type": req.device_type,
+            "updated_at": now_utc(),
+        }},
+        upsert=True,
+    )
+    return {"message": "Push token registrato"}
+
+
+@user_router.delete("/push-token")
+async def unregister_push_token(req: PushTokenRequest, user=Depends(get_current_user)):
+    """Remove a push token (e.g. on logout)."""
+    await push_tokens_col.delete_one({"user_id": user["id"], "token": req.token})
+    return {"message": "Push token rimosso"}
+
+
+async def send_expo_push(user_id: str, title: str, body: str, data: dict = None):
+    """Send a push notification via Expo Push API to all devices of a user."""
+    if not PUSH_ENABLED:
+        return
+    tokens = await push_tokens_col.find(
+        {"user_id": user_id}, {"_id": 0, "token": 1}
+    ).to_list(10)
+    if not tokens:
+        return
+    messages = [
+        {
+            "to": t["token"],
+            "sound": "default",
+            "title": title,
+            "body": body,
+            "data": data or {},
+        }
+        for t in tokens
+    ]
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(
+                EXPO_PUSH_URL,
+                json=messages,
+                headers={"Content-Type": "application/json"},
+            )
+            if resp.status_code != 200:
+                logger.warning(f"[PUSH] Expo API returned {resp.status_code}: {resp.text[:200]}")
+    except Exception as e:
+        logger.warning(f"[PUSH] Failed to send push to user {user_id[:8]}: {e}")
+
+
+# ── Reminder Scheduler (24h and 2h before deadline) ──
+_reminder_task = None
+REMINDER_CHECK_INTERVAL = 300  # Check every 5 minutes
+
+
+async def _reminder_scheduler_loop():
+    """Background task that checks for upcoming matchday deadlines and sends reminders."""
+    if not PUSH_ENABLED:
+        logger.info("[REMINDER] Push notifications disabled, scheduler not running")
+        return
+    logger.info(f"[REMINDER] Scheduler started, checking every {REMINDER_CHECK_INTERVAL}s")
+    while True:
+        try:
+            await asyncio.sleep(REMINDER_CHECK_INTERVAL)
+            await _check_and_send_reminders()
+        except asyncio.CancelledError:
+            logger.info("[REMINDER] Scheduler cancelled")
+            return
+        except Exception as e:
+            logger.error(f"[REMINDER] Error: {e}", exc_info=True)
+
+
+async def _check_and_send_reminders():
+    """Check OPEN matchdays for 24h and 2h reminders."""
+    now = datetime.now(timezone.utc)
+
+    # Find all OPEN matchdays with first_kickoff set
+    open_matchdays = await matchdays_col.find(
+        {"status": "OPEN", "first_kickoff": {"$exists": True, "$ne": None}},
+        {"_id": 0, "id": 1, "number": 1, "league_id": 1, "first_kickoff": 1, "season_id": 1}
+    ).to_list(20)
+
+    for md in open_matchdays:
+        fk = md.get("first_kickoff")
+        if not fk:
+            continue
+        try:
+            if isinstance(fk, str):
+                kickoff_dt = datetime.fromisoformat(fk.replace("Z", "+00:00"))
+            elif isinstance(fk, datetime):
+                kickoff_dt = fk
+            else:
+                continue
+        except (ValueError, TypeError):
+            continue
+
+        time_left = (kickoff_dt - now).total_seconds()
+        md_id = md["id"]
+        md_num = md.get("number", "?")
+        league_id = md.get("league_id")
+
+        # 24h reminder: between 24h and 24h-5min (to avoid sending multiple times)
+        if 86100 <= time_left <= 86400:
+            already_sent = await notifications_col.find_one({
+                "type": "reminder_24h", "link": {"$regex": md_id}
+            })
+            if not already_sent:
+                logger.info(f"[REMINDER] Sending 24h reminder for matchday {md_num}")
+                leagues = await _get_leagues_for_matchday(md)
+                for lg in leagues:
+                    await create_notification_for_league(
+                        lg["id"], "reminder_24h",
+                        f"24 ore alla chiusura!",
+                        f"Mancano 24 ore per inserire i pronostici della Giornata {md_num}.",
+                        link=f"/predictions?matchday={md_id}",
+                    )
+
+        # 2h reminder: between 2h and 2h-5min, only for users WITHOUT predictions
+        if 7200 <= time_left <= 7500:
+            already_sent = await notifications_col.find_one({
+                "type": "reminder_2h", "link": {"$regex": md_id}
+            })
+            if not already_sent:
+                logger.info(f"[REMINDER] Sending 2h reminder for matchday {md_num}")
+                leagues = await _get_leagues_for_matchday(md)
+                for lg in leagues:
+                    members = await memberships_col.find(
+                        {"league_id": lg["id"], "status": "active"}, {"user_id": 1, "_id": 0}
+                    ).to_list(500)
+                    for m in members:
+                        # Check if user has predictions
+                        pred_count = await predictions_col.count_documents({
+                            "user_id": m["user_id"],
+                            "matchday_id": md_id,
+                            "league_id": lg["id"],
+                        })
+                        if pred_count == 0:
+                            await create_notification(
+                                m["user_id"], "reminder_2h",
+                                f"Ultima chance!",
+                                f"Hai solo 2 ore per inserire i pronostici della Giornata {md_num}!",
+                                link=f"/predictions?matchday={md_id}",
+                            )
+
+
+async def _get_leagues_for_matchday(md: dict) -> list:
+    """Get all leagues that use a matchday (national leagues share matchdays)."""
+    league_id = md.get("league_id")
+    if league_id:
+        leagues = await leagues_col.find(
+            {"$or": [{"id": league_id}, {"league_type": "national"}]},
+            {"_id": 0, "id": 1}
+        ).to_list(50)
+    else:
+        leagues = await leagues_col.find(
+            {"league_type": "national"}, {"_id": 0, "id": 1}
+        ).to_list(50)
+    return leagues
     """Complete missing profile fields (mandatory after Google OAuth or partial registration)."""
     from datetime import date as _date
     updates: dict = {}
