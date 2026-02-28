@@ -4745,11 +4745,20 @@ async def dashboard_stats(user=Depends(require_permission("admin.dashboard.view"
         if admin_count == 0:
             at_risk_leagues.append({"id": lg["id"], "name": lg["name"], "reason": "Nessun admin"})
 
-    # --- Matchday KPI ---
+    # --- Matchday KPI (con effective status per OPEN/LOCKED) ---
     md_statuses = {}
-    pipeline = [{"$group": {"_id": "$status", "count": {"$sum": 1}}}]
-    async for doc in matchdays_col.aggregate(pipeline):
-        md_statuses[doc["_id"]] = doc["count"]
+    # Fast count for static statuses
+    for st in ("DRAFT", "COMPLETED"):
+        md_statuses[st] = await matchdays_col.count_documents({"status": st})
+    # For OPEN/LOCKED, compute effective status (may be LIVE)
+    open_locked = await matchdays_col.find(
+        {"status": {"$in": ["OPEN", "LOCKED"]}}, {"_id": 0}
+    ).to_list(100)
+    for md in open_locked:
+        eff = await compute_matchday_status(md, md.get("league_id", ""))
+        md_statuses[eff] = md_statuses.get(eff, 0) + 1
+    # Count stored LIVE matchdays too
+    md_statuses["LIVE"] = md_statuses.get("LIVE", 0) + await matchdays_col.count_documents({"status": "LIVE"})
 
     # --- Payments KPI ---
     recent_payments = await payments_col.find(
