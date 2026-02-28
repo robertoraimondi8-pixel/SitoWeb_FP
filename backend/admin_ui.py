@@ -794,18 +794,134 @@ async function doLiveUpdate(id) {
 }
 
 // ========================================
-// LEAGUES (existing)
+// LEAGUES (enhanced with admin management)
 // ========================================
+let allLeaguesCache = [];
+
 async function render_leagues() {
   if (!hasPerm('admin.leagues.manage')) { render_forbidden(); return; }
-  const leagues = await apiCall('/admin/leagues');
-  let html = '<h2>Leghe</h2><table><tr><th>Nome</th><th>Tipo</th><th>Codice</th><th>Membri</th></tr>';
-  leagues.forEach(l => {
-    html += `<tr><td>${l.name}</td><td><span class="status-badge status-${l.league_type=='national'?'LIVE':'OPEN'}">${l.league_type}</span></td>
-    <td>${l.invite_code||'-'}</td><td>${l.member_count}</td></tr>`;
-  });
-  html += '</table>';
-  document.getElementById('content').innerHTML = html;
+  const el = document.getElementById('content');
+  el.innerHTML = '<h2>Gestione Leghe</h2><div id="leagues-list"></div>';
+
+  try {
+    const leagues = await apiCall('/rbac/leagues');
+    allLeaguesCache = leagues;
+
+    let html = '<table><tr><th>Nome</th><th>Tipo</th><th>Codice</th><th>Owner</th><th>Admin</th><th>Membri</th><th>Azioni</th></tr>';
+    leagues.forEach(l => {
+      const ownerName = l.owner ? `<strong>${l.owner.username}</strong>` : '<span style="color:#EF4444">Nessuno</span>';
+      const adminCount = l.admins ? l.admins.length : 0;
+      const typeBadge = l.league_type === 'national'
+        ? '<span class="status-badge status-LIVE">NAZIONALE</span>'
+        : '<span class="status-badge status-OPEN">PRIVATA</span>';
+
+      html += `<tr data-testid="league-row-${l.id}">
+        <td><strong>${l.name}</strong></td>
+        <td>${typeBadge}</td>
+        <td style="font-size:12px;color:#94A3B8">${l.invite_code||'-'}</td>
+        <td>${ownerName}</td>
+        <td><span style="cursor:pointer;color:#F5A623" onclick="showLeagueAdmins('${l.id}')">${adminCount} admin</span></td>
+        <td>${l.member_count}</td>
+        <td>
+          <button class="btn btn-sm btn-outline" onclick="showLeagueManage('${l.id}')" data-testid="manage-league-${l.id}">Gestisci</button>
+        </td></tr>`;
+    });
+    html += '</table>';
+    document.getElementById('leagues-list').innerHTML = html;
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function showLeagueAdmins(leagueId) {
+  const league = allLeaguesCache.find(l => l.id === leagueId);
+  if (!league) return;
+  let html = `<h3>Admin di: ${league.name}</h3>`;
+  if (league.owner) {
+    html += `<div style="margin:12px 0"><span class="tag tag-super">OWNER</span> <strong>${league.owner.username}</strong> <span style="color:#64748B">(${league.owner.email})</span></div>`;
+  }
+  if (league.admins && league.admins.length > 0) {
+    html += '<table><tr><th>Username</th><th>Email</th><th>Ruolo</th></tr>';
+    league.admins.forEach(a => {
+      html += `<tr><td><strong>${a.username}</strong></td><td style="color:#94A3B8">${a.email}</td><td><span class="tag tag-role">${a.role}</span></td></tr>`;
+    });
+    html += '</table>';
+  } else {
+    html += '<p style="color:#94A3B8">Nessun admin</p>';
+  }
+  html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Chiudi</button></div>';
+  showModal(html);
+}
+
+async function showLeagueManage(leagueId) {
+  const league = allLeaguesCache.find(l => l.id === leagueId);
+  if (!league) return;
+
+  try {
+    const members = await apiCall('/rbac/leagues/' + leagueId + '/members');
+    let html = `<h3>Gestisci: ${league.name}</h3>`;
+
+    // Owner section
+    html += '<div style="margin:12px 0"><strong style="color:#F5A623">Owner:</strong> ';
+    if (league.owner) {
+      html += `${league.owner.username} (${league.owner.email})`;
+    } else {
+      html += '<span style="color:#EF4444">Nessun owner</span>';
+    }
+    html += '</div>';
+
+    // Transfer ownership
+    html += '<div style="margin:12px 0"><strong style="color:#94A3B8">Trasferisci Ownership:</strong>';
+    html += `<select id="new-owner-select" style="margin-left:8px;padding:6px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">`;
+    html += '<option value="">-- Seleziona nuovo owner --</option>';
+    members.filter(m => !m.is_owner).forEach(m => {
+      html += `<option value="${m.user_id}">${m.username} (${m.email}) [${m.role}]</option>`;
+    });
+    html += '</select>';
+    html += ` <button class="btn btn-sm" onclick="doTransferOwner('${leagueId}')" data-testid="transfer-owner-btn">Trasferisci</button></div>`;
+
+    // Members table with admin toggle
+    html += '<h4 style="color:#94A3B8;margin:16px 0 8px">Membri (' + members.length + ')</h4>';
+    html += '<table><tr><th>Username</th><th>Email</th><th>Ruolo</th><th>Azioni</th></tr>';
+    members.forEach(m => {
+      const isOwner = m.is_owner;
+      const isAdmin = m.role === 'admin' || m.role === 'owner';
+      let actionBtn = '';
+      if (isOwner) {
+        actionBtn = '<span class="tag tag-super">OWNER</span>';
+      } else if (isAdmin) {
+        actionBtn = `<button class="btn btn-sm btn-danger" onclick="toggleLeagueAdmin('${leagueId}','${m.user_id}','remove')">Rimuovi Admin</button>`;
+      } else {
+        actionBtn = `<button class="btn btn-sm btn-outline" onclick="toggleLeagueAdmin('${leagueId}','${m.user_id}','add')">Promuovi Admin</button>`;
+      }
+      html += `<tr>
+        <td><strong>${m.username}</strong></td>
+        <td style="color:#94A3B8;font-size:12px">${m.email}</td>
+        <td><span class="tag tag-role">${m.role}</span></td>
+        <td>${actionBtn}</td></tr>`;
+    });
+    html += '</table>';
+    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Chiudi</button></div>';
+    showModal(html);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function doTransferOwner(leagueId) {
+  const newOwnerId = document.getElementById('new-owner-select').value;
+  if (!newOwnerId) { showToast('Seleziona un nuovo owner', 'error'); return; }
+  if (!confirm('Confermi il trasferimento della ownership?')) return;
+  try {
+    await apiCall('/rbac/leagues/' + leagueId + '/transfer-owner', 'PUT', {new_owner_id: newOwnerId});
+    closeModal(); showToast('Ownership trasferita'); render_leagues();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function toggleLeagueAdmin(leagueId, userId, action) {
+  const verb = action === 'add' ? 'promuovere ad admin' : 'rimuovere da admin';
+  if (!confirm(`Vuoi ${verb} questo utente?`)) return;
+  try {
+    await apiCall('/rbac/leagues/' + leagueId + '/admins', 'PUT', {user_id: userId, action: action});
+    showToast('Ruolo aggiornato');
+    showLeagueManage(leagueId);
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
 // ========================================
