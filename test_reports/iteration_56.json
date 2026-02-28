@@ -1,0 +1,117 @@
+{
+  "summary": "Giornate (Matchdays) Section Complete Rewrite Testing - All tests PASSED. Backend: 13/14 passed (1 skipped), Frontend UI: All features verified.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "Dashboard stats", "issue": "LIVE count omitted when 0 (acceptable behavior)"},
+      {"endpoint": "National league", "issue": "match_source_type is empty string instead of 'national' (minor data inconsistency)"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "total": 14,
+      "passed": 13,
+      "skipped": 1,
+      "failed": 0,
+      "test_file": "/app/backend/tests/test_matchdays_giornate.py"
+    },
+    "dashboard_kpis": {
+      "matchday_status_kpis": "PASS - Dashboard shows DRAFT, OPEN, LOCKED, LIVE, COMPLETED counters",
+      "clickable_kpis": "PASS - Clicking KPI navigates to Giornate with status filter pre-applied"
+    },
+    "giornate_page": {
+      "league_selector": "PASS - 'Seleziona Lega' dropdown present with data-testid='md-league-selector'",
+      "default_national": "PASS - Defaults to 'Lega Nazionale FantaPronostic'",
+      "status_filter": "PASS - Status filter dropdown with data-testid='md-status-filter'",
+      "sortable_columns": "PASS - #, Kickoff, Stato columns are sortable with sort arrows"
+    },
+    "league_type_behavior": {
+      "national_league": "PASS - Shows creation form with + Crea button for full management",
+      "private_national": "PASS - Shows read-only message 'Puoi solo visualizzare', NO creation form",
+      "custom_league": "PASS - Shows creation form with + Crea button for full management"
+    },
+    "control_room_modal": {
+      "three_tabs": "PASS - Info & Stato, Partite, Importa da API tabs present",
+      "tab_testids": "PASS - mdcr-tab-info, mdcr-tab-matches, mdcr-tab-import"
+    },
+    "info_tab_features": {
+      "counters": "PASS - Partite, Risultati, Pronostici counters displayed",
+      "details": "PASS - ID, Stagione, Kickoff, Meta fields shown",
+      "state_transitions": "PASS - State buttons shown based on current status (DRAFT→OPEN, OPEN→LOCKED/LIVE, etc.)",
+      "danger_zone": "PASS - Zona Pericolo section with delete options"
+    },
+    "partite_tab_features": {
+      "columns": "PASS - Casa, Ospite, Comp, Mercato, Orario, Score, Stato columns",
+      "add_form": "PASS - 'Aggiungi Partita' form for manageable leagues",
+      "update_delete": "PASS - Update and X (delete) buttons for each match"
+    },
+    "import_tab_features": {
+      "title": "PASS - 'Importa Partite Reali' title",
+      "competition_selector": "PASS - Competition dropdown (Serie A, Premier League, etc.)",
+      "date_filters": "PASS - Da/A date filters",
+      "search_button": "PASS - Cerca button"
+    },
+    "safe_delete_logic": {
+      "draft_no_data": "PASS - Simple 'Elimina Giornata' button shown for DRAFT without predictions/results",
+      "has_data_or_not_draft": "PASS - Override delete with DELETE confirmation required"
+    },
+    "sidebar_verification": {
+      "no_partite_nav": "PASS - 'Partite' is NOT a separate nav item",
+      "giornate_nav_present": "PASS - 'Giornate' nav item present"
+    }
+  },
+  "verified_features": [
+    "Dashboard: clicking DRAFT/OPEN/LOCKED/LIVE/COMPLETED KPI boxes navigates to Giornate with filter pre-applied",
+    "Giornate page has 'Seleziona Lega' dropdown (data-testid='md-league-selector') defaulting to Lega Nazionale",
+    "Changing league selector loads matchdays for that league",
+    "National league shows creation form + Crea button",
+    "Private national league shows read-only message instead of creation form",
+    "Status filter dropdown (data-testid='md-status-filter') filters matchdays correctly",
+    "Table columns are sortable: # (number), Kickoff, Stato",
+    "Control Room button opens modal with 3 tabs: Info & Stato, Partite, Importa da API",
+    "Info tab shows counters (Partite, Risultati, Pronostici), ID, Stagione, Kickoff, Meta",
+    "Info tab shows state transition buttons based on current status (DRAFT->OPEN->LOCKED->LIVE->COMPLETED)",
+    "Info tab Danger Zone: DRAFT without data shows simple delete, otherwise shows Override with DELETE input",
+    "Partite tab shows match list with Home, Away, Comp, Market, Time, Score, Status columns",
+    "Partite tab has 'Aggiungi Partita' form for manageable leagues",
+    "Partite tab has Update and X (delete) buttons for each match",
+    "Backend: GET /api/admin/matchdays?league_id={id} returns matchdays for specific league",
+    "Backend: POST /api/admin/matchdays with league_id creates matchday for that league",
+    "Sidebar no longer shows 'Partite' as separate nav item - matches managed inside Control Room"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_matchdays_giornate.py",
+    "/app/test_reports/pytest/matchdays_giornate_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "All test-ids correctly implemented: md-league-selector, md-status-filter, mdcr-tab-info/matches/import, md-to-{STATUS}, md-delete-btn, md-override-delete-btn",
+    "Safe delete logic correctly differentiates DRAFT without data (simple delete) vs has data (override delete)",
+    "State machine transitions properly restricted based on current status",
+    "League type detection correctly shows/hides creation form based on match_source_type"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_matchdays_giornate.py"
+  ],
+  "success_rate": {
+    "backend": "93% (13/14 tests passed, 1 skipped)",
+    "frontend": "100% (All UI features verified)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123"
+  },
+  "seed_data_creation": "Created and deleted test matchday G998 during testing",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Giornate section completely rewritten and tested. Key test-ids: md-league-selector, md-status-filter, mdcr-tab-info/matches/import, md-to-{STATUS}, md-delete-btn, md-override-delete-btn, control-md-{id}. Safe delete logic: DRAFT without data = simple delete, otherwise override DELETE confirmation. League types: national/custom show creation form, private_national shows read-only message. Old 'Partite' nav removed - matches now managed inside matchday Control Room modal.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": [],
+    "note": "'Importa da API' tab calls /api/admin/real-fixtures/search which requires API-Football key - tested UI only, not actual API import"
+  }
+}
