@@ -1015,6 +1015,17 @@ async function doSoftDeleteCR(userId) {
   }
 }
 
+async function doAssignRoles(userId) {
+  const roleIds = Array.from(document.querySelectorAll('input[name=assign-role]:checked')).map(c => c.value);
+  try {
+    await apiCall('/rbac/users/'+userId+'/roles', 'PUT', {role_ids: roleIds});
+    showToast('Ruoli aggiornati');
+    const users = await apiCall('/rbac/users');
+    allUsersCache = users;
+    showUserControlRoom(userId, 'leagues');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
 async function doEditUser(userId) {
   const newUsername = document.getElementById('edit-user-username').value.trim();
   const newEmail = document.getElementById('edit-user-email').value.trim();
