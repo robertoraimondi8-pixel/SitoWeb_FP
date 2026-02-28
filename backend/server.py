@@ -4877,6 +4877,7 @@ app.include_router(admin_router)
 app.include_router(fixtures_router)
 app.include_router(stats_router)
 app.include_router(news_router)
+app.include_router(rbac_router)
 
 
 @app.on_event("startup")
@@ -4885,11 +4886,13 @@ async def startup():
     await create_indexes()
     # Add index for external_fixture_id
     await matches_col.create_index("external_fixture_id", sparse=True)
+    # Bootstrap RBAC system
+    await _bootstrap_rbac()
     # Start live-refresh background task
     _live_task = asyncio.create_task(_live_fixtures_loop())
     # Start reminder scheduler for push notifications
     _reminder_task = asyncio.create_task(_reminder_scheduler_loop())
-    logger.info("FantaPronostic API started - indexes created - live refresh started")
+    logger.info("FantaPronostic API started - indexes created - RBAC bootstrapped - live refresh started")
 
 
 @app.on_event("shutdown")
