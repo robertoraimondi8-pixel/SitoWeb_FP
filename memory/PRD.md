@@ -79,6 +79,11 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - **U2**: Pulsante "Dettagli" su ogni riga utente. Modale con campi modificabili username e email. Endpoint PUT /api/rbac/users/{user_id} con validazione formato username e unicita email. Audit log completo.
   - **U3**: Pulsante "Genera Link Reset Password" nel modale utente. Endpoint POST /api/rbac/users/{user_id}/reset-password-link genera token sicuro (SHA256 hash, scadenza 24h). Pagina pubblica GET /api/reset-password con form per impostare nuova password. Endpoint POST /api/reset-password valida token e aggiorna password. Token precedenti invalidati automaticamente. Link mostrato all'admin per invio manuale (no email service integrato).
   - Files: server.py (3 nuovi endpoint + 1 pagina pubblica), admin_ui.py (get_reset_password_html + UI modale + filtri), database.py (password_resets collection)
+- **Sprint U-CR: User Control Room** (Feb 28, 2026):
+  - Pulsante unico "Control Room" per ogni utente (sostituisce Dettagli/Ruoli/Disabilita/Elimina/Promuovi SA)
+  - 4 Tab: Info & Profilo (griglia ID/email/username/auth/date/stato online-offline/ruoli RBAC/contatori leghe), Modifica (edit username/email + reset password + Zona Pericolo con disabilita/abilita, super admin toggle, soft delete con conferma DELETE), Leghe & Ruoli (lista leghe utente + assegnazione ruoli RBAC con checkbox), Attivita (audit log entries come attore o target)
+  - Nuovo endpoint: GET /api/rbac/users/{user_id}/audit-log (filtro per admin_id OR entity_id)
+  - Tutte le azioni restano nel modale (refresh in-place senza chiudere)
 - **Sprint L1 - Dashboard Leghe KPI Cliccabili** (Feb 28, 2026):
   - 5 KPI nella card Leghe: Totale, Nazionale (verde), Private Custom (blu), Private Naz. (teal), A Rischio (rosso)
   - Tutti cliccabili con filtro tipo pre-applicato sulla pagina leghe
