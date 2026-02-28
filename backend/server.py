@@ -4804,6 +4804,7 @@ async def list_users_rbac(request: Request, user=Depends(require_permission("adm
             "username": u["username"],
             "role": u.get("role"),
             "is_super_admin": u.get("is_super_admin", False),
+            "is_disabled": u.get("is_disabled", False),
             "role_ids": role_ids,
             "roles": roles_detail,
             "created_at": u.get("created_at"),
