@@ -268,6 +268,109 @@ function doLogout() {
 }
 
 // ========================================
+// DASHBOARD OVERVIEW
+// ========================================
+async function render_dashboard() {
+  if (!hasPerm('admin.dashboard.view')) { render_forbidden(); return; }
+  const el = document.getElementById('content');
+  el.innerHTML = '<h2>Dashboard</h2><div id="dash-loading" style="color:#94A3B8">Caricamento...</div>';
+
+  try {
+    const d = await apiCall('/rbac/dashboard-stats');
+
+    let html = '';
+
+    // === UTENTI ===
+    html += `<div class="card" data-testid="kpi-users">
+      <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Utenti</h3>
+      <div class="counter-row">
+        <div class="counter-box"><div class="num">${d.users.total}</div><div class="label">Attivi</div></div>
+        <div class="counter-box"><div class="num" style="color:#6B7280">${d.users.disabled}</div><div class="label">Disabilitati</div></div>
+        <div class="counter-box"><div class="num" style="color:#10B981">${d.users.new_7d}</div><div class="label">Nuovi 7gg</div></div>
+        <div class="counter-box"><div class="num" style="color:#3B82F6">${d.users.recent_logins_24h}</div><div class="label">Login 24h</div></div>
+      </div>
+    </div>`;
+
+    // === LEGHE ===
+    const riskCount = d.leagues.at_risk.length;
+    const riskColor = riskCount > 0 ? '#EF4444' : '#10B981';
+    html += `<div class="card" data-testid="kpi-leagues">
+      <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Leghe</h3>
+      <div class="counter-row">
+        <div class="counter-box"><div class="num">${d.leagues.total}</div><div class="label">Totale</div></div>
+        <div class="counter-box" style="border-color:${riskColor}"><div class="num" style="color:${riskColor}">${riskCount}</div><div class="label">A Rischio</div></div>
+      </div>`;
+    if (riskCount > 0) {
+      html += '<div style="margin-top:12px">';
+      d.leagues.at_risk.forEach(l => {
+        html += `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px">
+          <span class="tag tag-disabled">${l.reason}</span>
+          <span>${l.name}</span>
+          ${hasPerm('admin.leagues.manage') ? `<button class="btn btn-sm btn-outline" onclick="navigate('leagues')" style="margin-left:auto">Gestisci</button>` : ''}
+        </div>`;
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // === MATCHDAY ===
+    const md = d.matchdays || {};
+    html += `<div class="card" data-testid="kpi-matchdays">
+      <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Giornate</h3>
+      <div class="counter-row">
+        <div class="counter-box"><div class="num" style="color:#475569">${md.DRAFT||0}</div><div class="label">Bozza</div></div>
+        <div class="counter-box" style="border-color:#3B82F6"><div class="num" style="color:#3B82F6">${md.OPEN||0}</div><div class="label">Open</div></div>
+        <div class="counter-box"><div class="num" style="color:#F59E0B">${md.LOCKED||0}</div><div class="label">Locked</div></div>
+        <div class="counter-box" style="border-color:#10B981"><div class="num" style="color:#10B981">${md.LIVE||0}</div><div class="label">Live</div></div>
+        <div class="counter-box"><div class="num" style="color:#6B7280">${md.COMPLETED||0}</div><div class="label">Completate</div></div>
+      </div>
+    </div>`;
+
+    // === PAGAMENTI ===
+    html += `<div class="card" data-testid="kpi-payments">
+      <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Pagamenti</h3>
+      <div class="counter-row" style="margin-bottom:12px">
+        <div class="counter-box"><div class="num" style="color:#F59E0B">${d.payments.pending_count}</div><div class="label">Pending</div></div>
+      </div>`;
+    if (d.payments.recent && d.payments.recent.length > 0) {
+      html += '<table><tr><th>Data</th><th>Utente</th><th>Importo</th><th>Stato</th></tr>';
+      d.payments.recent.forEach(p => {
+        const statusCls = p.payment_status === 'paid' ? 'status-live' : p.payment_status === 'pending' ? 'status-LOCKED' : 'status-void';
+        html += `<tr>
+          <td style="font-size:12px">${p.created_at ? new Date(p.created_at).toLocaleString('it') : '-'}</td>
+          <td style="font-size:12px">${p.user_id ? p.user_id.substring(0,8) : '-'}...</td>
+          <td>${p.amount||0} ${p.currency||'EUR'}</td>
+          <td><span class="status-badge ${statusCls}">${p.payment_status||'-'}</span></td></tr>`;
+      });
+      html += '</table>';
+    } else {
+      html += '<p style="color:#64748B;font-size:13px">Nessun pagamento recente</p>';
+    }
+    html += '</div>';
+
+    // === AUDIT ===
+    html += `<div class="card" data-testid="kpi-audit">
+      <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Attivita Recente</h3>`;
+    if (d.audit && d.audit.length > 0) {
+      html += '<table><tr><th>Data</th><th>Chi</th><th>Azione</th><th>Entita</th></tr>';
+      d.audit.forEach(a => {
+        html += `<tr>
+          <td style="font-size:12px;white-space:nowrap">${a.created_at ? new Date(a.created_at).toLocaleString('it') : '-'}</td>
+          <td>${a.admin_username||'-'}</td>
+          <td><span class="status-badge status-OPEN">${a.action||'-'}</span></td>
+          <td style="font-size:12px">${a.entity_type||'-'}/${(a.entity_id||'').substring(0,8)}</td></tr>`;
+      });
+      html += '</table>';
+    } else {
+      html += '<p style="color:#64748B;font-size:13px">Nessuna attivita recente</p>';
+    }
+    html += '</div>';
+
+    el.innerHTML = '<h2>Dashboard</h2>' + html;
+  } catch(e) { showToast(e.message, 'error'); el.innerHTML = '<h2>Dashboard</h2><p style="color:#EF4444">Errore: '+e.message+'</p>'; }
+}
+
+// ========================================
 // ROLES & PERMISSIONS
 // ========================================
 let allPermissions = [];
