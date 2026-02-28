@@ -4685,23 +4685,25 @@ async def my_permissions(user=Depends(get_current_user)):
 @rbac_router.get("/dashboard-stats")
 async def dashboard_stats(user=Depends(require_permission("admin.dashboard.view"))):
     """Aggregated KPI stats for the admin dashboard overview."""
-    from datetime import timedelta
+    from datetime import timedelta, datetime, timezone
 
-    now = now_utc()
+    now = datetime.now(timezone.utc)
     seven_days_ago = now - timedelta(days=7)
+    one_day_ago = now - timedelta(hours=24)
+    seven_days_ago_str = seven_days_ago.isoformat()
+    one_day_ago_str = one_day_ago.isoformat()
 
     # --- Users KPI ---
     total_users = await users_col.count_documents({"is_deleted": {"$ne": True}})
     disabled_users = await users_col.count_documents({"is_disabled": True, "is_deleted": {"$ne": True}})
     deleted_users = await users_col.count_documents({"is_deleted": True})
     new_users_7d = await users_col.count_documents({
-        "created_at": {"$gte": seven_days_ago.isoformat()},
+        "created_at": {"$gte": seven_days_ago_str},
         "is_deleted": {"$ne": True}
     })
     # Recent logins (last 24h)
-    one_day_ago = now - timedelta(hours=24)
     recent_logins = await users_col.count_documents({
-        "last_login": {"$gte": one_day_ago.isoformat()}
+        "last_login": {"$gte": one_day_ago_str}
     })
 
     # --- Leagues KPI ---
