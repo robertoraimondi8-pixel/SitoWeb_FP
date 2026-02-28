@@ -2123,6 +2123,7 @@ async function showLeagueControlRoom(leagueId, tab) {
     {id:'info', label:'Info & Regole'},
     {id:'edit', label:'Modifica'},
     {id:'team', label:'Team & Admin'},
+    {id:'danger', label:'Zona Pericolo'},
   ];
   const tabsHtml = tabs.map(t => `<button class="btn btn-sm ${crTab===t.id?'':'btn-outline'}" onclick="showLeagueControlRoom('${leagueId}','${t.id}')" data-testid="cr-tab-${t.id}" style="${crTab===t.id?'':'opacity:.6'}">${t.label}</button>`).join(' ');
 
