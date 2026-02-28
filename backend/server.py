@@ -5673,7 +5673,8 @@ async def api_root():
 @app.get("/api/admin-ui/{path:path}", response_class=HTMLResponse)
 async def admin_dashboard(path: str = ""):
     from admin_ui import get_admin_html
-    return get_admin_html()
+    from fastapi.responses import HTMLResponse as HR
+    return HR(content=get_admin_html(), headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"})
 
 
 # ========================================
