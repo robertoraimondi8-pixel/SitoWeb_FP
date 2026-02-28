@@ -1444,10 +1444,11 @@ let mdSortCol = 'number', mdSortDir = 'asc';
 
 function onMdLeagueChange() {
   const leagueId = document.getElementById('md-league').value;
-  const league = allLeaguesCache.find(l => l.id === leagueId);
+  const isAll = leagueId === 'all';
+  const league = isAll ? null : allLeaguesCache.find(l => l.id === leagueId);
   const isNational = league && league.league_type === 'national';
   const isCustom = league && league.match_source_type !== 'national';
-  const canManage = isNational || isCustom;
+  const canManage = !isAll && (isNational || isCustom);
 
   // Show create form only for manageable leagues
   const createZone = document.getElementById('md-create-zone');
