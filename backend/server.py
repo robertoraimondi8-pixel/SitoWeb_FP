@@ -5254,6 +5254,105 @@ async def get_league_members(league_id: str, user=Depends(require_permission("ad
 
 
 # ========================================
+# U2: EDIT USER DETAILS (ADMIN)
+# ========================================
+@rbac_router.put("/users/{user_id}")
+async def edit_user_details(user_id: str, request: Request, user=Depends(require_permission("admin.users.manage"))):
+    """Edit a user's username and/or email (admin action)."""
+    import re as _re
+    body = await request.json()
+    target = await users_col.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    if not target:
+        raise HTTPException(404, "Utente non trovato")
+
+    updates = {}
+    if "username" in body and body["username"]:
+        new_username = body["username"].strip()
+        if not _re.match(r'^[a-zA-Z0-9_]{3,20}$', new_username):
+            raise HTTPException(400, "Username non valido (3-20 caratteri: lettere, numeri, underscore)")
+        existing = await users_col.find_one({"username": new_username, "id": {"$ne": user_id}})
+        if existing:
+            raise HTTPException(409, "Username già in uso")
+        updates["username"] = new_username
+
+    if "email" in body and body["email"]:
+        new_email = body["email"].strip().lower()
+        if "@" not in new_email:
+            raise HTTPException(400, "Email non valida")
+        existing = await users_col.find_one({"email": new_email, "id": {"$ne": user_id}})
+        if existing:
+            raise HTTPException(409, "Email già in uso")
+        updates["email"] = new_email
+
+    if not updates:
+        raise HTTPException(400, "Nessun aggiornamento fornito")
+
+    before = {k: target.get(k) for k in updates}
+    await users_col.update_one({"id": user_id}, {"$set": updates})
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "EDIT_USER", "user", user_id,
+        {"target_username": target["username"], "updates": list(updates.keys())},
+        actor_roles=user.get("role_ids", []), ip=ip,
+        before=before, after=updates
+    )
+    return {"user_id": user_id, "updates": updates}
+
+
+# ========================================
+# U3: PASSWORD RESET LINK GENERATION
+# ========================================
+@rbac_router.post("/users/{user_id}/reset-password-link")
+async def generate_reset_password_link(user_id: str, request: Request, user=Depends(require_permission("admin.users.manage"))):
+    """Generate a secure, time-limited password reset link for a user."""
+    import secrets
+    import hashlib
+
+    target = await users_col.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    if not target:
+        raise HTTPException(404, "Utente non trovato")
+
+    if target.get("auth_provider") == "google":
+        raise HTTPException(400, "Non è possibile resettare la password di un utente Google")
+
+    raw_token = secrets.token_urlsafe(48)
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+
+    expires_at = (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
+
+    # Invalidate previous tokens for this user
+    await password_resets_col.update_many(
+        {"user_id": user_id, "used": False},
+        {"$set": {"used": True}}
+    )
+
+    await password_resets_col.insert_one({
+        "id": new_id(),
+        "user_id": user_id,
+        "token_hash": token_hash,
+        "expires_at": expires_at,
+        "used": False,
+        "created_by": user["id"],
+        "created_at": now_utc(),
+    })
+
+    # Build the public reset URL
+    proto = request.headers.get("x-forwarded-proto", "https")
+    host = request.headers.get("host", "localhost")
+    reset_url = f"{proto}://{host}/api/reset-password?token={raw_token}"
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "GENERATE_RESET_LINK", "user", user_id,
+        {"target_username": target["username"], "expires_at": expires_at},
+        actor_roles=user.get("role_ids", []), ip=ip,
+    )
+
+    return {"reset_url": reset_url, "expires_at": expires_at, "user_email": target["email"]}
+
+
+# ========================================
 # INCLUDE ROUTERS
 # ========================================
 app.include_router(auth_router)
