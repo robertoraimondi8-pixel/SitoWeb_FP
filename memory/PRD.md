@@ -182,7 +182,7 @@ The `/api/leagues/{league_id}/fixtures` endpoint returned raw matchday status fr
 
 ### P1
 - Activate Push Notifications when app is published to stores (set PUSH_NOTIFICATIONS_ENABLED=true, install expo-notifications on frontend, register push tokens on login)
-- Miglioramenti UI pannello admin (gestione leghe avanzata, delete safe, etc.)
+- Integrate email service (SendGrid/Resend) to automate password reset link delivery
 
 ### P2
 - Implement "Championship Winner Predictions" feature
@@ -190,10 +190,12 @@ The `/api/leagues/{league_id}/fixtures` endpoint returned raw matchday status fr
 - Re-enable email verification
 - Deploy to custom domain
 - Publish to App Store / Play Store
+- Refactor frontend rendering condition in frontend/app/admin/index.tsx
 
 ### P3
 - Refactor monolithic server.py into modular architecture
 - Clean up dead Jolly code (type definitions, unused functions, CSS)
+- Remove dead "jolly" code from codebase
 
 ## Credentials
 - Admin: admin@fantapronostic.com / admin123
