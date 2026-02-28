@@ -1642,17 +1642,28 @@ function filterLeagues() {
   if (rf === 'all') filtered = filtered.filter(l => !l.owner || (l.admins && l.admins.length === 0));
   else if (rf === 'no_owner') filtered = filtered.filter(l => !l.owner);
   else if (rf === 'no_admin') filtered = filtered.filter(l => !l.admins || l.admins.length === 0);
-  renderLeaguesTable(filtered);
+  applySortAndRender(filtered, 'leagues');
 }
 
 function renderLeaguesTable(leagues) {
-  let html = '<table><tr><th>Nome</th><th>Tipo</th><th>Codice</th><th>Owner</th><th>Admin Lega</th><th>Membri</th><th>Regole</th><th>Azioni</th></tr>';
+  const sh = (col) => sortArrow('leagues', col);
+  let html = `<table><tr>
+    <th style="cursor:pointer" onclick="sortBy('leagues','name')">Nome ${sh('name')}</th>
+    <th>Tipo</th>
+    <th>Codice</th>
+    <th>Owner</th>
+    <th>Admin Lega</th>
+    <th style="cursor:pointer" onclick="sortBy('leagues','member_count')">Membri ${sh('member_count')}</th>
+    <th style="cursor:pointer" onclick="sortBy('leagues','created_at')">Creata ${sh('created_at')}</th>
+    <th>Regole</th>
+    <th>Azioni</th></tr>`;
   leagues.forEach(l => {
     const ownerName = l.owner ? `<strong>${l.owner.username}</strong>` : (l.league_type === 'national' ? '<span style="color:#94A3B8">Sistema</span>' : '<span style="color:#EF4444">Nessuno</span>');
     const adminCount = l.admins ? l.admins.length : 0;
     const typeBadge = getLeagueTypeBadge(l);
     const rulesSummary = getRulesSummary(l);
     const lockedIcon = l.rules_locked ? '<span title="Regole bloccate" style="color:#F59E0B;cursor:help">&#128274;</span>' : '';
+    const createdAt = l.created_at ? new Date(l.created_at).toLocaleDateString('it') : '-';
 
     html += `<tr data-testid="league-row-${l.id}">
       <td><strong>${l.name}</strong></td>
@@ -1661,6 +1672,7 @@ function renderLeaguesTable(leagues) {
       <td>${ownerName}</td>
       <td><span style="cursor:pointer;color:#F5A623" onclick="showLeagueAdmins('${l.id}')">${adminCount} admin</span></td>
       <td>${l.member_count}</td>
+      <td style="font-size:12px;color:#94A3B8">${createdAt}</td>
       <td style="font-size:11px;color:#94A3B8;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${rulesSummary}">${lockedIcon} ${rulesSummary}</td>
       <td>
         <button class="btn btn-sm btn-outline" onclick="showLeagueControlRoom('${l.id}')" data-testid="control-league-${l.id}">Control Room</button>
