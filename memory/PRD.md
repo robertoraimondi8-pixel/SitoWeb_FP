@@ -100,7 +100,13 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - **Ordinamento**: colonne # / Kickoff / Stato con frecce cliccabili
   - Voce "Partite" rimossa dalla sidebar - gestione match ora integrata nel Control Room giornata
   - Backend: GET /api/admin/matchdays?league_id=... (supporto multi-lega, league_id=all per tutte), POST /api/admin/matchdays con league_id, MatchdayCreate model aggiornato
-- **Feature: Modifica numero/etichetta giornata dal Control Room** (Feb 28, 2026):
+- **Feature: Cancellazione leghe con sicurezza** (Feb 28, 2026):
+  - Aggiunto tab "Zona Pericolo" nel Control Room delle leghe
+  - Lega Nazionale protetta: non può essere eliminata
+  - Leghe senza membri: eliminazione diretta con conferma
+  - Leghe con membri: richiede digitazione "DELETE" + conferma (override)
+  - Cascading delete: elimina giornate, partite, pronostici, punteggi, classifiche, iscrizioni
+  - Backend: DELETE /api/admin/leagues/{id} con audit log
   - Aggiunta sezione "Modifica" nel tab Info & Stato del Control Room
   - Campi editabili per Numero e Etichetta con bottone Salva
   - Aggiunto campo `number` al modello `AdminMatchdayUpdate` in models.py
