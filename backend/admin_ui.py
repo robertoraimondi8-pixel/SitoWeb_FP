@@ -82,6 +82,8 @@ tr:hover{background:rgba(245,166,35,0.05)}
 .forbidden{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;color:#94A3B8}
 .forbidden h2{color:#EF4444;font-size:28px;margin-bottom:12px}
 .forbidden p{font-size:16px}
+/* Pulse animation for online indicator */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 /* Counters */
 .counter-row{display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap}
 .counter-box{background:#1E293B;border:1px solid #334155;border-radius:12px;padding:16px 24px;flex:1;min-width:140px}
