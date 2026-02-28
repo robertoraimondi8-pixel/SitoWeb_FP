@@ -638,6 +638,8 @@ async def login(req: LoginRequest):
 
     access = create_access_token(user["id"], user["role"])
     refresh = create_refresh_token(user["id"])
+    # Track last login
+    await users_col.update_one({"id": user["id"]}, {"$set": {"last_login": now_utc()}})
     return TokenResponse(
         access_token=access,
         refresh_token=refresh,
