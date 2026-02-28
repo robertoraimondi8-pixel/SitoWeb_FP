@@ -3464,12 +3464,15 @@ async def admin_set_current_matchday(season_id: str, matchday_id: str, admin=Dep
 
 @admin_router.get("/matchdays")
 async def admin_list_matchdays(season_id: str = None, league_id: str = None, admin=Depends(require_permission("admin.matchdays.manage"))):
-    # If league_id provided, show that league's matchdays; otherwise default to national
-    target_league = league_id or NATIONAL_LEAGUE_ID
-    query: dict = {"league_id": target_league}
+    query: dict = {}
+    if league_id and league_id != "all":
+        query["league_id"] = league_id
+    elif not league_id:
+        query["league_id"] = NATIONAL_LEAGUE_ID
+    # league_id=all → no league filter, return all
     if season_id:
         query["season_id"] = season_id
-    return await matchdays_col.find(query, {"_id": 0}).sort("number", 1).to_list(100)
+    return await matchdays_col.find(query, {"_id": 0}).sort("number", 1).to_list(500)
 
 
 @admin_router.post("/matchdays")
