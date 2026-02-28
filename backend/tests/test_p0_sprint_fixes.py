@@ -11,7 +11,7 @@ import os
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://message-feed.preview.emergentagent.com"
+    BASE_URL = "https://notify-center-13.preview.emergentagent.com"
 
 # Test constants
 ADMIN_EMAIL = "admin@fantapronostic.com"

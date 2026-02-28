@@ -16,7 +16,7 @@ import requests
 import os
 
 # Use the public URL from frontend environment
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://message-feed.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://notify-center-13.preview.emergentagent.com')
 
 # Test credentials
 TEST_USERS = {

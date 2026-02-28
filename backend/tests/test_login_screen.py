@@ -9,7 +9,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://message-feed.preview.emergentagent.com"
+BASE_URL = "https://notify-center-13.preview.emergentagent.com"
 
 
 class TestLoginEmailPassword:

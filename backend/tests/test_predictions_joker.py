@@ -13,7 +13,7 @@ import pytest
 import requests
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://message-feed.preview.emergentagent.com"
+BASE_URL = "https://notify-center-13.preview.emergentagent.com"
 
 
 @pytest.fixture
