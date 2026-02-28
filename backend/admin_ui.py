@@ -2347,9 +2347,56 @@ async function toggleLeagueAdmin(leagueId, userId, action) {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-// ========================================
-// PAYMENTS (existing)
-// ========================================
+function renderCrDanger(l) {
+  if (!isSuperAdmin) {
+    return '<p style="color:#94A3B8;font-size:13px">Solo i Super Admin possono accedere a questa sezione.</p>';
+  }
+  const isNational = l.league_type === 'national';
+  if (isNational) {
+    return `<div style="padding:16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px">
+      <h4 style="color:#EF4444;margin-bottom:8px;font-size:14px">Zona Pericolo</h4>
+      <p style="color:#94A3B8;font-size:13px">La Lega Nazionale non puo essere eliminata. E la lega di sistema principale.</p>
+    </div>`;
+  }
+  const members = l.member_count || 0;
+  const hasData = members > 0;
+  if (!hasData) {
+    return `<div style="padding:16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px">
+      <h4 style="color:#EF4444;margin-bottom:8px;font-size:14px">Zona Pericolo</h4>
+      <p style="color:#94A3B8;font-size:12px;margin-bottom:12px">Questa lega non ha membri. Puoi eliminarla in sicurezza.</p>
+      <button class="btn btn-sm btn-danger" onclick="doLeagueDelete('${l.id}',false)" data-testid="league-delete-btn">Elimina Lega</button>
+    </div>`;
+  }
+  return `<div style="padding:16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px">
+    <h4 style="color:#EF4444;margin-bottom:8px;font-size:14px">Zona Pericolo</h4>
+    <p style="color:#F87171;font-size:12px;margin-bottom:8px">Questa lega ha <strong>${members}</strong> membri. La cancellazione distrugge TUTTI i dati associati: giornate, partite, pronostici, punteggi, classifiche e iscrizioni.</p>
+    <div>
+      <p style="font-size:12px;margin-bottom:8px">Digita <strong style="color:#EF4444">DELETE</strong> per procedere con l\\'override:</p>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="league-delete-confirm" placeholder="Digita DELETE" style="padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="league-delete-confirm">
+        <button class="btn btn-sm btn-danger" onclick="doLeagueDelete('${l.id}',true)" data-testid="league-override-delete-btn">Override Eliminazione</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function doLeagueDelete(leagueId, isOverride) {
+  if (isOverride) {
+    const confirmInput = document.getElementById('league-delete-confirm');
+    if (!confirmInput || confirmInput.value !== 'DELETE') {
+      showToast('Devi digitare DELETE per confermare', 'error'); return;
+    }
+  }
+  const l = allLeaguesCache.find(x => x.id === leagueId);
+  const name = l ? l.name : leagueId;
+  if (!confirm('ATTENZIONE: Eliminare la lega "' + name + '" e TUTTI i dati associati (giornate, partite, pronostici, punteggi, iscrizioni)? Questa azione e IRREVERSIBILE.')) return;
+  try {
+    const r = await apiCall('/admin/leagues/' + leagueId, 'DELETE');
+    closeModal();
+    showToast('Lega eliminata (' + (r.deleted_matchdays||0) + ' giornate, ' + (r.deleted_matches||0) + ' partite, ' + (r.deleted_predictions||0) + ' pronostici, ' + (r.deleted_memberships||0) + ' iscrizioni)');
+    render_leagues();
+  } catch(e) { showToast(e.message, 'error'); }
+}
 async function render_payments() {
   if (!hasPerm('admin.payments.view')) { render_forbidden(); return; }
   const statusFilter = navFilter.status || '';
