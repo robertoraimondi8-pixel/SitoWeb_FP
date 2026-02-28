@@ -1644,7 +1644,7 @@ async function showMdControlRoom(mdId, tab) {
   showModal(html);
 
   const body = document.getElementById('mdcr-body');
-  if (mdcrTab === 'info') body.innerHTML = await renderMdcrInfo(md, canManage);
+  if (mdcrTab === 'info') { body.innerHTML = await renderMdcrInfo(md, canManage); await populateMdcrEditNumber(); }
   else if (mdcrTab === 'matches') { body.innerHTML = '<p style="color:#94A3B8">Caricamento...</p>'; await loadMdcrMatches(md, canManage); }
   else if (mdcrTab === 'import') body.innerHTML = renderMdcrImport(md);
 }
