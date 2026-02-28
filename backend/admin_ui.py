@@ -1803,11 +1803,10 @@ function renderMdcrMatches(md, matches, canManage) {
       <td><span class="status-badge status-${(m.status||'scheduled').toUpperCase()}">${m.status||'scheduled'}</span></td>`;
     if (canManage) {
       const matchStatuses = ['scheduled','live','finished','suspended','postponed','cancelled','void'];
-      const statusSelect = `<select onchange="doQuickMatchStatus('${md.id}','${m.id}',this.value)" style="padding:4px;background:#0F172A;border:1px solid #334155;border-radius:4px;color:#F1F5F9;font-size:11px" data-testid="match-status-${m.id}">
+      html += `<td><select onchange="doQuickMatchStatus('${md.id}','${m.id}',this.value)" style="padding:3px;background:#0F172A;border:1px solid #334155;border-radius:4px;color:#F1F5F9;font-size:11px" data-testid="match-status-${m.id}">
         ${matchStatuses.map(s => `<option value="${s}" ${(m.status||'scheduled')===s?'selected':''}>${s}</option>`).join('')}
-      </select>`;
-      html += `<td style="white-space:nowrap;display:flex;gap:4px;align-items:center">
-        ${statusSelect}
+      </select></td>`;
+      html += `<td style="white-space:nowrap">
         <button class="btn btn-sm btn-outline" onclick="showMatchUpdate('${m.id}','${(m.home_team||'').replace(/'/g,"\\'")}','${(m.away_team||'').replace(/'/g,"\\'")}',${m.home_score||0},${m.away_score||0})">Score</button>
         <button class="btn btn-sm btn-danger" onclick="doDeleteMatch('${md.id}','${m.id}')">X</button>
       </td>`;
