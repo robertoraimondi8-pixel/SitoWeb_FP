@@ -4713,10 +4713,19 @@ async def dashboard_stats(user=Depends(require_permission("admin.dashboard.view"
 
     # --- Leagues KPI ---
     total_leagues = await leagues_col.count_documents({})
-    # At-risk: no owner or no admin at all
-    all_leagues_list = await leagues_col.find({}, {"_id": 0, "id": 1, "name": 1, "owner_id": 1}).to_list(500)
+    # At-risk: only private custom/manual leagues (not national, not private-national)
+    all_leagues_list = await leagues_col.find(
+        {}, {"_id": 0, "id": 1, "name": 1, "owner_id": 1, "league_type": 1, "match_source_type": 1}
+    ).to_list(500)
     at_risk_leagues = []
     for lg in all_leagues_list:
+        # Skip national league from risk checks (system-owned)
+        if lg.get("league_type") == "national":
+            continue
+        # Skip private leagues with match_source_type=national (no console admin by design)
+        if lg.get("match_source_type") == "national":
+            continue
+        # Only check private custom/manual/api leagues
         if not lg.get("owner_id"):
             at_risk_leagues.append({"id": lg["id"], "name": lg["name"], "reason": "Nessun owner"})
             continue
