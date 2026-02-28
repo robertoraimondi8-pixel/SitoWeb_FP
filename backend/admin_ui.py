@@ -1860,6 +1860,13 @@ async function doMdDelete(mdId, isOverride) {
 // IMPORT FIXTURES FROM API
 // ========================================
 function renderMdcrImport(md) {
+  // Pre-populate dates: today → +7 days
+  const today = new Date();
+  const nextWeek = new Date(today);
+  nextWeek.setDate(today.getDate() + 7);
+  const fmtDate = d => d.toISOString().split('T')[0];
+  const fromDate = fmtDate(today);
+  const toDate = fmtDate(nextWeek);
   return `
     <h4 style="color:#F5A623;margin-bottom:12px;font-size:14px">Importa Partite Reali</h4>
     <p style="color:#94A3B8;font-size:12px;margin-bottom:12px">Cerca partite reali da API-Football e importale nella giornata.</p>
@@ -1876,11 +1883,11 @@ function renderMdcrImport(md) {
       </div>
       <div style="flex:1">
         <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Da</label>
-        <input id="imp-from" type="date" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="import-from">
+        <input id="imp-from" type="date" value="${fromDate}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="import-from">
       </div>
       <div style="flex:1">
         <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">A</label>
-        <input id="imp-to" type="date" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="import-to">
+        <input id="imp-to" type="date" value="${toDate}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="import-to">
       </div>
       <div style="flex:0">
         <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">&nbsp;</label>
