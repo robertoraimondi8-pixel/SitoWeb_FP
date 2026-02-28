@@ -252,20 +252,18 @@ export default function PredictionsScreen() {
   );
 
   // Smart redirect: se stato è LIVE o COMPLETED, naviga alla schermata Live
-  // Usa replace (non push) per evitare loop back→predictions→redirect→live
-  useFocusEffect(
-    useCallback(() => {
-      if (!data?.matchday || redirectedRef.current) return;
-      const status = data.matchday.status?.toUpperCase();
-      if (status === 'LIVE' || status === 'COMPLETED') {
-        redirectedRef.current = true;
-        const leagueId = leagueInfo?.id || '';
-        const matchdayId = data.matchday.id;
-        const qs = leagueId ? `?league_id=${leagueId}` : '';
-        router.replace(`/live/${matchdayId}${qs}` as Href);
-      }
-    }, [data?.matchday, leagueInfo, router])
-  );
+  // useEffect (non useFocusEffect) per reagire ai cambi di data
+  useEffect(() => {
+    if (!data?.matchday || redirectedRef.current) return;
+    const status = data.matchday.status?.toUpperCase();
+    if (status === 'LIVE' || status === 'COMPLETED') {
+      redirectedRef.current = true;
+      const leagueId = leagueInfo?.id || '';
+      const matchdayId = data.matchday.id;
+      const qs = leagueId ? `?league_id=${leagueId}` : '';
+      router.replace(`/live/${matchdayId}${qs}` as Href);
+    }
+  }, [data?.matchday, leagueInfo, router]);
 
   const setMarket = (matchId: string, market: string) => {
     setPreds(prev => ({
