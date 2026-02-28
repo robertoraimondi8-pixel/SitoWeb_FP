@@ -1,0 +1,76 @@
+{
+  "summary": "Matchday KPI Navigation Bug Fix Testing - All tests PASSED. Feature: When clicking a matchday status KPI on dashboard (DRAFT/OPEN/LOCKED/LIVE/COMPLETED), the user is redirected to Matchdays page with 'Tutte le leghe' (All leagues) auto-selected and status filter pre-applied. Previously only national league matchdays were loaded.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_api_tests": {
+      "GET /api/admin/matchdays?league_id=all": "PASS - Returns 63 matchdays (all leagues: 6 DRAFT, 2 OPEN, 10 LOCKED, 0 LIVE, 45 COMPLETED)",
+      "GET /api/admin/matchdays (no league_id)": "PASS - Returns 24 matchdays (national league only: 0 DRAFT, 1 OPEN, 0 LOCKED, 0 LIVE, 23 COMPLETED)",
+      "GET /api/rbac/dashboard-stats": "PASS - Dashboard KPIs show: DRAFT=6, OPEN=2, LOCKED=10, LIVE=0, COMPLETED=45"
+    },
+    "dashboard_kpi_navigation": {
+      "LOCKED_KPI_click": "PASS - Navigates to Matchdays with league='all' (Tutte le leghe) and status='LOCKED', shows 10 matchdays",
+      "OPEN_KPI_click": "PASS - Navigates to Matchdays with league='all' and status='OPEN', shows 2 matchdays",
+      "DRAFT_KPI_click": "PASS - Navigates to Matchdays with league='all' and status='DRAFT', shows 6 matchdays",
+      "COMPLETED_KPI_click": "PASS - Navigates to Matchdays with league='all' and status='COMPLETED', shows 45 matchdays"
+    },
+    "sidebar_navigation": {
+      "direct_sidebar_click": "PASS - Navigates to Matchdays with league='f1373417-43aa-4043-b6a2-125873181c95' (Lega Nazionale FantaPronostic), NOT 'all'"
+    },
+    "tutte_le_leghe_behavior": {
+      "league_selector_option": "PASS - 'Tutte le leghe' (value='all') is first option in dropdown",
+      "global_view_message": "PASS - When 'Tutte le leghe' selected, shows 'Vista globale: seleziona una lega specifica per creare giornate' instead of create form",
+      "all_matchdays_displayed": "PASS - With 'Tutte le leghe' and no status filter, shows all 63 matchdays"
+    },
+    "league_selector_functionality": {
+      "change_to_specific_league": "PASS - Changing to specific league loads only that league's matchdays",
+      "create_form_visibility": "PASS - Create form shown for specific leagues (national/custom), hidden for 'Tutte le leghe'"
+    }
+  },
+  "verified_features": [
+    "Login to admin panel at /api/admin-ui with admin@fantapronostic.com / admin123",
+    "Dashboard shows matchday KPIs (Bozza=6, Open=2, Locked=10, Live=0, Completate=45) with correct counts",
+    "Click on LOCKED KPI → navigates to Matchdays with league='all' and status='LOCKED', showing 10 LOCKED matchdays",
+    "Click on OPEN KPI → navigates to Matchdays with league='all' and status='OPEN', showing 2 OPEN matchdays",
+    "Click on DRAFT (Bozza) KPI → navigates to Matchdays with league='all' and status='DRAFT', showing 6 DRAFT matchdays",
+    "Click on COMPLETED KPI → navigates to Matchdays with league='all' and status='COMPLETED', showing 45 COMPLETED matchdays",
+    "Direct sidebar navigation to Matchdays defaults to national league (NOT 'Tutte le leghe')",
+    "Changing league selector to specific league loads only that league's matchdays",
+    "When 'Tutte le leghe' is selected, create form shows 'Vista globale: seleziona una lega specifica per creare giornate' message",
+    "Backend API: GET /api/admin/matchdays?league_id=all returns all 63 matchdays across all leagues",
+    "Backend API: GET /api/admin/matchdays (no league_id) returns only 24 national league matchdays"
+  ],
+  "test_report_links": [
+    "/app/test_reports/iteration_57.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Code correctly implements the fix: When statusFilter is set (from dashboard KPI click), league selector defaults to 'all'",
+    "The defaultAll variable at line 1411 (const defaultAll = !!statusFilter;) correctly determines when to select 'Tutte le leghe'",
+    "Backend API correctly handles league_id='all' by not adding league_id filter to query (line 3468-3472 in server.py)",
+    "data-testid attributes properly set: md-league-selector, md-status-filter"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (All API tests passed)",
+    "frontend": "100% (All UI tests passed)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123"
+  },
+  "seed_data_creation": "None - used existing data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Bug fix verified: Dashboard KPI navigation to Matchdays now correctly selects 'Tutte le leghe' (all leagues) option with status filter pre-applied. Key test-ids: md-league-selector, md-status-filter. The navigateWith() JavaScript function passes status filter which triggers defaultAll=true in render_matchdays(), causing league selector to default to 'all' value. Direct sidebar navigation still defaults to national league as expected.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
