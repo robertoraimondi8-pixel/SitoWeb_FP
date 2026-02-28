@@ -614,6 +614,14 @@ function filterUsers() {
   else if (roleFilter === '__norole__') filtered = filtered.filter(u => !u.roles || u.roles.length === 0);
   else if (roleFilter === '__disabled__') filtered = filtered.filter(u => u.is_disabled);
   else if (roleFilter === '__deleted__') filtered = filtered.filter(u => u.is_deleted);
+  else if (roleFilter === '__new_7d__') {
+    const sevenDaysAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString();
+    filtered = filtered.filter(u => u.created_at && u.created_at >= sevenDaysAgo);
+  }
+  else if (roleFilter === '__login_24h__') {
+    const oneDayAgo = new Date(Date.now() - 24*60*60*1000).toISOString();
+    filtered = filtered.filter(u => u.last_login && u.last_login >= oneDayAgo);
+  }
   else if (roleFilter) filtered = filtered.filter(u => u.role_ids && u.role_ids.includes(roleFilter));
   renderUsersTable(filtered);
 }
