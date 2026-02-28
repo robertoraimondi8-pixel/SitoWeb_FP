@@ -589,6 +589,11 @@ async function render_users() {
       </div>`;
 
     renderUsersTable(users.filter(u => !u.is_deleted));
+    // Apply pending filter from dashboard navigation
+    if (pendingFilter) {
+      document.getElementById('user-role-filter').value = pendingFilter;
+      filterUsers();
+    }
   } catch(e) { showToast(e.message, 'error'); }
 }
 
