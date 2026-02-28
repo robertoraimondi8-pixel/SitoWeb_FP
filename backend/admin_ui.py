@@ -385,8 +385,8 @@ async function render_dashboard() {
     const alarms = [];
     const noOwner = (d.leagues.at_risk || []).filter(l => l.reason.includes('owner'));
     const noAdmin = (d.leagues.at_risk || []).filter(l => l.reason.includes('admin'));
-    if (noOwner.length > 0) alarms.push({icon:'!', color:'#EF4444', text:`${noOwner.length} leghe senza owner`, action:()=>"navigateWith('leagues',{risk:'no_owner'})"});
-    if (noAdmin.length > 0) alarms.push({icon:'!', color:'#F59E0B', text:`${noAdmin.length} leghe senza admin`, action:()=>"navigateWith('leagues',{risk:'no_admin'})"});
+    if (noOwner.length > 0) alarms.push({icon:'!', color:'#EF4444', text:`${noOwner.length} leghe private senza owner`, action:()=>"navigateWith('leagues',{risk:'no_owner'})"});
+    if (noAdmin.length > 0) alarms.push({icon:'!', color:'#F59E0B', text:`${noAdmin.length} leghe custom senza admin lega`, action:()=>"navigateWith('leagues',{risk:'no_admin'})"});
     if ((d.payments.pending_count || 0) > 0) alarms.push({icon:'$', color:'#F59E0B', text:`${d.payments.pending_count} pagamenti pending`, action:()=>"navigateWith('payments',{status:'pending'})"});
     const openMd = d.matchdays.OPEN || 0;
     const liveMd = d.matchdays.LIVE || 0;
