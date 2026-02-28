@@ -4901,6 +4901,244 @@ async def toggle_user_status(user_id: str, request: Request, user=Depends(requir
     return {"user_id": user_id, "is_disabled": new_status}
 
 
+@rbac_router.get("/users/{user_id}/leagues")
+async def get_user_leagues(user_id: str, user=Depends(require_permission("admin.users.manage"))):
+    """Get detailed league info for a user."""
+    target = await users_col.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    if not target:
+        raise HTTPException(404, "Utente non trovato")
+
+    memberships = await memberships_col.find(
+        {"user_id": user_id, "status": "active"}, {"_id": 0}
+    ).to_list(500)
+    league_ids = [m["league_id"] for m in memberships]
+    leagues = {l["id"]: l for l in await leagues_col.find(
+        {"id": {"$in": league_ids}}, {"_id": 0}
+    ).to_list(500)}
+
+    result = []
+    for m in memberships:
+        lg = leagues.get(m["league_id"])
+        if not lg:
+            continue
+        result.append({
+            "league_id": lg["id"],
+            "league_name": lg["name"],
+            "league_type": lg.get("league_type", ""),
+            "membership_role": m.get("role", "member"),
+            "is_owner": lg.get("owner_id") == user_id,
+            "is_creator": lg.get("created_by") == user_id,
+            "joined_at": m.get("joined_at"),
+        })
+    return result
+
+
+@rbac_router.put("/users/{user_id}/soft-delete")
+async def soft_delete_user(user_id: str, request: Request, user=Depends(require_permission("admin.users.manage"))):
+    """Soft-delete a user. Blocks if user is sole owner/admin of any league."""
+    target = await users_col.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    if not target:
+        raise HTTPException(404, "Utente non trovato")
+    if target.get("is_deleted"):
+        raise HTTPException(400, "Utente già eliminato")
+    if user_id == user["id"]:
+        raise HTTPException(400, "Non puoi eliminare il tuo account")
+    if target.get("is_super_admin"):
+        raise HTTPException(403, "Non puoi eliminare un super admin")
+
+    # Check if user is sole owner/admin of any league
+    orphan_leagues = []
+    owned_leagues = await leagues_col.find(
+        {"owner_id": user_id}, {"_id": 0, "id": 1, "name": 1}
+    ).to_list(500)
+    for lg in owned_leagues:
+        # Check if there's another admin for this league
+        other_admins = await memberships_col.count_documents({
+            "league_id": lg["id"],
+            "user_id": {"$ne": user_id},
+            "role": {"$in": ["admin", "owner"]},
+            "status": "active"
+        })
+        if other_admins == 0:
+            orphan_leagues.append({"id": lg["id"], "name": lg["name"]})
+
+    if orphan_leagues:
+        raise HTTPException(409, detail={
+            "message": "L'utente è l'unico admin/owner di queste leghe. Trasferisci la ownership prima di eliminare.",
+            "orphan_leagues": orphan_leagues
+        })
+
+    await users_col.update_one({"id": user_id}, {"$set": {
+        "is_deleted": True,
+        "is_disabled": True,
+        "deleted_at": now_utc(),
+        "deleted_by": user["id"],
+    }})
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "SOFT_DELETE", "user", user_id,
+        {"target_username": target["username"], "target_email": target["email"]},
+        actor_roles=user.get("role_ids", []), ip=ip,
+        before={"is_deleted": False}, after={"is_deleted": True}
+    )
+    return {"user_id": user_id, "is_deleted": True}
+
+
+@rbac_router.get("/leagues")
+async def rbac_list_leagues(user=Depends(require_permission("admin.leagues.manage"))):
+    """List all leagues with owner, admins, and member counts."""
+    leagues = await leagues_col.find({}, {"_id": 0}).sort("name", 1).to_list(500)
+    result = []
+    for lg in leagues:
+        member_count = await memberships_col.count_documents({"league_id": lg["id"], "status": "active"})
+        admins = await memberships_col.find(
+            {"league_id": lg["id"], "role": {"$in": ["admin", "owner"]}, "status": "active"},
+            {"_id": 0, "user_id": 1, "role": 1}
+        ).to_list(50)
+        admin_ids = [a["user_id"] for a in admins]
+        admin_users = {u["id"]: u async for u in users_col.find(
+            {"id": {"$in": admin_ids}}, {"_id": 0, "id": 1, "username": 1, "email": 1}
+        )}
+        owner = None
+        if lg.get("owner_id"):
+            ow = await users_col.find_one({"id": lg["owner_id"]}, {"_id": 0, "id": 1, "username": 1, "email": 1})
+            if ow:
+                owner = {"id": ow["id"], "username": ow["username"], "email": ow["email"]}
+        admin_list = []
+        for a in admins:
+            u = admin_users.get(a["user_id"])
+            if u:
+                admin_list.append({"id": u["id"], "username": u["username"], "email": u["email"], "role": a["role"]})
+        result.append({
+            "id": lg["id"],
+            "name": lg["name"],
+            "league_type": lg.get("league_type", ""),
+            "invite_code": lg.get("invite_code"),
+            "owner": owner,
+            "admins": admin_list,
+            "member_count": member_count,
+            "created_at": lg.get("created_at"),
+        })
+    return result
+
+
+@rbac_router.put("/leagues/{league_id}/transfer-owner")
+async def transfer_league_owner(league_id: str, request: Request, user=Depends(require_permission("admin.leagues.manage"))):
+    """Transfer league ownership to another member."""
+    body = await request.json()
+    new_owner_id = body.get("new_owner_id")
+    if not new_owner_id:
+        raise HTTPException(400, "new_owner_id richiesto")
+
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+
+    new_owner = await users_col.find_one({"id": new_owner_id}, {"_id": 0, "password": 0})
+    if not new_owner:
+        raise HTTPException(404, "Nuovo owner non trovato")
+
+    # Ensure new owner is a member
+    membership = await memberships_col.find_one({"league_id": league_id, "user_id": new_owner_id, "status": "active"})
+    if not membership:
+        raise HTTPException(400, "Il nuovo owner deve essere membro della lega")
+
+    old_owner_id = league.get("owner_id")
+
+    # Update league owner
+    await leagues_col.update_one({"id": league_id}, {"$set": {"owner_id": new_owner_id}})
+
+    # Update membership roles
+    if old_owner_id:
+        await memberships_col.update_one(
+            {"league_id": league_id, "user_id": old_owner_id, "status": "active"},
+            {"$set": {"role": "admin"}}
+        )
+    await memberships_col.update_one(
+        {"league_id": league_id, "user_id": new_owner_id, "status": "active"},
+        {"$set": {"role": "owner"}}
+    )
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "TRANSFER_OWNER", "league", league_id,
+        {"league_name": league["name"], "new_owner": new_owner["username"]},
+        actor_roles=user.get("role_ids", []), ip=ip,
+        before={"owner_id": old_owner_id}, after={"owner_id": new_owner_id}
+    )
+    return {"league_id": league_id, "new_owner_id": new_owner_id}
+
+
+@rbac_router.put("/leagues/{league_id}/admins")
+async def manage_league_admins(league_id: str, request: Request, user=Depends(require_permission("admin.leagues.manage"))):
+    """Add or remove a league admin."""
+    body = await request.json()
+    target_user_id = body.get("user_id")
+    action = body.get("action")  # "add" or "remove"
+    if not target_user_id or action not in ("add", "remove"):
+        raise HTTPException(400, "user_id e action ('add'|'remove') richiesti")
+
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+
+    membership = await memberships_col.find_one({"league_id": league_id, "user_id": target_user_id, "status": "active"})
+    if not membership:
+        raise HTTPException(400, "L'utente deve essere membro della lega")
+
+    # Cannot change owner role via this endpoint
+    if league.get("owner_id") == target_user_id:
+        raise HTTPException(400, "Non puoi modificare il ruolo del proprietario. Usa 'Trasferisci Ownership'.")
+
+    new_role = "admin" if action == "add" else "member"
+    old_role = membership.get("role", "member")
+    await memberships_col.update_one(
+        {"league_id": league_id, "user_id": target_user_id, "status": "active"},
+        {"$set": {"role": new_role}}
+    )
+
+    target = await users_col.find_one({"id": target_user_id}, {"_id": 0, "id": 1, "username": 1})
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], f"LEAGUE_ADMIN_{action.upper()}", "league", league_id,
+        {"league_name": league["name"], "target_user": target["username"] if target else target_user_id},
+        actor_roles=user.get("role_ids", []), ip=ip,
+        before={"role": old_role}, after={"role": new_role}
+    )
+    return {"league_id": league_id, "user_id": target_user_id, "new_role": new_role}
+
+
+@rbac_router.get("/leagues/{league_id}/members")
+async def get_league_members(league_id: str, user=Depends(require_permission("admin.leagues.manage"))):
+    """Get all members of a league."""
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+
+    members = await memberships_col.find(
+        {"league_id": league_id, "status": "active"}, {"_id": 0}
+    ).to_list(1000)
+    user_ids = [m["user_id"] for m in members]
+    users_map = {u["id"]: u async for u in users_col.find(
+        {"id": {"$in": user_ids}}, {"_id": 0, "id": 1, "username": 1, "email": 1}
+    )}
+
+    result = []
+    for m in members:
+        u = users_map.get(m["user_id"])
+        if u:
+            result.append({
+                "user_id": u["id"],
+                "username": u["username"],
+                "email": u["email"],
+                "role": m.get("role", "member"),
+                "is_owner": league.get("owner_id") == u["id"],
+                "joined_at": m.get("joined_at"),
+            })
+    return result
+
+
 # ========================================
 # INCLUDE ROUTERS
 # ========================================
