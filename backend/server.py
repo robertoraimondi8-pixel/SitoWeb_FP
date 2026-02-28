@@ -4851,6 +4851,12 @@ async def set_super_admin(user_id: str, req: SetSuperAdminRequest, request: Requ
     if user_id == user["id"] and not req.is_super_admin:
         raise HTTPException(400, "Non puoi rimuovere il tuo status di super admin")
 
+    # Protect last super admin
+    if not req.is_super_admin and target.get("is_super_admin"):
+        sa_count = await users_col.count_documents({"is_super_admin": True})
+        if sa_count <= 1:
+            raise HTTPException(400, "Non puoi rimuovere l'ultimo super admin")
+
     before_val = target.get("is_super_admin", False)
     await users_col.update_one({"id": user_id}, {"$set": {"is_super_admin": req.is_super_admin}})
 
@@ -4862,6 +4868,34 @@ async def set_super_admin(user_id: str, req: SetSuperAdminRequest, request: Requ
         before={"is_super_admin": before_val}, after={"is_super_admin": req.is_super_admin}
     )
     return {"user_id": user_id, "is_super_admin": req.is_super_admin}
+
+
+@rbac_router.put("/users/{user_id}/status")
+async def toggle_user_status(user_id: str, request: Request, user=Depends(require_permission("admin.users.manage"))):
+    """Disable or enable a user account."""
+    target = await users_col.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    if not target:
+        raise HTTPException(404, "Utente non trovato")
+
+    # Cannot disable yourself
+    if user_id == user["id"]:
+        raise HTTPException(400, "Non puoi disabilitare il tuo account")
+
+    # Cannot disable a super_admin (unless you are super_admin)
+    if target.get("is_super_admin") and not user.get("is_super_admin"):
+        raise HTTPException(403, "Non puoi disabilitare un super admin")
+
+    new_status = not target.get("is_disabled", False)
+    await users_col.update_one({"id": user_id}, {"$set": {"is_disabled": new_status}})
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "TOGGLE_STATUS", "user", user_id,
+        {"target_username": target["username"], "is_disabled": new_status},
+        actor_roles=user.get("role_ids", []), ip=ip,
+        before={"is_disabled": target.get("is_disabled", False)}, after={"is_disabled": new_status}
+    )
+    return {"user_id": user_id, "is_disabled": new_status}
 
 
 # ========================================
