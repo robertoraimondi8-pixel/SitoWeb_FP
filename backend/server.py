@@ -4045,8 +4045,8 @@ async def admin_v3_transition(matchday_id: str, body: dict, user=Depends(get_cur
             )
             logger.info(f"[ADMIN_V3] Season {season_id} current_matchday_id → {matchday_id}")
 
-    # Esegui transizione
-    await matchdays_col.update_one({"id": matchday_id}, {"$set": {"status": target_status}})
+    # Esegui transizione (clear any stale status_override)
+    await matchdays_col.update_one({"id": matchday_id}, {"$set": {"status": target_status}, "$unset": {"status_override": ""}})
 
     # Log
     admin_username = user.get("username", user.get("email", "unknown"))
