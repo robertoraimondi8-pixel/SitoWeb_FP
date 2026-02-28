@@ -694,6 +694,7 @@ async function render_users() {
           <option value="__online__">Online ora</option>
           ${roleOpts}
         </select>
+        <button class="btn" onclick="showCreateUserModal()" data-testid="create-user-btn" style="white-space:nowrap">+ Nuovo Utente</button>
       </div>`;
 
     renderUsersTable(users.filter(u => !u.is_deleted));
