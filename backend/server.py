@@ -4769,6 +4769,9 @@ async def dashboard_stats(user=Depends(require_permission("admin.dashboard.view"
         "leagues": {
             "total": total_leagues,
             "at_risk": at_risk_leagues,
+            "national_count": sum(1 for lg in all_leagues_list if lg.get("league_type") == "national"),
+            "private_custom_count": sum(1 for lg in all_leagues_list if lg.get("league_type") != "national" and lg.get("match_source_type") != "national"),
+            "private_national_count": sum(1 for lg in all_leagues_list if lg.get("league_type") != "national" and lg.get("match_source_type") == "national"),
         },
         "matchdays": md_statuses,
         "payments": {
