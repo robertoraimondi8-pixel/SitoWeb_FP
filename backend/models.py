@@ -151,6 +151,7 @@ class MatchdayCreate(BaseModel):
     half: int = Field(ge=1, le=2)
     first_kickoff: Optional[str] = None  # Auto-computed from matches
     status: str = "DRAFT"
+    league_id: Optional[str] = None
 
 
 class MatchdayResponse(BaseModel):
