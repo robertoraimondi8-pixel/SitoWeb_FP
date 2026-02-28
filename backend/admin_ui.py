@@ -2397,6 +2397,10 @@ async function doLeagueDelete(leagueId, isOverride) {
     render_leagues();
   } catch(e) { showToast(e.message, 'error'); }
 }
+
+// ========================================
+// PAYMENTS (existing)
+// ========================================
 async function render_payments() {
   if (!hasPerm('admin.payments.view')) { render_forbidden(); return; }
   const statusFilter = navFilter.status || '';
