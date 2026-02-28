@@ -1407,9 +1407,10 @@ async function render_matchdays() {
   allLeaguesCache = leagues;
   const seasonOpts = seasons.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
-  // League selector: default to national
-  const leagueOpts = leagues.map(l => {
-    const sel = l.league_type === 'national' ? 'selected' : '';
+  // League selector: default to "all" if status filter from dashboard, else national
+  const defaultAll = !!statusFilter;
+  const leagueOpts = `<option value="all" ${defaultAll ? 'selected' : ''}>Tutte le leghe</option>` + leagues.map(l => {
+    const sel = !defaultAll && l.league_type === 'national' ? 'selected' : '';
     const src = l.match_source_type === 'national' ? ' (eredita naz.)' : l.match_source_type === 'custom' ? ' (custom)' : '';
     return `<option value="${l.id}" ${sel}>${l.name}${src}</option>`;
   }).join('');
