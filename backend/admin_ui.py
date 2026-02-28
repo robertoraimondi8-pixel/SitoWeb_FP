@@ -1154,15 +1154,43 @@ async function toggleLeagueAdmin(leagueId, userId, action) {
 // ========================================
 async function render_payments() {
   if (!hasPerm('admin.payments.view')) { render_forbidden(); return; }
+  const statusFilter = navFilter.status || '';
+  navFilter = {};
   const payments = await apiCall('/admin/payments');
-  let html = '<h2>Pagamenti Stripe</h2><table><tr><th>Data</th><th>Utente</th><th>Importo</th><th>Stato</th><th>Session</th></tr>';
+  let filtered = payments;
+  if (statusFilter === 'pending') filtered = payments.filter(p => p.payment_status !== 'paid');
+
+  let filterHtml = `<div class="card"><div class="form-row">
+    <select id="pay-filter" onchange="filterPayments()" data-testid="pay-status-filter">
+      <option value="">Tutti</option>
+      <option value="pending" ${statusFilter==='pending'?'selected':''}>Pending</option>
+      <option value="paid">Pagati</option>
+    </select>
+  </div></div>`;
+
+  let html = '<h2>Pagamenti Stripe</h2>' + filterHtml + '<div id="payments-table"></div>';
+  document.getElementById('content').innerHTML = html;
+  window._allPayments = payments;
+  renderPaymentsTable(filtered);
+}
+
+function filterPayments() {
+  const sf = document.getElementById('pay-filter').value;
+  let filtered = window._allPayments || [];
+  if (sf === 'pending') filtered = filtered.filter(p => p.payment_status !== 'paid');
+  else if (sf === 'paid') filtered = filtered.filter(p => p.payment_status === 'paid');
+  renderPaymentsTable(filtered);
+}
+
+function renderPaymentsTable(payments) {
+  let html = '<table><tr><th>Data</th><th>Utente</th><th>Importo</th><th>Stato</th><th>Session</th></tr>';
   payments.forEach(p => {
     html += `<tr><td>${new Date(p.created_at).toLocaleString('it')}</td><td>${p.user_id}</td>
     <td>${p.amount} ${p.currency}</td><td><span class="status-badge status-${p.payment_status=='paid'?'finished':'scheduled'}">${p.payment_status}</span></td>
     <td style="font-size:11px">${p.session_id||''}</td></tr>`;
   });
   html += '</table>';
-  document.getElementById('content').innerHTML = html;
+  document.getElementById('payments-table').innerHTML = html;
 }
 
 // ========================================
