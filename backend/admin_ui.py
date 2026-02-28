@@ -191,6 +191,8 @@ async function doLogin() {
 }
 
 const MENU_ITEMS = [
+  {section: 'PANORAMICA'},
+  {id:'dashboard', label:'Dashboard', perm:'admin.dashboard.view'},
   {section: 'GESTIONE GIOCO'},
   {id:'seasons', label:'Stagioni', perm:'admin.seasons.manage'},
   {id:'matchdays', label:'Giornate', perm:'admin.matchdays.manage'},
