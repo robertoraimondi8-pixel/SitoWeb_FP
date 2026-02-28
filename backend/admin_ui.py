@@ -156,8 +156,12 @@ async function doLogin() {
     localStorage.setItem('admin_perms', JSON.stringify(userPerms));
     localStorage.setItem('admin_is_super', isSuperAdmin.toString());
     if (!hasPerm('admin.dashboard.view')) {
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_perms');
+      localStorage.removeItem('admin_is_super');
+      token = null; userPerms = []; isSuperAdmin = false;
+      renderLogin();
       document.getElementById('login-err').textContent = 'Accesso non autorizzato al pannello admin';
-      doLogout();
       return;
     }
     renderDashboard();
