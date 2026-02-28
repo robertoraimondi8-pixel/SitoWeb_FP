@@ -1568,6 +1568,35 @@ async function updateAvailableNumbers() {
   }
 }
 
+async function populateMdcrEditNumber() {
+  const sel = document.getElementById('mdcr-edit-number');
+  if (!sel) return;
+  const lid = sel.dataset.league;
+  const current = parseInt(sel.dataset.current) || 0;
+  const mdId = sel.dataset.mdid;
+  try {
+    const mds = await apiCall('/admin/matchdays?league_id=' + lid);
+    const used = new Set(mds.filter(m => m.id !== mdId).map(m => m.number));
+    sel.innerHTML = '';
+    for (let i = 1; i <= 38; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      if (i === current) { opt.selected = true; opt.text = 'G' + i + ' (attuale)'; }
+      else if (used.has(i)) { opt.disabled = true; opt.text = 'G' + i + ' (usato)'; opt.style.color = '#64748B'; }
+      else { opt.text = 'G' + i; }
+      sel.appendChild(opt);
+    }
+  } catch(e) {
+    sel.innerHTML = '';
+    for (let i = 1; i <= 38; i++) {
+      const o = document.createElement('option');
+      o.value = i; o.text = 'G' + i;
+      if (i === current) o.selected = true;
+      sel.appendChild(o);
+    }
+  }
+}
+
 async function saveMdEdit(mdId) {
   try {
     const num = parseInt(document.getElementById('mdcr-edit-number').value);
