@@ -4755,6 +4755,7 @@ async def dashboard_stats(user=Depends(require_permission("admin.dashboard.view"
             "deleted": deleted_users,
             "new_7d": new_users_7d,
             "recent_logins_24h": recent_logins,
+            "online": online_users,
         },
         "leagues": {
             "total": total_leagues,
