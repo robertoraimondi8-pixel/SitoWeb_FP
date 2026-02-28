@@ -309,14 +309,17 @@ async function render_dashboard() {
     }
     html += '</div>';
 
-    // === UTENTI ===
+    // === UTENTI (U1: clickable KPIs + online indicator) ===
+    const onlineCount = d.users.online || 0;
+    const onlineDot = onlineCount > 0 ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;margin-right:6px;animation:pulse 1.5s infinite"></span>' : '';
     html += `<div class="card" data-testid="kpi-users">
       <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Utenti</h3>
       <div class="counter-row">
-        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('users',{})"><div class="num">${d.users.total}</div><div class="label">Attivi</div></div>
-        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('users',{filter:'__disabled__'})"><div class="num" style="color:#6B7280">${d.users.disabled}</div><div class="label">Disabilitati</div></div>
-        <div class="counter-box"><div class="num" style="color:#10B981">${d.users.new_7d}</div><div class="label">Nuovi 7gg</div></div>
-        <div class="counter-box"><div class="num" style="color:#3B82F6">${d.users.recent_logins_24h}</div><div class="label">Login 24h</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('users',{})" data-testid="kpi-users-total"><div class="num">${d.users.total}</div><div class="label">Attivi</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('users',{filter:'__disabled__'})" data-testid="kpi-users-disabled"><div class="num" style="color:#6B7280">${d.users.disabled}</div><div class="label">Disabilitati</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('users',{filter:'__new_7d__'})" data-testid="kpi-users-new7d"><div class="num" style="color:#10B981">${d.users.new_7d}</div><div class="label">Nuovi 7gg</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('users',{filter:'__login_24h__'})" data-testid="kpi-users-login24h"><div class="num" style="color:#3B82F6">${d.users.recent_logins_24h}</div><div class="label">Login 24h</div></div>
+        <div class="counter-box" style="border-color:${onlineCount > 0 ? '#10B981' : '#334155'}" title="Utenti con attivita negli ultimi 5 minuti" data-testid="kpi-users-online"><div class="num" style="color:#10B981">${onlineDot}${onlineCount}</div><div class="label">Online ora</div></div>
       </div>
     </div>`;
 
