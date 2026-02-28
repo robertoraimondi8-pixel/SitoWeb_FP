@@ -1684,6 +1684,16 @@ async function renderMdcrInfo(md, canManage) {
       <div><span style="color:#94A3B8">Kickoff:</span> <strong>${kickoff}</strong></div>
       <div><span style="color:#94A3B8">Meta:</span> ${md.half==1?'Andata':'Ritorno'}</div>
     </div>
+    ${canManage ? `
+    <h4 style="color:#F5A623;margin:16px 0 8px;font-size:14px">Modifica</h4>
+    <div class="form-row" style="margin:0;align-items:center">
+      <label style="color:#94A3B8;font-size:12px;min-width:60px">Numero</label>
+      <input id="mdcr-edit-number" type="number" min="1" value="${md.number||''}" style="width:80px" data-testid="mdcr-edit-number">
+      <label style="color:#94A3B8;font-size:12px;min-width:60px;margin-left:12px">Etichetta</label>
+      <input id="mdcr-edit-label" value="${md.label||''}" style="flex:1" data-testid="mdcr-edit-label">
+      <button class="btn btn-sm" onclick="saveMdEdit('${md.id}')" data-testid="mdcr-save-btn">Salva</button>
+    </div>
+    ` : ''}
     ${canManage && nextStates.length > 0 ? `
     <h4 style="color:#F5A623;margin:16px 0 8px;font-size:14px">Gestione Stato</h4>
     <div style="display:flex;gap:8px;flex-wrap:wrap">${stateButtons}</div>
