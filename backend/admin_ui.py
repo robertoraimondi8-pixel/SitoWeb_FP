@@ -1115,10 +1115,9 @@ async function showCreateLeagueModal() {
   // Fetch seasons for the dropdown
   let seasons = [];
   try {
-    seasons = await apiCall('/leagues/seasons', 'GET', null, true);
+    seasons = await apiCall('/leagues/seasons');
   } catch(e) {
-    // Try alternate endpoint
-    try { seasons = await apiCall('/admin/seasons', 'GET', null, true); } catch(e2) {}
+    try { seasons = await apiCall('/admin/seasons'); } catch(e2) {}
   }
 
   const seasonOpts = seasons.map(s => `<option value="${s.id}">${s.name} (${s.year})</option>`).join('');
