@@ -3650,7 +3650,7 @@ async def admin_delete_matchday(matchday_id: str, admin=Depends(require_permissi
 
 
 @admin_router.get("/matches")
-async def admin_list_matches(matchday_id: str = None, admin=Depends(require_admin)):
+async def admin_list_matches(matchday_id: str = None, admin=Depends(require_permission("admin.matches.manage"))):
     query = {}
     if matchday_id:
         query["matchday_id"] = matchday_id
@@ -3658,7 +3658,7 @@ async def admin_list_matches(matchday_id: str = None, admin=Depends(require_admi
 
 
 @admin_router.post("/matches")
-async def admin_create_match(req: MatchCreate, admin=Depends(require_admin)):
+async def admin_create_match(req: MatchCreate, admin=Depends(require_permission("admin.matches.manage"))):
     # Lookup the matchday to inherit its league_id
     matchday = await matchdays_col.find_one({"id": req.matchday_id}, {"_id": 0, "league_id": 1})
     match_league_id = matchday.get("league_id", NATIONAL_LEAGUE_ID) if matchday else NATIONAL_LEAGUE_ID
@@ -3690,7 +3690,7 @@ async def admin_create_match(req: MatchCreate, admin=Depends(require_admin)):
 
 
 @admin_router.put("/matches/{match_id}")
-async def admin_update_match(match_id: str, req: MatchUpdate, admin=Depends(require_admin)):
+async def admin_update_match(match_id: str, req: MatchUpdate, admin=Depends(require_permission("admin.matches.manage"))):
     updates = {k: v for k, v in req.dict().items() if v is not None}
     if not updates:
         raise HTTPException(400, "No updates")
@@ -3700,7 +3700,7 @@ async def admin_update_match(match_id: str, req: MatchUpdate, admin=Depends(requ
 
 
 @admin_router.delete("/matches/{match_id}")
-async def admin_delete_match(match_id: str, admin=Depends(require_admin)):
+async def admin_delete_match(match_id: str, admin=Depends(require_permission("admin.matches.manage"))):
     """Elimina una partita e tutti i pronostici associati."""
     match = await matches_col.find_one({"id": match_id})
     if not match:
@@ -3780,7 +3780,7 @@ async def admin_set_special_match(match_id: str, body: dict = {}, user=Depends(g
 
 
 @admin_router.post("/matches/{match_id}/live-update")
-async def admin_live_update(match_id: str, req: LiveUpdateRequest, admin=Depends(require_admin)):
+async def admin_live_update(match_id: str, req: LiveUpdateRequest, admin=Depends(require_permission("admin.matches.manage"))):
     match = await matches_col.find_one({"id": match_id}, {"_id": 0})
     if not match:
         raise HTTPException(404, "Match not found")
@@ -3796,7 +3796,7 @@ async def admin_live_update(match_id: str, req: LiveUpdateRequest, admin=Depends
 
 
 @admin_router.post("/matchdays/{matchday_id}/confirm")
-async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_admin)):
+async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_permission("admin.matchdays.manage"))):
     """Confirm matchday as COMPLETED and calculate final scores (idempotent)."""
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
     if not matchday:
@@ -3871,7 +3871,7 @@ async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_admin))
 
 
 @admin_router.post("/matchdays/{matchday_id}/recalc")
-async def admin_recalc_standings(matchday_id: str, admin=Depends(require_admin)):
+async def admin_recalc_standings(matchday_id: str, admin=Depends(require_permission("admin.matchdays.manage"))):
     """Idempotent recalculation of matchday scores."""
     return await admin_confirm_matchday(matchday_id, admin)
 
@@ -4130,7 +4130,7 @@ async def admin_v3_recalculate(matchday_id: str, body: dict, user=Depends(get_cu
 
 
 @admin_router.get("/audit-logs")
-async def admin_get_audit_logs(limit: int = 50, admin=Depends(require_admin)):
+async def admin_get_audit_logs(limit: int = 50, admin=Depends(require_permission("admin.audit.view"))):
     logs = await audit_logs_col.find({}, {"_id": 0}).sort("created_at", -1).to_list(limit)
     return logs
 
