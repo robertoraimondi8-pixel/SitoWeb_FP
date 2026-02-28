@@ -295,7 +295,6 @@ const MENU_ITEMS = [
   {section: 'GESTIONE GIOCO'},
   {id:'seasons', label:'Stagioni', perm:'admin.seasons.manage'},
   {id:'matchdays', label:'Giornate', perm:'admin.matchdays.manage'},
-  {id:'matches', label:'Partite', perm:'admin.matches.manage'},
   {id:'leagues', label:'Leghe', perm:'admin.leagues.manage'},
   {section: 'AMMINISTRAZIONE'},
   {id:'roles', label:'Ruoli & Permessi', perm:'admin.roles.manage'},
