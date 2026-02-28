@@ -1722,28 +1722,11 @@ async function renderMdcrInfo(md, canManage) {
     <h4 style="color:#F5A623;margin:16px 0 8px;font-size:14px">Modifica</h4>
     <div class="form-row" style="margin:0;align-items:center">
       <label style="color:#94A3B8;font-size:12px;min-width:60px">Numero</label>
-      <select id="mdcr-edit-number" style="width:100px" data-testid="mdcr-edit-number"></select>
+      <select id="mdcr-edit-number" style="width:100px" data-testid="mdcr-edit-number" data-league="${md.league_id||''}" data-current="${md.number||0}" data-mdid="${md.id}"></select>
       <label style="color:#94A3B8;font-size:12px;min-width:60px;margin-left:12px">Etichetta</label>
       <input id="mdcr-edit-label" value="${md.label||''}" style="flex:1" data-testid="mdcr-edit-label">
       <button class="btn btn-sm" onclick="saveMdEdit('${md.id}')" data-testid="mdcr-save-btn">Salva</button>
     </div>
-    <script>
-    (async()=>{
-      const sel=document.getElementById('mdcr-edit-number');
-      const lid='${md.league_id||''}';
-      try{
-        const mds=await apiCall('/admin/matchdays?league_id='+lid);
-        const used=new Set(mds.filter(m=>m.id!=='${md.id}').map(m=>m.number));
-        for(let i=1;i<=38;i++){
-          const opt=document.createElement('option');
-          opt.value=i; opt.text='G'+i;
-          if(i===${md.number||0}) opt.selected=true;
-          else if(used.has(i)) { opt.disabled=true; opt.text='G'+i+' (usato)'; }
-          sel.appendChild(opt);
-        }
-      }catch(e){ for(let i=1;i<=38;i++){const o=document.createElement('option');o.value=i;o.text='G'+i;if(i===${md.number||0})o.selected=true;sel.appendChild(o);} }
-    })();
-    <\/script>
     ` : ''}
     ${canManage ? `
     <h4 style="color:#F5A623;margin:16px 0 8px;font-size:14px">Gestione Stato</h4>
