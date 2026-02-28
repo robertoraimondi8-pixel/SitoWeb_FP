@@ -1544,6 +1544,30 @@ function mdSort(col) {
   filterMatchdays();
 }
 
+async function updateAvailableNumbers() {
+  const sel = document.getElementById('md-num');
+  if (!sel) return;
+  // Determine target league
+  const mainLeague = document.getElementById('md-league').value;
+  const createLeague = document.getElementById('md-create-league');
+  const targetLeagueId = mainLeague === 'all' ? (createLeague ? createLeague.value : '') : mainLeague;
+  if (!targetLeagueId) return;
+  // Fetch matchdays for this league to know used numbers
+  try {
+    const mds = await apiCall('/admin/matchdays?league_id=' + targetLeagueId);
+    const usedNumbers = new Set(mds.map(m => m.number));
+    sel.innerHTML = '<option value="">Giornata...</option>';
+    for (let i = 1; i <= 38; i++) {
+      if (!usedNumbers.has(i)) {
+        sel.innerHTML += `<option value="${i}">G${i}</option>`;
+      }
+    }
+  } catch(e) {
+    sel.innerHTML = '<option value="">Giornata...</option>';
+    for (let i = 1; i <= 38; i++) sel.innerHTML += `<option value="${i}">G${i}</option>`;
+  }
+}
+
 async function saveMdEdit(mdId) {
   try {
     const num = parseInt(document.getElementById('mdcr-edit-number').value);
