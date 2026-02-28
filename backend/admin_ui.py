@@ -1885,9 +1885,23 @@ async function doQuickMatchStatus(mdId, matchId, newStatus) {
 }
 
 async function doMdTransition(mdId, newStatus) {
-  if (!confirm('Cambiare stato a ' + newStatus + '?')) return;
+  const order = ['DRAFT','OPEN','LOCKED','LIVE','COMPLETED'];
+  const md = (window._allMatchdays||[]).find(m => m.id === mdId);
+  const currentIdx = order.indexOf(md ? md.status : '');
+  const targetIdx = order.indexOf(newStatus);
+  const isBackward = targetIdx < currentIdx;
+  const msg = isBackward
+    ? 'ATTENZIONE: stai tornando indietro a ' + newStatus + '. Confermare?'
+    : 'Cambiare stato a ' + newStatus + '?';
+  if (!confirm(msg)) return;
   try {
-    await apiCall('/admin/matchdays/' + mdId, 'PUT', {status: newStatus});
+    if (isBackward) {
+      // Use override for backward transitions
+      const leagueId = md ? md.league_id : document.getElementById('md-league').value;
+      await apiCall('/admin/matchday/' + mdId + '/override', 'POST', {league_id: leagueId, target_status: newStatus});
+    } else {
+      await apiCall('/admin/matchdays/' + mdId, 'PUT', {status: newStatus});
+    }
     showToast('Stato aggiornato: ' + newStatus);
     await loadMatchdays();
     showMdControlRoom(mdId, 'info');
