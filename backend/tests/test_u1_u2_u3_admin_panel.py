@@ -11,7 +11,7 @@ import os
 import hashlib
 from datetime import datetime, timezone, timedelta
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://rbac-enhanced.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://admin-unified-ui.preview.emergentagent.com").rstrip("/")
 
 # Test credentials
 ADMIN_EMAIL = "admin@fantapronostic.com"

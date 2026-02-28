@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 
 BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://rbac-enhanced.preview.emergentagent.com"
+    BASE_URL = "https://admin-unified-ui.preview.emergentagent.com"
 
 # Test credentials
 OWNER_EMAIL = "ilio@raimondi.it"

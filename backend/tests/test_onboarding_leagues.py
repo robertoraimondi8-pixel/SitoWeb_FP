@@ -14,7 +14,7 @@ import pytest
 import requests
 import random
 
-BASE_URL = "https://rbac-enhanced.preview.emergentagent.com"
+BASE_URL = "https://admin-unified-ui.preview.emergentagent.com"
 
 
 @pytest.fixture

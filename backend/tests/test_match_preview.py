@@ -9,7 +9,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://rbac-enhanced.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://admin-unified-ui.preview.emergentagent.com')
 
 # Test credentials
 ADMIN_EMAIL = "admin@fantapronostic.com"

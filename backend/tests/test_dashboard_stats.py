@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://rbac-enhanced.preview.emergentagent.com")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://admin-unified-ui.preview.emergentagent.com")
 
 # Test credentials
 SUPER_ADMIN_EMAIL = "admin@fantapronostic.com"
