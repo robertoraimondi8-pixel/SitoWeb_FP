@@ -1,65 +1,82 @@
 <analysis>**original_problem_statement**:
-The user's initial goal was to complete the in-app notification center. During the session, the scope expanded significantly to include:
-1.  **Notification Click-through**: A bug was reported where clicking on a notification did not navigate to the relevant content.
-2.  **Push Notification System**: The user requested a full push notification system (using Expo Push) to be built, with the understanding that it would be enabled later. The requirements for push notifications included:
-    *   Matchday opened
-    *   24 hours before predictions deadline
-    *   2 hours before deadline (only if the user hasn't submitted predictions)
-    *   Leaderboard updated
-    *   New news item published
-    *   Invite received
-3.  **Change Email Feature**: The user requested the ability for users to change their email address from their profile page, with password confirmation.
-4.  **Statistics Page UI Bug**: A layout bug was reported where the league selection chips were being hidden by the list of matches.
-5.  **Predictions Tab Logic Bug**: A bug was reported where the Predictions tab incorrectly showed a DRAFT matchday instead of the latest active or closed matchday.
+The user wants to progressively enhance the web-based admin panel with advanced governance features. The work is divided into several steps:
+
+1.  **RBAC System (STEP 0 & 1)**: Implement a full Role-Based Access Control (RBAC) system, including backend models (, ), middleware, and a complete web UI for managing roles and assigning them to users.
+2.  **Endpoint Migration (STEP 2A)**: Migrate all existing admin endpoints from a generic  check to the new granular  middleware.
+3.  **User/League Governance**: Enhance the admin UI to provide visibility into user-league relationships (creations, admin roles, memberships), implement safe user deletion (soft delete with orphan-prevention), and allow management of league administrators.
+4.  **Admin Dashboard (STEP 3 & Navigability)**: Create a comprehensive dashboard overview with key performance indicators (KPIs) for users, leagues, matchdays, and payments. Make this dashboard fully interactive with clickable widgets and a Critical Alarms section that navigate to pre-filtered data views.
+5.  **Enhanced User Management (STEP U1, U2, U3)**:
+    *   **U1**: Make user-related KPIs on the dashboard clickable. Add an online users indicator.
+    *   **U2**: Allow super admins to edit user details (, ) from the admin panel.
+    *   **U3**: Implement a feature for admins to generate a secure, time-limited password reset link for users.
 
 **User's preferred language**: Italiano
 
 **what currently exists?**
-The application is stable. The agent successfully completed all tasks and bug fixes requested during the session.
-- The **in-app notification center** is fully functional, including fetching, displaying, marking as read, and navigating on click.
-- The complete **push notification infrastructure** is implemented on both the backend and frontend. This includes API endpoints for token management, a helper for sending notifications via Expo's API, and a background scheduler () for timed reminders. The entire system is currently **disabled** by a  environment flag, ready to be activated upon user request.
-- Users can now **change their email and password** from their profile page, which requires current password confirmation for security.
-- All reported UI and logic bugs have been resolved.
+A comprehensive, backend-rendered web admin panel with a full-featured RBAC system. Key features include:
+*   A complete UI for CRUD operations on roles and permissions.
+*   User management UI for assigning roles, disabling accounts, and safe soft-deletion.
+*   Advanced league governance UI to manage league admins and ownership, preventing orphan leagues.
+*   A responsive, mobile-friendly design with a collapsible sidebar.
+*   An interactive dashboard home page with clickable KPIs and a Critical Alarms section that directs admins to filtered views of users, leagues, matchdays, and payments.
+*   All backend admin endpoints are secured with granular RBAC permissions.
+*   The backend infrastructure (DB models and API endpoints) for the latest user request (Steps U1, U2, U3) has been created but not yet integrated into the UI.
 
 **Last working item**:
--   Last item agent was working: Fixing a bug where the Predictions tab was showing the latest matchday by creation date (a  one) instead of the latest relevant matchday (the most recent , , , or  one).
--   Status: USER VERIFICATION PENDING
--   Agent Testing Done: Y (The agent identified the logic error in the  query and applied a fix to exclude  matchdays from the fallback logic.)
--   Which testing method agent to use? Manual testing by user. The user needs to navigate to the Pronostici tab to confirm the correct matchday (giornata 23) is displayed instead of the draft one (giornata 24).
+-   Last item agent was working: Implementing the backend infrastructure for **STEP U1, U2, and U3** (Enhanced User Management). This involved adding a  collection to the database and creating new API endpoints in  to handle user profile edits, password reset link generation, and fetching enhanced user stats for the dashboard.
+-   Status: IN PROGRESS
+-   Agent Testing Done: N
+-   Which testing method agent to use? Both. First, use a backend testing agent (or ) to validate the newly created endpoints ( PUT,  POST, and  page). Afterwards, use a frontend testing agent to verify the complete UI flow once it's built.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: **(P0) User Verification for Predictions Tab Bug Fix**
-    -   **Description**: The user needs to confirm that the Pronostici tab now correctly displays the latest non-draft matchday after the agent's fix.
-    -   **Status**: USER VERIFICATION PENDING
+-   **Issue 1**: **(P0) Complete User Management Features (U1, U2, U3)**
+    -   **Description**: The backend endpoints for enhancing user management are created, but the frontend UI is missing. The agent needs to build the UI to connect to this new functionality.
+    -   **Status**: IN PROGRESS
+    -   **Is recurring issue?**: N
+    -   **Next debug checklist**:
+        1.  **Test Backend**: First, thoroughly test the new backend endpoints in  to ensure they function correctly (user editing, reset token generation, data validation).
+        2.  **Implement UI (admin_ui.py)**:
+            *   **STEP U1**: Modify  to make Nuovi 7gg and Login 24h cards clickable, passing filters to the users page. Add the Utenti Online metric and a tooltip.
+            *   **STEP U2**: In , add a Details button to open a modal for editing a user's  and . The modal should call the new  endpoint.
+            *   **STEP U3**: Add a Generate Password Reset Link button to the user details modal. This should call  and display the generated URL to the admin for manual sharing.
+        3.  **Implement Public Reset Page**: Implement the logic for the public  page in  to validate the token and allow the user to set a new password.
+    -   **Why fix this issue and what will be achieved with the fix?**: This will complete the user-requested admin governance feature set, giving administrators full and secure control over user accounts.
+    -   **Should Test frontend/backend/both after fix?**: Both.
+    -   **Blocked on other issue**: None.
 
 **In progress Task List**:
--   None.
+-   **Task 1: Complete User Management Features UI (U1, U2, U3)**
+    -   **Where to resume**: Start by testing the new backend endpoints created in . Once confirmed working, proceed to implement the frontend changes in .
+    -   **What will be achieved with this?**: A fully interactive UI for advanced user management in the admin panel.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: Both.
+    -   **Blocked on something**: The application lacks an email service. The password reset feature will work by showing the generated link to the admin, who must then manually send it to the user. This limitation should be communicated.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P0)** Activate Push Notifications: The user has approved the infrastructure and wants to enable it when the app is published to the app stores. The next agent should be prepared to enable this by setting the  environment variable to  in the backend.
+    -   **(P0)** Activate Push Notifications (by setting ).
 -   **Future Tasks**:
-    -   **(P2)** Refactor the frontend rendering condition in .
+    -   **(P1)** Integrate an email service (e.g., SendGrid, Resend) to automate the delivery of password reset links.
+    -   **(P2)** Refactor frontend rendering condition in .
     -   **(P2)** Deploy the web application to a custom domain.
-    -   **(P2)** Prepare and submit the application to the Apple App Store and Google Play Store.
+    -   **(P2)** Prepare and submit the application to app stores.
     -   **(P2)** Implement Championship Winner Predictions Feature.
     -   **(P2)** Integrate Stripe for joining the National League.
     -   **(P2)** Re-enable email verification for user registration.
 
 **Completed work in this session**
--   **Feature: Notification Center Completion**: Finished the in-app notification UI (), making it fully interactive with navigation on click and type-specific icons.
--   **Feature: Push Notification Infrastructure**: Built the entire backend system for Expo push notifications, including token storage ( collection), an Expo API helper, and an  for timed reminders. The system is feature-flagged and currently disabled.
--   **Feature: Change Email Functionality**: Added a new feature in the user profile () allowing users to change their email, secured by password confirmation.
--   **Bug Fix: Password/Email Change Logic**: Corrected a critical bug in both the new  and existing  endpoints where the user's password hash was not being fetched correctly for verification.
--   **Bug Fix: Statistics Page UI**: Resolved a CSS Flexbox issue in  that caused league selection chips to be hidden.
--   **Bug Fix: Predictions Tab Logic**: Fixed the backend logic in  to ensure the Predictions tab displays the correct matchday, excluding drafts.
+-   **Feature: Full RBAC System**: Implemented a complete Role-Based Access Control system with a backend-rendered web UI for managing roles and user assignments (, , ).
+-   **Feature: Admin Endpoint Migration**: Migrated all (~20) legacy admin endpoints to use the new granular  middleware.
+-   **Feature: User & League Governance UI**: Added UI in the admin panel to show user-league affiliations, manage league admins/owners, and implement safe user soft-deletion.
+-   **Bug Fix: Admin Panel Mobile Responsiveness**: Fixed a critical CSS bug making the admin sidebar unusable on mobile by implementing a responsive hamburger menu and overlay.
+-   **Feature: Interactive Admin Dashboard**: Built a comprehensive and fully clickable dashboard with KPIs and Critical Alarms that navigate to pre-filtered data views.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1**: **Dead Code**
-    -   **Debug checklist**: Search for jolly in the codebase, particularly in files like  and related backend logic.
-    -   **Why to solve this issue and what will be achieved with this?**: To reduce technical debt and improve code maintainability by removing obsolete feature code.
-    -   **Should Test frontend/backend/both after fix**: frontend (to ensure no UI regressions)
+-   **Issue 1: Dead Code (jolly)**
+    -   **Debug checklist**: Search for the string jolly in the codebase to identify and remove obsolete feature code.
+    -   **Why to solve this issue and what will be achieved with this?**: Reduce technical debt and improve code clarity.
+    -   **Should Test frontend/backend/both after fix**: Frontend.
     -   **Is recurring issue?**: N
 
 **Known issue recurrence from previous fork**
@@ -69,53 +86,52 @@ The application is stable. The agent successfully completed all tasks and bug fi
 
 
 **Key Technical Concepts**
--   **Push Notifications (Expo)**: Backend infrastructure built to store user tokens and send push notifications via Expo's push API using .
--   **Background Jobs (APScheduler)**: A background scheduler was implemented to run periodically, check for upcoming matchday deadlines, and trigger timed reminder notifications. The scheduler's activation is controlled by an environment variable.
--   **API Security**: Reinforced security by fetching user credentials directly from the database for sensitive operations (email/password changes) instead of relying on token data.
--   **Conditional Feature Implementation**: Used an environment variable () as a feature flag to build and merge the push notification system without activating it in production.
--   **CSS Flexbox**: Debugged and fixed complex UI layout issues by correctly applying , , and fixed  properties.
+-   **Role-Based Access Control (RBAC)**: A complete system with dynamic roles, granular permissions, and middleware for enforcement.
+-   **Backend-Rendered SPA**: The admin panel is a single-page application whose assets (HTML/CSS/JS) are generated and served directly from a Python file () via FastAPI, using client-side JS and URL hashes for navigation.
+-   **Secure Token Management**: Using  for generating password reset tokens and storing their hashes in the database.
+-   **Safe Deletion Logic**: Business logic that prevents the deletion of a user if they are the sole owner of a league, ensuring data integrity.
 
 **key DB schema**
--   ****: , , , , , , .
--   **** (New): Stores user-specific push tokens (, , ).
+-   **** (New): 
+-   ****: Modified to add 
+-   **** (New): 
+-   ****: Enhanced to include 
 
 **All files of reference**
--   : Core file for all new features and bug fixes, including push notifications, schedulers, and authentication logic corrections.
--   : Updated to include the  collection.
--   : Contains the UI and logic for the fully functional notification center.
--   : Contains the new UI for changing the user's email.
--   : Contains the CSS fix for the league chip layout.
--   : Updated with new client-side functions for API calls.
+-   : The central file containing all backend logic for the admin panel, RBAC, and API endpoints.
+-   : The new file containing the entire frontend code for the admin web panel.
+-   : Defines DB collections, including the new  and .
+-   : The definitive list of all permissions available in the system.
+-   : Modified to incorporate the  flag during login.
 
 **Critical Info for New Agent**
--   **Push Notifications are Ready but Disabled**: The entire push notification system is implemented but turned off via the  environment variable. The user plans to request its activation when they publish the app. Do not enable it without user consent.
--   **User Prefers Immediate Verification**: The user frequently asks for a bundle restart (frontend: ERROR (no such process)
-backend: ERROR (not running)
-frontend: ERROR (no such process)
-backend: ERROR (abnormal termination)) to see changes live. Be prepared to perform this action after deploying frontend fixes.
--   **Authentication Logic is Sensitive**: A critical bug was fixed where  was excluding the  field, breaking any logic that needed to verify it. Remember this pattern if implementing other features that require password re-authentication.
+-   **Admin Panel is Backend-Rendered**: Do not look for the admin panel UI in the  React Native project. All its code (HTML, CSS, JS) is located in  and served directly by FastAPI.
+-   **Password Reset is Manual**: Due to the absence of an email sending service, the new password reset feature will generate a link and display it to the admin. The admin is responsible for copying this link and sending it to the user. This is a temporary workaround.
+-   **RBAC Governs Everything**: The  dependency is now the standard for securing all admin-related actions. All new administrative features must be protected with the appropriate permission check.
 
 **documents and test reports created in this job**
 -   
 -   
 -   
 -   
+-   
+-    (Continuously updated)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **LATEST**:  - Requesting a service restart to see the fix for the Predictions tab. (Pending user verification)
-2.   - Reporting the bug on the Predictions tab. (Resolved)
-3.   - Asking for the link to the web admin panel. (Answered)
-4.   - Requesting a service restart to see the fix for the Statistics page UI. (Followed by more feedback)
-5.   - Providing negative feedback on the first UI fix for the Statistics page. (Resolved with a second fix)
-6.   - Reporting the initial layout bug on the Statistics page. (Resolved)
-7.   - Stating the email change UI wasn't visible, prompting a restart. (Resolved)
-8.   - Approving the implementation of the change email feature. (Completed)
-9.   - Asking if the user's email should be editable. (Led to new feature)
-10.  - Agreeing to build the push notification infrastructure now and activate it later. (Completed)
+1.  **LATEST**: User request for STEP U1, U2, U3 (Clickable dashboard KPIs, editable user details, password reset link). (IN PROGRESS)
+2.  User request to make the dashboard fully navigable and add a Critical Alarms section. (Completed)
+3.  User request to build the dashboard overview (STEP 3). (Completed)
+4.  User reports the admin sidebar is broken on Safari mobile. (Completed)
+5.  User request to add user/league governance features (safe delete, league admin management). (Completed)
+6.  User confirms the endpoint-to-permission mapping for STEP 2A. (Completed)
+7.  Agent presents the endpoint-to-permission mapping plan for user approval. (Completed)
+8.  User request to start STEP 2A: migrating  to . (Completed)
+9.  User request to start STEP 1: build the admin UI for RBAC. (Completed)
+10. User request to start STEP 0: build the backend foundations for RBAC. (Completed)
 
 **Project Health Check:**
 -   **Broken**: None.
--   **Mocked**: The push notification system is complete but inactive, controlled by a  feature flag.
+-   **Mocked**: The password reset link delivery is manual (displayed to the admin) instead of being automatically emailed to the user, pending integration of an email service.
 
 **3rd Party Integrations**
 -   API-Football (API-Sports)
@@ -131,9 +147,9 @@ backend: ERROR (abnormal termination)) to see changes live. Be prepared to perfo
 -   Known regressions: None.
 
 **Credentials to test flow:**
--   **League Owner**:  / 
 -   **System Admin**:  / 
 -   **Standard User**:  / 
+-   **League Owner**:  / 
 
 **What agent forgot to execute**
--   Nothing. The agent successfully addressed all user requests and bug reports from the session. The planned work was completed, and several new user-requested items were also implemented and fixed.</analysis>
+-   Nothing. The agent was actively implementing the user's latest request when the session concluded.</analysis>

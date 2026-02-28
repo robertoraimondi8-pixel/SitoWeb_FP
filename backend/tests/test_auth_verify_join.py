@@ -14,7 +14,7 @@ import os
 import uuid
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://notify-center-13.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://rbac-enhanced.preview.emergentagent.com')
 
 class TestUserRegistrationWithUsername:
     """Test registration flow with custom username"""

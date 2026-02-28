@@ -12,7 +12,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://notify-center-13.preview.emergentagent.com"
+BASE_URL = "https://rbac-enhanced.preview.emergentagent.com"
 
 class TestHealth:
     """API health check"""

@@ -66,7 +66,7 @@
   "test_credentials": {
     "super_admin": "admin@fantapronostic.com / admin123",
     "standard_user": "ilio@raimondi.it / password123",
-    "admin_ui_url": "https://notify-center-13.preview.emergentagent.com/api/admin-ui"
+    "admin_ui_url": "https://rbac-enhanced.preview.emergentagent.com/api/admin-ui"
   },
   "seed_data_creation": "No new seed data created - used existing users and leagues",
   "retest_needed": false,

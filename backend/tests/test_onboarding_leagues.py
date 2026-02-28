@@ -14,7 +14,7 @@ import pytest
 import requests
 import random
 
-BASE_URL = "https://notify-center-13.preview.emergentagent.com"
+BASE_URL = "https://rbac-enhanced.preview.emergentagent.com"
 
 
 @pytest.fixture
