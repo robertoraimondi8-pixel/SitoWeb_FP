@@ -1567,7 +1567,11 @@ async function showMdControlRoom(mdId, tab) {
   const md = (window._allMatchdays||[]).find(m => m.id === mdId);
   if (!md) return;
 
-  const league = allLeaguesCache.find(l => l.id === document.getElementById('md-league').value);
+  // Use matchday's own league when viewing all leagues
+  const selectedLeagueId = document.getElementById('md-league').value;
+  const league = selectedLeagueId === 'all'
+    ? allLeaguesCache.find(l => l.id === md.league_id)
+    : allLeaguesCache.find(l => l.id === selectedLeagueId);
   const canManage = league && (league.league_type === 'national' || league.match_source_type !== 'national');
 
   const tabs = [
