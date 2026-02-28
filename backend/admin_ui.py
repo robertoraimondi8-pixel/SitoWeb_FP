@@ -1464,7 +1464,9 @@ function onMdLeagueChange() {
         <button class="btn" onclick="createMatchday()" data-testid="create-md-btn">+ Crea</button>
       </div>`;
   } else {
-    createZone.innerHTML = '<p style="color:#94A3B8;font-size:12px;margin:8px 0">Lega con sorgente nazionale: le giornate sono ereditate. Puoi solo visualizzare.</p>';
+    createZone.innerHTML = isAll
+      ? '<p style="color:#94A3B8;font-size:12px;margin:8px 0">Vista globale: seleziona una lega specifica per creare giornate.</p>'
+      : '<p style="color:#94A3B8;font-size:12px;margin:8px 0">Lega con sorgente nazionale: le giornate sono ereditate. Puoi solo visualizzare.</p>';
   }
   loadMatchdays();
 }
