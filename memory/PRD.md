@@ -44,6 +44,13 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - Enhanced audit logging: actor_roles, IP, before/after snapshots
   - Bootstrap on startup: creates default roles, marks admin as SUPER_ADMIN
   - Files: `permissions.py`, updated `database.py`, `models.py`, `server.py`
+- **RBAC STEP 1 - Admin UI** (Feb 28, 2026) - Full web admin dashboard with RBAC:
+  - Permission-based sidebar menu (sections only visible if user has corresponding permission)
+  - Ruoli & Permessi page: list roles, create custom role with permission checkboxes, edit role, delete with strong "DELETE" confirmation
+  - Gestione Utenti page: user list with search/filter, counter cards, assign/remove roles (multi-role), disable/enable accounts, super admin toggle
+  - 403 "Accesso Non Autorizzato" page for unauthorized access
+  - Security: `SUPER_ADMIN_EMAIL` env var (no hardcoded email), last super admin protection, disabled account check on every API call
+  - Files: `admin_ui.py` (new), updated `auth.py`, `server.py`
 
 ## Changes Applied
 
@@ -152,7 +159,6 @@ The `/api/leagues/{league_id}/fixtures` endpoint returned raw matchday status fr
 
 ### P1
 - Activate Push Notifications when app is published to stores (set PUSH_NOTIFICATIONS_ENABLED=true, install expo-notifications on frontend, register push tokens on login)
-- **RBAC STEP 1**: Integrate RBAC into admin-ui web dashboard (role management UI, user management UI, permission-based menu visibility)
 - **RBAC STEP 2**: Migrate existing `require_admin` endpoints to use `require_permission` for granular control
 
 ### P2
