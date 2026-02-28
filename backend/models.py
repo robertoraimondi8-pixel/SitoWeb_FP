@@ -361,6 +361,7 @@ class AdminSeasonUpdate(BaseModel):
 
 
 class AdminMatchdayUpdate(BaseModel):
+    number: Optional[int] = None
     label: Optional[str] = None
     half: Optional[int] = None
     first_kickoff: Optional[str] = None
