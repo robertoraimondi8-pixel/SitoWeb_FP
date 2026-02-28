@@ -51,6 +51,12 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - 403 "Accesso Non Autorizzato" page for unauthorized access
   - Security: `SUPER_ADMIN_EMAIL` env var (no hardcoded email), last super admin protection, disabled account check on every API call
   - Files: `admin_ui.py` (new), updated `auth.py`, `server.py`
+- **RBAC STEP 2A - Migrazione require_admin → require_permission** (Feb 28, 2026):
+  - Migrati tutti i 20 endpoint admin da `require_admin` a `require_permission` granulare
+  - Mappatura: seasons→admin.seasons.manage, matchdays→admin.matchdays.manage, matches→admin.matches.manage, leagues→admin.leagues.manage, payments→admin.payments.view, audit→admin.audit.view, score-summaries→admin.dashboard.view, fixtures/refresh-live→admin.matches.manage
+  - `require_admin` completamente rimosso da server.py
+  - Testato con 3 ruoli: Super Admin (tutto), Osservatore (solo audit/payments/dashboard), Gestore Leghe (seasons/matchdays/matches/leagues)
+  - Zero modifiche a scoring, classifiche, DB schema, match import
 
 ## Changes Applied
 
@@ -159,7 +165,7 @@ The `/api/leagues/{league_id}/fixtures` endpoint returned raw matchday status fr
 
 ### P1
 - Activate Push Notifications when app is published to stores (set PUSH_NOTIFICATIONS_ENABLED=true, install expo-notifications on frontend, register push tokens on login)
-- **RBAC STEP 2**: Migrate existing `require_admin` endpoints to use `require_permission` for granular control
+- Miglioramenti UI pannello admin (gestione leghe avanzata, delete safe, etc.)
 
 ### P2
 - Implement "Championship Winner Predictions" feature
