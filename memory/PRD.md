@@ -92,6 +92,14 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - Colonna "Creata" aggiunta alla tabella Leghe con data creazione
   - Sistema di ordinamento cliccabile con frecce: Username, Email, Iscrizione, Ultimo Login (utenti); Nome, Membri, Creata (leghe)
   - Click su intestazione ordina A-Z, click di nuovo Z-A, freccia arancione indica colonna e direzione attiva
+- **Riscrittura Completa Sezione Giornate** (Feb 28, 2026):
+  - **Dashboard KPI cliccabili**: BOZZA/OPEN/LOCKED/LIVE/COMPLETATE navigano a Giornate con filtro status pre-applicato
+  - **Selettore Lega**: dropdown in cima alla pagina (default Lega Nazionale). Nazionale/Custom: gestione completa (crea, modifica, stati). Private national: read-only con messaggio
+  - **Control Room Giornata** (3 tab): Info & Stato (contatori Partite/Risultati/Pronostici, griglia info, gestione stato DRAFT->OPEN->LOCKED->LIVE->COMPLETED con bottoni e confirm, Zona Pericolo); Partite (tabella match completa + form Aggiungi Partita + Update/Delete per match); Importa da API (ricerca fixtures da API-Football con filtri competizione/date, checkbox selezione multipla, import batch)
+  - **Sicurezza**: Delete semplice solo se DRAFT senza dati. Override Delete con input DELETE obbligatorio + audit log per giornate con pronostici/risultati o non-DRAFT
+  - **Ordinamento**: colonne # / Kickoff / Stato con frecce cliccabili
+  - Voce "Partite" rimossa dalla sidebar - gestione match ora integrata nel Control Room giornata
+  - Backend: GET /api/admin/matchdays?league_id=... (supporto multi-lega), POST /api/admin/matchdays con league_id, MatchdayCreate model aggiornato
 - **Sprint L1 - Dashboard Leghe KPI Cliccabili** (Feb 28, 2026):
   - 5 KPI nella card Leghe: Totale, Nazionale (verde), Private Custom (blu), Private Naz. (teal), A Rischio (rosso)
   - Tutti cliccabili con filtro tipo pre-applicato sulla pagina leghe
