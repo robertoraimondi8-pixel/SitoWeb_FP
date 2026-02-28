@@ -1,0 +1,113 @@
+{
+  "summary": "5 League Fixes in Admin Panel - All Tests PASSED. Fix1: Admin count from memberships with 'Admin Lega' column header. Fix2: National league NOT in at-risk alerts (only private custom leagues shown). Fix3: 3 league type badges (NAZIONALE, PRIVATA NAZ., PRIVATA CUSTOM) with filter dropdown. Fix4: League rules summary in table + full detail modal with scoring_config table. Fix5: Super Admin edit rules with ATTENZIONE warning and confirm=true requirement.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "total": 17,
+      "passed": 17,
+      "failed": 0,
+      "test_file": "/app/backend/tests/test_league_fixes.py"
+    },
+    "fix1_admin_count_memberships": {
+      "leagues_return_admins_array": "PASS - Each league has admins array from memberships",
+      "admin_lega_column_header": "PASS - Table shows 'Admin Lega' column header",
+      "national_owner_sistema": "PASS - National league shows 'Sistema' instead of 'Nessuno'"
+    },
+    "fix2_national_not_at_risk": {
+      "dashboard_returns_at_risk": "PASS - GET /api/rbac/dashboard-stats returns leagues.at_risk",
+      "national_not_in_at_risk": "PASS - National league ID f1373417-43aa-4043-b6a2-125873181c95 NOT in at_risk",
+      "only_private_custom_at_risk": "PASS - Only private custom/manual leagues in at_risk, no national or private-national"
+    },
+    "fix3_league_type_badges": {
+      "type_fields_returned": "PASS - API returns league_type and match_source_type for each league",
+      "three_types_exist": "PASS - Found national, private_custom, private_national type combinations",
+      "nazionale_badge_visible": "PASS - NAZIONALE badge (green) shown in table",
+      "privata_naz_badge_visible": "PASS - PRIVATA NAZ. badge (teal) shown in table",
+      "privata_custom_badge_visible": "PASS - PRIVATA CUSTOM badge (blue) shown in table",
+      "type_filter_dropdown": "PASS - Filter has Nazionale, Privata - Personalizzata, Privata - Lega Nazionale options",
+      "filter_functionality": "PASS - Filtering by type correctly filters leagues table"
+    },
+    "fix4_league_rules_display": {
+      "scoring_config_returned": "PASS - API returns scoring_config for each league",
+      "matchday_range_returned": "PASS - API returns start_matchday and end_matchday",
+      "deadline_championship_returned": "PASS - API returns bet_deadline_minutes and include_championship_predictions",
+      "regole_column_in_table": "PASS - 'Regole' column shows summary (markets, G1-38, 5min)",
+      "detail_modal_fields": "PASS - Modal shows ID, season, matchday range, deadline, match source, championship, members, owner",
+      "scoring_table_in_modal": "PASS - Modal shows 'Mercati e Punteggi' table with market/stato/punti columns"
+    },
+    "fix5_super_admin_edit_rules": {
+      "edit_rules_requires_confirm": "PASS - PUT /api/rbac/leagues/{id}/rules requires confirm=true (returns 400 without)",
+      "edit_rules_rejects_non_super_admin": "PASS - Standard user gets 403 when trying to edit rules",
+      "edit_rules_updates_scoring_config": "PASS - Super admin can update scoring_config successfully",
+      "edit_rules_updates_other_fields": "PASS - Can update start_matchday, end_matchday, bet_deadline_minutes, include_championship_predictions",
+      "modifica_regole_button_visible": "PASS - 'Modifica Regole' button visible for Super Admin in detail modal",
+      "attenzione_warning_box": "PASS - Red ATTENZIONE warning box displayed in edit modal",
+      "market_checkboxes_points": "PASS - 4 market checkboxes with points inputs in edit form",
+      "matchday_deadline_inputs": "PASS - Start/end matchday, deadline, championship fields in edit form"
+    },
+    "integration": {
+      "admin_can_view_leagues": "PASS - Admin can view list of all leagues",
+      "dashboard_stats_complete": "PASS - Dashboard stats returns complete KPI data"
+    },
+    "access_control": {
+      "standard_user_denied_admin_panel": "PASS - Non-admin user denied access with 'Accesso non autorizzato al pannello admin'"
+    }
+  },
+  "verified_features": [
+    "Fix 1: 'Admin Lega' column header in leagues table",
+    "Fix 1: Admin count from memberships (role in ['admin','owner'])",
+    "Fix 1: National league owner displays as 'Sistema' instead of 'Nessuno'",
+    "Fix 2: GET /api/rbac/dashboard-stats excludes national league from at_risk",
+    "Fix 2: Only private custom leagues (not national, not private-national) in at_risk list",
+    "Fix 3: Three league type badges: NAZIONALE (green), PRIVATA NAZ. (teal), PRIVATA CUSTOM (blue)",
+    "Fix 3: Type filter dropdown with options: Tutti i tipi, Nazionale, Privata - Personalizzata, Privata - Lega Nazionale",
+    "Fix 3: Filtering by league type works correctly",
+    "Fix 4: 'Regole' column in table shows summary (markets, matchday range, deadline)",
+    "Fix 4: League detail modal shows: ID, season, matchday range, deadline, match source type, championship predictions, members, owner",
+    "Fix 4: Scoring config displayed as table in detail modal with Market/Stato/Punti columns",
+    "Fix 5: 'Modifica Regole' button visible only for Super Admin",
+    "Fix 5: Edit rules modal shows red ATTENZIONE warning box",
+    "Fix 5: Edit form has market checkboxes with points, matchday range, deadline, championship inputs",
+    "Fix 5: PUT /api/rbac/leagues/{id}/rules requires confirm=true",
+    "Fix 5: PUT /api/rbac/leagues/{id}/rules rejects non-super-admin users (403)"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_league_fixes.py",
+    "/app/test_reports/pytest/league_fixes_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "dashboard_stats correctly filters out national leagues (league_type=national) and private-national leagues (match_source_type=national) from at_risk",
+    "Admin count uses memberships collection with role in ['admin','owner'] - not RBAC roles",
+    "getLeagueTypeKey function correctly identifies 3 types: national, private_national, private_custom",
+    "Edit rules endpoint has proper super admin check before allowing updates",
+    "Audit logging implemented for EDIT_LEAGUE_RULES action"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_league_fixes.py"
+  ],
+  "success_rate": {
+    "backend": "100% (17/17 tests passed)",
+    "frontend": "100% (All UI tests passed)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123 (Super Admin)",
+    "standard_user": "ilio@raimondi.it / password123 (Non-admin - correctly denied admin panel access)"
+  },
+  "seed_data_creation": "No new seed data created. Used existing leagues for testing.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 5 league fixes tested and working. National league ID: f1373417-43aa-4043-b6a2-125873181c95. Admin panel is backend-rendered at /api/admin-ui. Non-super-admin users are correctly blocked from editing league rules. The edit rules modal updates are reflected in the leagues list after save.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
