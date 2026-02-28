@@ -1873,6 +1873,17 @@ async function doDeleteMatch(mdId, matchId) {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
+async function doQuickMatchStatus(mdId, matchId, newStatus) {
+  try {
+    await apiCall('/admin/matches/' + matchId + '/live-update', 'POST', {
+      match_id: matchId,
+      status: newStatus
+    });
+    showToast('Stato partita: ' + newStatus);
+    showMdControlRoom(mdId, 'matches');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
 async function doMdTransition(mdId, newStatus) {
   if (!confirm('Cambiare stato a ' + newStatus + '?')) return;
   try {
