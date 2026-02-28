@@ -2143,6 +2143,7 @@ async function showLeagueControlRoom(leagueId, tab) {
   if (crTab === 'info') body.innerHTML = renderCrInfo(l);
   else if (crTab === 'edit') body.innerHTML = renderCrEdit(l);
   else if (crTab === 'team') body.innerHTML = renderCrTeam(l);
+  else if (crTab === 'danger') body.innerHTML = renderCrDanger(l);
 }
 
 function renderCrInfo(l) {
