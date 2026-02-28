@@ -5418,3 +5418,57 @@ async def api_root():
 async def admin_dashboard(path: str = ""):
     from admin_ui import get_admin_html
     return get_admin_html()
+
+
+# ========================================
+# PUBLIC PASSWORD RESET PAGE (U3)
+# ========================================
+@app.get("/api/reset-password", response_class=HTMLResponse)
+async def reset_password_page(token: str = ""):
+    """Public page for resetting a password via token."""
+    from admin_ui import get_reset_password_html
+    return get_reset_password_html()
+
+
+@app.post("/api/reset-password")
+async def reset_password_submit(request: Request):
+    """Submit a new password using the reset token."""
+    import hashlib
+
+    body = await request.json()
+    raw_token = body.get("token")
+    new_password = body.get("new_password")
+
+    if not raw_token or not new_password:
+        raise HTTPException(400, "Token e nuova password sono richiesti")
+
+    if len(new_password) < 6:
+        raise HTTPException(400, "La password deve avere almeno 6 caratteri")
+
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+
+    reset_doc = await password_resets_col.find_one({
+        "token_hash": token_hash,
+        "used": False,
+    }, {"_id": 0})
+
+    if not reset_doc:
+        raise HTTPException(400, "Token non valido o già utilizzato")
+
+    # Check expiry
+    expires_at = reset_doc.get("expires_at", "")
+    if expires_at:
+        try:
+            exp_dt = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+            if datetime.now(timezone.utc) > exp_dt:
+                raise HTTPException(400, "Token scaduto")
+        except ValueError:
+            pass
+
+    hashed = hash_password(new_password)
+    await users_col.update_one({"id": reset_doc["user_id"]}, {"$set": {"password": hashed}})
+
+    # Mark token as used
+    await password_resets_col.update_one({"id": reset_doc["id"]}, {"$set": {"used": True}})
+
+    return {"message": "Password aggiornata con successo"}
