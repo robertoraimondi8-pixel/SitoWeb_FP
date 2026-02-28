@@ -57,6 +57,13 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - `require_admin` completamente rimosso da server.py
   - Testato con 3 ruoli: Super Admin (tutto), Osservatore (solo audit/payments/dashboard), Gestore Leghe (seasons/matchdays/matches/leagues)
   - Zero modifiche a scoring, classifiche, DB schema, match import
+- **Admin Governance Utenti/Leghe** (Feb 28, 2026):
+  - Tab Utenti: colonne leghe_create/admin/member (cliccabili), ultimo login, soft-delete con protezione orfani
+  - Soft-delete: conferma forte "DELETE", blocca se utente e' unico admin/owner di leghe (409 + lista leghe orfane)
+  - Tab Leghe: mostra owner, admin, membri, pulsante "Gestisci"
+  - Gestisci lega: trasferisci ownership, promuovi/rimuovi admin lega
+  - `last_login` tracciato ad ogni login
+  - Tutto loggato in audit con before/after
 
 ## Changes Applied
 
