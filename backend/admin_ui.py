@@ -87,6 +87,28 @@ tr:hover{background:rgba(245,166,35,0.05)}
 .counter-box{background:#1E293B;border:1px solid #334155;border-radius:12px;padding:16px 24px;flex:1;min-width:140px}
 .counter-box .num{font-size:28px;font-weight:700;color:#F5A623}
 .counter-box .label{font-size:12px;color:#94A3B8;margin-top:4px}
+/* Hamburger */
+.hamburger{display:none;position:fixed;top:12px;left:12px;z-index:60;background:#1E293B;border:1px solid #334155;border-radius:8px;padding:8px 12px;cursor:pointer;color:#F5A623;font-size:20px;line-height:1}
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:49}
+/* Mobile responsive */
+@media(max-width:768px){
+  .hamburger{display:block}
+  .sidebar{position:fixed;top:0;left:-260px;z-index:50;height:100vh;width:250px;transition:left .25s ease;overflow-y:auto}
+  .sidebar.open{left:0}
+  .sidebar-overlay.open{display:block}
+  .main{padding:16px;padding-top:52px}
+  .main h2{font-size:18px}
+  table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .counter-row{gap:8px}
+  .counter-box{min-width:100px;padding:10px 14px}
+  .counter-box .num{font-size:20px}
+  .form-row{flex-direction:column}
+  .form-row input,.form-row select,.form-row textarea{min-width:100%}
+  .modal{width:95%;max-width:none;padding:16px}
+  .perm-grid{grid-template-columns:1fr}
+  .btn-sm{padding:4px 8px;font-size:11px}
+  .login-box{width:90%;padding:24px}
+}
 </style>
 </head>
 <body>
