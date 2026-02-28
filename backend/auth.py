@@ -85,6 +85,15 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="User not found")
     if user.get("is_disabled"):
         raise HTTPException(status_code=403, detail="Account disabilitato")
+    # Throttled last_activity update (every 5 min)
+    from datetime import datetime, timezone, timedelta
+    now = datetime.now(timezone.utc)
+    last = user.get("last_activity")
+    if not last or (now - datetime.fromisoformat(last)).total_seconds() > 300:
+        await users_col.update_one(
+            {"id": user["id"]},
+            {"$set": {"last_activity": now.isoformat()}}
+        )
     return user
 
 
