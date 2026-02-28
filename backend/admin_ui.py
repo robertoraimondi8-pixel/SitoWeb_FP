@@ -1809,6 +1809,8 @@ function renderMdcrMatches(md, matches, canManage) {
         <button class="btn btn-sm btn-outline" onclick="showMatchUpdate('${m.id}','${(m.home_team||'').replace(/'/g,"\\'")}','${(m.away_team||'').replace(/'/g,"\\'")}',${m.home_score||0},${m.away_score||0})">Score</button>
         <button class="btn btn-sm btn-danger" onclick="doDeleteMatch('${md.id}','${m.id}')">X</button>
       </td>`;
+    } else {
+      html += `<td><span class="status-badge status-${(m.status||'scheduled').toUpperCase()}">${m.status||'scheduled'}</span></td>`;
     }
     html += '</tr>';
   });
