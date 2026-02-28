@@ -1032,9 +1032,10 @@ async function doEditUser(userId) {
 
   try {
     await apiCall('/rbac/users/' + userId, 'PUT', body);
-    closeModal();
     showToast('Utente aggiornato');
-    render_users();
+    const users = await apiCall('/rbac/users');
+    allUsersCache = users;
+    showUserControlRoom(userId, 'edit');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
