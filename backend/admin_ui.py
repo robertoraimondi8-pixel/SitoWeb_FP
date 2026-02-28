@@ -729,11 +729,80 @@ function filterUsers() {
     filtered = filtered.filter(u => u.last_activity && u.last_activity >= fiveMinAgo);
   }
   else if (roleFilter) filtered = filtered.filter(u => u.role_ids && u.role_ids.includes(roleFilter));
-  renderUsersTable(filtered);
+  applySortAndRender(filtered, 'users');
+}
+
+// ========================================
+// SORTING SYSTEM
+// ========================================
+let userSortCol = null, userSortDir = 'asc';
+let leagueSortCol = null, leagueSortDir = 'asc';
+let lastFilteredUsers = [];
+let lastFilteredLeagues = [];
+
+function sortArrow(table, col) {
+  const sortCol = table === 'users' ? userSortCol : leagueSortCol;
+  const sortDir = table === 'users' ? userSortDir : leagueSortDir;
+  if (sortCol !== col) return '<span style="opacity:.3;margin-left:4px">&#8597;</span>';
+  return sortDir === 'asc' ? '<span style="color:#F5A623;margin-left:4px">&#9650;</span>' : '<span style="color:#F5A623;margin-left:4px">&#9660;</span>';
+}
+
+function sortBy(table, col) {
+  if (table === 'users') {
+    if (userSortCol === col) userSortDir = userSortDir === 'asc' ? 'desc' : 'asc';
+    else { userSortCol = col; userSortDir = 'asc'; }
+    applySortAndRender(lastFilteredUsers, 'users');
+  } else {
+    if (leagueSortCol === col) leagueSortDir = leagueSortDir === 'asc' ? 'desc' : 'asc';
+    else { leagueSortCol = col; leagueSortDir = 'asc'; }
+    applySortAndRender(lastFilteredLeagues, 'leagues');
+  }
+}
+
+function applySortAndRender(items, table) {
+  if (table === 'users') {
+    lastFilteredUsers = items;
+    if (userSortCol) {
+      items = [...items].sort((a, b) => {
+        let va = '', vb = '';
+        if (userSortCol === 'username') { va = (a.username||'').toLowerCase(); vb = (b.username||'').toLowerCase(); }
+        else if (userSortCol === 'email') { va = (a.email||'').toLowerCase(); vb = (b.email||'').toLowerCase(); }
+        else if (userSortCol === 'created_at') { va = a.created_at||''; vb = b.created_at||''; }
+        else if (userSortCol === 'last_login') { va = a.last_login||''; vb = b.last_login||''; }
+        if (va < vb) return userSortDir === 'asc' ? -1 : 1;
+        if (va > vb) return userSortDir === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    renderUsersTable(items);
+  } else {
+    lastFilteredLeagues = items;
+    if (leagueSortCol) {
+      items = [...items].sort((a, b) => {
+        let va = '', vb = '';
+        if (leagueSortCol === 'name') { va = (a.name||'').toLowerCase(); vb = (b.name||'').toLowerCase(); }
+        else if (leagueSortCol === 'member_count') { va = a.member_count||0; vb = b.member_count||0; }
+        else if (leagueSortCol === 'created_at') { va = a.created_at||''; vb = b.created_at||''; }
+        if (va < vb) return leagueSortDir === 'asc' ? -1 : 1;
+        if (va > vb) return leagueSortDir === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    renderLeaguesTable(items);
+  }
 }
 
 function renderUsersTable(users) {
-  let html = '<table><tr><th>Username</th><th>Email</th><th>Ruoli</th><th>Leghe</th><th>Ultimo Login</th><th>Stato</th><th>Azioni</th></tr>';
+  const sh = (col) => sortArrow('users', col);
+  let html = `<table><tr>
+    <th style="cursor:pointer" onclick="sortBy('users','username')">Username ${sh('username')}</th>
+    <th style="cursor:pointer" onclick="sortBy('users','email')">Email ${sh('email')}</th>
+    <th>Ruoli</th>
+    <th>Leghe</th>
+    <th style="cursor:pointer" onclick="sortBy('users','created_at')">Iscrizione ${sh('created_at')}</th>
+    <th style="cursor:pointer" onclick="sortBy('users','last_login')">Ultimo Login ${sh('last_login')}</th>
+    <th>Stato</th>
+    <th>Azioni</th></tr>`;
   users.forEach(u => {
     let tags = '';
     if (u.is_super_admin) tags += '<span class="tag tag-super">SUPER ADMIN</span> ';
@@ -743,6 +812,7 @@ function renderUsersTable(users) {
     if (!u.is_super_admin && (!u.roles || u.roles.length === 0) && !u.is_deleted) tags += '<span class="tag" style="color:#475569">Nessun ruolo</span>';
 
     const leagueHtml = `<span style="font-size:12px;color:#94A3B8">${u.leagues_created||0}C / ${u.leagues_admin||0}A / ${u.leagues_member||0}M</span>`;
+    const createdAt = u.created_at ? new Date(u.created_at).toLocaleDateString('it') : '-';
     const lastLogin = u.last_login ? new Date(u.last_login).toLocaleString('it') : '<span style="color:#475569">Mai</span>';
     const statusBadge = u.is_deleted
       ? '<span class="status-badge status-void">Eliminato</span>'
@@ -755,6 +825,7 @@ function renderUsersTable(users) {
       <td style="color:#94A3B8;font-size:12px">${u.email}</td>
       <td>${tags}</td>
       <td>${leagueHtml}</td>
+      <td style="font-size:12px;color:#94A3B8">${createdAt}</td>
       <td style="font-size:12px">${lastLogin}</td>
       <td>${statusBadge}</td>
       <td><button class="btn btn-sm btn-outline" onclick="showUserControlRoom('${u.id}')" data-testid="control-user-${u.id}">Control Room</button></td></tr>`;
