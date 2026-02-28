@@ -64,6 +64,11 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - Gestisci lega: trasferisci ownership, promuovi/rimuovi admin lega
   - `last_login` tracciato ad ogni login
   - Tutto loggato in audit con before/after
+- **Dashboard Overview - STEP 3** (Feb 28, 2026):
+  - Home del pannello admin con 5 sezioni KPI (Utenti, Leghe, Giornate, Pagamenti, Attivita Recente)
+  - Leghe a rischio evidenziate con alert rosso + link Gestisci
+  - Mobile responsive con hamburger menu
+  - Endpoint: GET /api/rbac/dashboard-stats
 
 ## Changes Applied
 
