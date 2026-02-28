@@ -122,10 +122,13 @@ async def compute_matchday_status(matchday: dict, league_id: str) -> str:
     status_override (SUPER_ADMIN) takes precedence over auto-computed status.
     """
     override = matchday.get("status_override")
-    if override:
-        return override
-
     stored = matchday.get("status", "DRAFT")
+
+    # Override blocks auto-transitions only if it's explicitly different from stored
+    # (e.g., admin forced LOCKED to prevent LIVE). If override == stored, it's stale
+    # and should not block forward transitions (OPEN→LIVE, LIVE→COMPLETED).
+    if override and override != stored:
+        return override
 
     if stored == "DRAFT":
         return "DRAFT"
