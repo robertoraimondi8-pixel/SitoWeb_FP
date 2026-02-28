@@ -1536,7 +1536,11 @@ async function doTransferOwner(leagueId) {
   if (!confirm('Confermi il trasferimento della ownership?')) return;
   try {
     await apiCall('/rbac/leagues/' + leagueId + '/transfer-owner', 'PUT', {new_owner_id: newOwnerId});
-    closeModal(); showToast('Ownership trasferita'); render_leagues();
+    showToast('Ownership trasferita');
+    const leagues = await apiCall('/rbac/leagues');
+    allLeaguesCache = leagues;
+    crMembers = null;
+    showLeagueControlRoom(leagueId, 'team');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1546,7 +1550,8 @@ async function toggleLeagueAdmin(leagueId, userId, action) {
   try {
     await apiCall('/rbac/leagues/' + leagueId + '/admins', 'PUT', {user_id: userId, action: action});
     showToast('Ruolo aggiornato');
-    showLeagueManage(leagueId);
+    crMembers = null;
+    showLeagueControlRoom(leagueId, 'team');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
