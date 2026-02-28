@@ -1799,8 +1799,7 @@ function renderMdcrMatches(md, matches, canManage) {
       <td>${m.home_team}</td><td>${m.away_team}</td><td style="color:#94A3B8">${m.competition||'-'}</td>
       <td><span class="tag tag-role">${m.market_type||'-'}</span></td>
       <td style="font-size:12px">${time}</td>
-      <td>${score}</td>
-      <td><span class="status-badge status-${(m.status||'scheduled').toUpperCase()}">${m.status||'scheduled'}</span></td>`;
+      <td>${score}</td>`;
     if (canManage) {
       const matchStatuses = ['scheduled','live','finished','suspended','postponed','cancelled','void'];
       html += `<td><select onchange="doQuickMatchStatus('${md.id}','${m.id}',this.value)" style="padding:3px;background:#0F172A;border:1px solid #334155;border-radius:4px;color:#F1F5F9;font-size:11px" data-testid="match-status-${m.id}">
