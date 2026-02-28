@@ -5328,6 +5328,170 @@ async def get_league_members(league_id: str, user=Depends(require_permission("ad
 
 
 # ========================================
+# ADMIN: CREATE NEW USER
+# ========================================
+@rbac_router.post("/users/create")
+async def admin_create_user(request: Request, user=Depends(require_permission("admin.users.manage"))):
+    """Create a new user from the admin panel."""
+    import re as _re
+    body = await request.json()
+
+    required = ["email", "first_name", "last_name", "date_of_birth", "password"]
+    for field in required:
+        if not body.get(field):
+            raise HTTPException(400, f"Campo obbligatorio mancante: {field}")
+
+    email = body["email"].strip().lower()
+    if "@" not in email:
+        raise HTTPException(400, "Email non valida")
+    existing = await users_col.find_one({"email": email})
+    if existing:
+        raise HTTPException(409, "Email già registrata")
+
+    # Username: use provided or auto-generate
+    username = body.get("username", "").strip()
+    if username:
+        if not _re.match(r'^[a-zA-Z0-9_]{3,20}$', username):
+            raise HTTPException(400, "Username non valido (3-20 caratteri: lettere, numeri, underscore)")
+        if await users_col.find_one({"username": username}):
+            raise HTTPException(409, "Username già in uso")
+    else:
+        import random as _rand, string as _str
+        base = f"{body['first_name'].lower()}.{body['last_name'].lower()}"
+        base = ''.join(c for c in base if c.isalnum() or c == '.')
+        username = f"{base}{''.join(_rand.choices(_str.digits, k=3))}"
+
+    # Validate date_of_birth
+    from datetime import date as _date
+    try:
+        dob = datetime.strptime(body["date_of_birth"], "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(400, "Formato data di nascita non valido (YYYY-MM-DD)")
+
+    password = body["password"]
+    if len(password) < 8:
+        raise HTTPException(400, "La password deve avere almeno 8 caratteri")
+
+    user_id = new_id()
+    new_user = {
+        "id": user_id,
+        "email": email,
+        "username": username,
+        "first_name": body["first_name"].strip(),
+        "last_name": body["last_name"].strip(),
+        "date_of_birth": body["date_of_birth"],
+        "address": body.get("address", "").strip(),
+        "city": body.get("city", "").strip(),
+        "country": body.get("country", "Italia").strip(),
+        "postal_code": body.get("postal_code", "").strip(),
+        "password": hash_password(password),
+        "role": "user",
+        "language": body.get("language", "it"),
+        "accepted_privacy": True,
+        "accepted_terms": True,
+        "consents_accepted_at": now_utc(),
+        "profile_completed": True,
+        "email_verified": True,
+        "created_at": now_utc(),
+        "created_by_admin": user["id"],
+    }
+    await users_col.insert_one(new_user)
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "ADMIN_CREATE_USER", "user", user_id,
+        {"new_username": username, "new_email": email},
+        actor_roles=user.get("role_ids", []), ip=ip,
+    )
+    return {"user_id": user_id, "username": username, "email": email}
+
+
+# ========================================
+# ADMIN: CREATE NEW LEAGUE
+# ========================================
+@rbac_router.post("/leagues/create")
+async def admin_create_league(request: Request, user=Depends(require_permission("admin.leagues.manage"))):
+    """Create a new league from the admin panel."""
+    body = await request.json()
+
+    name = (body.get("name") or "").strip()
+    if len(name) < 3 or len(name) > 40:
+        raise HTTPException(400, "Il nome della lega deve essere tra 3 e 40 caratteri")
+
+    season_id = body.get("season_id")
+    if not season_id:
+        raise HTTPException(400, "season_id obbligatorio")
+
+    season = await seasons_col.find_one({"id": season_id}, {"_id": 0})
+    if not season:
+        raise HTTPException(400, "Stagione non trovata")
+
+    match_source_type = body.get("match_source_type", "national")
+    if match_source_type not in ("national", "custom"):
+        raise HTTPException(400, "match_source_type deve essere 'national' o 'custom'")
+
+    scoring = body.get("scoring_config") or DEFAULT_SCORING_CONFIG
+    start_md = body.get("start_matchday", 1)
+    end_md = body.get("end_matchday", 38)
+    if end_md < start_md:
+        raise HTTPException(400, "La giornata finale deve essere >= giornata iniziale")
+
+    # Determine owner: use provided owner_id or default to admin
+    owner_id = body.get("owner_id") or user["id"]
+    owner_user = await users_col.find_one({"id": owner_id}, {"_id": 0, "id": 1, "username": 1})
+    if not owner_user:
+        raise HTTPException(400, "Owner non trovato")
+
+    league_id = new_id()
+    invite_code = generate_invite_code()
+
+    league = {
+        "id": league_id,
+        "name": name,
+        "league_type": "private",
+        "season_id": season_id,
+        "invite_code": invite_code,
+        "owner_id": owner_id,
+        "created_by": user["id"],
+        "logo_url": body.get("logo_url"),
+        "start_matchday": start_md,
+        "end_matchday": end_md,
+        "bet_deadline_minutes": body.get("bet_deadline_minutes", 5),
+        "match_source_type": match_source_type,
+        "scoring_config": scoring,
+        "include_championship_predictions": body.get("include_championship_predictions", False),
+        "rules_locked": False,
+        "created_at": now_utc(),
+    }
+
+    if match_source_type == "national":
+        national = await leagues_col.find_one({"league_type": "national"}, {"_id": 0, "id": 1})
+        if national:
+            league["source_league_id"] = national["id"]
+
+    await leagues_col.insert_one(league)
+
+    # Create owner membership
+    await memberships_col.insert_one({
+        "id": new_id(),
+        "user_id": owner_id,
+        "league_id": league_id,
+        "role": "owner",
+        "status": "active",
+        "joined_at": now_utc(),
+    })
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "ADMIN_CREATE_LEAGUE", "league", league_id,
+        {"name": name, "owner_id": owner_id, "match_source_type": match_source_type},
+        actor_roles=user.get("role_ids", []), ip=ip,
+    )
+    league.pop("_id", None)
+    return {"league_id": league_id, "name": name, "invite_code": invite_code}
+
+
+# ========================================
 # U2: EDIT USER DETAILS (ADMIN)
 # ========================================
 @rbac_router.put("/users/{user_id}")
