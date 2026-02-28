@@ -84,6 +84,9 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - 4 Tab: Info & Profilo (griglia ID/email/username/auth/date/stato online-offline/ruoli RBAC/contatori leghe), Modifica (edit username/email + reset password + Zona Pericolo con disabilita/abilita, super admin toggle, soft delete con conferma DELETE), Leghe & Ruoli (lista leghe utente + assegnazione ruoli RBAC con checkbox), Attivita (audit log entries come attore o target)
   - Nuovo endpoint: GET /api/rbac/users/{user_id}/audit-log (filtro per admin_id OR entity_id)
   - Tutte le azioni restano nel modale (refresh in-place senza chiudere)
+- **Creazione Utente e Lega da Admin** (Feb 28, 2026):
+  - Pulsante "+ Nuovo Utente" nella pagina utenti con modale completo: Nome, Cognome, Email, Username (opzionale, auto-generato), Data Nascita, Password (min 8), Indirizzo, Citta, Paese, CAP. Endpoint POST /api/rbac/users/create con validazione email unica, username unico, email verificata e consensi auto-accettati.
+  - Pulsante "+ Nuova Lega" nella pagina leghe con modale completo: Nome (3-40 char), Stagione (dropdown), Tipo Sorgente Match (Nazionale/Custom), Minuti prima del fischio, Giornata Inizio/Fine, Pronostici Campionato, Mercati e Punteggi (checkbox + punti). Endpoint POST /api/rbac/leagues/create con owner automatico (admin) e membership attiva. Audit log per entrambe le azioni.
 - **Sprint L1 - Dashboard Leghe KPI Cliccabili** (Feb 28, 2026):
   - 5 KPI nella card Leghe: Totale, Nazionale (verde), Private Custom (blu), Private Naz. (teal), A Rischio (rosso)
   - Tutti cliccabili con filtro tipo pre-applicato sulla pagina leghe
