@@ -1027,6 +1027,202 @@ async function doAssignRoles(userId) {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
+// ========================================
+// CREATE NEW USER (Admin)
+// ========================================
+function showCreateUserModal() {
+  const html = `<h3>Nuovo Utente</h3>
+    <p style="color:#94A3B8;font-size:13px;margin-bottom:16px">L\\'utente verra creato con email verificata e consensi accettati.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Nome *</label>
+        <input id="nu-fname" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-user-fname">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Cognome *</label>
+        <input id="nu-lname" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-user-lname">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Email *</label>
+        <input id="nu-email" type="email" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-user-email">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Username (opzionale)</label>
+        <input id="nu-username" placeholder="Auto-generato se vuoto" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-user-username">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Data di Nascita * (YYYY-MM-DD)</label>
+        <input id="nu-dob" type="date" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-user-dob">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Password * (min 8 caratteri)</label>
+        <input id="nu-pass" type="password" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-user-password">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Indirizzo</label>
+        <input id="nu-addr" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-user-address">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Citta</label>
+        <input id="nu-city" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-user-city">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Paese</label>
+        <input id="nu-country" value="Italia" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-user-country">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">CAP</label>
+        <input id="nu-cap" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-user-cap">
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal()">Annulla</button>
+      <button class="btn" onclick="doCreateUser()" data-testid="confirm-create-user-btn">Crea Utente</button>
+    </div>`;
+  showModal(html);
+}
+
+async function doCreateUser() {
+  const body = {
+    first_name: document.getElementById('nu-fname').value.trim(),
+    last_name: document.getElementById('nu-lname').value.trim(),
+    email: document.getElementById('nu-email').value.trim(),
+    username: document.getElementById('nu-username').value.trim() || undefined,
+    date_of_birth: document.getElementById('nu-dob').value,
+    password: document.getElementById('nu-pass').value,
+    address: document.getElementById('nu-addr').value.trim(),
+    city: document.getElementById('nu-city').value.trim(),
+    country: document.getElementById('nu-country').value.trim(),
+    postal_code: document.getElementById('nu-cap').value.trim(),
+  };
+
+  if (!body.first_name || !body.last_name || !body.email || !body.date_of_birth || !body.password) {
+    showToast('Compila tutti i campi obbligatori (*)', 'error'); return;
+  }
+
+  try {
+    const res = await apiCall('/rbac/users/create', 'POST', body);
+    closeModal();
+    showToast('Utente creato: ' + res.username);
+    render_users();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ========================================
+// CREATE NEW LEAGUE (Admin)
+// ========================================
+async function showCreateLeagueModal() {
+  // Fetch seasons for the dropdown
+  let seasons = [];
+  try {
+    seasons = await apiCall('/leagues/seasons', 'GET', null, true);
+  } catch(e) {
+    // Try alternate endpoint
+    try { seasons = await apiCall('/admin/seasons', 'GET', null, true); } catch(e2) {}
+  }
+
+  const seasonOpts = seasons.map(s => `<option value="${s.id}">${s.name} (${s.year})</option>`).join('');
+
+  const marketFields = [
+    {key:'1x2', label:'1X2', defEnabled:true, defPts:1},
+    {key:'over_under', label:'Over/Under', defEnabled:true, defPts:0.5},
+    {key:'goal_no_goal', label:'Goal/No Goal', defEnabled:true, defPts:0.5},
+    {key:'exact_score', label:'Risultato Esatto', defEnabled:true, defPts:4},
+  ];
+  let marketsInputs = '';
+  marketFields.forEach(m => {
+    marketsInputs += `<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <label style="flex:1;color:#94A3B8;font-size:13px">${m.label}</label>
+      <label style="font-size:12px;color:#94A3B8"><input type="checkbox" id="nl-${m.key}-on" ${m.defEnabled?'checked':''} style="margin-right:4px">Attivo</label>
+      <input id="nl-${m.key}-pts" type="number" step="0.5" min="0" value="${m.defPts}" style="width:70px;padding:6px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px">
+      <span style="color:#64748B;font-size:11px">pt</span>
+    </div>`;
+  });
+
+  const html = `<h3>Nuova Lega</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Nome Lega * (3-40 caratteri)</label>
+        <input id="nl-name" maxlength="40" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-name">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Stagione *</label>
+        <select id="nl-season" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-season">
+          ${seasonOpts}
+        </select>
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Tipo Sorgente Match</label>
+        <select id="nl-source" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-source">
+          <option value="national">Nazionale (eredita match dalla Lega Nazionale)</option>
+          <option value="custom">Personalizzata (match custom)</option>
+        </select>
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Minuti prima del fischio d\\'inizio</label>
+        <input id="nl-deadline" type="number" min="0" max="60" value="5" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-deadline">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Giornata Inizio</label>
+        <input id="nl-start" type="number" min="1" max="38" value="1" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-start">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Giornata Fine</label>
+        <input id="nl-end" type="number" min="1" max="38" value="38" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-end">
+      </div>
+      <div style="grid-column:span 2">
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Pronostici Campionato</label>
+        <select id="nl-champ" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-champ">
+          <option value="false">No</option>
+          <option value="true">Si</option>
+        </select>
+      </div>
+    </div>
+
+    <h4 style="color:#F5A623;margin:16px 0 8px;font-size:14px">Mercati e Punteggi</h4>
+    ${marketsInputs}
+
+    <p style="color:#94A3B8;font-size:12px;margin-top:12px">L\\'admin corrente sara impostato come owner della nuova lega.</p>
+
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal()">Annulla</button>
+      <button class="btn" onclick="doCreateLeague()" data-testid="confirm-create-league-btn">Crea Lega</button>
+    </div>`;
+  showModal(html);
+}
+
+async function doCreateLeague() {
+  const scoring_config = {};
+  ['1x2','over_under','goal_no_goal','exact_score'].forEach(k => {
+    scoring_config[k] = {
+      enabled: document.getElementById('nl-'+k+'-on').checked,
+      points: parseFloat(document.getElementById('nl-'+k+'-pts').value) || 0
+    };
+  });
+
+  const body = {
+    name: document.getElementById('nl-name').value.trim(),
+    season_id: document.getElementById('nl-season').value,
+    match_source_type: document.getElementById('nl-source').value,
+    bet_deadline_minutes: parseInt(document.getElementById('nl-deadline').value) || 5,
+    start_matchday: parseInt(document.getElementById('nl-start').value) || 1,
+    end_matchday: parseInt(document.getElementById('nl-end').value) || 38,
+    include_championship_predictions: document.getElementById('nl-champ').value === 'true',
+    scoring_config: scoring_config,
+  };
+
+  if (!body.name || body.name.length < 3) {
+    showToast('Il nome deve avere almeno 3 caratteri', 'error'); return;
+  }
+
+  try {
+    const res = await apiCall('/rbac/leagues/create', 'POST', body);
+    closeModal();
+    showToast('Lega creata: ' + res.name + ' (codice: ' + res.invite_code + ')');
+    render_leagues();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
 async function doEditUser(userId) {
   const newUsername = document.getElementById('edit-user-username').value.trim();
   const newEmail = document.getElementById('edit-user-email').value.trim();
