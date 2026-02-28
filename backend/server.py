@@ -3636,6 +3636,52 @@ async def _calculate_matchday_scores(matchday_id: str, admin: dict):
     logger.info(f"[ADMIN] Scores calculated for {len(user_league_preds)} user+league combos in matchday {matchday_id}")
 
 
+@admin_router.delete("/leagues/{league_id}")
+async def admin_delete_league(league_id: str, admin=Depends(require_permission("admin.leagues.manage"))):
+    """Elimina una lega e TUTTI i dati associati (giornate, partite, pronostici, punteggi, iscrizioni)."""
+    league = await leagues_col.find_one({"id": league_id})
+    if not league:
+        raise HTTPException(404, "League not found")
+
+    # Protect national league
+    if league.get("league_type") == "national":
+        raise HTTPException(400, "La Lega Nazionale non puo essere eliminata")
+
+    # Get all matchday IDs for this league
+    matchday_ids = [m["id"] async for m in matchdays_col.find({"league_id": league_id}, {"id": 1, "_id": 0})]
+
+    # Cascade delete all related data
+    del_predictions = await predictions_col.delete_many({"league_id": league_id})
+    del_scores = await score_summaries_col.delete_many({"league_id": league_id})
+    del_standings = await standings_cache_col.delete_many({"league_id": league_id})
+    del_champions = await champion_picks_col.delete_many({"league_id": league_id})
+    del_jokers = await joker_usages_col.delete_many({"league_id": league_id})
+    del_matches = await matches_col.delete_many({"league_id": league_id})
+    del_matchdays = await matchdays_col.delete_many({"league_id": league_id})
+    del_memberships = await memberships_col.delete_many({"league_id": league_id})
+
+    # Delete the league itself
+    await leagues_col.delete_one({"id": league_id})
+
+    await log_audit(admin["id"], admin["username"], "DELETE", "league", league_id, {
+        "league_name": league.get("name", ""),
+        "deleted_matchdays": del_matchdays.deleted_count,
+        "deleted_matches": del_matches.deleted_count,
+        "deleted_predictions": del_predictions.deleted_count,
+        "deleted_memberships": del_memberships.deleted_count,
+        "deleted_scores": del_scores.deleted_count,
+    })
+
+    return {
+        "status": "deleted",
+        "league_id": league_id,
+        "deleted_matchdays": del_matchdays.deleted_count,
+        "deleted_matches": del_matches.deleted_count,
+        "deleted_predictions": del_predictions.deleted_count,
+        "deleted_memberships": del_memberships.deleted_count,
+    }
+
+
 @admin_router.delete("/matchdays/{matchday_id}")
 async def admin_delete_matchday(matchday_id: str, admin=Depends(require_permission("admin.matchdays.manage"))):
     """Elimina una giornata e tutti i dati associati (partite, pronostici, score_summaries, joker)."""
