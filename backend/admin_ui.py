@@ -1492,7 +1492,7 @@ function renderCrTeam(l) {
 }
 
 async function doEditRules(leagueId) {
-  if (!confirm('CONFERMA FINALE: Sei sicuro di voler modificare le regole di questa lega? Le modifiche vengono registrate nell\\'audit log.')) return;
+  if (!confirm('CONFERMA: Sei sicuro di voler modificare le impostazioni di questa lega? Le modifiche vengono registrate nell\\'audit log.')) return;
 
   const scoring_config = {};
   ['1x2','over_under','goal_no_goal','exact_score'].forEach(k => {
@@ -1504,6 +1504,7 @@ async function doEditRules(leagueId) {
 
   const body = {
     confirm: true,
+    name: document.getElementById('rule-name').value.trim(),
     scoring_config: scoring_config,
     start_matchday: parseInt(document.getElementById('rule-start-md').value) || 1,
     end_matchday: parseInt(document.getElementById('rule-end-md').value) || 38,
@@ -1513,83 +1514,20 @@ async function doEditRules(leagueId) {
 
   try {
     await apiCall('/rbac/leagues/' + leagueId + '/rules', 'PUT', body);
-    closeModal();
-    showToast('Regole aggiornate con successo');
-    render_leagues();
+    showToast('Impostazioni lega aggiornate');
+    // Refresh leagues cache and reopen control room
+    const leagues = await apiCall('/rbac/leagues');
+    allLeaguesCache = leagues;
+    showLeagueControlRoom(leagueId, 'info');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
 function showLeagueAdmins(leagueId) {
-  const league = allLeaguesCache.find(l => l.id === leagueId);
-  if (!league) return;
-  let html = `<h3>Admin di: ${league.name}</h3>`;
-  if (league.owner) {
-    html += `<div style="margin:12px 0"><span class="tag tag-super">OWNER</span> <strong>${league.owner.username}</strong> <span style="color:#64748B">(${league.owner.email})</span></div>`;
-  }
-  if (league.admins && league.admins.length > 0) {
-    html += '<table><tr><th>Username</th><th>Email</th><th>Ruolo</th></tr>';
-    league.admins.forEach(a => {
-      html += `<tr><td><strong>${a.username}</strong></td><td style="color:#94A3B8">${a.email}</td><td><span class="tag tag-role">${a.role}</span></td></tr>`;
-    });
-    html += '</table>';
-  } else {
-    html += '<p style="color:#94A3B8">Nessun admin</p>';
-  }
-  html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Chiudi</button></div>';
-  showModal(html);
+  showLeagueControlRoom(leagueId, 'team');
 }
 
 async function showLeagueManage(leagueId) {
-  const league = allLeaguesCache.find(l => l.id === leagueId);
-  if (!league) return;
-
-  try {
-    const members = await apiCall('/rbac/leagues/' + leagueId + '/members');
-    let html = `<h3>Gestisci: ${league.name}</h3>`;
-
-    // Owner section
-    html += '<div style="margin:12px 0"><strong style="color:#F5A623">Owner:</strong> ';
-    if (league.owner) {
-      html += `${league.owner.username} (${league.owner.email})`;
-    } else {
-      html += '<span style="color:#EF4444">Nessun owner</span>';
-    }
-    html += '</div>';
-
-    // Transfer ownership
-    html += '<div style="margin:12px 0"><strong style="color:#94A3B8">Trasferisci Ownership:</strong>';
-    html += `<select id="new-owner-select" style="margin-left:8px;padding:6px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">`;
-    html += '<option value="">-- Seleziona nuovo owner --</option>';
-    members.filter(m => !m.is_owner).forEach(m => {
-      html += `<option value="${m.user_id}">${m.username} (${m.email}) [${m.role}]</option>`;
-    });
-    html += '</select>';
-    html += ` <button class="btn btn-sm" onclick="doTransferOwner('${leagueId}')" data-testid="transfer-owner-btn">Trasferisci</button></div>`;
-
-    // Members table with admin toggle
-    html += '<h4 style="color:#94A3B8;margin:16px 0 8px">Membri (' + members.length + ')</h4>';
-    html += '<table><tr><th>Username</th><th>Email</th><th>Ruolo</th><th>Azioni</th></tr>';
-    members.forEach(m => {
-      const isOwner = m.is_owner;
-      const isAdmin = m.role === 'admin' || m.role === 'owner';
-      let actionBtn = '';
-      if (isOwner) {
-        actionBtn = '<span class="tag tag-super">OWNER</span>';
-      } else if (isAdmin) {
-        actionBtn = `<button class="btn btn-sm btn-danger" onclick="toggleLeagueAdmin('${leagueId}','${m.user_id}','remove')">Rimuovi Admin</button>`;
-      } else {
-        actionBtn = `<button class="btn btn-sm btn-outline" onclick="toggleLeagueAdmin('${leagueId}','${m.user_id}','add')">Promuovi Admin</button>`;
-      }
-      html += `<tr>
-        <td><strong>${m.username}</strong></td>
-        <td style="color:#94A3B8;font-size:12px">${m.email}</td>
-        <td><span class="tag tag-role">${m.role}</span></td>
-        <td>${actionBtn}</td></tr>`;
-    });
-    html += '</table>';
-    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Chiudi</button></div>';
-    showModal(html);
-  } catch(e) { showToast(e.message, 'error'); }
+  showLeagueControlRoom(leagueId, 'team');
 }
 
 async function doTransferOwner(leagueId) {
