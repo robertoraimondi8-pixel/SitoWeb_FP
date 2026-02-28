@@ -80,7 +80,7 @@ def generate_invite_code(length=8):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
 
-async def log_audit(admin_id: str, admin_username: str, action: str, entity_type: str, entity_id: str, details: dict = None):
+async def log_audit(admin_id: str, admin_username: str, action: str, entity_type: str, entity_id: str, details: dict = None, actor_roles: list = None, ip: str = None, before: dict = None, after: dict = None):
     entry = {
         "id": new_id(),
         "admin_id": admin_id,
@@ -89,6 +89,10 @@ async def log_audit(admin_id: str, admin_username: str, action: str, entity_type
         "entity_type": entity_type,
         "entity_id": entity_id,
         "details": details or {},
+        "actor_roles": actor_roles or [],
+        "ip": ip,
+        "before": before,
+        "after": after,
         "created_at": now_utc(),
     }
     await audit_logs_col.insert_one(entry)
