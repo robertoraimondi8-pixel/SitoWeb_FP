@@ -43,7 +43,7 @@ from models import (
 from auth import (
     hash_password, verify_password, create_access_token,
     create_refresh_token, decode_refresh_token, get_current_user,
-    require_admin, get_optional_user
+    get_optional_user
 )
 from scoring import calculate_match_points, calculate_matchday_total
 from permissions import ALL_PERMISSIONS, DEFAULT_ROLES, require_permission, get_user_permissions
