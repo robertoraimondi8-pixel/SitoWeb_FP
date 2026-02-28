@@ -1669,21 +1669,14 @@ async function renderMdcrInfo(md, canManage) {
   const hasResults = resultCount > 0;
   const isDraft = md.status === 'DRAFT';
 
-  // State transitions
-  const transitions = {
-    'DRAFT': ['OPEN'],
-    'OPEN': ['LOCKED', 'LIVE'],
-    'LOCKED': ['OPEN', 'LIVE'],
-    'LIVE': ['COMPLETED'],
-    'COMPLETED': []
-  };
-  const nextStates = transitions[md.status] || [];
+  // State transitions - ALL states available (Super Admin can go backward)
+  const allStates = ['DRAFT','OPEN','LOCKED','LIVE','COMPLETED'];
+  const colors = {'DRAFT':'#64748B','OPEN':'#3B82F6','LOCKED':'#F59E0B','LIVE':'#10B981','COMPLETED':'#6B7280'};
 
   let stateButtons = '';
   if (canManage) {
-    nextStates.forEach(s => {
-      const colors = {'OPEN':'#3B82F6','LOCKED':'#F59E0B','LIVE':'#10B981','COMPLETED':'#6B7280'};
-      stateButtons += `<button class="btn btn-sm" style="background:${colors[s]||'#475569'};color:#fff" onclick="doMdTransition('${md.id}','${s}')" data-testid="md-to-${s}">${s}</button> `;
+    allStates.filter(s => s !== md.status).forEach(s => {
+      stateButtons += `<button class="btn btn-sm" style="background:${colors[s]};color:#fff" onclick="doMdTransition('${md.id}','${s}')" data-testid="md-to-${s}">${s}</button> `;
     });
     if (md.status === 'LIVE' || md.status === 'COMPLETED') {
       stateButtons += `<button class="btn btn-sm" style="background:#F5A623;color:#0F172A" onclick="doMdConfirm('${md.id}')" data-testid="md-confirm-btn">CONFERMA PUNTEGGI</button> `;
