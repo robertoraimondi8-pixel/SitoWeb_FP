@@ -452,9 +452,9 @@ class TestAuditLogging:
         assert audit_resp.status_code == 200
         logs = audit_resp.json()
         
-        # Find the CREATE_ROLE log
-        create_log = next((l for l in logs if l.get("action") == "CREATE_ROLE" and l.get("entity_id") == role_id), None)
-        assert create_log is not None
+        # Find the CREATE log for the role
+        create_log = next((l for l in logs if l.get("action") == "CREATE" and l.get("entity_id") == role_id), None)
+        assert create_log is not None, f"No CREATE log found for role {role_id}. Available logs: {[l.get('action') for l in logs]}"
         assert "details" in create_log
         
         # Clean up
