@@ -146,7 +146,7 @@ async def compute_matchday_status(matchday: dict, league_id: str) -> str:
             if isinstance(first_kickoff, str):
                 kickoff_dt = datetime.fromisoformat(first_kickoff.replace("Z", "+00:00"))
             elif isinstance(first_kickoff, datetime):
-                kickoff_dt = first_kickoff
+                kickoff_dt = first_kickoff if first_kickoff.tzinfo else first_kickoff.replace(tzinfo=timezone.utc)
         except Exception:
             pass
 
