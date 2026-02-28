@@ -5260,7 +5260,7 @@ async def edit_league_rules(league_id: str, request: Request, user=Depends(requi
         raise HTTPException(404, "Lega non trovata")
 
     allowed_fields = {
-        "scoring_config", "start_matchday", "end_matchday",
+        "name", "scoring_config", "start_matchday", "end_matchday",
         "bet_deadline_minutes", "include_championship_predictions",
         "competition_name"
     }
@@ -5271,6 +5271,13 @@ async def edit_league_rules(league_id: str, request: Request, user=Depends(requi
         if field in body and body[field] is not None:
             before[field] = league.get(field)
             updates[field] = body[field]
+
+    # Validate name if provided
+    if "name" in updates:
+        new_name = str(updates["name"]).strip()
+        if len(new_name) < 2 or len(new_name) > 60:
+            raise HTTPException(400, "Il nome della lega deve essere tra 2 e 60 caratteri")
+        updates["name"] = new_name
 
     if not updates:
         raise HTTPException(400, "Nessuna modifica fornita")
