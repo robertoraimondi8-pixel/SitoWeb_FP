@@ -1303,8 +1303,7 @@ function renderLeaguesTable(leagues) {
       <td>${l.member_count}</td>
       <td style="font-size:11px;color:#94A3B8;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${rulesSummary}">${lockedIcon} ${rulesSummary}</td>
       <td>
-        <button class="btn btn-sm btn-outline" onclick="showLeagueDetail('${l.id}')" data-testid="detail-league-${l.id}">Dettaglio</button>
-        <button class="btn btn-sm btn-outline" onclick="showLeagueManage('${l.id}')" data-testid="manage-league-${l.id}">Gestisci</button>
+        <button class="btn btn-sm btn-outline" onclick="showLeagueControlRoom('${l.id}')" data-testid="control-league-${l.id}">Control Room</button>
       </td></tr>`;
   });
   html += '</table>';
