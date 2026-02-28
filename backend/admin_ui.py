@@ -1462,7 +1462,7 @@ function onMdLeagueChange() {
       <div class="form-row" style="margin:0">
         ${leaguePicker}
         <select id="md-season" style="flex:1">${sOpts}</select>
-        <select id="md-num" style="width:120px" data-testid="md-num-select"><option value="">Numero...</option></select>
+        <select id="md-num" style="width:120px" data-testid="md-num-select" onchange="document.getElementById('md-label').value='Giornata '+this.value"><option value="">Giornata...</option></select>
         <input id="md-label" placeholder="Etichetta" style="flex:1">
         <select id="md-half" style="width:90px"><option value="1">Andata</option><option value="2">Ritorno</option></select>
         <input id="md-kickoff" type="datetime-local" style="flex:1">
