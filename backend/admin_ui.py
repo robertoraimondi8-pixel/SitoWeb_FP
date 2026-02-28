@@ -1542,6 +1542,21 @@ function mdSort(col) {
   filterMatchdays();
 }
 
+async function saveMdEdit(mdId) {
+  try {
+    const num = parseInt(document.getElementById('mdcr-edit-number').value);
+    const label = document.getElementById('mdcr-edit-label').value;
+    if (!num || num < 1) { showToast('Numero non valido', 'error'); return; }
+    await apiCall('/admin/matchdays/' + mdId, 'PUT', { number: num, label });
+    showToast('Giornata aggiornata');
+    // Update local cache and refresh
+    const md = (window._allMatchdays||[]).find(m => m.id === mdId);
+    if (md) { md.number = num; md.label = label; }
+    loadMatchdays();
+    showMdControlRoom(mdId, 'info');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
 async function createMatchday() {
   try {
     const mainLeagueId = document.getElementById('md-league').value;
