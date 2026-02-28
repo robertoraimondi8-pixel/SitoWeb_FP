@@ -1898,7 +1898,10 @@ async function doSearchFixtures(mdId) {
   resultsDiv.innerHTML = '<p style="color:#94A3B8">Ricerca in corso...</p>';
 
   try {
-    let url = '/admin/real-fixtures/search?league=' + league + '&season=2024';
+    // Auto-detect season: if month >= 7, season = current year; else season = year - 1
+    const now = new Date();
+    const autoSeason = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+    let url = '/admin/real-fixtures/search?league=' + league + '&season=' + autoSeason;
     if (from) url += '&from=' + from;
     if (to) url += '&to=' + to;
     const fixtures = await apiCall(url);
