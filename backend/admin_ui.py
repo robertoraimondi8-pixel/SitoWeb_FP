@@ -428,8 +428,11 @@ async function render_dashboard() {
     html += `<div class="card" data-testid="kpi-leagues">
       <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Leghe</h3>
       <div class="counter-row">
-        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('leagues',{})"><div class="num">${d.leagues.total}</div><div class="label">Totale</div></div>
-        <div class="counter-box" style="cursor:pointer;border-color:${riskColor}" onclick="navigateWith('leagues',{risk:'all'})"><div class="num" style="color:${riskColor}">${riskCount}</div><div class="label">A Rischio</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('leagues',{})" data-testid="kpi-leagues-total"><div class="num">${d.leagues.total}</div><div class="label">Totale</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('leagues',{type:'national'})" data-testid="kpi-leagues-national"><div class="num" style="color:#10B981">${d.leagues.national_count||0}</div><div class="label">Nazionale</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('leagues',{type:'private_custom'})" data-testid="kpi-leagues-custom"><div class="num" style="color:#3B82F6">${d.leagues.private_custom_count||0}</div><div class="label">Private Custom</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('leagues',{type:'private_national'})" data-testid="kpi-leagues-privnat"><div class="num" style="color:#14B8A6">${d.leagues.private_national_count||0}</div><div class="label">Private Naz.</div></div>
+        <div class="counter-box" style="cursor:pointer;border-color:${riskColor}" onclick="navigateWith('leagues',{risk:'all'})" data-testid="kpi-leagues-risk"><div class="num" style="color:${riskColor}">${riskCount}</div><div class="label">A Rischio</div></div>
       </div>`;
     if (riskCount > 0) {
       html += '<div style="margin-top:12px">';
