@@ -790,6 +790,103 @@ async function toggleSuperAdmin(userId, value) {
 }
 
 // ========================================
+// U2: EDIT USER DETAILS MODAL
+// ========================================
+function showEditUserModal(userId) {
+  const user = allUsersCache.find(u => u.id === userId);
+  if (!user) return;
+  const isGoogle = user.auth_provider === 'google';
+  const googleNote = isGoogle ? '<p style="color:#F59E0B;font-size:12px;margin-bottom:12px">Utente Google - il reset password non e\\'  disponibile</p>' : '';
+
+  let html = `<h3>Dettagli Utente</h3>
+    <div style="margin-bottom:16px">
+      <span class="tag tag-role">ID: ${user.id.substring(0,12)}...</span>
+      ${user.is_super_admin ? '<span class="tag tag-super">SUPER ADMIN</span>' : ''}
+      ${user.is_disabled ? '<span class="tag tag-disabled">DISABILITATO</span>' : '<span class="tag" style="background:rgba(16,185,129,.15);color:#10B981;border:1px solid rgba(16,185,129,.3)">ATTIVO</span>'}
+    </div>
+    ${googleNote}
+    <div style="margin-bottom:12px">
+      <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Username</label>
+      <input id="edit-user-username" value="${user.username}" style="width:100%;padding:10px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:14px" data-testid="edit-user-username">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Email</label>
+      <input id="edit-user-email" value="${user.email}" style="width:100%;padding:10px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:14px" data-testid="edit-user-email">
+    </div>
+    <div style="margin-bottom:12px;display:flex;gap:12px;font-size:13px;color:#94A3B8">
+      <div><strong>Registrato:</strong> ${user.created_at ? new Date(user.created_at).toLocaleString('it') : '-'}</div>
+      <div><strong>Ultimo login:</strong> ${user.last_login ? new Date(user.last_login).toLocaleString('it') : 'Mai'}</div>
+    </div>
+    <div id="reset-link-result"></div>
+    <div class="modal-actions" style="justify-content:space-between">
+      <div>
+        ${!isGoogle ? `<button class="btn btn-sm" style="background:#7C3AED;color:#fff" onclick="doGenerateResetLink('${userId}')" data-testid="generate-reset-link-btn">Genera Link Reset Password</button>` : ''}
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="closeModal()">Annulla</button>
+        <button class="btn" onclick="doEditUser('${userId}')" data-testid="confirm-edit-user-btn">Salva Modifiche</button>
+      </div>
+    </div>`;
+  showModal(html);
+}
+
+async function doEditUser(userId) {
+  const newUsername = document.getElementById('edit-user-username').value.trim();
+  const newEmail = document.getElementById('edit-user-email').value.trim();
+  const user = allUsersCache.find(u => u.id === userId);
+  if (!user) return;
+
+  const body = {};
+  if (newUsername && newUsername !== user.username) body.username = newUsername;
+  if (newEmail && newEmail !== user.email) body.email = newEmail;
+
+  if (Object.keys(body).length === 0) {
+    showToast('Nessuna modifica rilevata', 'error');
+    return;
+  }
+
+  try {
+    await apiCall('/rbac/users/' + userId, 'PUT', body);
+    closeModal();
+    showToast('Utente aggiornato');
+    render_users();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ========================================
+// U3: GENERATE PASSWORD RESET LINK
+// ========================================
+async function doGenerateResetLink(userId) {
+  try {
+    const res = await apiCall('/rbac/users/' + userId + '/reset-password-link', 'POST');
+    const resultDiv = document.getElementById('reset-link-result');
+    resultDiv.innerHTML = `
+      <div class="card" style="border-color:#7C3AED;margin-bottom:12px">
+        <p style="color:#10B981;font-size:13px;margin-bottom:8px">Link generato con successo! Scade: ${new Date(res.expires_at).toLocaleString('it')}</p>
+        <p style="color:#94A3B8;font-size:12px;margin-bottom:8px">Copia e invia manualmente questo link all\\'utente (${res.user_email}):</p>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="reset-link-url" value="${res.reset_url}" readonly style="flex:1;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F5A623;font-size:12px" data-testid="reset-link-url">
+          <button class="btn btn-sm" onclick="copyResetLink()" data-testid="copy-reset-link-btn">Copia</button>
+        </div>
+      </div>`;
+    showToast('Link reset password generato');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function copyResetLink() {
+  const input = document.getElementById('reset-link-url');
+  if (input) {
+    navigator.clipboard.writeText(input.value).then(() => {
+      showToast('Link copiato negli appunti');
+    }).catch(() => {
+      input.select();
+      document.execCommand('copy');
+      showToast('Link copiato');
+    });
+  }
+}
+
+// ========================================
 // SEASONS (existing)
 // ========================================
 async function render_seasons() {
