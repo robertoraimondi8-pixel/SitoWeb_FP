@@ -4705,6 +4705,11 @@ async def dashboard_stats(user=Depends(require_permission("admin.dashboard.view"
     recent_logins = await users_col.count_documents({
         "last_login": {"$gte": one_day_ago_str}
     })
+    # Online users (last_activity within 5 min)
+    five_min_ago_str = (now - timedelta(minutes=5)).isoformat()
+    online_users = await users_col.count_documents({
+        "last_activity": {"$gte": five_min_ago_str}
+    })
 
     # --- Leagues KPI ---
     total_leagues = await leagues_col.count_documents({})
