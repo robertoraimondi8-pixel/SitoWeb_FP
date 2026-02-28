@@ -1,0 +1,121 @@
+{
+  "summary": "User Control Room Testing Complete - All 11 backend tests PASSED, All UI tests PASSED. Users section now has a single 'Control Room' button per row (old buttons Dettagli/Ruoli/Disabilita/Elimina replaced). Modal opens with 4 tabs: Info & Profilo, Modifica, Leghe & Ruoli, Attivita. New GET /api/rbac/users/{user_id}/audit-log endpoint working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "total": 11,
+      "passed": 11,
+      "failed": 0,
+      "test_file": "/app/backend/tests/test_user_control_room.py"
+    },
+    "user_control_room_ui": {
+      "single_control_room_button": "PASS - Each user row has single 'Control Room' button (73 buttons found)",
+      "old_buttons_removed": "PASS - Old 'Dettagli' and 'Ruoli' buttons are NOT present",
+      "four_tabs": "PASS - Modal has 4 tabs: Info & Profilo, Modifica, Leghe & Ruoli, Attivita",
+      "tab_testids": "PASS - All tabs have correct data-testid: ucr-tab-info, ucr-tab-edit, ucr-tab-leagues, ucr-tab-activity"
+    },
+    "info_tab_features": {
+      "user_details_grid": "PASS - Shows ID, Email, Username, Auth Provider, Registrato, Ultimo Login, Ultima Attivita, Stato (8/8 fields)",
+      "online_status": "PASS - Shows Online/Offline status indicator",
+      "rbac_roles": "PASS - Shows RBAC roles section",
+      "league_counters": "PASS - Shows Leghe Create, Admin Lega, Membro counters"
+    },
+    "modifica_tab_features": {
+      "username_field": "PASS - Editable Username input field (data-testid='edit-user-username')",
+      "email_field": "PASS - Editable Email input field (data-testid='edit-user-email')",
+      "save_profile_button": "PASS - 'Salva Modifiche Profilo' button present (data-testid='confirm-edit-user-btn')",
+      "reset_password_button": "PASS - 'Genera Link Reset Password' button present (not shown for Google users)",
+      "danger_zone": "PASS - Zona Pericolo section present",
+      "toggle_status_button": "PASS - Disabilita/Riabilita Utente button present",
+      "toggle_super_admin": "PASS - Promuovi/Rimuovi Super Admin button present",
+      "soft_delete_button": "PASS - 'Elimina Utente (Soft)' button present",
+      "soft_delete_confirmation": "PASS - Requires typing DELETE to confirm"
+    },
+    "leghe_ruoli_tab_features": {
+      "user_leagues_table": "PASS - Shows user's leagues table (or 'Nessuna lega' message)",
+      "rbac_roles_assignment": "PASS - Shows RBAC role checkboxes with role names and descriptions",
+      "save_roles_button": "PASS - 'Salva Ruoli' button present (data-testid='confirm-assign-roles')"
+    },
+    "attivita_tab_features": {
+      "audit_log_display": "PASS - Shows audit log entries in table format",
+      "columns": "PASS - Table has Data, Azione, Tipo, Dettagli columns",
+      "role_indicator": "PASS - Shows whether user was Actor or Target of each action"
+    },
+    "api_endpoints": {
+      "GET_users_list": "PASS - /api/rbac/users returns user list with required fields",
+      "GET_user_audit_log": "PASS - /api/rbac/users/{user_id}/audit-log returns audit entries",
+      "audit_log_limit": "PASS - limit parameter works correctly",
+      "PUT_edit_user": "PASS - /api/rbac/users/{user_id} endpoint works",
+      "PUT_toggle_status": "PASS - /api/rbac/users/{user_id}/status endpoint exists",
+      "PUT_toggle_super_admin": "PASS - /api/rbac/users/{user_id}/super-admin endpoint exists",
+      "PUT_assign_roles": "PASS - /api/rbac/users/{user_id}/roles endpoint works",
+      "POST_reset_password_link": "PASS - /api/rbac/users/{user_id}/reset-password-link works for non-Google users",
+      "GET_user_leagues": "PASS - /api/rbac/users/{user_id}/leagues returns user's leagues"
+    },
+    "access_control": {
+      "non_admin_denied_users": "PASS - Non-admin users denied access to users list (403)",
+      "non_admin_denied_audit": "PASS - Non-admin users denied access to audit log (403)"
+    }
+  },
+  "verified_features": [
+    "Users table has single 'Control Room' button per row (replaces old Dettagli/Ruoli/Disabilita/Elimina buttons)",
+    "User Control Room modal opens with 4 tabs: Info & Profilo, Modifica, Leghe & Ruoli, Attivita",
+    "Tab test-ids: ucr-tab-info, ucr-tab-edit, ucr-tab-leagues, ucr-tab-activity",
+    "User row test-id: control-user-{id}",
+    "Info tab shows user details grid: ID, email, username, auth provider, registration date, last login, last activity",
+    "Info tab shows online/offline status indicator",
+    "Info tab shows RBAC roles and league counters (Leghe Create, Admin Lega, Membro)",
+    "Modifica tab shows editable username and email fields with 'Salva Modifiche Profilo' button",
+    "Modifica tab shows 'Genera Link Reset Password' button (hidden for Google users)",
+    "Modifica tab has Danger Zone with Disabilita/Riabilita, Promuovi/Rimuovi Super Admin, Elimina Utente (Soft) buttons",
+    "Soft delete requires typing DELETE to confirm",
+    "Leghe & Ruoli tab shows user's leagues table",
+    "Leghe & Ruoli tab shows RBAC role assignment checkboxes with Salva Ruoli button",
+    "Attivita tab shows audit log entries via GET /api/rbac/users/{user_id}/audit-log endpoint",
+    "Attivita tab displays Data, Azione, Tipo, Dettagli columns with Actor/Target indicator",
+    "Backend: GET /api/rbac/users/{user_id}/audit-log returns audit entries where user is actor or target",
+    "Edit user (PUT /api/rbac/users/{user_id}) endpoint working",
+    "Toggle user status endpoint working",
+    "Toggle Super Admin endpoint working",
+    "Role assignment (Salva Ruoli) endpoint working"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_user_control_room.py",
+    "/app/test_reports/pytest/user_control_room_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Audit log endpoint correctly filters by user as actor (admin_id) OR target (entity_id)",
+    "All User Control Room functions have proper data-testid attributes for testing",
+    "Soft delete confirmation uses same DELETE typing pattern as role deletion",
+    "Modal structure follows same pattern as League Control Room (L2)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_user_control_room.py"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 tests passed)",
+    "frontend": "100% (All UI tests passed)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123 (Super Admin with audit log entries)",
+    "standard_user": "ilio@raimondi.it / password123 (correctly denied admin access)"
+  },
+  "seed_data_creation": "No new seed data created. Used existing users for testing.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "User Control Room fully implemented and tested. Pattern matches League Control Room (L2). Users table now has single Control Room button per row. 4 tabs working: Info & Profilo (user details + RBAC roles + league counters), Modifica (edit fields + Danger Zone), Leghe & Ruoli (user's leagues + RBAC assignment), Attivita (audit log entries). New API: GET /api/rbac/users/{user_id}/audit-log returns entries where user is actor or target.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": [],
+    "note": "Password reset link delivery is manual (displayed to admin for copying)"
+  }
+}
