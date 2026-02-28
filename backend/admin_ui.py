@@ -589,6 +589,8 @@ async function render_users() {
           <option value="__norole__">Senza ruolo</option>
           <option value="__disabled__">Disabilitati</option>
           <option value="__deleted__">Eliminati (soft)</option>
+          <option value="__new_7d__">Nuovi ultimi 7gg</option>
+          <option value="__login_24h__">Login ultime 24h</option>
           ${roleOpts}
         </select>
       </div>`;
