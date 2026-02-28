@@ -3394,12 +3394,12 @@ async def stripe_webhook(request: Request):
 # ADMIN ROUTES
 # ========================================
 @admin_router.get("/seasons")
-async def admin_list_seasons(admin=Depends(require_admin)):
+async def admin_list_seasons(admin=Depends(require_permission("admin.seasons.manage"))):
     return await seasons_col.find({}, {"_id": 0}).to_list(100)
 
 
 @admin_router.post("/seasons")
-async def admin_create_season(req: SeasonCreate, admin=Depends(require_admin)):
+async def admin_create_season(req: SeasonCreate, admin=Depends(require_permission("admin.seasons.manage"))):
     season_id = new_id()
     season = {
         "id": season_id,
@@ -3417,7 +3417,7 @@ async def admin_create_season(req: SeasonCreate, admin=Depends(require_admin)):
 
 
 @admin_router.put("/seasons/{season_id}")
-async def admin_update_season(season_id: str, req: AdminSeasonUpdate, admin=Depends(require_admin)):
+async def admin_update_season(season_id: str, req: AdminSeasonUpdate, admin=Depends(require_permission("admin.seasons.manage"))):
     updates = {k: v for k, v in req.dict().items() if v is not None}
     if not updates:
         raise HTTPException(400, "No updates provided")
@@ -3428,7 +3428,7 @@ async def admin_update_season(season_id: str, req: AdminSeasonUpdate, admin=Depe
 
 # A) ADMIN: Set current matchday for /home
 @admin_router.put("/seasons/{season_id}/current-matchday")
-async def admin_set_current_matchday(season_id: str, matchday_id: str, admin=Depends(require_admin)):
+async def admin_set_current_matchday(season_id: str, matchday_id: str, admin=Depends(require_permission("admin.seasons.manage"))):
     """
     Imposta la giornata corrente che sarà mostrata in /home.
     Usare questo per forzare quale giornata vedere indipendentemente dallo status.
@@ -3461,7 +3461,7 @@ async def admin_set_current_matchday(season_id: str, matchday_id: str, admin=Dep
 
 
 @admin_router.get("/matchdays")
-async def admin_list_matchdays(season_id: str = None, admin=Depends(require_admin)):
+async def admin_list_matchdays(season_id: str = None, admin=Depends(require_permission("admin.matchdays.manage"))):
     # Admin console manages ONLY the national league — never show matchdays from private/manual leagues
     query: dict = {"league_id": NATIONAL_LEAGUE_ID}
     if season_id:
@@ -3470,7 +3470,7 @@ async def admin_list_matchdays(season_id: str = None, admin=Depends(require_admi
 
 
 @admin_router.post("/matchdays")
-async def admin_create_matchday(req: MatchdayCreate, admin=Depends(require_admin)):
+async def admin_create_matchday(req: MatchdayCreate, admin=Depends(require_permission("admin.matchdays.manage"))):
     md_id = new_id()
     md = {
         "id": md_id,
@@ -3490,7 +3490,7 @@ async def admin_create_matchday(req: MatchdayCreate, admin=Depends(require_admin
 
 
 @admin_router.put("/matchdays/{matchday_id}")
-async def admin_update_matchday(matchday_id: str, req: AdminMatchdayUpdate, admin=Depends(require_admin)):
+async def admin_update_matchday(matchday_id: str, req: AdminMatchdayUpdate, admin=Depends(require_permission("admin.matchdays.manage"))):
     updates = {k: v for k, v in req.dict().items() if v is not None}
     if not updates:
         raise HTTPException(400, "No updates")
@@ -3619,7 +3619,7 @@ async def _calculate_matchday_scores(matchday_id: str, admin: dict):
 
 
 @admin_router.delete("/matchdays/{matchday_id}")
-async def admin_delete_matchday(matchday_id: str, admin=Depends(require_admin)):
+async def admin_delete_matchday(matchday_id: str, admin=Depends(require_permission("admin.matchdays.manage"))):
     """Elimina una giornata e tutti i dati associati (partite, pronostici, score_summaries, joker)."""
     matchday = await matchdays_col.find_one({"id": matchday_id})
     if not matchday:
