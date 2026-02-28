@@ -1401,18 +1401,29 @@ async function render_matchdays() {
   const statusFilter = navFilter.status || '';
   navFilter = {};
   const el = document.getElementById('content');
-  el.innerHTML = '<h2>Giornate</h2><div id="md-form" class="card"></div><div id="md-filter" class="card"></div><div id="md-list"></div>';
-  const seasons = await apiCall('/admin/seasons');
-  const opts = seasons.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-  document.getElementById('md-form').innerHTML = `
-    <div class="form-row">
-      <select id="md-season">${opts}</select>
-      <input id="md-num" type="number" placeholder="Numero" min="1">
-      <input id="md-label" placeholder="Etichetta">
-      <select id="md-half"><option value="1">Andata</option><option value="2">Ritorno</option></select>
-      <input id="md-kickoff" type="datetime-local">
-      <button class="btn" onclick="createMatchday()">Crea</button>
+  el.innerHTML = '<h2>Giornate</h2><div id="md-controls" class="card"></div><div id="md-filter" class="card"></div><div id="md-list"></div>';
+
+  // Load leagues + seasons
+  const [leagues, seasons] = await Promise.all([apiCall('/rbac/leagues'), apiCall('/admin/seasons')]);
+  allLeaguesCache = leagues;
+  const seasonOpts = seasons.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+  // League selector: default to national
+  const leagueOpts = leagues.map(l => {
+    const sel = l.league_type === 'national' ? 'selected' : '';
+    const src = l.match_source_type === 'national' ? ' (eredita naz.)' : l.match_source_type === 'custom' ? ' (custom)' : '';
+    return `<option value="${l.id}" ${sel}>${l.name}${src}</option>`;
+  }).join('');
+
+  document.getElementById('md-controls').innerHTML = `
+    <div class="form-row" style="align-items:flex-end">
+      <div style="flex:2">
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Seleziona Lega</label>
+        <select id="md-league" onchange="onMdLeagueChange()" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9" data-testid="md-league-selector">${leagueOpts}</select>
+      </div>
+      <div id="md-create-zone" style="flex:3"></div>
     </div>`;
+
   document.getElementById('md-filter').innerHTML = `
     <div class="form-row">
       <select id="md-status-filter" onchange="filterMatchdays()" data-testid="md-status-filter">
@@ -1424,33 +1435,108 @@ async function render_matchdays() {
         <option value="COMPLETED" ${statusFilter==='COMPLETED'?'selected':''}>COMPLETATE</option>
       </select>
     </div>`;
-  const mds = await apiCall('/admin/matchdays' + (seasons[0] ? '?season_id='+seasons[0].id : ''));
-  window._allMatchdays = mds;
-  filterMatchdays();
+
+  window._mdSeasons = seasons;
+  onMdLeagueChange();
+}
+
+let mdSortCol = 'number', mdSortDir = 'asc';
+
+function onMdLeagueChange() {
+  const leagueId = document.getElementById('md-league').value;
+  const league = allLeaguesCache.find(l => l.id === leagueId);
+  const isNational = league && league.league_type === 'national';
+  const isCustom = league && league.match_source_type !== 'national';
+  const canManage = isNational || isCustom;
+
+  // Show create form only for manageable leagues
+  const createZone = document.getElementById('md-create-zone');
+  if (canManage) {
+    const sOpts = (window._mdSeasons||[]).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    createZone.innerHTML = `
+      <div class="form-row" style="margin:0">
+        <select id="md-season" style="flex:1">${sOpts}</select>
+        <input id="md-num" type="number" placeholder="Numero" min="1" style="width:80px">
+        <input id="md-label" placeholder="Etichetta" style="flex:1">
+        <select id="md-half" style="width:90px"><option value="1">Andata</option><option value="2">Ritorno</option></select>
+        <input id="md-kickoff" type="datetime-local" style="flex:1">
+        <button class="btn" onclick="createMatchday()" data-testid="create-md-btn">+ Crea</button>
+      </div>`;
+  } else {
+    createZone.innerHTML = '<p style="color:#94A3B8;font-size:12px;margin:8px 0">Lega con sorgente nazionale: le giornate sono ereditate. Puoi solo visualizzare.</p>';
+  }
+  loadMatchdays();
+}
+
+async function loadMatchdays() {
+  const leagueId = document.getElementById('md-league').value;
+  try {
+    const mds = await apiCall('/admin/matchdays?league_id=' + leagueId);
+    window._allMatchdays = mds;
+    filterMatchdays();
+  } catch(e) {
+    // Fallback: national league default
+    const mds = await apiCall('/admin/matchdays');
+    window._allMatchdays = mds;
+    filterMatchdays();
+  }
 }
 
 function filterMatchdays() {
   const sf = document.getElementById('md-status-filter').value;
   let mds = window._allMatchdays || [];
   if (sf) mds = mds.filter(m => m.status === sf);
-  let html = '<table><tr><th>#</th><th>Etichetta</th><th>Meta</th><th>Kickoff</th><th>Stato</th><th>Azioni</th></tr>';
+
+  // Sort
+  mds = [...mds].sort((a, b) => {
+    let va, vb;
+    if (mdSortCol === 'number') { va = a.number||0; vb = b.number||0; }
+    else if (mdSortCol === 'first_kickoff') { va = a.first_kickoff||''; vb = b.first_kickoff||''; }
+    else if (mdSortCol === 'status') { va = a.status||''; vb = b.status||''; }
+    if (va < vb) return mdSortDir === 'asc' ? -1 : 1;
+    if (va > vb) return mdSortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const league = allLeaguesCache.find(l => l.id === document.getElementById('md-league').value);
+  const canManage = league && (league.league_type === 'national' || league.match_source_type !== 'national');
+
+  function msh(col) {
+    if (mdSortCol !== col) return '<span style="opacity:.3;margin-left:4px">&#8597;</span>';
+    return mdSortDir === 'asc' ? '<span style="color:#F5A623;margin-left:4px">&#9650;</span>' : '<span style="color:#F5A623;margin-left:4px">&#9660;</span>';
+  }
+
+  let html = `<table><tr>
+    <th style="cursor:pointer" onclick="mdSort('number')"># ${msh('number')}</th>
+    <th>Etichetta</th>
+    <th>Meta</th>
+    <th style="cursor:pointer" onclick="mdSort('first_kickoff')">Kickoff ${msh('first_kickoff')}</th>
+    <th style="cursor:pointer" onclick="mdSort('status')">Stato ${msh('status')}</th>
+    <th>Azioni</th></tr>`;
+
   mds.forEach(m => {
-    html += `<tr><td>${m.number}</td><td>${m.label||''}</td><td>${m.half==1?'Andata':'Ritorno'}</td>
-    <td>${new Date(m.first_kickoff).toLocaleString('it')}</td>
-    <td><span class="status-badge status-${m.status}">${m.status}</span></td>
-    <td>
-      <button class="btn btn-sm" onclick="setMdStatus('${m.id}','OPEN')">OPEN</button>
-      <button class="btn btn-sm" onclick="setMdStatus('${m.id}','LOCKED')">LOCK</button>
-      <button class="btn btn-sm" onclick="setMdStatus('${m.id}','LIVE')">LIVE</button>
-      <button class="btn btn-sm" onclick="confirmMatchday('${m.id}')">CONFIRM</button>
-    </td></tr>`;
+    const kickoff = m.first_kickoff ? new Date(m.first_kickoff).toLocaleString('it') : '-';
+    html += `<tr data-testid="md-row-${m.id}">
+      <td><strong>G${m.number}</strong></td>
+      <td>${m.label||''}</td>
+      <td>${m.half==1?'Andata':'Ritorno'}</td>
+      <td style="font-size:12px">${kickoff}</td>
+      <td><span class="status-badge status-${m.status}">${m.status}</span></td>
+      <td><button class="btn btn-sm btn-outline" onclick="showMdControlRoom('${m.id}')" data-testid="control-md-${m.id}">Control Room</button></td></tr>`;
   });
   html += '</table>';
   document.getElementById('md-list').innerHTML = html;
 }
 
+function mdSort(col) {
+  if (mdSortCol === col) mdSortDir = mdSortDir === 'asc' ? 'desc' : 'asc';
+  else { mdSortCol = col; mdSortDir = 'asc'; }
+  filterMatchdays();
+}
+
 async function createMatchday() {
   try {
+    const leagueId = document.getElementById('md-league').value;
     const kickoff = document.getElementById('md-kickoff').value;
     await apiCall('/admin/matchdays', 'POST', {
       season_id: document.getElementById('md-season').value,
@@ -1458,111 +1544,366 @@ async function createMatchday() {
       label: document.getElementById('md-label').value,
       half: parseInt(document.getElementById('md-half').value),
       first_kickoff: new Date(kickoff).toISOString(),
-      status: 'OPEN'
+      status: 'DRAFT',
+      league_id: leagueId
     });
-    showToast('Giornata creata'); render_matchdays();
+    showToast('Giornata creata'); loadMatchdays();
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-async function setMdStatus(id, status) {
-  await apiCall('/admin/matchdays/'+id, 'PUT', {status});
-  showToast('Stato aggiornato: '+status); render_matchdays();
+// ========================================
+// MATCHDAY CONTROL ROOM
+// ========================================
+let mdcrTab = 'info';
+let mdcrId = null;
+let mdcrMatches = null;
+
+async function showMdControlRoom(mdId, tab) {
+  mdcrId = mdId;
+  mdcrTab = tab || 'info';
+  const md = (window._allMatchdays||[]).find(m => m.id === mdId);
+  if (!md) return;
+
+  const league = allLeaguesCache.find(l => l.id === document.getElementById('md-league').value);
+  const canManage = league && (league.league_type === 'national' || league.match_source_type !== 'national');
+
+  const tabs = [
+    {id:'info', label:'Info & Stato'},
+    {id:'matches', label:'Partite'},
+  ];
+  if (canManage) tabs.push({id:'import', label:'Importa da API'});
+
+  const tabsHtml = tabs.map(t => `<button class="btn btn-sm ${mdcrTab===t.id?'':'btn-outline'}" onclick="showMdControlRoom('${mdId}','${t.id}')" data-testid="mdcr-tab-${t.id}" style="${mdcrTab===t.id?'':'opacity:.6'}">${t.label}</button>`).join(' ');
+
+  let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <h3 style="margin:0">G${md.number} ${md.label ? '- '+md.label : ''}</h3>
+      <span class="status-badge status-${md.status}">${md.status}</span>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="closeModal()">X</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid #334155;padding-bottom:12px">${tabsHtml}</div>
+  <div id="mdcr-body"></div>`;
+  showModal(html);
+
+  const body = document.getElementById('mdcr-body');
+  if (mdcrTab === 'info') body.innerHTML = await renderMdcrInfo(md, canManage);
+  else if (mdcrTab === 'matches') { body.innerHTML = '<p style="color:#94A3B8">Caricamento...</p>'; await loadMdcrMatches(md, canManage); }
+  else if (mdcrTab === 'import') body.innerHTML = renderMdcrImport(md);
 }
 
-async function confirmMatchday(id) {
-  if(!confirm('Confermare giornata? Verranno calcolati i punteggi.')) return;
+async function renderMdcrInfo(md, canManage) {
+  // Count matches, predictions, results
+  let matchCount = 0, resultCount = 0, predCount = 0;
   try {
-    const r = await apiCall('/admin/matchdays/'+id+'/confirm', 'POST');
-    showToast('Giornata confermata: '+r.users_scored+' utenti'); render_matchdays();
+    const matches = await apiCall('/admin/matches?matchday_id=' + md.id);
+    mdcrMatches = matches;
+    matchCount = matches.length;
+    resultCount = matches.filter(m => m.home_score !== null && m.home_score !== undefined).length;
+  } catch(e) {}
+  // Predictions count (approximate from score_summaries)
+  try {
+    const scores = await apiCall('/admin/score-summaries/' + md.id);
+    predCount = scores.length || 0;
+  } catch(e) {}
+
+  const kickoff = md.first_kickoff ? new Date(md.first_kickoff).toLocaleString('it') : '-';
+  const hasPredictions = predCount > 0;
+  const hasResults = resultCount > 0;
+  const isDraft = md.status === 'DRAFT';
+
+  // State transitions
+  const transitions = {
+    'DRAFT': ['OPEN'],
+    'OPEN': ['LOCKED', 'LIVE'],
+    'LOCKED': ['OPEN', 'LIVE'],
+    'LIVE': ['COMPLETED'],
+    'COMPLETED': []
+  };
+  const nextStates = transitions[md.status] || [];
+
+  let stateButtons = '';
+  if (canManage) {
+    nextStates.forEach(s => {
+      const colors = {'OPEN':'#3B82F6','LOCKED':'#F59E0B','LIVE':'#10B981','COMPLETED':'#6B7280'};
+      stateButtons += `<button class="btn btn-sm" style="background:${colors[s]||'#475569'};color:#fff" onclick="doMdTransition('${md.id}','${s}')" data-testid="md-to-${s}">${s}</button> `;
+    });
+    if (md.status === 'LIVE' || md.status === 'COMPLETED') {
+      stateButtons += `<button class="btn btn-sm" style="background:#F5A623;color:#0F172A" onclick="doMdConfirm('${md.id}')" data-testid="md-confirm-btn">CONFERMA PUNTEGGI</button> `;
+    }
+  }
+
+  let dangerZone = '';
+  if (canManage && isSuperAdmin) {
+    if (isDraft && !hasPredictions && !hasResults) {
+      dangerZone = `<div style="margin-top:20px;padding:12px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px">
+        <h4 style="color:#EF4444;margin-bottom:8px;font-size:14px">Zona Pericolo</h4>
+        <button class="btn btn-sm btn-danger" onclick="doMdDelete('${md.id}',false)" data-testid="md-delete-btn">Elimina Giornata</button>
+        <p style="color:#64748B;font-size:11px;margin-top:6px">Possibile solo se DRAFT e senza pronostici/risultati.</p>
+      </div>`;
+    } else if (hasPredictions || hasResults || !isDraft) {
+      dangerZone = `<div style="margin-top:20px;padding:12px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px">
+        <h4 style="color:#EF4444;margin-bottom:8px;font-size:14px">Zona Pericolo</h4>
+        <p style="color:#F87171;font-size:12px;margin-bottom:8px">Questa giornata ha ${predCount} pronostici e ${resultCount} risultati. La cancellazione distrugge TUTTI i dati associati.</p>
+        <div id="md-override-zone">
+          <p style="font-size:12px;margin-bottom:8px">Digita <strong style="color:#EF4444">DELETE</strong> per procedere con l\\'override:</p>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="md-delete-confirm" placeholder="Digita DELETE" style="padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="md-delete-confirm">
+            <button class="btn btn-sm btn-danger" onclick="doMdDelete('${md.id}',true)" data-testid="md-override-delete-btn">Override Eliminazione</button>
+          </div>
+        </div>
+      </div>`;
+    }
+  }
+
+  return `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+      <div class="counter-box" style="text-align:center"><div class="num" style="font-size:20px;color:#3B82F6">${matchCount}</div><div class="label">Partite</div></div>
+      <div class="counter-box" style="text-align:center"><div class="num" style="font-size:20px;color:#10B981">${resultCount}</div><div class="label">Risultati</div></div>
+      <div class="counter-box" style="text-align:center"><div class="num" style="font-size:20px;color:#F5A623">${predCount}</div><div class="label">Pronostici</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;margin-bottom:16px">
+      <div><span style="color:#94A3B8">ID:</span> <code style="color:#F5A623;font-size:11px">${md.id.substring(0,16)}...</code></div>
+      <div><span style="color:#94A3B8">Stagione:</span> ${md.season_id||'-'}</div>
+      <div><span style="color:#94A3B8">Kickoff:</span> <strong>${kickoff}</strong></div>
+      <div><span style="color:#94A3B8">Meta:</span> ${md.half==1?'Andata':'Ritorno'}</div>
+    </div>
+    ${canManage && nextStates.length > 0 ? `
+    <h4 style="color:#F5A623;margin:16px 0 8px;font-size:14px">Gestione Stato</h4>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">${stateButtons}</div>
+    ` : ''}
+    ${dangerZone}`;
+}
+
+async function loadMdcrMatches(md, canManage) {
+  try {
+    const matches = await apiCall('/admin/matches?matchday_id=' + md.id);
+    mdcrMatches = matches;
+    document.getElementById('mdcr-body').innerHTML = renderMdcrMatches(md, matches, canManage);
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-// ========================================
-// MATCHES (existing)
-// ========================================
-let selectedMatchday = null;
-async function render_matches() {
-  if (!hasPerm('admin.matches.manage')) { render_forbidden(); return; }
-  const el = document.getElementById('content');
-  const mds = await apiCall('/admin/matchdays');
-  const opts = mds.map(m => `<option value="${m.id}">G${m.number} - ${m.label||''} (${m.status})</option>`).join('');
-  el.innerHTML = `<h2>Partite</h2>
-    <div class="card"><div class="form-row">
-      <select id="match-md" onchange="loadMatches()">${opts}</select>
-    </div></div>
-    <div id="match-form" class="card" style="display:none"></div>
-    <div id="match-list"></div>`;
-  if(mds.length) { selectedMatchday = mds[0].id; loadMatches(); }
-}
-
-async function loadMatches() {
-  selectedMatchday = document.getElementById('match-md').value;
-  const markets = ['1X2','GOAL_NOGOL','OVER_UNDER_25','EXACT_SCORE'];
-  document.getElementById('match-form').style.display = 'block';
-  document.getElementById('match-form').innerHTML = `
-    <div class="form-row">
-      <input id="m-home" placeholder="Squadra casa">
-      <input id="m-away" placeholder="Squadra ospite">
-      <input id="m-comp" placeholder="Competizione">
-      <select id="m-market">${markets.map(m=>`<option value="${m}">${m}</option>`).join('')}</select>
-      <input id="m-time" type="datetime-local">
-      <button class="btn" onclick="createMatch()">Aggiungi</button>
+function renderMdcrMatches(md, matches, canManage) {
+  let addForm = '';
+  if (canManage) {
+    const markets = ['1X2','GOAL_NOGOL','OVER_UNDER_25','EXACT_SCORE'];
+    addForm = `<div style="margin-bottom:16px;padding:12px;background:#0F172A;border-radius:8px">
+      <h4 style="color:#94A3B8;margin-bottom:8px;font-size:13px">Aggiungi Partita</h4>
+      <div class="form-row" style="margin:0">
+        <input id="nm-home" placeholder="Squadra casa" style="flex:1">
+        <input id="nm-away" placeholder="Squadra ospite" style="flex:1">
+        <input id="nm-comp" placeholder="Competizione" style="flex:1">
+        <select id="nm-market">${markets.map(m=>`<option value="${m}">${m}</option>`).join('')}</select>
+        <input id="nm-time" type="datetime-local" style="flex:1">
+        <button class="btn btn-sm" onclick="doAddMatch('${md.id}')" data-testid="add-match-btn">Aggiungi</button>
+      </div>
     </div>`;
-  const matches = await apiCall('/admin/matches?matchday_id='+selectedMatchday);
-  let html = '<table><tr><th>Casa</th><th>Ospite</th><th>Comp</th><th>Mercato</th><th>Orario</th><th>Score</th><th>Stato</th><th>Azioni</th></tr>';
+  }
+
+  let html = '<table style="font-size:13px"><tr><th>Casa</th><th>Ospite</th><th>Comp</th><th>Mercato</th><th>Orario</th><th>Score</th><th>Stato</th>';
+  if (canManage) html += '<th>Azioni</th>';
+  html += '</tr>';
   matches.forEach(m => {
-    const score = m.home_score !== null ? `${m.home_score}-${m.away_score}` : '-';
+    const score = m.home_score !== null && m.home_score !== undefined ? `<strong>${m.home_score}-${m.away_score}</strong>` : '-';
+    const time = m.start_time ? new Date(m.start_time).toLocaleString('it') : '-';
     html += `<tr>
-      <td>${m.home_team}</td><td>${m.away_team}</td><td>${m.competition}</td><td>${m.market_type}</td>
-      <td>${new Date(m.start_time).toLocaleString('it')}</td>
-      <td><strong>${score}</strong></td>
-      <td><span class="status-badge status-${m.status}">${m.status}</span></td>
-      <td>
-        <button class="btn btn-sm" onclick="showLiveUpdate('${m.id}','${m.home_team}','${m.away_team}',${m.home_score||0},${m.away_score||0})">Update</button>
-      </td></tr>`;
+      <td>${m.home_team}</td><td>${m.away_team}</td><td style="color:#94A3B8">${m.competition||'-'}</td>
+      <td><span class="tag tag-role">${m.market_type||'-'}</span></td>
+      <td style="font-size:12px">${time}</td>
+      <td>${score}</td>
+      <td><span class="status-badge status-${(m.status||'scheduled').toUpperCase()}">${m.status||'scheduled'}</span></td>`;
+    if (canManage) {
+      html += `<td style="white-space:nowrap">
+        <button class="btn btn-sm btn-outline" onclick="showMatchUpdate('${m.id}','${(m.home_team||'').replace(/'/g,"\\'")}','${(m.away_team||'').replace(/'/g,"\\'")}',${m.home_score||0},${m.away_score||0})">Update</button>
+        <button class="btn btn-sm btn-danger" onclick="doDeleteMatch('${md.id}','${m.id}')">X</button>
+      </td>`;
+    }
+    html += '</tr>';
   });
   html += '</table>';
-  html += '<div id="live-update-panel"></div>';
-  document.getElementById('match-list').innerHTML = html;
+  html += '<div id="match-update-panel"></div>';
+
+  return addForm + html;
 }
 
-async function createMatch() {
-  try {
-    await apiCall('/admin/matches', 'POST', {
-      matchday_id: selectedMatchday,
-      home_team: document.getElementById('m-home').value,
-      away_team: document.getElementById('m-away').value,
-      competition: document.getElementById('m-comp').value,
-      market_type: document.getElementById('m-market').value,
-      start_time: new Date(document.getElementById('m-time').value).toISOString(),
-      status: 'scheduled'
-    });
-    showToast('Partita aggiunta'); loadMatches();
-  } catch(e) { showToast(e.message, 'error'); }
-}
-
-function showLiveUpdate(id, home, away, hs, as) {
-  document.getElementById('live-update-panel').innerHTML = `
-  <div class="card"><h3 style="color:#F5A623;margin-bottom:12px">${home} vs ${away}</h3>
-    <div class="form-row">
+function showMatchUpdate(matchId, home, away, hs, as) {
+  document.getElementById('match-update-panel').innerHTML = `
+  <div class="card" style="border-color:#F5A623;margin-top:12px"><h4 style="color:#F5A623;margin-bottom:8px">${home} vs ${away}</h4>
+    <div class="form-row" style="margin:0">
       <input id="lu-hs" type="number" value="${hs}" min="0" placeholder="Gol casa" style="width:80px">
       <input id="lu-as" type="number" value="${as}" min="0" placeholder="Gol ospite" style="width:80px">
       <select id="lu-status"><option value="live">Live</option><option value="finished">Finished</option>
         <option value="postponed">Postponed</option><option value="void">Void</option></select>
-      <button class="btn" onclick="doLiveUpdate('${id}')">Salva</button>
+      <button class="btn btn-sm" onclick="doMatchUpdate('${matchId}')" data-testid="save-match-update">Salva</button>
     </div>
   </div>`;
 }
 
-async function doLiveUpdate(id) {
+async function doMatchUpdate(matchId) {
   try {
-    await apiCall('/admin/matches/'+id+'/live-update', 'POST', {
-      match_id: id,
+    await apiCall('/admin/matches/'+matchId+'/live-update', 'POST', {
+      match_id: matchId,
       home_score: parseInt(document.getElementById('lu-hs').value),
       away_score: parseInt(document.getElementById('lu-as').value),
       status: document.getElementById('lu-status').value
     });
-    showToast('Match aggiornato'); loadMatches();
+    showToast('Match aggiornato');
+    showMdControlRoom(mdcrId, 'matches');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function doAddMatch(mdId) {
+  try {
+    const leagueId = document.getElementById('md-league').value;
+    await apiCall('/admin/matches', 'POST', {
+      matchday_id: mdId,
+      league_id: leagueId,
+      home_team: document.getElementById('nm-home').value,
+      away_team: document.getElementById('nm-away').value,
+      competition: document.getElementById('nm-comp').value,
+      market_type: document.getElementById('nm-market').value,
+      start_time: new Date(document.getElementById('nm-time').value).toISOString(),
+      status: 'scheduled'
+    });
+    showToast('Partita aggiunta');
+    showMdControlRoom(mdId, 'matches');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function doDeleteMatch(mdId, matchId) {
+  if (!confirm('Rimuovere questa partita?')) return;
+  try {
+    await apiCall('/admin/matches/' + matchId, 'DELETE');
+    showToast('Partita rimossa');
+    showMdControlRoom(mdId, 'matches');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function doMdTransition(mdId, newStatus) {
+  if (!confirm('Cambiare stato a ' + newStatus + '?')) return;
+  try {
+    await apiCall('/admin/matchdays/' + mdId, 'PUT', {status: newStatus});
+    showToast('Stato aggiornato: ' + newStatus);
+    await loadMatchdays();
+    showMdControlRoom(mdId, 'info');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function doMdConfirm(mdId) {
+  if (!confirm('Confermare giornata? Verranno calcolati i punteggi per tutti gli utenti.')) return;
+  try {
+    const r = await apiCall('/admin/matchdays/' + mdId + '/confirm', 'POST');
+    showToast('Giornata confermata: ' + (r.users_scored||0) + ' utenti calcolati');
+    await loadMatchdays();
+    showMdControlRoom(mdId, 'info');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function doMdDelete(mdId, isOverride) {
+  if (isOverride) {
+    const confirmInput = document.getElementById('md-delete-confirm');
+    if (!confirmInput || confirmInput.value !== 'DELETE') {
+      showToast('Devi digitare DELETE per confermare', 'error'); return;
+    }
+  }
+  if (!confirm('ATTENZIONE: Eliminare questa giornata e TUTTI i dati associati (partite, pronostici, punteggi)? Questa azione e IRREVERSIBILE.')) return;
+  try {
+    const r = await apiCall('/admin/matchdays/' + mdId, 'DELETE');
+    closeModal();
+    showToast('Giornata eliminata (' + (r.deleted_matches||0) + ' partite, ' + (r.deleted_predictions||0) + ' pronostici)');
+    loadMatchdays();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ========================================
+// IMPORT FIXTURES FROM API
+// ========================================
+function renderMdcrImport(md) {
+  return `
+    <h4 style="color:#F5A623;margin-bottom:12px;font-size:14px">Importa Partite Reali</h4>
+    <p style="color:#94A3B8;font-size:12px;margin-bottom:12px">Cerca partite reali da API-Football e importale nella giornata.</p>
+    <div class="form-row" style="margin-bottom:12px">
+      <div style="flex:1">
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Competizione (API ID)</label>
+        <select id="imp-league" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="import-league-select">
+          <option value="135">Serie A (135)</option>
+          <option value="39">Premier League (39)</option>
+          <option value="140">La Liga (140)</option>
+          <option value="78">Bundesliga (78)</option>
+          <option value="61">Ligue 1 (61)</option>
+        </select>
+      </div>
+      <div style="flex:1">
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Da</label>
+        <input id="imp-from" type="date" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="import-from">
+      </div>
+      <div style="flex:1">
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">A</label>
+        <input id="imp-to" type="date" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="import-to">
+      </div>
+      <div style="flex:0">
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">&nbsp;</label>
+        <button class="btn" onclick="doSearchFixtures('${md.id}')" data-testid="search-fixtures-btn">Cerca</button>
+      </div>
+    </div>
+    <div id="fixtures-results"></div>`;
+}
+
+async function doSearchFixtures(mdId) {
+  const league = document.getElementById('imp-league').value;
+  const from = document.getElementById('imp-from').value;
+  const to = document.getElementById('imp-to').value;
+  const resultsDiv = document.getElementById('fixtures-results');
+  resultsDiv.innerHTML = '<p style="color:#94A3B8">Ricerca in corso...</p>';
+
+  try {
+    let url = '/admin/real-fixtures/search?league=' + league + '&season=2024';
+    if (from) url += '&from=' + from;
+    if (to) url += '&to=' + to;
+    const fixtures = await apiCall(url);
+
+    if (!fixtures || fixtures.length === 0) {
+      resultsDiv.innerHTML = '<p style="color:#F59E0B">Nessuna partita trovata per i filtri selezionati.</p>';
+      return;
+    }
+
+    let html = '<table style="font-size:12px"><tr><th><input type="checkbox" id="fix-all" onchange="toggleAllFixtures()"></th><th>Casa</th><th>Ospite</th><th>Data</th><th>Stato</th></tr>';
+    fixtures.forEach(f => {
+      const date = f.date ? new Date(f.date).toLocaleString('it') : '-';
+      html += `<tr>
+        <td><input type="checkbox" name="fix-sel" value="${f.fixture_id}" class="fix-check"></td>
+        <td>${f.home_team}</td><td>${f.away_team}</td>
+        <td>${date}</td>
+        <td>${f.status||'NS'}</td></tr>`;
+    });
+    html += '</table>';
+    html += `<div style="margin-top:12px;text-align:right">
+      <button class="btn" onclick="doImportFixtures('${mdId}')" data-testid="import-fixtures-btn">Importa Selezionate</button>
+    </div>`;
+    resultsDiv.innerHTML = html;
+  } catch(e) {
+    resultsDiv.innerHTML = '<p style="color:#EF4444">Errore: ' + e.message + '</p>';
+  }
+}
+
+function toggleAllFixtures() {
+  const all = document.getElementById('fix-all').checked;
+  document.querySelectorAll('.fix-check').forEach(c => c.checked = all);
+}
+
+async function doImportFixtures(mdId) {
+  const selected = Array.from(document.querySelectorAll('.fix-check:checked')).map(c => parseInt(c.value));
+  if (selected.length === 0) { showToast('Seleziona almeno una partita', 'error'); return; }
+
+  const leagueId = document.getElementById('md-league').value;
+  try {
+    const r = await apiCall('/admin/real-fixtures/import', 'POST', {
+      league_id: leagueId,
+      matchday_id: mdId,
+      fixture_ids: selected
+    });
+    showToast('Importate ' + (r.imported||selected.length) + ' partite');
+    showMdControlRoom(mdId, 'matches');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
