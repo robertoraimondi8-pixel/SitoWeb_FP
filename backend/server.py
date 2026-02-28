@@ -3475,7 +3475,7 @@ async def admin_list_matchdays(season_id: str = None, league_id: str = None, adm
 @admin_router.post("/matchdays")
 async def admin_create_matchday(req: MatchdayCreate, admin=Depends(require_permission("admin.matchdays.manage"))):
     md_id = new_id()
-    target_league = getattr(req, 'league_id', None) or NATIONAL_LEAGUE_ID
+    target_league = req.league_id or NATIONAL_LEAGUE_ID
     md = {
         "id": md_id,
         "season_id": req.season_id,
