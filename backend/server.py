@@ -4631,7 +4631,7 @@ async def stats_match_preview(match_id: str, user=Depends(get_current_user)):
 # ========================================
 
 async def _bootstrap_rbac():
-    """Bootstrap RBAC system: create default roles and mark admin as super_admin."""
+    """Bootstrap RBAC system: create default roles and mark initial admin as super_admin."""
     # Create default roles if they don't exist
     for key, tmpl in DEFAULT_ROLES.items():
         existing = await roles_col.find_one({"name": tmpl["name"]})
@@ -4647,18 +4647,19 @@ async def _bootstrap_rbac():
             await roles_col.insert_one(role_doc)
             logger.info(f"[RBAC] Created default role: {tmpl['name']}")
 
-    # Mark admin@fantapronostic.com as is_super_admin
-    admin_user = await users_col.find_one({"email": "admin@fantapronostic.com"})
+    # Use env var for super admin email (no hardcoding)
+    super_admin_email = os.environ.get("SUPER_ADMIN_EMAIL", "admin@fantapronostic.com")
+    admin_user = await users_col.find_one({"email": super_admin_email})
     if admin_user and not admin_user.get("is_super_admin"):
         sa_role = await roles_col.find_one({"name": "Super Admin"}, {"_id": 0, "id": 1})
         role_ids = admin_user.get("role_ids", [])
         if sa_role and sa_role["id"] not in role_ids:
             role_ids.append(sa_role["id"])
         await users_col.update_one(
-            {"email": "admin@fantapronostic.com"},
+            {"email": super_admin_email},
             {"$set": {"is_super_admin": True, "role_ids": role_ids}}
         )
-        logger.info("[RBAC] Bootstrapped admin as SUPER_ADMIN")
+        logger.info(f"[RBAC] Bootstrapped {super_admin_email} as SUPER_ADMIN")
 
 
 @rbac_router.get("/permissions")
