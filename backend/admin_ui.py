@@ -240,6 +240,9 @@ function closeSidebar() {
   document.getElementById('sidebar-overlay').classList.remove('open');
 }
 
+let navFilter = {};
+function navigateWith(page, filter) { navFilter = filter || {}; navigate(page); }
+
 function navigate(page) {
   currentPage = page;
   closeSidebar();
