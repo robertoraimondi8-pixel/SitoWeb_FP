@@ -544,6 +544,8 @@ let allUsersCache = [];
 
 async function render_users() {
   if (!hasPerm('admin.users.manage')) { render_forbidden(); return; }
+  const pendingFilter = navFilter.filter || '';
+  navFilter = {};
   const el = document.getElementById('content');
   el.innerHTML = '<h2>Gestione Utenti</h2><div id="users-filters" class="card"></div><div id="users-counters"></div><div id="users-list"></div>';
 
