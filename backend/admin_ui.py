@@ -218,7 +218,9 @@ function renderDashboard() {
 
   document.getElementById('app').innerHTML = `
   <div class="dashboard">
-    <div class="sidebar">${navHtml}</div>
+    <div class="hamburger" id="hamburger" onclick="toggleSidebar()" data-testid="hamburger-btn">&#9776;</div>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+    <div class="sidebar" id="sidebar">${navHtml}</div>
     <div class="main" id="content"></div>
   </div>`;
 
@@ -227,8 +229,18 @@ function renderDashboard() {
   navigate(firstAvail ? firstAvail.id : 'forbidden');
 }
 
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
 function navigate(page) {
   currentPage = page;
+  closeSidebar();
   document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
   const nav = document.getElementById('nav-'+page);
   if(nav) nav.classList.add('active');
