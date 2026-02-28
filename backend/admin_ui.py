@@ -1,6 +1,103 @@
 """Admin UI HTML for FantaPronostic - RBAC-enabled web dashboard."""
 
 
+def get_reset_password_html():
+    return """<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reset Password - FantaPronostic</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#0F172A;color:#F1F5F9;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.reset-box{background:#1E293B;padding:40px;border-radius:16px;width:400px;max-width:90vw;border:1px solid #334155}
+.reset-box h1{color:#F5A623;margin-bottom:8px;font-size:24px}
+.reset-box p{color:#94A3B8;font-size:14px;margin-bottom:24px}
+.reset-box label{color:#94A3B8;font-size:12px;display:block;margin-bottom:4px}
+.reset-box input{width:100%;padding:12px;margin-bottom:16px;background:#0F172A;border:1px solid #334155;border-radius:8px;color:#F1F5F9;font-size:14px}
+.reset-box input:focus{outline:none;border-color:#F5A623}
+.reset-box button{width:100%;padding:12px;background:#F5A623;color:#0F172A;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:16px}
+.reset-box button:hover{background:#E09215}
+.reset-box button:disabled{background:#475569;cursor:not-allowed}
+#reset-msg{margin-top:12px;font-size:14px;text-align:center}
+.success{color:#10B981}
+.error{color:#EF4444}
+</style>
+</head>
+<body>
+<div class="reset-box" data-testid="reset-password-box">
+  <h1>Reset Password</h1>
+  <p>Inserisci la tua nuova password.</p>
+  <div id="reset-form">
+    <label>Nuova Password</label>
+    <input id="new-pass" type="password" placeholder="Minimo 6 caratteri" data-testid="reset-new-password">
+    <label>Conferma Password</label>
+    <input id="confirm-pass" type="password" placeholder="Ripeti la password" data-testid="reset-confirm-password">
+    <button onclick="doResetPassword()" id="reset-btn" data-testid="reset-submit-btn">Cambia Password</button>
+  </div>
+  <div id="reset-msg"></div>
+</div>
+<script>
+function getTokenFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('token') || '';
+}
+
+async function doResetPassword() {
+  const token = getTokenFromUrl();
+  const newPass = document.getElementById('new-pass').value;
+  const confirmPass = document.getElementById('confirm-pass').value;
+  const msgEl = document.getElementById('reset-msg');
+
+  if (!token) {
+    msgEl.innerHTML = '<span class="error">Token mancante nell\\'URL.</span>';
+    return;
+  }
+  if (newPass.length < 6) {
+    msgEl.innerHTML = '<span class="error">La password deve avere almeno 6 caratteri.</span>';
+    return;
+  }
+  if (newPass !== confirmPass) {
+    msgEl.innerHTML = '<span class="error">Le password non coincidono.</span>';
+    return;
+  }
+
+  document.getElementById('reset-btn').disabled = true;
+  document.getElementById('reset-btn').textContent = 'Attendere...';
+
+  try {
+    const r = await fetch('/api/reset-password', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({token: token, new_password: newPass})
+    });
+    const data = await r.json();
+    if (r.ok) {
+      msgEl.innerHTML = '<span class="success">Password aggiornata con successo! Puoi chiudere questa pagina e accedere con la nuova password.</span>';
+      document.getElementById('reset-form').style.display = 'none';
+    } else {
+      msgEl.innerHTML = '<span class="error">' + (data.detail || 'Errore sconosciuto') + '</span>';
+      document.getElementById('reset-btn').disabled = false;
+      document.getElementById('reset-btn').textContent = 'Cambia Password';
+    }
+  } catch(e) {
+    msgEl.innerHTML = '<span class="error">Errore di rete. Riprova.</span>';
+    document.getElementById('reset-btn').disabled = false;
+    document.getElementById('reset-btn').textContent = 'Cambia Password';
+  }
+}
+
+// Check token on load
+if (!getTokenFromUrl()) {
+  document.getElementById('reset-msg').innerHTML = '<span class="error">Link non valido: token mancante.</span>';
+  document.getElementById('reset-form').style.display = 'none';
+}
+</script>
+</body>
+</html>"""
+
+
 def get_admin_html():
     return """<!DOCTYPE html>
 <html lang="it">
