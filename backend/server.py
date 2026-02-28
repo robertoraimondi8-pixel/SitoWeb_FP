@@ -4682,6 +4682,86 @@ async def my_permissions(user=Depends(get_current_user)):
     }
 
 
+@rbac_router.get("/dashboard-stats")
+async def dashboard_stats(user=Depends(require_permission("admin.dashboard.view"))):
+    """Aggregated KPI stats for the admin dashboard overview."""
+    from datetime import timedelta
+
+    now = now_utc()
+    seven_days_ago = now - timedelta(days=7)
+
+    # --- Users KPI ---
+    total_users = await users_col.count_documents({"is_deleted": {"$ne": True}})
+    disabled_users = await users_col.count_documents({"is_disabled": True, "is_deleted": {"$ne": True}})
+    deleted_users = await users_col.count_documents({"is_deleted": True})
+    new_users_7d = await users_col.count_documents({
+        "created_at": {"$gte": seven_days_ago.isoformat()},
+        "is_deleted": {"$ne": True}
+    })
+    # Recent logins (last 24h)
+    one_day_ago = now - timedelta(hours=24)
+    recent_logins = await users_col.count_documents({
+        "last_login": {"$gte": one_day_ago.isoformat()}
+    })
+
+    # --- Leagues KPI ---
+    total_leagues = await leagues_col.count_documents({})
+    # At-risk: no owner or no admin at all
+    all_leagues_list = await leagues_col.find({}, {"_id": 0, "id": 1, "name": 1, "owner_id": 1}).to_list(500)
+    at_risk_leagues = []
+    for lg in all_leagues_list:
+        if not lg.get("owner_id"):
+            at_risk_leagues.append({"id": lg["id"], "name": lg["name"], "reason": "Nessun owner"})
+            continue
+        admin_count = await memberships_col.count_documents({
+            "league_id": lg["id"],
+            "role": {"$in": ["admin", "owner"]},
+            "status": "active"
+        })
+        if admin_count == 0:
+            at_risk_leagues.append({"id": lg["id"], "name": lg["name"], "reason": "Nessun admin"})
+
+    # --- Matchday KPI ---
+    md_statuses = {}
+    pipeline = [{"$group": {"_id": "$status", "count": {"$sum": 1}}}]
+    async for doc in matchdays_col.aggregate(pipeline):
+        md_statuses[doc["_id"]] = doc["count"]
+
+    # --- Payments KPI ---
+    recent_payments = await payments_col.find(
+        {}, {"_id": 0}
+    ).sort("created_at", -1).to_list(10)
+    # Clean ObjectIds
+    for p in recent_payments:
+        p.pop("_id", None)
+    pending_payments = await payments_col.count_documents({"payment_status": {"$ne": "paid"}})
+
+    # --- Audit (latest 20) ---
+    recent_audit = await audit_logs_col.find(
+        {}, {"_id": 0}
+    ).sort("created_at", -1).to_list(20)
+
+    return {
+        "users": {
+            "total": total_users,
+            "disabled": disabled_users,
+            "deleted": deleted_users,
+            "new_7d": new_users_7d,
+            "recent_logins_24h": recent_logins,
+        },
+        "leagues": {
+            "total": total_leagues,
+            "at_risk": at_risk_leagues,
+        },
+        "matchdays": md_statuses,
+        "payments": {
+            "recent": recent_payments,
+            "pending_count": pending_payments,
+        },
+        "audit": recent_audit,
+    }
+
+
 @rbac_router.get("/roles")
 async def list_roles(user=Depends(require_permission("admin.roles.manage"))):
     """List all roles."""
