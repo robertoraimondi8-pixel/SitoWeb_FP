@@ -821,8 +821,10 @@ async function toggleSeason(id, active) {
 // ========================================
 async function render_matchdays() {
   if (!hasPerm('admin.matchdays.manage')) { render_forbidden(); return; }
+  const statusFilter = navFilter.status || '';
+  navFilter = {};
   const el = document.getElementById('content');
-  el.innerHTML = '<h2>Giornate</h2><div id="md-form" class="card"></div><div id="md-list"></div>';
+  el.innerHTML = '<h2>Giornate</h2><div id="md-form" class="card"></div><div id="md-filter" class="card"></div><div id="md-list"></div>';
   const seasons = await apiCall('/admin/seasons');
   const opts = seasons.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
   document.getElementById('md-form').innerHTML = `
@@ -834,7 +836,26 @@ async function render_matchdays() {
       <input id="md-kickoff" type="datetime-local">
       <button class="btn" onclick="createMatchday()">Crea</button>
     </div>`;
+  document.getElementById('md-filter').innerHTML = `
+    <div class="form-row">
+      <select id="md-status-filter" onchange="filterMatchdays()" data-testid="md-status-filter">
+        <option value="">Tutti gli stati</option>
+        <option value="DRAFT" ${statusFilter==='DRAFT'?'selected':''}>BOZZA</option>
+        <option value="OPEN" ${statusFilter==='OPEN'?'selected':''}>OPEN</option>
+        <option value="LOCKED" ${statusFilter==='LOCKED'?'selected':''}>LOCKED</option>
+        <option value="LIVE" ${statusFilter==='LIVE'?'selected':''}>LIVE</option>
+        <option value="COMPLETED" ${statusFilter==='COMPLETED'?'selected':''}>COMPLETATE</option>
+      </select>
+    </div>`;
   const mds = await apiCall('/admin/matchdays' + (seasons[0] ? '?season_id='+seasons[0].id : ''));
+  window._allMatchdays = mds;
+  filterMatchdays();
+}
+
+function filterMatchdays() {
+  const sf = document.getElementById('md-status-filter').value;
+  let mds = window._allMatchdays || [];
+  if (sf) mds = mds.filter(m => m.status === sf);
   let html = '<table><tr><th>#</th><th>Etichetta</th><th>Meta</th><th>Kickoff</th><th>Stato</th><th>Azioni</th></tr>';
   mds.forEach(m => {
     html += `<tr><td>${m.number}</td><td>${m.label||''}</td><td>${m.half==1?'Andata':'Ritorno'}</td>
