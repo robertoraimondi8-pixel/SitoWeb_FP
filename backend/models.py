@@ -378,3 +378,25 @@ class PasswordChangeRequest(BaseModel):
 class NewsCreate(BaseModel):
     title: str
     body: str
+
+
+# ===== RBAC MODELS =====
+class RoleCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    description: Optional[str] = None
+    permissions: List[str] = []
+
+
+class RoleUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    permissions: Optional[List[str]] = None
+
+
+class AssignRolesRequest(BaseModel):
+    role_ids: List[str]
+
+
+class SetSuperAdminRequest(BaseModel):
+    is_super_admin: bool
+
