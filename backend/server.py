@@ -4921,6 +4921,7 @@ async def list_users_rbac(request: Request, user=Depends(require_permission("adm
             "roles": roles_detail,
             "created_at": u.get("created_at"),
             "last_login": u.get("last_login"),
+            "last_activity": u.get("last_activity"),
             "leagues_created": len(leagues_by_creator.get(uid, [])),
             "leagues_admin": len(leagues_admin),
             "leagues_member": len(user_memberships),
