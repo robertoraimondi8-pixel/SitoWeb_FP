@@ -741,198 +741,278 @@ function renderUsersTable(users) {
     (u.roles||[]).forEach(r => { tags += `<span class="tag tag-role">${r.name}</span> `; });
     if (!u.is_super_admin && (!u.roles || u.roles.length === 0) && !u.is_deleted) tags += '<span class="tag" style="color:#475569">Nessun ruolo</span>';
 
-    // League counts with clickable numbers
-    const leagueHtml = `
-      <span style="cursor:pointer;color:#F5A623" onclick="showUserLeagues('${u.id}')" title="Clicca per dettagli">
-        <span title="Create">${u.leagues_created||0}C</span> /
-        <span title="Admin">${u.leagues_admin||0}A</span> /
-        <span title="Membro">${u.leagues_member||0}M</span>
-      </span>`;
-
+    const leagueHtml = `<span style="font-size:12px;color:#94A3B8">${u.leagues_created||0}C / ${u.leagues_admin||0}A / ${u.leagues_member||0}M</span>`;
     const lastLogin = u.last_login ? new Date(u.last_login).toLocaleString('it') : '<span style="color:#475569">Mai</span>';
-
     const statusBadge = u.is_deleted
       ? '<span class="status-badge status-void">Eliminato</span>'
       : u.is_disabled
         ? '<span class="status-badge status-void">Disabilitato</span>'
         : '<span class="status-badge status-live">Attivo</span>';
 
-    let actions = '';
-    if (!u.is_deleted) {
-      actions += `<button class="btn btn-sm btn-outline" onclick="showEditUserModal('${u.id}')" data-testid="edit-user-${u.id}">Dettagli</button> `;
-      actions += `<button class="btn btn-sm btn-outline" onclick="showAssignRolesModal('${u.id}')" data-testid="assign-roles-${u.id}">Ruoli</button> `;
-      actions += `<button class="btn btn-sm ${u.is_disabled ? 'btn-success' : 'btn-danger'}" onclick="toggleUserStatus('${u.id}')" data-testid="toggle-status-${u.id}">${u.is_disabled ? 'Abilita' : 'Disabilita'}</button> `;
-      actions += `<button class="btn btn-sm btn-danger" onclick="showSoftDeleteModal('${u.id}')" data-testid="soft-delete-${u.id}" style="background:#7C3AED">Elimina</button> `;
-      if (hasPerm('admin.roles.manage') && isSuperAdmin) {
-        actions += `<button class="btn btn-sm ${u.is_super_admin ? 'btn-danger' : 'btn-outline'}" onclick="toggleSuperAdmin('${u.id}',${!u.is_super_admin})" data-testid="toggle-sa-${u.id}">${u.is_super_admin ? 'Rimuovi SA' : 'Promuovi SA'}</button>`;
-      }
-    }
-
     html += `<tr data-testid="user-row-${u.id}" style="${u.is_deleted ? 'opacity:.35' : u.is_disabled ? 'opacity:.5' : ''}">
       <td><strong>${u.username}</strong></td>
       <td style="color:#94A3B8;font-size:12px">${u.email}</td>
       <td>${tags}</td>
-      <td style="font-size:12px">${leagueHtml}</td>
+      <td>${leagueHtml}</td>
       <td style="font-size:12px">${lastLogin}</td>
       <td>${statusBadge}</td>
-      <td style="white-space:nowrap">${actions}</td></tr>`;
+      <td><button class="btn btn-sm btn-outline" onclick="showUserControlRoom('${u.id}')" data-testid="control-user-${u.id}">Control Room</button></td></tr>`;
   });
   html += '</table>';
   document.getElementById('users-list').innerHTML = html;
 }
 
-async function showUserLeagues(userId) {
-  const user = allUsersCache.find(u => u.id === userId);
-  if (!user) return;
+// ========================================
+// USER CONTROL ROOM (unified)
+// ========================================
+let ucrTab = 'info';
+let ucrUserId = null;
+let ucrUserLeagues = null;
+let ucrAuditLog = null;
+
+async function showUserControlRoom(userId, tab) {
+  ucrUserId = userId;
+  ucrTab = tab || 'info';
+  const u = allUsersCache.find(x => x.id === userId);
+  if (!u) return;
+
+  const statusTag = u.is_deleted
+    ? '<span class="tag tag-disabled">ELIMINATO</span>'
+    : u.is_disabled
+      ? '<span class="tag tag-disabled">DISABILITATO</span>'
+      : '<span class="tag" style="background:rgba(16,185,129,.15);color:#10B981;border:1px solid rgba(16,185,129,.3)">ATTIVO</span>';
+
+  const tabs = [
+    {id:'info', label:'Info & Profilo'},
+    {id:'edit', label:'Modifica'},
+    {id:'leagues', label:'Leghe & Ruoli'},
+    {id:'activity', label:'Attivita'},
+  ];
+  const tabsHtml = tabs.map(t => `<button class="btn btn-sm ${ucrTab===t.id?'':'btn-outline'}" onclick="showUserControlRoom('${userId}','${t.id}')" data-testid="ucr-tab-${t.id}" style="${ucrTab===t.id?'':'opacity:.6'}">${t.label}</button>`).join(' ');
+
+  let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <h3 style="margin:0">${u.username}</h3>
+      ${u.is_super_admin ? '<span class="tag tag-super">SUPER ADMIN</span>' : ''}
+      ${statusTag}
+      ${u.auth_provider === 'google' ? '<span class="tag tag-role">GOOGLE</span>' : ''}
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="closeModal()">X</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid #334155;padding-bottom:12px">${tabsHtml}</div>
+  <div id="ucr-body"></div>`;
+  showModal(html);
+
+  const body = document.getElementById('ucr-body');
+  if (ucrTab === 'info') body.innerHTML = renderUcrInfo(u);
+  else if (ucrTab === 'edit') body.innerHTML = renderUcrEdit(u);
+  else if (ucrTab === 'leagues') { body.innerHTML = '<p style="color:#94A3B8">Caricamento...</p>'; await loadUcrLeagues(u); }
+  else if (ucrTab === 'activity') { body.innerHTML = '<p style="color:#94A3B8">Caricamento...</p>'; await loadUcrActivity(u); }
+}
+
+function renderUcrInfo(u) {
+  const fiveMinAgo = new Date(Date.now() - 5*60*1000).toISOString();
+  const isOnline = u.last_activity && u.last_activity >= fiveMinAgo;
+  const onlineIndicator = isOnline ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;margin-right:6px;animation:pulse 1.5s infinite"></span><span style="color:#10B981">Online</span>' : '<span style="color:#64748B">Offline</span>';
+  const rolesHtml = (u.roles||[]).length > 0 ? u.roles.map(r => `<span class="tag tag-role">${r.name}</span>`).join(' ') : '<span style="color:#475569">Nessun ruolo RBAC</span>';
+
+  return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+      <div><span style="color:#94A3B8">ID:</span> <code style="color:#F5A623;font-size:11px">${u.id.substring(0,20)}...</code></div>
+      <div><span style="color:#94A3B8">Email:</span> <strong>${u.email}</strong></div>
+      <div><span style="color:#94A3B8">Username:</span> <strong>${u.username}</strong></div>
+      <div><span style="color:#94A3B8">Auth Provider:</span> <strong>${u.auth_provider || 'email'}</strong></div>
+      <div><span style="color:#94A3B8">Registrato:</span> ${u.created_at ? new Date(u.created_at).toLocaleString('it') : '-'}</div>
+      <div><span style="color:#94A3B8">Ultimo Login:</span> ${u.last_login ? new Date(u.last_login).toLocaleString('it') : 'Mai'}</div>
+      <div><span style="color:#94A3B8">Ultima Attivita:</span> ${u.last_activity ? new Date(u.last_activity).toLocaleString('it') : 'Mai'}</div>
+      <div><span style="color:#94A3B8">Stato:</span> ${onlineIndicator}</div>
+    </div>
+    <div style="margin-top:16px">
+      <span style="color:#94A3B8;font-size:13px">Ruoli RBAC:</span> ${rolesHtml}
+    </div>
+    <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="counter-box" style="text-align:center"><div class="num" style="font-size:20px;color:#F5A623">${u.leagues_created||0}</div><div class="label">Leghe Create</div></div>
+      <div class="counter-box" style="text-align:center"><div class="num" style="font-size:20px;color:#3B82F6">${u.leagues_admin||0}</div><div class="label">Admin Lega</div></div>
+      <div class="counter-box" style="text-align:center"><div class="num" style="font-size:20px;color:#10B981">${u.leagues_member||0}</div><div class="label">Membro</div></div>
+    </div>`;
+}
+
+function renderUcrEdit(u) {
+  const isGoogle = u.auth_provider === 'google';
+  return `
+    <div style="margin-bottom:12px">
+      <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Username</label>
+      <input id="edit-user-username" value="${u.username}" style="width:100%;padding:10px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:14px" data-testid="edit-user-username">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Email</label>
+      <input id="edit-user-email" value="${u.email}" style="width:100%;padding:10px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:14px" data-testid="edit-user-email">
+    </div>
+    <div style="text-align:right;margin-bottom:20px">
+      <button class="btn" onclick="doEditUser('${u.id}')" data-testid="confirm-edit-user-btn">Salva Modifiche Profilo</button>
+    </div>
+
+    ${!isGoogle ? `
+    <h4 style="color:#94A3B8;margin:16px 0 8px;font-size:14px">Reset Password</h4>
+    <div id="reset-link-result"></div>
+    <button class="btn btn-sm" style="background:#7C3AED;color:#fff" onclick="doGenerateResetLink('${u.id}')" data-testid="generate-reset-link-btn">Genera Link Reset Password</button>
+    <p style="color:#64748B;font-size:11px;margin-top:6px">Il link viene mostrato qui per essere copiato e inviato manualmente all\\'utente.</p>
+    ` : '<p style="color:#F59E0B;font-size:12px;margin:12px 0">Utente Google - il reset password non e disponibile</p>'}
+
+    <div style="margin-top:24px;padding:16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px">
+      <h4 style="color:#EF4444;margin-bottom:12px;font-size:14px">Zona Pericolo</h4>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-sm ${u.is_disabled ? '' : 'btn-danger'}" style="${u.is_disabled ? 'background:#10B981;color:#fff' : ''}" onclick="toggleUserStatusCR('${u.id}')" data-testid="toggle-status-${u.id}">
+          ${u.is_disabled ? 'Riabilita Utente' : 'Disabilita Utente'}
+        </button>
+        ${isSuperAdmin ? `<button class="btn btn-sm ${u.is_super_admin ? 'btn-danger' : ''}" style="${!u.is_super_admin ? 'background:#F5A623;color:#0F172A' : ''}" onclick="toggleSuperAdminCR('${u.id}',${!u.is_super_admin})" data-testid="toggle-sa-${u.id}">
+          ${u.is_super_admin ? 'Rimuovi Super Admin' : 'Promuovi Super Admin'}
+        </button>` : ''}
+        <button class="btn btn-sm" style="background:#7C3AED;color:#fff" onclick="showSoftDeleteInCR('${u.id}')" data-testid="soft-delete-${u.id}">Elimina Utente (Soft)</button>
+      </div>
+      <div id="soft-delete-zone" style="margin-top:12px"></div>
+    </div>`;
+}
+
+async function loadUcrLeagues(u) {
   try {
-    const leagues = await apiCall('/rbac/users/' + userId + '/leagues');
-    let html = `<h3>Leghe di ${user.username}</h3>`;
-    if (leagues.length === 0) {
-      html += '<p style="color:#94A3B8;margin:12px 0">Nessuna lega</p>';
-    } else {
-      html += '<table><tr><th>Lega</th><th>Tipo</th><th>Ruolo</th><th>Owner</th><th>Iscritto</th></tr>';
-      leagues.forEach(l => {
-        const ownerTag = l.is_owner ? '<span class="tag tag-super">OWNER</span>' : '';
-        const creatorTag = l.is_creator ? '<span class="tag tag-system">CREATOR</span>' : '';
-        html += `<tr>
-          <td><strong>${l.league_name}</strong></td>
-          <td><span class="tag tag-role">${l.league_type}</span></td>
-          <td>${l.membership_role}</td>
-          <td>${ownerTag} ${creatorTag}</td>
-          <td style="font-size:12px">${l.joined_at ? new Date(l.joined_at).toLocaleDateString('it') : '-'}</td></tr>`;
-      });
-      html += '</table>';
-    }
-    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Chiudi</button></div>';
-    showModal(html);
+    const [leagues] = await Promise.all([
+      apiCall('/rbac/users/' + u.id + '/leagues')
+    ]);
+    ucrUserLeagues = leagues;
+    document.getElementById('ucr-body').innerHTML = renderUcrLeagues(u, leagues);
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-function showSoftDeleteModal(userId) {
-  const user = allUsersCache.find(u => u.id === userId);
-  if (!user) return;
-  showModal(`
-    <h3 style="color:#7C3AED">Elimina Utente: ${user.username}</h3>
-    <p style="margin:12px 0;color:#94A3B8">Soft-delete: l'utente verra' disabilitato e segnato come eliminato. I dati rimangono nel database.</p>
-    ${user.leagues_created > 0 || user.leagues_admin > 0 ? `<p style="margin:8px 0;color:#F59E0B">Attenzione: l'utente ha ${user.leagues_created} leghe create e ${user.leagues_admin} ruoli admin. Se e' l'unico admin/owner, dovrai trasferire la ownership prima.</p>` : ''}
-    <p style="margin:8px 0">Digita <strong style="color:#7C3AED">DELETE</strong> per confermare:</p>
-    <div class="form-row"><input id="soft-delete-confirm" placeholder="Digita DELETE" data-testid="soft-delete-confirm-input"></div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal()">Annulla</button>
-      <button class="btn" style="background:#7C3AED;color:#fff" onclick="doSoftDelete('${userId}')" data-testid="confirm-soft-delete">Elimina Utente</button>
-    </div>`);
-}
-
-async function doSoftDelete(userId) {
-  if (document.getElementById('soft-delete-confirm').value !== 'DELETE') {
-    showToast('Devi digitare DELETE per confermare', 'error'); return;
+function renderUcrLeagues(u, leagues) {
+  let leaguesHtml = '';
+  if (leagues.length === 0) {
+    leaguesHtml = '<p style="color:#94A3B8;margin:12px 0">Nessuna lega</p>';
+  } else {
+    leaguesHtml = '<table style="font-size:13px"><tr><th>Lega</th><th>Tipo</th><th>Ruolo</th><th>Owner</th><th>Iscritto</th></tr>';
+    leagues.forEach(l => {
+      const ownerTag = l.is_owner ? '<span class="tag tag-super">OWNER</span>' : '';
+      const creatorTag = l.is_creator ? '<span class="tag tag-system">CREATOR</span>' : '';
+      leaguesHtml += `<tr>
+        <td><strong>${l.league_name}</strong></td>
+        <td><span class="tag tag-role">${l.league_type}</span></td>
+        <td>${l.membership_role}</td>
+        <td>${ownerTag} ${creatorTag}</td>
+        <td style="font-size:12px">${l.joined_at ? new Date(l.joined_at).toLocaleDateString('it') : '-'}</td></tr>`;
+    });
+    leaguesHtml += '</table>';
   }
-  try {
-    await apiCall('/rbac/users/' + userId + '/soft-delete', 'PUT');
-    closeModal(); showToast('Utente eliminato (soft)'); render_users();
-  } catch(e) {
-    // Handle orphan leagues error
-    let msg = e.message;
-    try {
-      const parsed = JSON.parse(e.message.replace(/^[^{]*/, ''));
-      if (parsed.orphan_leagues) {
-        msg = parsed.message + ' Leghe: ' + parsed.orphan_leagues.map(l => l.name).join(', ');
-      }
-    } catch(ignore) {}
-    showToast(msg, 'error');
-  }
-}
 
-function showAssignRolesModal(userId) {
-  const user = allUsersCache.find(u => u.id === userId);
-  if (!user) return;
-  const currentRoleIds = user.role_ids || [];
-
-  let html = `<h3>Assegna Ruoli a: ${user.username}</h3><p style="color:#94A3B8;margin-bottom:12px">${user.email}</p>`;
-  html += '<div id="role-assign-list">';
+  // RBAC Roles assignment
+  const currentRoleIds = u.role_ids || [];
+  let rolesHtml = '<div id="role-assign-list">';
   allRolesCache.forEach(r => {
     const checked = currentRoleIds.includes(r.id) ? 'checked' : '';
     const cls = checked ? 'checked' : '';
-    html += `<label class="perm-item ${cls}" style="margin-bottom:6px" data-perm="${r.id}">
+    rolesHtml += `<label class="perm-item ${cls}" style="margin-bottom:6px" data-perm="${r.id}">
       <input type="checkbox" name="assign-role" value="${r.id}" ${checked} onchange="this.parentElement.classList.toggle('checked')">
       <span><strong>${r.name}</strong><br><span style="color:#64748B;font-size:11px">${r.description||''} (${r.permissions.length} permessi)</span></span>
     </label>`;
   });
-  html += '</div>';
-  html += `<div class="modal-actions">
-    <button class="btn btn-outline" onclick="closeModal()">Annulla</button>
-    <button class="btn" onclick="doAssignRoles('${userId}')" data-testid="confirm-assign-roles">Salva Ruoli</button>
-  </div>`;
-  showModal(html);
+  rolesHtml += '</div>';
+
+  return `
+    <h4 style="color:#F5A623;margin:0 0 12px;font-size:14px">Leghe (${leagues.length})</h4>
+    ${leaguesHtml}
+    <h4 style="color:#F5A623;margin:20px 0 12px;font-size:14px">Ruoli RBAC</h4>
+    ${rolesHtml}
+    <div style="text-align:right;margin-top:12px">
+      <button class="btn" onclick="doAssignRoles('${u.id}')" data-testid="confirm-assign-roles">Salva Ruoli</button>
+    </div>`;
 }
 
-async function doAssignRoles(userId) {
-  const roleIds = Array.from(document.querySelectorAll('input[name=assign-role]:checked')).map(c => c.value);
+async function loadUcrActivity(u) {
   try {
-    await apiCall('/rbac/users/'+userId+'/roles', 'PUT', {role_ids: roleIds});
-    closeModal(); showToast('Ruoli aggiornati'); render_users();
-  } catch(e) { showToast(e.message, 'error'); }
+    const logs = await apiCall('/rbac/users/' + u.id + '/audit-log?limit=30');
+    ucrAuditLog = logs;
+    document.getElementById('ucr-body').innerHTML = renderUcrActivity(u, logs);
+  } catch(e) {
+    document.getElementById('ucr-body').innerHTML = '<p style="color:#EF4444">Errore nel caricamento audit log</p>';
+  }
 }
 
-async function toggleUserStatus(userId) {
+function renderUcrActivity(u, logs) {
+  if (logs.length === 0) return '<p style="color:#94A3B8;margin:12px 0">Nessuna attivita registrata.</p>';
+
+  let html = '<table style="font-size:12px"><tr><th>Data</th><th>Azione</th><th>Tipo</th><th>Dettagli</th><th>Ruolo</th></tr>';
+  logs.forEach(l => {
+    const isActor = l.admin_id === u.id;
+    const roleLabel = isActor ? '<span style="color:#3B82F6">Attore</span>' : '<span style="color:#F59E0B">Target</span>';
+    const date = l.created_at ? new Date(l.created_at).toLocaleString('it') : '-';
+    const details = l.details ? JSON.stringify(l.details).substring(0, 80) : '-';
+    html += `<tr>
+      <td style="white-space:nowrap">${date}</td>
+      <td><strong>${l.action || '-'}</strong></td>
+      <td>${l.entity_type || '-'}</td>
+      <td style="color:#94A3B8;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${details}">${details}</td>
+      <td>${roleLabel}</td></tr>`;
+  });
+  html += '</table>';
+  return html;
+}
+
+// === User CR action helpers ===
+async function toggleUserStatusCR(userId) {
   const user = allUsersCache.find(u => u.id === userId);
   const action = user && user.is_disabled ? 'riabilitare' : 'disabilitare';
-  if (!confirm(`Vuoi ${action} l'utente ${user ? user.username : ''}?`)) return;
+  if (!confirm(`Vuoi ${action} l\\'utente ${user ? user.username : ''}?`)) return;
   try {
     await apiCall('/rbac/users/'+userId+'/status', 'PUT');
-    showToast('Stato utente aggiornato'); render_users();
+    showToast('Stato utente aggiornato');
+    const users = await apiCall('/rbac/users');
+    allUsersCache = users;
+    showUserControlRoom(userId, 'edit');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-async function toggleSuperAdmin(userId, value) {
+async function toggleSuperAdminCR(userId, value) {
   const user = allUsersCache.find(u => u.id === userId);
   const action = value ? 'promuovere a Super Admin' : 'rimuovere lo status di Super Admin da';
   if (!confirm(`Vuoi ${action} ${user ? user.username : ''}?`)) return;
   try {
     await apiCall('/rbac/users/'+userId+'/super-admin', 'PUT', {is_super_admin: value});
-    showToast('Super Admin aggiornato'); render_users();
+    showToast('Super Admin aggiornato');
+    const users = await apiCall('/rbac/users');
+    allUsersCache = users;
+    showUserControlRoom(userId, 'edit');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-// ========================================
-// U2: EDIT USER DETAILS MODAL
-// ========================================
-function showEditUserModal(userId) {
+function showSoftDeleteInCR(userId) {
   const user = allUsersCache.find(u => u.id === userId);
   if (!user) return;
-  const isGoogle = user.auth_provider === 'google';
-  const googleNote = isGoogle ? '<p style="color:#F59E0B;font-size:12px;margin-bottom:12px">Utente Google - il reset password non e\\'  disponibile</p>' : '';
-
-  let html = `<h3>Dettagli Utente</h3>
-    <div style="margin-bottom:16px">
-      <span class="tag tag-role">ID: ${user.id.substring(0,12)}...</span>
-      ${user.is_super_admin ? '<span class="tag tag-super">SUPER ADMIN</span>' : ''}
-      ${user.is_disabled ? '<span class="tag tag-disabled">DISABILITATO</span>' : '<span class="tag" style="background:rgba(16,185,129,.15);color:#10B981;border:1px solid rgba(16,185,129,.3)">ATTIVO</span>'}
-    </div>
-    ${googleNote}
-    <div style="margin-bottom:12px">
-      <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Username</label>
-      <input id="edit-user-username" value="${user.username}" style="width:100%;padding:10px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:14px" data-testid="edit-user-username">
-    </div>
-    <div style="margin-bottom:12px">
-      <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Email</label>
-      <input id="edit-user-email" value="${user.email}" style="width:100%;padding:10px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:14px" data-testid="edit-user-email">
-    </div>
-    <div style="margin-bottom:12px;display:flex;gap:12px;font-size:13px;color:#94A3B8">
-      <div><strong>Registrato:</strong> ${user.created_at ? new Date(user.created_at).toLocaleString('it') : '-'}</div>
-      <div><strong>Ultimo login:</strong> ${user.last_login ? new Date(user.last_login).toLocaleString('it') : 'Mai'}</div>
-    </div>
-    <div id="reset-link-result"></div>
-    <div class="modal-actions" style="justify-content:space-between">
-      <div>
-        ${!isGoogle ? `<button class="btn btn-sm" style="background:#7C3AED;color:#fff" onclick="doGenerateResetLink('${userId}')" data-testid="generate-reset-link-btn">Genera Link Reset Password</button>` : ''}
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-outline" onclick="closeModal()">Annulla</button>
-        <button class="btn" onclick="doEditUser('${userId}')" data-testid="confirm-edit-user-btn">Salva Modifiche</button>
-      </div>
+  const zone = document.getElementById('soft-delete-zone');
+  zone.innerHTML = `
+    ${user.leagues_created > 0 || user.leagues_admin > 0 ? `<p style="color:#F59E0B;font-size:12px;margin-bottom:8px">Attenzione: l\\'utente ha ${user.leagues_created} leghe create e ${user.leagues_admin} ruoli admin. Se e l\\'unico admin/owner, dovrai trasferire la ownership prima.</p>` : ''}
+    <p style="font-size:12px;margin-bottom:8px">Digita <strong style="color:#7C3AED">DELETE</strong> per confermare:</p>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="soft-delete-confirm" placeholder="Digita DELETE" style="padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="soft-delete-confirm-input">
+      <button class="btn btn-sm" style="background:#7C3AED;color:#fff" onclick="doSoftDeleteCR('${userId}')" data-testid="confirm-soft-delete">Conferma Eliminazione</button>
     </div>`;
-  showModal(html);
+}
+
+async function doSoftDeleteCR(userId) {
+  if (document.getElementById('soft-delete-confirm').value !== 'DELETE') {
+    showToast('Devi digitare DELETE per confermare', 'error'); return;
+  }
+  try {
+    await apiCall('/rbac/users/' + userId + '/soft-delete', 'PUT');
+    closeModal();
+    showToast('Utente eliminato (soft)');
+    render_users();
+  } catch(e) {
+    let msg = e.message;
+    try {
+      const parsed = JSON.parse(e.message.replace(/^[^{]*/, ''));
+      if (parsed.orphan_leagues) msg = parsed.message + ' Leghe: ' + parsed.orphan_leagues.map(l => l.name).join(', ');
+    } catch(ignore) {}
+    showToast(msg, 'error');
+  }
 }
 
 async function doEditUser(userId) {
