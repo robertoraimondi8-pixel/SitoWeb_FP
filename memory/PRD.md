@@ -99,7 +99,13 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - **Sicurezza**: Delete semplice solo se DRAFT senza dati. Override Delete con input DELETE obbligatorio + audit log per giornate con pronostici/risultati o non-DRAFT
   - **Ordinamento**: colonne # / Kickoff / Stato con frecce cliccabili
   - Voce "Partite" rimossa dalla sidebar - gestione match ora integrata nel Control Room giornata
-  - Backend: GET /api/admin/matchdays?league_id=... (supporto multi-lega), POST /api/admin/matchdays con league_id, MatchdayCreate model aggiornato
+  - Backend: GET /api/admin/matchdays?league_id=... (supporto multi-lega, league_id=all per tutte), POST /api/admin/matchdays con league_id, MatchdayCreate model aggiornato
+- **Bug Fix: Dashboard KPI → Giornate navigazione vuota** (Feb 28, 2026):
+  - I KPI globali contavano giornate di tutte le leghe, ma la pagina Giornate filtrava solo la Lega Nazionale
+  - Aggiunta opzione "Tutte le leghe" (value="all") al selettore lega
+  - Quando si naviga da un KPI dashboard (con statusFilter), il selettore lega si imposta automaticamente su "Tutte le leghe"
+  - Navigazione diretta dalla sidebar continua a selezionare la Lega Nazionale come default
+  - Backend già supportava league_id=all (nessun filtro lega nella query)
 - **Sprint L1 - Dashboard Leghe KPI Cliccabili** (Feb 28, 2026):
   - 5 KPI nella card Leghe: Totale, Nazionale (verde), Private Custom (blu), Private Naz. (teal), A Rischio (rosso)
   - Tutti cliccabili con filtro tipo pre-applicato sulla pagina leghe
