@@ -1,0 +1,97 @@
+{
+  "summary": "RBAC STEP 2A Testing Complete - 33/33 backend tests PASSED. All 20 admin endpoints successfully migrated from require_admin to require_permission. Super admin has full access, Osservatore role gets 200 on payments/audit/score-summaries but 403 on seasons/matchdays/matches/leagues. Gestore Leghe role gets 200 on seasons/matchdays/matches/leagues but 403 on payments/audit. No role users get 403 on all admin endpoints. refresh-live correctly requires admin.matches.manage.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "total": 33,
+      "passed": 33,
+      "failed": 0,
+      "test_file": "/app/backend/tests/test_rbac_step2a.py"
+    }
+  },
+  "verified_features": [
+    "require_admin import completely removed from server.py (verified via grep)",
+    "29 endpoints now use require_permission instead of require_admin",
+    "Super Admin can access ALL 20 admin endpoints (200 status)",
+    "Osservatore role (admin.dashboard.view, admin.audit.view, admin.payments.view) gets: 403 on seasons/matchdays/matches/leagues, 200 on payments/audit/score-summaries",
+    "Gestore Leghe role (admin.dashboard.view, admin.seasons.manage, admin.matchdays.manage, admin.matches.manage, admin.leagues.manage) gets: 200 on seasons/matchdays/matches/leagues, 403 on payments/audit",
+    "User with NO role gets 403 on ALL admin endpoints",
+    "/api/admin/real-fixtures/refresh-live correctly requires admin.matches.manage",
+    "Non-admin endpoints (login, home, profile) work without any role/permission"
+  ],
+  "permission_mapping_verified": {
+    "admin.seasons.manage": [
+      "GET /api/admin/seasons",
+      "POST /api/admin/seasons",
+      "PUT /api/admin/seasons/{season_id}",
+      "PUT /api/admin/seasons/{season_id}/current-matchday"
+    ],
+    "admin.matchdays.manage": [
+      "GET /api/admin/matchdays",
+      "POST /api/admin/matchdays",
+      "PUT /api/admin/matchdays/{matchday_id}",
+      "DELETE /api/admin/matchdays/{matchday_id}",
+      "POST /api/admin/matchdays/{matchday_id}/confirm",
+      "POST /api/admin/matchdays/{matchday_id}/recalc"
+    ],
+    "admin.matches.manage": [
+      "GET /api/admin/matches",
+      "POST /api/admin/matches",
+      "PUT /api/admin/matches/{match_id}",
+      "DELETE /api/admin/matches/{match_id}",
+      "POST /api/admin/matches/{match_id}/live-update",
+      "POST /api/admin/real-fixtures/refresh-live"
+    ],
+    "admin.leagues.manage": ["GET /api/admin/leagues"],
+    "admin.payments.view": ["GET /api/admin/payments"],
+    "admin.audit.view": ["GET /api/admin/audit-logs"],
+    "admin.dashboard.view": ["GET /api/admin/score-summaries/{matchday_id}"]
+  },
+  "endpoints_with_internal_permission_checks_not_changed": [
+    "GET /api/admin/v3/leagues - uses internal is_super check and league ownership",
+    "GET /api/admin/v3/matchdays - uses internal is_super check and league ownership",
+    "POST /api/admin/matchday/{id}/transition - uses internal is_super check and league ownership",
+    "POST /api/admin/matchday/{id}/override - SUPER_ADMIN only (internal check)",
+    "POST /api/admin/matchday/{id}/recalculate - SUPER_ADMIN only (internal check)",
+    "POST /api/admin/matches/{id}/special - uses internal is_super check and league ownership",
+    "GET /api/admin/real-fixtures/leagues - any authenticated user",
+    "GET /api/admin/real-fixtures/search - any authenticated user",
+    "POST /api/admin/real-fixtures/import - uses internal is_super check and league ownership"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_rbac_step2a.py",
+    "/app/test_reports/pytest/rbac_step2a_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Implementation is correct - require_admin removed, require_permission used for all 20 target endpoints",
+    "Some endpoints (v3/*, transition, override, recalculate, special, fixtures/leagues/search/import) correctly use internal permission logic rather than require_permission per spec 'NO changes'"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_rbac_step2a.py"
+  ],
+  "success_rate": {
+    "backend": "100% (33/33 tests passed)",
+    "frontend": "N/A (backend only testing requested)"
+  },
+  "test_credentials": {
+    "super_admin": "admin@fantapronostic.com / admin123 (is_super_admin=true)",
+    "standard_user": "ilio@raimondi.it / password123"
+  },
+  "seed_data_creation": "Tests dynamically assign/remove roles to standard user for each test class",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "RBAC STEP 2A complete. All 20 admin endpoints now use require_permission instead of require_admin. 9 additional endpoints (v3/*, transition, override, recalculate, special, fixtures/*) use internal permission logic and were NOT changed per spec. Next step would be STEP 2B if there are additional endpoints to migrate.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
