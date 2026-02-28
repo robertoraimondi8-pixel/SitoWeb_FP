@@ -4627,6 +4627,243 @@ async def stats_match_preview(match_id: str, user=Depends(get_current_user)):
 
 
 # ========================================
+# RBAC ROUTES
+# ========================================
+
+async def _bootstrap_rbac():
+    """Bootstrap RBAC system: create default roles and mark admin as super_admin."""
+    # Create default roles if they don't exist
+    for key, tmpl in DEFAULT_ROLES.items():
+        existing = await roles_col.find_one({"name": tmpl["name"]})
+        if not existing:
+            role_doc = {
+                "id": new_id(),
+                "name": tmpl["name"],
+                "description": tmpl["description"],
+                "permissions": tmpl["permissions"],
+                "is_system": True,
+                "created_at": now_utc(),
+            }
+            await roles_col.insert_one(role_doc)
+            logger.info(f"[RBAC] Created default role: {tmpl['name']}")
+
+    # Mark admin@fantapronostic.com as is_super_admin
+    admin_user = await users_col.find_one({"email": "admin@fantapronostic.com"})
+    if admin_user and not admin_user.get("is_super_admin"):
+        sa_role = await roles_col.find_one({"name": "Super Admin"}, {"_id": 0, "id": 1})
+        role_ids = admin_user.get("role_ids", [])
+        if sa_role and sa_role["id"] not in role_ids:
+            role_ids.append(sa_role["id"])
+        await users_col.update_one(
+            {"email": "admin@fantapronostic.com"},
+            {"$set": {"is_super_admin": True, "role_ids": role_ids}}
+        )
+        logger.info("[RBAC] Bootstrapped admin as SUPER_ADMIN")
+
+
+@rbac_router.get("/permissions")
+async def list_permissions(user=Depends(require_permission("admin.roles.manage"))):
+    """List all available permissions in the system."""
+    return [{"key": k, "description": v} for k, v in ALL_PERMISSIONS.items()]
+
+
+@rbac_router.get("/my-permissions")
+async def my_permissions(user=Depends(get_current_user)):
+    """Get the current user's aggregated permissions."""
+    perms = await get_user_permissions(user)
+    return {
+        "user_id": user["id"],
+        "is_super_admin": user.get("is_super_admin", False),
+        "permissions": perms,
+        "role_ids": user.get("role_ids", []),
+    }
+
+
+@rbac_router.get("/roles")
+async def list_roles(user=Depends(require_permission("admin.roles.manage"))):
+    """List all roles."""
+    roles = await roles_col.find({}, {"_id": 0}).sort("name", 1).to_list(200)
+    return roles
+
+
+@rbac_router.post("/roles")
+async def create_role(req: RoleCreate, request: Request, user=Depends(require_permission("admin.roles.manage"))):
+    """Create a new role."""
+    # Validate permissions
+    invalid = [p for p in req.permissions if p not in ALL_PERMISSIONS]
+    if invalid:
+        raise HTTPException(400, f"Permessi non validi: {invalid}")
+
+    existing = await roles_col.find_one({"name": req.name})
+    if existing:
+        raise HTTPException(409, f"Ruolo '{req.name}' esiste già")
+
+    role_doc = {
+        "id": new_id(),
+        "name": req.name,
+        "description": req.description or "",
+        "permissions": req.permissions,
+        "is_system": False,
+        "created_at": now_utc(),
+    }
+    await roles_col.insert_one(role_doc)
+    role_doc.pop("_id", None)
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "CREATE", "role", role_doc["id"],
+        {"name": req.name, "permissions": req.permissions},
+        actor_roles=user.get("role_ids", []), ip=ip
+    )
+    return role_doc
+
+
+@rbac_router.put("/roles/{role_id}")
+async def update_role(role_id: str, req: RoleUpdate, request: Request, user=Depends(require_permission("admin.roles.manage"))):
+    """Update an existing role."""
+    role = await roles_col.find_one({"id": role_id}, {"_id": 0})
+    if not role:
+        raise HTTPException(404, "Ruolo non trovato")
+
+    before = {k: v for k, v in role.items() if k != "_id"}
+    updates = {}
+    if req.name is not None:
+        # Check uniqueness
+        dup = await roles_col.find_one({"name": req.name, "id": {"$ne": role_id}})
+        if dup:
+            raise HTTPException(409, f"Ruolo '{req.name}' esiste già")
+        updates["name"] = req.name
+    if req.description is not None:
+        updates["description"] = req.description
+    if req.permissions is not None:
+        invalid = [p for p in req.permissions if p not in ALL_PERMISSIONS]
+        if invalid:
+            raise HTTPException(400, f"Permessi non validi: {invalid}")
+        updates["permissions"] = req.permissions
+
+    if not updates:
+        raise HTTPException(400, "Nessun aggiornamento fornito")
+
+    await roles_col.update_one({"id": role_id}, {"$set": updates})
+    updated = await roles_col.find_one({"id": role_id}, {"_id": 0})
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "UPDATE", "role", role_id,
+        updates, actor_roles=user.get("role_ids", []), ip=ip,
+        before=before, after={k: v for k, v in updated.items() if k != "_id"}
+    )
+    return updated
+
+
+@rbac_router.delete("/roles/{role_id}")
+async def delete_role(role_id: str, request: Request, user=Depends(require_permission("admin.roles.manage"))):
+    """Delete a role. System roles cannot be deleted."""
+    role = await roles_col.find_one({"id": role_id}, {"_id": 0})
+    if not role:
+        raise HTTPException(404, "Ruolo non trovato")
+    if role.get("is_system"):
+        raise HTTPException(403, "I ruoli di sistema non possono essere eliminati")
+
+    # Remove role from all users who have it
+    await users_col.update_many(
+        {"role_ids": role_id},
+        {"$pull": {"role_ids": role_id}}
+    )
+    await roles_col.delete_one({"id": role_id})
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "DELETE", "role", role_id,
+        {"name": role.get("name")},
+        actor_roles=user.get("role_ids", []), ip=ip
+    )
+    return {"deleted": True}
+
+
+@rbac_router.get("/users")
+async def list_users_rbac(request: Request, user=Depends(require_permission("admin.users.manage"))):
+    """List all users with their role assignments."""
+    users = await users_col.find(
+        {}, {"_id": 0, "password": 0}
+    ).sort("username", 1).to_list(5000)
+
+    all_roles = {r["id"]: r for r in await roles_col.find({}, {"_id": 0}).to_list(200)}
+
+    result = []
+    for u in users:
+        role_ids = u.get("role_ids", [])
+        roles_detail = [
+            {"id": rid, "name": all_roles[rid]["name"]}
+            for rid in role_ids if rid in all_roles
+        ]
+        result.append({
+            "id": u["id"],
+            "email": u["email"],
+            "username": u["username"],
+            "role": u.get("role"),
+            "is_super_admin": u.get("is_super_admin", False),
+            "role_ids": role_ids,
+            "roles": roles_detail,
+            "created_at": u.get("created_at"),
+        })
+    return result
+
+
+@rbac_router.put("/users/{user_id}/roles")
+async def assign_user_roles(user_id: str, req: AssignRolesRequest, request: Request, user=Depends(require_permission("admin.roles.manage"))):
+    """Assign roles to a user."""
+    target = await users_col.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    if not target:
+        raise HTTPException(404, "Utente non trovato")
+
+    # Validate all role_ids exist
+    for rid in req.role_ids:
+        r = await roles_col.find_one({"id": rid})
+        if not r:
+            raise HTTPException(400, f"Ruolo non trovato: {rid}")
+
+    before_roles = target.get("role_ids", [])
+    await users_col.update_one({"id": user_id}, {"$set": {"role_ids": req.role_ids}})
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "ASSIGN_ROLES", "user", user_id,
+        {"target_username": target["username"]},
+        actor_roles=user.get("role_ids", []), ip=ip,
+        before={"role_ids": before_roles}, after={"role_ids": req.role_ids}
+    )
+    return {"user_id": user_id, "role_ids": req.role_ids}
+
+
+@rbac_router.put("/users/{user_id}/super-admin")
+async def set_super_admin(user_id: str, req: SetSuperAdminRequest, request: Request, user=Depends(require_permission("admin.roles.manage"))):
+    """Set or remove super_admin flag on a user. Only super_admins can do this."""
+    if not user.get("is_super_admin"):
+        raise HTTPException(403, "Solo un super admin può modificare questo flag")
+
+    target = await users_col.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    if not target:
+        raise HTTPException(404, "Utente non trovato")
+
+    # Prevent removing own super_admin
+    if user_id == user["id"] and not req.is_super_admin:
+        raise HTTPException(400, "Non puoi rimuovere il tuo status di super admin")
+
+    before_val = target.get("is_super_admin", False)
+    await users_col.update_one({"id": user_id}, {"$set": {"is_super_admin": req.is_super_admin}})
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "SET_SUPER_ADMIN", "user", user_id,
+        {"target_username": target["username"], "is_super_admin": req.is_super_admin},
+        actor_roles=user.get("role_ids", []), ip=ip,
+        before={"is_super_admin": before_val}, after={"is_super_admin": req.is_super_admin}
+    )
+    return {"user_id": user_id, "is_super_admin": req.is_super_admin}
+
+
+# ========================================
 # INCLUDE ROUTERS
 # ========================================
 app.include_router(auth_router)
