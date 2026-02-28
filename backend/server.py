@@ -165,7 +165,7 @@ async def compute_matchday_status(matchday: dict, league_id: str) -> str:
                 await matchdays_col.update_one({"id": matchday["id"]}, {"$set": {"status": "COMPLETED"}})
                 return "COMPLETED"
             return "LIVE"
-        return "OPEN"
+        return stored  # Keep OPEN as OPEN, LOCKED as LOCKED
 
     if stored == "LIVE":
         matches = await matches_col.find(
