@@ -5375,6 +5375,19 @@ async def edit_user_details(user_id: str, request: Request, user=Depends(require
 
 
 # ========================================
+# USER AUDIT LOG (per user)
+# ========================================
+@rbac_router.get("/users/{user_id}/audit-log")
+async def get_user_audit_log(user_id: str, limit: int = 30, user=Depends(require_permission("admin.audit.view"))):
+    """Get audit log entries related to a specific user (as actor or target)."""
+    logs = await audit_logs_col.find(
+        {"$or": [{"admin_id": user_id}, {"entity_id": user_id}]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(limit)
+    return logs
+
+
+# ========================================
 # U3: PASSWORD RESET LINK GENERATION
 # ========================================
 @rbac_router.post("/users/{user_id}/reset-password-link")
