@@ -996,35 +996,64 @@ let allLeaguesCache = [];
 
 async function render_leagues() {
   if (!hasPerm('admin.leagues.manage')) { render_forbidden(); return; }
+  const riskFilter = navFilter.risk || '';
+  navFilter = {};
   const el = document.getElementById('content');
-  el.innerHTML = '<h2>Gestione Leghe</h2><div id="leagues-list"></div>';
+  el.innerHTML = '<h2>Gestione Leghe</h2><div id="leagues-filter" class="card"></div><div id="leagues-list"></div>';
 
   try {
     const leagues = await apiCall('/rbac/leagues');
     allLeaguesCache = leagues;
 
-    let html = '<table><tr><th>Nome</th><th>Tipo</th><th>Codice</th><th>Owner</th><th>Admin</th><th>Membri</th><th>Azioni</th></tr>';
-    leagues.forEach(l => {
-      const ownerName = l.owner ? `<strong>${l.owner.username}</strong>` : '<span style="color:#EF4444">Nessuno</span>';
-      const adminCount = l.admins ? l.admins.length : 0;
-      const typeBadge = l.league_type === 'national'
-        ? '<span class="status-badge status-LIVE">NAZIONALE</span>'
-        : '<span class="status-badge status-OPEN">PRIVATA</span>';
+    // Filter bar
+    document.getElementById('leagues-filter').innerHTML = `
+      <div class="form-row">
+        <input class="search-bar" style="margin:0;flex:2" id="league-search" placeholder="Cerca lega..." oninput="filterLeagues()" data-testid="league-search-input">
+        <select id="league-risk-filter" onchange="filterLeagues()" style="flex:1" data-testid="league-risk-filter">
+          <option value="">Tutte le leghe</option>
+          <option value="all" ${riskFilter?'selected':''}>A Rischio (tutte)</option>
+          <option value="no_owner" ${riskFilter==='no_owner'?'selected':''}>Senza Owner</option>
+          <option value="no_admin" ${riskFilter==='no_admin'?'selected':''}>Senza Admin</option>
+        </select>
+      </div>`;
 
-      html += `<tr data-testid="league-row-${l.id}">
-        <td><strong>${l.name}</strong></td>
-        <td>${typeBadge}</td>
-        <td style="font-size:12px;color:#94A3B8">${l.invite_code||'-'}</td>
-        <td>${ownerName}</td>
-        <td><span style="cursor:pointer;color:#F5A623" onclick="showLeagueAdmins('${l.id}')">${adminCount} admin</span></td>
-        <td>${l.member_count}</td>
-        <td>
-          <button class="btn btn-sm btn-outline" onclick="showLeagueManage('${l.id}')" data-testid="manage-league-${l.id}">Gestisci</button>
-        </td></tr>`;
-    });
-    html += '</table>';
-    document.getElementById('leagues-list').innerHTML = html;
+    filterLeagues();
   } catch(e) { showToast(e.message, 'error'); }
+}
+
+function filterLeagues() {
+  const q = (document.getElementById('league-search').value || '').toLowerCase();
+  const rf = document.getElementById('league-risk-filter').value;
+  let filtered = allLeaguesCache;
+  if (q) filtered = filtered.filter(l => l.name.toLowerCase().includes(q));
+  if (rf === 'all') filtered = filtered.filter(l => !l.owner || (l.admins && l.admins.length === 0));
+  else if (rf === 'no_owner') filtered = filtered.filter(l => !l.owner);
+  else if (rf === 'no_admin') filtered = filtered.filter(l => !l.admins || l.admins.length === 0);
+  renderLeaguesTable(filtered);
+}
+
+function renderLeaguesTable(leagues) {
+  let html = '<table><tr><th>Nome</th><th>Tipo</th><th>Codice</th><th>Owner</th><th>Admin</th><th>Membri</th><th>Azioni</th></tr>';
+  leagues.forEach(l => {
+    const ownerName = l.owner ? `<strong>${l.owner.username}</strong>` : '<span style="color:#EF4444">Nessuno</span>';
+    const adminCount = l.admins ? l.admins.length : 0;
+    const typeBadge = l.league_type === 'national'
+      ? '<span class="status-badge status-LIVE">NAZIONALE</span>'
+      : '<span class="status-badge status-OPEN">PRIVATA</span>';
+
+    html += `<tr data-testid="league-row-${l.id}">
+      <td><strong>${l.name}</strong></td>
+      <td>${typeBadge}</td>
+      <td style="font-size:12px;color:#94A3B8">${l.invite_code||'-'}</td>
+      <td>${ownerName}</td>
+      <td><span style="cursor:pointer;color:#F5A623" onclick="showLeagueAdmins('${l.id}')">${adminCount} admin</span></td>
+      <td>${l.member_count}</td>
+      <td>
+        <button class="btn btn-sm btn-outline" onclick="showLeagueManage('${l.id}')" data-testid="manage-league-${l.id}">Gestisci</button>
+      </td></tr>`;
+  });
+  html += '</table>';
+  document.getElementById('leagues-list').innerHTML = html;
 }
 
 function showLeagueAdmins(leagueId) {
