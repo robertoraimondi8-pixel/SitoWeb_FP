@@ -1544,7 +1544,11 @@ function mdSort(col) {
 
 async function createMatchday() {
   try {
-    const leagueId = document.getElementById('md-league').value;
+    const mainLeagueId = document.getElementById('md-league').value;
+    const leagueId = mainLeagueId === 'all'
+      ? document.getElementById('md-create-league').value
+      : mainLeagueId;
+    if (!leagueId || leagueId === 'all') { showToast('Seleziona una lega', 'error'); return; }
     const kickoff = document.getElementById('md-kickoff').value;
     await apiCall('/admin/matchdays', 'POST', {
       season_id: document.getElementById('md-season').value,
