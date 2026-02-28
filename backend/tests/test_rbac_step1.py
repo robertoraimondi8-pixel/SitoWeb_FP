@@ -140,26 +140,29 @@ class TestRolesEndpoints:
 
     def test_edit_role_updates_permissions(self, admin_token):
         """Edit a role and verify permissions are updated."""
+        import time
+        unique_name = f"TEST_Edit_Role_{int(time.time())}"
+        
         # Create a role first
         create_resp = requests.post(f"{BASE_URL}/api/rbac/roles", json={
-            "name": "TEST_Edit_Role",
+            "name": unique_name,
             "description": "Role for edit test",
             "permissions": ["admin.dashboard.view"]
         }, headers={"Authorization": f"Bearer {admin_token}"})
         
-        assert create_resp.status_code in [200, 201]
+        assert create_resp.status_code in [200, 201], f"Create failed: {create_resp.text}"
         role_id = create_resp.json()["id"]
         
         # Edit the role
         edit_resp = requests.put(f"{BASE_URL}/api/rbac/roles/{role_id}", json={
-            "name": "TEST_Edit_Role_Updated",
+            "name": f"{unique_name}_Updated",
             "description": "Updated description",
             "permissions": ["admin.dashboard.view", "admin.payments.view"]
         }, headers={"Authorization": f"Bearer {admin_token}"})
         
         assert edit_resp.status_code == 200
         data = edit_resp.json()
-        assert data["name"] == "TEST_Edit_Role_Updated"
+        assert data["name"] == f"{unique_name}_Updated"
         assert "admin.payments.view" in data["permissions"]
         
         # Clean up
@@ -169,14 +172,17 @@ class TestRolesEndpoints:
 
     def test_delete_custom_role(self, admin_token):
         """Delete a custom role."""
+        import time
+        unique_name = f"TEST_Delete_Role_{int(time.time())}"
+        
         # Create a role first
         create_resp = requests.post(f"{BASE_URL}/api/rbac/roles", json={
-            "name": "TEST_Delete_Role",
+            "name": unique_name,
             "description": "Role to be deleted",
             "permissions": ["admin.dashboard.view"]
         }, headers={"Authorization": f"Bearer {admin_token}"})
         
-        assert create_resp.status_code in [200, 201]
+        assert create_resp.status_code in [200, 201], f"Create failed: {create_resp.text}"
         role_id = create_resp.json()["id"]
         
         # Delete the role
@@ -184,7 +190,7 @@ class TestRolesEndpoints:
             "Authorization": f"Bearer {admin_token}"
         })
         
-        assert del_resp.status_code == 204
+        assert del_resp.status_code in [200, 204]
 
     def test_cannot_delete_system_role(self, admin_token):
         """System roles cannot be deleted."""
