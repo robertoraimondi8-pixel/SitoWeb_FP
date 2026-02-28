@@ -280,15 +280,41 @@ async function render_dashboard() {
 
   try {
     const d = await apiCall('/rbac/dashboard-stats');
-
     let html = '';
+
+    // === ALLARMI CRITICI ===
+    const alarms = [];
+    const noOwner = (d.leagues.at_risk || []).filter(l => l.reason.includes('owner'));
+    const noAdmin = (d.leagues.at_risk || []).filter(l => l.reason.includes('admin'));
+    if (noOwner.length > 0) alarms.push({icon:'!', color:'#EF4444', text:`${noOwner.length} leghe senza owner`, action:()=>"navigateWith('leagues',{risk:'no_owner'})"});
+    if (noAdmin.length > 0) alarms.push({icon:'!', color:'#F59E0B', text:`${noAdmin.length} leghe senza admin`, action:()=>"navigateWith('leagues',{risk:'no_admin'})"});
+    if ((d.payments.pending_count || 0) > 0) alarms.push({icon:'$', color:'#F59E0B', text:`${d.payments.pending_count} pagamenti pending`, action:()=>"navigateWith('payments',{status:'pending'})"});
+    const openMd = d.matchdays.OPEN || 0;
+    const liveMd = d.matchdays.LIVE || 0;
+    if (openMd > 0) alarms.push({icon:'O', color:'#3B82F6', text:`${openMd} giornate OPEN`, action:()=>"navigateWith('matchdays',{status:'OPEN'})"});
+    if (liveMd > 0) alarms.push({icon:'L', color:'#10B981', text:`${liveMd} giornate LIVE`, action:()=>"navigateWith('matchdays',{status:'LIVE'})"});
+
+    html += '<div class="card" data-testid="critical-alarms" style="border-color:' + (alarms.length > 0 ? '#EF4444' : '#334155') + '">';
+    html += '<h3 style="color:' + (alarms.length > 0 ? '#EF4444' : '#10B981') + ';margin-bottom:12px;font-size:15px">Allarmi Critici</h3>';
+    if (alarms.length === 0) {
+      html += '<p style="color:#10B981;font-size:14px" data-testid="no-alarms">Nessun problema attivo</p>';
+    } else {
+      alarms.forEach((a, i) => {
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:${i>0?'1px solid #334155':'none'};cursor:pointer" onclick="${a.action()}" data-testid="alarm-${i}">
+          <span style="width:28px;height:28px;border-radius:50%;background:${a.color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${a.icon}</span>
+          <span style="flex:1;font-size:14px">${a.text}</span>
+          <span style="color:#64748B;font-size:12px">Vai &rarr;</span>
+        </div>`;
+      });
+    }
+    html += '</div>';
 
     // === UTENTI ===
     html += `<div class="card" data-testid="kpi-users">
       <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Utenti</h3>
       <div class="counter-row">
-        <div class="counter-box"><div class="num">${d.users.total}</div><div class="label">Attivi</div></div>
-        <div class="counter-box"><div class="num" style="color:#6B7280">${d.users.disabled}</div><div class="label">Disabilitati</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('users',{})"><div class="num">${d.users.total}</div><div class="label">Attivi</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('users',{filter:'__disabled__'})"><div class="num" style="color:#6B7280">${d.users.disabled}</div><div class="label">Disabilitati</div></div>
         <div class="counter-box"><div class="num" style="color:#10B981">${d.users.new_7d}</div><div class="label">Nuovi 7gg</div></div>
         <div class="counter-box"><div class="num" style="color:#3B82F6">${d.users.recent_logins_24h}</div><div class="label">Login 24h</div></div>
       </div>
@@ -300,8 +326,8 @@ async function render_dashboard() {
     html += `<div class="card" data-testid="kpi-leagues">
       <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Leghe</h3>
       <div class="counter-row">
-        <div class="counter-box"><div class="num">${d.leagues.total}</div><div class="label">Totale</div></div>
-        <div class="counter-box" style="border-color:${riskColor}"><div class="num" style="color:${riskColor}">${riskCount}</div><div class="label">A Rischio</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('leagues',{})"><div class="num">${d.leagues.total}</div><div class="label">Totale</div></div>
+        <div class="counter-box" style="cursor:pointer;border-color:${riskColor}" onclick="navigateWith('leagues',{risk:'all'})"><div class="num" style="color:${riskColor}">${riskCount}</div><div class="label">A Rischio</div></div>
       </div>`;
     if (riskCount > 0) {
       html += '<div style="margin-top:12px">';
@@ -309,7 +335,7 @@ async function render_dashboard() {
         html += `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px">
           <span class="tag tag-disabled">${l.reason}</span>
           <span>${l.name}</span>
-          ${hasPerm('admin.leagues.manage') ? `<button class="btn btn-sm btn-outline" onclick="navigate('leagues')" style="margin-left:auto">Gestisci</button>` : ''}
+          ${hasPerm('admin.leagues.manage') ? `<button class="btn btn-sm btn-outline" onclick="navigateWith('leagues',{risk:'all'})" style="margin-left:auto">Gestisci</button>` : ''}
         </div>`;
       });
       html += '</div>';
@@ -321,11 +347,11 @@ async function render_dashboard() {
     html += `<div class="card" data-testid="kpi-matchdays">
       <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Giornate</h3>
       <div class="counter-row">
-        <div class="counter-box"><div class="num" style="color:#475569">${md.DRAFT||0}</div><div class="label">Bozza</div></div>
-        <div class="counter-box" style="border-color:#3B82F6"><div class="num" style="color:#3B82F6">${md.OPEN||0}</div><div class="label">Open</div></div>
-        <div class="counter-box"><div class="num" style="color:#F59E0B">${md.LOCKED||0}</div><div class="label">Locked</div></div>
-        <div class="counter-box" style="border-color:#10B981"><div class="num" style="color:#10B981">${md.LIVE||0}</div><div class="label">Live</div></div>
-        <div class="counter-box"><div class="num" style="color:#6B7280">${md.COMPLETED||0}</div><div class="label">Completate</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('matchdays',{status:'DRAFT'})"><div class="num" style="color:#475569">${md.DRAFT||0}</div><div class="label">Bozza</div></div>
+        <div class="counter-box" style="cursor:pointer;border-color:#3B82F6" onclick="navigateWith('matchdays',{status:'OPEN'})"><div class="num" style="color:#3B82F6">${md.OPEN||0}</div><div class="label">Open</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('matchdays',{status:'LOCKED'})"><div class="num" style="color:#F59E0B">${md.LOCKED||0}</div><div class="label">Locked</div></div>
+        <div class="counter-box" style="cursor:pointer;border-color:#10B981" onclick="navigateWith('matchdays',{status:'LIVE'})"><div class="num" style="color:#10B981">${md.LIVE||0}</div><div class="label">Live</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('matchdays',{status:'COMPLETED'})"><div class="num" style="color:#6B7280">${md.COMPLETED||0}</div><div class="label">Completate</div></div>
       </div>
     </div>`;
 
@@ -333,13 +359,13 @@ async function render_dashboard() {
     html += `<div class="card" data-testid="kpi-payments">
       <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Pagamenti</h3>
       <div class="counter-row" style="margin-bottom:12px">
-        <div class="counter-box"><div class="num" style="color:#F59E0B">${d.payments.pending_count}</div><div class="label">Pending</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('payments',{status:'pending'})"><div class="num" style="color:#F59E0B">${d.payments.pending_count}</div><div class="label">Pending</div></div>
       </div>`;
     if (d.payments.recent && d.payments.recent.length > 0) {
       html += '<table><tr><th>Data</th><th>Utente</th><th>Importo</th><th>Stato</th></tr>';
       d.payments.recent.forEach(p => {
         const statusCls = p.payment_status === 'paid' ? 'status-live' : p.payment_status === 'pending' ? 'status-LOCKED' : 'status-void';
-        html += `<tr>
+        html += `<tr style="cursor:pointer" onclick="navigateWith('payments',{})">
           <td style="font-size:12px">${p.created_at ? new Date(p.created_at).toLocaleString('it') : '-'}</td>
           <td style="font-size:12px">${p.user_id ? p.user_id.substring(0,8) : '-'}...</td>
           <td>${p.amount||0} ${p.currency||'EUR'}</td>
@@ -353,7 +379,7 @@ async function render_dashboard() {
 
     // === AUDIT ===
     html += `<div class="card" data-testid="kpi-audit">
-      <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Attivita Recente</h3>`;
+      <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px;cursor:pointer" onclick="navigateWith('audit',{})">Attivita Recente <span style="font-size:12px;color:#64748B">(clicca per tutti)</span></h3>`;
     if (d.audit && d.audit.length > 0) {
       html += '<table><tr><th>Data</th><th>Chi</th><th>Azione</th><th>Entita</th></tr>';
       d.audit.forEach(a => {
