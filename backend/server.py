@@ -4786,30 +4786,56 @@ async def delete_role(role_id: str, request: Request, user=Depends(require_permi
 
 @rbac_router.get("/users")
 async def list_users_rbac(request: Request, user=Depends(require_permission("admin.users.manage"))):
-    """List all users with their role assignments."""
+    """List all users with their role assignments and league info."""
     users = await users_col.find(
         {}, {"_id": 0, "password": 0}
     ).sort("username", 1).to_list(5000)
 
     all_roles = {r["id"]: r for r in await roles_col.find({}, {"_id": 0}).to_list(200)}
 
+    # Pre-fetch all memberships for league counts
+    all_memberships = await memberships_col.find(
+        {"status": "active"}, {"_id": 0, "user_id": 1, "league_id": 1, "role": 1}
+    ).to_list(50000)
+    # Pre-fetch all leagues for owner info
+    all_leagues = await leagues_col.find({}, {"_id": 0, "id": 1, "owner_id": 1, "created_by": 1}).to_list(500)
+    leagues_by_owner = {}
+    leagues_by_creator = {}
+    for lg in all_leagues:
+        if lg.get("owner_id"):
+            leagues_by_owner.setdefault(lg["owner_id"], []).append(lg["id"])
+        if lg.get("created_by"):
+            leagues_by_creator.setdefault(lg["created_by"], []).append(lg["id"])
+    # Group memberships by user
+    memberships_by_user = {}
+    for m in all_memberships:
+        memberships_by_user.setdefault(m["user_id"], []).append(m)
+
     result = []
     for u in users:
+        uid = u["id"]
         role_ids = u.get("role_ids", [])
         roles_detail = [
             {"id": rid, "name": all_roles[rid]["name"]}
             for rid in role_ids if rid in all_roles
         ]
+        user_memberships = memberships_by_user.get(uid, [])
+        leagues_admin = [m for m in user_memberships if m.get("role") in ("admin", "owner")]
         result.append({
-            "id": u["id"],
+            "id": uid,
             "email": u["email"],
             "username": u["username"],
             "role": u.get("role"),
             "is_super_admin": u.get("is_super_admin", False),
             "is_disabled": u.get("is_disabled", False),
+            "is_deleted": u.get("is_deleted", False),
             "role_ids": role_ids,
             "roles": roles_detail,
             "created_at": u.get("created_at"),
+            "last_login": u.get("last_login"),
+            "leagues_created": len(leagues_by_creator.get(uid, [])),
+            "leagues_admin": len(leagues_admin),
+            "leagues_member": len(user_memberships),
         })
     return result
 
