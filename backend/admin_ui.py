@@ -1333,6 +1333,7 @@ async function render_leagues() {
           <option value="no_owner" ${riskFilter==='no_owner'?'selected':''}>Senza Owner</option>
           <option value="no_admin" ${riskFilter==='no_admin'?'selected':''}>Senza Admin Lega</option>
         </select>
+        <button class="btn" onclick="showCreateLeagueModal()" data-testid="create-league-btn" style="white-space:nowrap">+ Nuova Lega</button>
       </div>`;
 
     filterLeagues();
