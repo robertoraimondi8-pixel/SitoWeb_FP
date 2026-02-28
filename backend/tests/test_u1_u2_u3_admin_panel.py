@@ -141,8 +141,10 @@ class TestU2EditUserDetails:
         test_user = next((u for u in users if u["id"] == test_user_id), None)
         original_username = test_user["username"]
         
-        # Update to new username
-        new_username = f"test_u2_user_{int(datetime.now().timestamp())}"
+        # Update to new username (alphanumeric, 3-20 chars)
+        import random
+        import string
+        new_username = "u2test_" + ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
         response = admin_session.put(f"{BASE_URL}/api/rbac/users/{test_user_id}", json={
             "username": new_username
         })
