@@ -100,12 +100,22 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - **Ordinamento**: colonne # / Kickoff / Stato con frecce cliccabili
   - Voce "Partite" rimossa dalla sidebar - gestione match ora integrata nel Control Room giornata
   - Backend: GET /api/admin/matchdays?league_id=... (supporto multi-lega, league_id=all per tutte), POST /api/admin/matchdays con league_id, MatchdayCreate model aggiornato
-- **Bug Fix: Dashboard KPI → Giornate navigazione vuota** (Feb 28, 2026):
-  - I KPI globali contavano giornate di tutte le leghe, ma la pagina Giornate filtrava solo la Lega Nazionale
-  - Aggiunta opzione "Tutte le leghe" (value="all") al selettore lega
-  - Quando si naviga da un KPI dashboard (con statusFilter), il selettore lega si imposta automaticamente su "Tutte le leghe"
-  - Navigazione diretta dalla sidebar continua a selezionare la Lega Nazionale come default
-  - Backend già supportava league_id=all (nessun filtro lega nella query)
+- **Feature: Modifica numero/etichetta giornata dal Control Room** (Feb 28, 2026):
+  - Aggiunta sezione "Modifica" nel tab Info & Stato del Control Room
+  - Campi editabili per Numero e Etichetta con bottone Salva
+  - Aggiunto campo `number` al modello `AdminMatchdayUpdate` in models.py
+  - Funzione `saveMdEdit()` in admin_ui.py che chiama PUT /admin/matchdays/{id}
+
+- **Fix: Control Room funzionante dalla vista "Tutte le leghe"** (Feb 28, 2026):
+  - Control Room ora usa il `league_id` della giornata stessa quando si è in vista globale
+  - Tutti i tab (Info, Partite, Importa da API) e azioni (stato, eliminazione) funzionanti
+  - Form creazione visibile anche da "Tutte le leghe" con selettore lega integrato
+
+- **Fix: Dashboard KPI mostra status effettivo** (Feb 28, 2026):
+  - Dashboard calcola OPEN→LIVE e LOCKED→LIVE quando il kickoff è passato
+  - Endpoint admin/matchdays ora restituisce status effettivo calcolato
+  - Fix timezone per datetime naive/aware nel compute_matchday_status
+  - Fix status_override stale che bloccava auto-transizioni forward
 - **Sprint L1 - Dashboard Leghe KPI Cliccabili** (Feb 28, 2026):
   - 5 KPI nella card Leghe: Totale, Nazionale (verde), Private Custom (blu), Private Naz. (teal), A Rischio (rosso)
   - Tutti cliccabili con filtro tipo pre-applicato sulla pagina leghe
