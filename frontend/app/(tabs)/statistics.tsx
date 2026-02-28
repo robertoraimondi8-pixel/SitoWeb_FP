@@ -454,7 +454,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     flexShrink: 0,
-    minHeight: 64,
+    flexGrow: 0,
+    height: 64,
   },
   leagueSelectorContent: {
     paddingHorizontal: spacing.lg,
