@@ -69,6 +69,11 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - Leghe a rischio evidenziate con alert rosso + link Gestisci
   - Mobile responsive con hamburger menu
   - Endpoint: GET /api/rbac/dashboard-stats
+- **Dashboard Navigabile + Allarmi Critici** (Feb 28, 2026):
+  - Blocco "Allarmi Critici" in cima: leghe senza owner/admin, pagamenti pending, giornate OPEN/LIVE (cliccabili)
+  - Ogni KPI cliccabile naviga alla sezione con filtro pre-applicato
+  - Filtri aggiunti: Giornate per stato, Leghe per rischio + ricerca, Pagamenti per stato
+  - Pattern: navigateWith(page, filter) → render_page consuma filtro e lo resetta
 
 ## Changes Applied
 
