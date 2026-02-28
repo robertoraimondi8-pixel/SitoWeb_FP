@@ -1728,7 +1728,7 @@ async function renderMdcrInfo(md, canManage) {
       <button class="btn btn-sm" onclick="saveMdEdit('${md.id}')" data-testid="mdcr-save-btn">Salva</button>
     </div>
     ` : ''}
-    ${canManage && nextStates.length > 0 ? `
+    ${canManage ? `
     <h4 style="color:#F5A623;margin:16px 0 8px;font-size:14px">Gestione Stato</h4>
     <div style="display:flex;gap:8px;flex-wrap:wrap">${stateButtons}</div>
     ` : ''}
