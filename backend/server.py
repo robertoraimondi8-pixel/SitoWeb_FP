@@ -3478,7 +3478,12 @@ async def admin_list_matchdays(season_id: str = None, league_id: str = None, adm
     # league_id=all → no league filter, return all
     if season_id:
         query["season_id"] = season_id
-    return await matchdays_col.find(query, {"_id": 0}).sort("number", 1).to_list(500)
+    matchdays = await matchdays_col.find(query, {"_id": 0}).sort("number", 1).to_list(500)
+    # Compute effective status (OPEN/LOCKED → LIVE after kickoff)
+    for md in matchdays:
+        if md.get("status") in ("OPEN", "LOCKED"):
+            md["status"] = await compute_matchday_status(md, md.get("league_id", ""))
+    return matchdays
 
 
 @admin_router.post("/matchdays")
