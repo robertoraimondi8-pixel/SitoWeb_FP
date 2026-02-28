@@ -1212,6 +1212,7 @@ let allLeaguesCache = [];
 async function render_leagues() {
   if (!hasPerm('admin.leagues.manage')) { render_forbidden(); return; }
   const riskFilter = navFilter.risk || '';
+  const typeFilter = navFilter.type || '';
   navFilter = {};
   const el = document.getElementById('content');
   el.innerHTML = '<h2>Gestione Leghe</h2><div id="leagues-filter" class="card"></div><div id="leagues-list"></div>';
@@ -1224,11 +1225,17 @@ async function render_leagues() {
     document.getElementById('leagues-filter').innerHTML = `
       <div class="form-row">
         <input class="search-bar" style="margin:0;flex:2" id="league-search" placeholder="Cerca lega..." oninput="filterLeagues()" data-testid="league-search-input">
+        <select id="league-type-filter" onchange="filterLeagues()" style="flex:1" data-testid="league-type-filter">
+          <option value="">Tutti i tipi</option>
+          <option value="national" ${typeFilter==='national'?'selected':''}>Nazionale</option>
+          <option value="private_custom" ${typeFilter==='private_custom'?'selected':''}>Privata - Personalizzata</option>
+          <option value="private_national" ${typeFilter==='private_national'?'selected':''}>Privata - Lega Nazionale</option>
+        </select>
         <select id="league-risk-filter" onchange="filterLeagues()" style="flex:1" data-testid="league-risk-filter">
           <option value="">Tutte le leghe</option>
           <option value="all" ${riskFilter?'selected':''}>A Rischio (tutte)</option>
           <option value="no_owner" ${riskFilter==='no_owner'?'selected':''}>Senza Owner</option>
-          <option value="no_admin" ${riskFilter==='no_admin'?'selected':''}>Senza Admin</option>
+          <option value="no_admin" ${riskFilter==='no_admin'?'selected':''}>Senza Admin Lega</option>
         </select>
       </div>`;
 
@@ -1236,11 +1243,39 @@ async function render_leagues() {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
+function getLeagueTypeKey(l) {
+  if (l.league_type === 'national') return 'national';
+  if (l.match_source_type === 'national') return 'private_national';
+  return 'private_custom';
+}
+
+function getLeagueTypeBadge(l) {
+  const t = getLeagueTypeKey(l);
+  if (t === 'national') return '<span class="status-badge status-LIVE">NAZIONALE</span>';
+  if (t === 'private_national') return '<span class="status-badge" style="background:rgba(20,184,166,.15);color:#14B8A6;border:1px solid rgba(20,184,166,.3)">PRIVATA NAZ.</span>';
+  return '<span class="status-badge status-OPEN">PRIVATA CUSTOM</span>';
+}
+
+function getRulesSummary(l) {
+  const sc = l.scoring_config || {};
+  const markets = Object.entries(sc).filter(([k,v]) => v && v.enabled).map(([k,v]) => {
+    const names = {'1x2':'1X2','over_under':'O/U','goal_no_goal':'GG/NG','exact_score':'Esatto'};
+    return (names[k]||k) + ':' + v.points;
+  });
+  const parts = [];
+  if (markets.length > 0) parts.push(markets.join(' '));
+  if (l.start_matchday && l.end_matchday) parts.push('G' + l.start_matchday + '-' + l.end_matchday);
+  if (l.bet_deadline_minutes) parts.push(l.bet_deadline_minutes + 'min');
+  return parts.join(' | ') || '-';
+}
+
 function filterLeagues() {
   const q = (document.getElementById('league-search').value || '').toLowerCase();
+  const tf = document.getElementById('league-type-filter').value;
   const rf = document.getElementById('league-risk-filter').value;
   let filtered = allLeaguesCache;
   if (q) filtered = filtered.filter(l => l.name.toLowerCase().includes(q));
+  if (tf) filtered = filtered.filter(l => getLeagueTypeKey(l) === tf);
   if (rf === 'all') filtered = filtered.filter(l => !l.owner || (l.admins && l.admins.length === 0));
   else if (rf === 'no_owner') filtered = filtered.filter(l => !l.owner);
   else if (rf === 'no_admin') filtered = filtered.filter(l => !l.admins || l.admins.length === 0);
@@ -1248,13 +1283,13 @@ function filterLeagues() {
 }
 
 function renderLeaguesTable(leagues) {
-  let html = '<table><tr><th>Nome</th><th>Tipo</th><th>Codice</th><th>Owner</th><th>Admin</th><th>Membri</th><th>Azioni</th></tr>';
+  let html = '<table><tr><th>Nome</th><th>Tipo</th><th>Codice</th><th>Owner</th><th>Admin Lega</th><th>Membri</th><th>Regole</th><th>Azioni</th></tr>';
   leagues.forEach(l => {
-    const ownerName = l.owner ? `<strong>${l.owner.username}</strong>` : '<span style="color:#EF4444">Nessuno</span>';
+    const ownerName = l.owner ? `<strong>${l.owner.username}</strong>` : (l.league_type === 'national' ? '<span style="color:#94A3B8">Sistema</span>' : '<span style="color:#EF4444">Nessuno</span>');
     const adminCount = l.admins ? l.admins.length : 0;
-    const typeBadge = l.league_type === 'national'
-      ? '<span class="status-badge status-LIVE">NAZIONALE</span>'
-      : '<span class="status-badge status-OPEN">PRIVATA</span>';
+    const typeBadge = getLeagueTypeBadge(l);
+    const rulesSummary = getRulesSummary(l);
+    const lockedIcon = l.rules_locked ? '<span title="Regole bloccate" style="color:#F59E0B;cursor:help">&#128274;</span>' : '';
 
     html += `<tr data-testid="league-row-${l.id}">
       <td><strong>${l.name}</strong></td>
@@ -1263,12 +1298,155 @@ function renderLeaguesTable(leagues) {
       <td>${ownerName}</td>
       <td><span style="cursor:pointer;color:#F5A623" onclick="showLeagueAdmins('${l.id}')">${adminCount} admin</span></td>
       <td>${l.member_count}</td>
+      <td style="font-size:11px;color:#94A3B8;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${rulesSummary}">${lockedIcon} ${rulesSummary}</td>
       <td>
+        <button class="btn btn-sm btn-outline" onclick="showLeagueDetail('${l.id}')" data-testid="detail-league-${l.id}">Dettaglio</button>
         <button class="btn btn-sm btn-outline" onclick="showLeagueManage('${l.id}')" data-testid="manage-league-${l.id}">Gestisci</button>
       </td></tr>`;
   });
   html += '</table>';
   document.getElementById('leagues-list').innerHTML = html;
+}
+
+// ========================================
+// LEAGUE DETAIL VIEW (rules + info)
+// ========================================
+function showLeagueDetail(leagueId) {
+  const l = allLeaguesCache.find(x => x.id === leagueId);
+  if (!l) return;
+  const sc = l.scoring_config || {};
+  const typeBadge = getLeagueTypeBadge(l);
+
+  let marketsHtml = '';
+  const marketNames = {'1x2':'1X2 (Esito finale)','over_under':'Over/Under 2.5','goal_no_goal':'Goal/No Goal','exact_score':'Risultato Esatto'};
+  Object.entries(marketNames).forEach(([key, label]) => {
+    const cfg = sc[key] || {};
+    const enabled = cfg.enabled ? '<span style="color:#10B981">Attivo</span>' : '<span style="color:#6B7280">Disattivo</span>';
+    const pts = cfg.points || 0;
+    marketsHtml += `<tr><td>${label}</td><td>${enabled}</td><td style="color:#F5A623;font-weight:bold">${pts} pt</td></tr>`;
+  });
+
+  let html = `<h3>Dettaglio Lega</h3>
+    <div style="margin-bottom:16px;display:flex;gap:12px;align-items:center">
+      <strong style="font-size:18px">${l.name}</strong> ${typeBadge}
+      ${l.rules_locked ? '<span class="tag tag-disabled">REGOLE BLOCCATE</span>' : '<span class="tag" style="background:rgba(16,185,129,.15);color:#10B981;border:1px solid rgba(16,185,129,.3)">REGOLE APERTE</span>'}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:13px">
+      <div><span style="color:#94A3B8">ID:</span> <code style="color:#F5A623;font-size:11px">${l.id.substring(0,16)}...</code></div>
+      <div><span style="color:#94A3B8">Stagione:</span> ${l.season_id || '-'}</div>
+      <div><span style="color:#94A3B8">Giornate:</span> ${l.start_matchday || '?'} - ${l.end_matchday || '?'}</div>
+      <div><span style="color:#94A3B8">Scadenza scommessa:</span> ${l.bet_deadline_minutes || '?'} min prima del calcio d\\'inizio</div>
+      <div><span style="color:#94A3B8">Tipo sorgente match:</span> <strong>${l.match_source_type || '-'}</strong></div>
+      <div><span style="color:#94A3B8">Pronostici campionato:</span> ${l.include_championship_predictions ? 'Si' : 'No'}</div>
+      <div><span style="color:#94A3B8">Membri:</span> <strong>${l.member_count}</strong></div>
+      <div><span style="color:#94A3B8">Owner:</span> <strong>${l.owner ? l.owner.username : (l.league_type === 'national' ? 'Sistema' : 'Nessuno')}</strong></div>
+    </div>
+
+    <h4 style="color:#F5A623;margin:16px 0 8px">Mercati e Punteggi</h4>
+    <table style="font-size:13px"><tr><th>Mercato</th><th>Stato</th><th>Punti</th></tr>${marketsHtml}</table>
+
+    ${l.include_championship_predictions ? '<p style="color:#10B981;font-size:12px;margin-top:8px">Pronostici vincitore campionato: ATTIVI</p>' : ''}
+
+    <div class="modal-actions" style="justify-content:space-between">
+      <div>
+        ${isSuperAdmin ? `<button class="btn btn-sm" style="background:#7C3AED;color:#fff" onclick="showEditRulesModal('${l.id}')" data-testid="edit-rules-btn">Modifica Regole</button>` : ''}
+      </div>
+      <button class="btn btn-outline" onclick="closeModal()">Chiudi</button>
+    </div>`;
+  showModal(html);
+}
+
+// ========================================
+// EDIT LEAGUE RULES (Super Admin)
+// ========================================
+function showEditRulesModal(leagueId) {
+  const l = allLeaguesCache.find(x => x.id === leagueId);
+  if (!l) return;
+  const sc = l.scoring_config || {};
+
+  const marketFields = [
+    {key:'1x2', label:'1X2'},
+    {key:'over_under', label:'Over/Under'},
+    {key:'goal_no_goal', label:'Goal/No Goal'},
+    {key:'exact_score', label:'Risultato Esatto'}
+  ];
+
+  let marketsInputs = '';
+  marketFields.forEach(m => {
+    const cfg = sc[m.key] || {};
+    marketsInputs += `<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <label style="flex:1;color:#94A3B8;font-size:13px">${m.label}</label>
+      <label style="font-size:12px;color:#94A3B8"><input type="checkbox" id="rule-${m.key}-on" ${cfg.enabled?'checked':''} style="margin-right:4px">Attivo</label>
+      <input id="rule-${m.key}-pts" type="number" step="0.5" min="0" value="${cfg.points||0}" style="width:70px;padding:6px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px">
+      <span style="color:#64748B;font-size:11px">pt</span>
+    </div>`;
+  });
+
+  let html = `<h3>Modifica Regole: ${l.name}</h3>
+    <div style="padding:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;margin-bottom:16px">
+      <p style="color:#EF4444;font-size:13px;font-weight:bold">ATTENZIONE</p>
+      <p style="color:#F87171;font-size:12px">Le modifiche alle regole impattano il calcolo punteggi. Se una giornata e gia in corso, le modifiche si applicheranno dalla prossima giornata. Questa azione e irreversibile e viene registrata nell\\'audit log.</p>
+    </div>
+
+    <h4 style="color:#F5A623;margin-bottom:12px;font-size:14px">Mercati e Punteggi</h4>
+    ${marketsInputs}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0">
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Giornata Inizio</label>
+        <input id="rule-start-md" type="number" min="1" value="${l.start_matchday||1}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Giornata Fine</label>
+        <input id="rule-end-md" type="number" min="1" value="${l.end_matchday||38}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Deadline scommesse (min)</label>
+        <input id="rule-deadline" type="number" min="0" value="${l.bet_deadline_minutes||5}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Pronostici Campionato</label>
+        <select id="rule-champ" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px">
+          <option value="false" ${!l.include_championship_predictions?'selected':''}>No</option>
+          <option value="true" ${l.include_championship_predictions?'selected':''}>Si</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="showLeagueDetail('${l.id}')">Annulla</button>
+      <button class="btn btn-danger" onclick="doEditRules('${l.id}')" data-testid="confirm-edit-rules-btn">Conferma Modifiche Regole</button>
+    </div>`;
+  showModal(html);
+}
+
+async function doEditRules(leagueId) {
+  if (!confirm('CONFERMA FINALE: Sei sicuro di voler modificare le regole di questa lega? Le modifiche vengono registrate nell\\'audit log.')) return;
+
+  const scoring_config = {};
+  ['1x2','over_under','goal_no_goal','exact_score'].forEach(k => {
+    scoring_config[k] = {
+      enabled: document.getElementById('rule-'+k+'-on').checked,
+      points: parseFloat(document.getElementById('rule-'+k+'-pts').value) || 0
+    };
+  });
+
+  const body = {
+    confirm: true,
+    scoring_config: scoring_config,
+    start_matchday: parseInt(document.getElementById('rule-start-md').value) || 1,
+    end_matchday: parseInt(document.getElementById('rule-end-md').value) || 38,
+    bet_deadline_minutes: parseInt(document.getElementById('rule-deadline').value) || 5,
+    include_championship_predictions: document.getElementById('rule-champ').value === 'true'
+  };
+
+  try {
+    await apiCall('/rbac/leagues/' + leagueId + '/rules', 'PUT', body);
+    closeModal();
+    showToast('Regole aggiornate con successo');
+    render_leagues();
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
 function showLeagueAdmins(leagueId) {
