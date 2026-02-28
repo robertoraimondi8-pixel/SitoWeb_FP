@@ -79,6 +79,12 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - **U2**: Pulsante "Dettagli" su ogni riga utente. Modale con campi modificabili username e email. Endpoint PUT /api/rbac/users/{user_id} con validazione formato username e unicita email. Audit log completo.
   - **U3**: Pulsante "Genera Link Reset Password" nel modale utente. Endpoint POST /api/rbac/users/{user_id}/reset-password-link genera token sicuro (SHA256 hash, scadenza 24h). Pagina pubblica GET /api/reset-password con form per impostare nuova password. Endpoint POST /api/reset-password valida token e aggiorna password. Token precedenti invalidati automaticamente. Link mostrato all'admin per invio manuale (no email service integrato).
   - Files: server.py (3 nuovi endpoint + 1 pagina pubblica), admin_ui.py (get_reset_password_html + UI modale + filtri), database.py (password_resets collection)
+- **League Governance Fixes (5 correzioni)** (Feb 28, 2026):
+  - **Fix 1**: Colonna "Admin Lega" nella tabella leghe - conta admin a livello lega (da memberships role=admin/owner), non RBAC.
+  - **Fix 2**: Lega Nazionale esclusa dagli alert "a rischio". Owner mostrato come "Sistema". Alert "senza admin" solo per leghe private custom.
+  - **Fix 3**: 3 badge tipo lega visivamente distinti: NAZIONALE (verde), PRIVATA NAZ. (teal), PRIVATA CUSTOM (blu). Filtro dropdown per tipo. Leghe private-national escluse da alert "senza admin".
+  - **Fix 4**: Colonna "Regole" nella tabella con riassunto sintetico (mercati:punti | Gx-y | Xmin). Modale "Dettaglio Lega" con griglia info completa + tabella mercati e punteggi.
+  - **Fix 5**: Super Admin puo modificare regole lega dal pannello (PUT /api/rbac/leagues/{id}/rules). Modale edit con warning rosso ATTENZIONE, conferma forte (confirm=true + browser confirm), audit log. Non-super-admin bloccati con 403.
 
 ## Changes Applied
 
