@@ -34,6 +34,16 @@ Every league is an independent universe. All data must be strictly scoped by lea
 - **In-App Notification Center** (Feb 24, 2026) - Bell icon with unread badge in header, notifications page with mark-all-as-read on open
 - **Push Notification Infrastructure** (Feb 26, 2026) - Expo Push API integration, push token management, reminder scheduler (24h/2h before deadline). Disabled by default, activate via PUSH_NOTIFICATIONS_ENABLED=true env var
 - **Email Change in Profile** (Feb 26, 2026) - Users can change email with password confirmation. Also fixed change_password bug (password not fetched from DB)
+- **RBAC System - STEP 0 Foundations** (Feb 28, 2026) - Full RBAC backend with:
+  - `roles` collection with 4 default system roles (Super Admin, Moderatore, Gestore Leghe, Osservatore)
+  - 12 granular permissions (admin.dashboard.view, admin.seasons.manage, etc.)
+  - `require_permission()` middleware factory for endpoint-level access control
+  - `is_super_admin` flag on users (bypasses all permission checks)
+  - `role_ids[]` on users for multi-role assignment
+  - Full RBAC API: `/api/rbac/permissions`, `/api/rbac/roles` (CRUD), `/api/rbac/users` (list + assign roles + super_admin toggle)
+  - Enhanced audit logging: actor_roles, IP, before/after snapshots
+  - Bootstrap on startup: creates default roles, marks admin as SUPER_ADMIN
+  - Files: `permissions.py`, updated `database.py`, `models.py`, `server.py`
 
 ## Changes Applied
 
@@ -142,6 +152,8 @@ The `/api/leagues/{league_id}/fixtures` endpoint returned raw matchday status fr
 
 ### P1
 - Activate Push Notifications when app is published to stores (set PUSH_NOTIFICATIONS_ENABLED=true, install expo-notifications on frontend, register push tokens on login)
+- **RBAC STEP 1**: Integrate RBAC into admin-ui web dashboard (role management UI, user management UI, permission-based menu visibility)
+- **RBAC STEP 2**: Migrate existing `require_admin` endpoints to use `require_permission` for granular control
 
 ### P2
 - Implement "Championship Winner Predictions" feature
