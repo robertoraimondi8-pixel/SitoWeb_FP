@@ -432,14 +432,17 @@ class TestAuditLogging:
 
     def test_role_actions_logged(self, admin_token):
         """RBAC actions are logged with before/after."""
+        import time
+        unique_name = f"TEST_Audit_Role_{int(time.time())}"
+        
         # Create a role
         create_resp = requests.post(f"{BASE_URL}/api/rbac/roles", json={
-            "name": "TEST_Audit_Role",
+            "name": unique_name,
             "description": "Role for audit test",
             "permissions": ["admin.dashboard.view"]
         }, headers={"Authorization": f"Bearer {admin_token}"})
         
-        assert create_resp.status_code in [200, 201]
+        assert create_resp.status_code in [200, 201], f"Create failed: {create_resp.text}"
         role_id = create_resp.json()["id"]
         
         # Check audit logs
