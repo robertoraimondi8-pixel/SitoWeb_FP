@@ -33,6 +33,7 @@ audit_logs_col = db.audit_logs
 notifications_col = db.notifications
 push_tokens_col = db.push_tokens
 roles_col = db.roles
+password_resets_col = db.password_resets
 
 
 async def create_indexes():
