@@ -74,6 +74,11 @@ Every league is an independent universe. All data must be strictly scoped by lea
   - Ogni KPI cliccabile naviga alla sezione con filtro pre-applicato
   - Filtri aggiunti: Giornate per stato, Leghe per rischio + ricerca, Pagamenti per stato
   - Pattern: navigateWith(page, filter) → render_page consuma filtro e lo resetta
+- **Enhanced User Management - STEP U1, U2, U3** (Feb 28, 2026):
+  - **U1**: Dashboard KPIs "Nuovi 7gg" e "Login 24h" cliccabili (navigano a utenti con filtro). Aggiunto indicatore "Online ora" con pallino pulsante verde. Aggiunti filtri "Nuovi ultimi 7gg" e "Login ultime 24h" nel dropdown utenti.
+  - **U2**: Pulsante "Dettagli" su ogni riga utente. Modale con campi modificabili username e email. Endpoint PUT /api/rbac/users/{user_id} con validazione formato username e unicita email. Audit log completo.
+  - **U3**: Pulsante "Genera Link Reset Password" nel modale utente. Endpoint POST /api/rbac/users/{user_id}/reset-password-link genera token sicuro (SHA256 hash, scadenza 24h). Pagina pubblica GET /api/reset-password con form per impostare nuova password. Endpoint POST /api/reset-password valida token e aggiorna password. Token precedenti invalidati automaticamente. Link mostrato all'admin per invio manuale (no email service integrato).
+  - Files: server.py (3 nuovi endpoint + 1 pagina pubblica), admin_ui.py (get_reset_password_html + UI modale + filtri), database.py (password_resets collection)
 
 ## Changes Applied
 
