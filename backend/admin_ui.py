@@ -418,7 +418,7 @@ async function render_dashboard() {
         <div class="counter-box" style="cursor:pointer" onclick="navigateWith('users',{filter:'__disabled__'})" data-testid="kpi-users-disabled"><div class="num" style="color:#6B7280">${d.users.disabled}</div><div class="label">Disabilitati</div></div>
         <div class="counter-box" style="cursor:pointer" onclick="navigateWith('users',{filter:'__new_7d__'})" data-testid="kpi-users-new7d"><div class="num" style="color:#10B981">${d.users.new_7d}</div><div class="label">Nuovi 7gg</div></div>
         <div class="counter-box" style="cursor:pointer" onclick="navigateWith('users',{filter:'__login_24h__'})" data-testid="kpi-users-login24h"><div class="num" style="color:#3B82F6">${d.users.recent_logins_24h}</div><div class="label">Login 24h</div></div>
-        <div class="counter-box" style="border-color:${onlineCount > 0 ? '#10B981' : '#334155'}" title="Utenti con attivita negli ultimi 5 minuti" data-testid="kpi-users-online"><div class="num" style="color:#10B981">${onlineDot}${onlineCount}</div><div class="label">Online ora</div></div>
+        <div class="counter-box" style="border-color:${onlineCount > 0 ? '#10B981' : '#334155'};cursor:pointer" onclick="navigateWith('users',{filter:'__online__'})" title="Utenti con attivita negli ultimi 5 minuti" data-testid="kpi-users-online"><div class="num" style="color:#10B981">${onlineDot}${onlineCount}</div><div class="label">Online ora</div></div>
       </div>
     </div>`;
 
@@ -688,6 +688,7 @@ async function render_users() {
           <option value="__deleted__">Eliminati (soft)</option>
           <option value="__new_7d__">Nuovi ultimi 7gg</option>
           <option value="__login_24h__">Login ultime 24h</option>
+          <option value="__online__">Online ora</option>
           ${roleOpts}
         </select>
       </div>`;
@@ -718,6 +719,10 @@ function filterUsers() {
   else if (roleFilter === '__login_24h__') {
     const oneDayAgo = new Date(Date.now() - 24*60*60*1000).toISOString();
     filtered = filtered.filter(u => u.last_login && u.last_login >= oneDayAgo);
+  }
+  else if (roleFilter === '__online__') {
+    const fiveMinAgo = new Date(Date.now() - 5*60*1000).toISOString();
+    filtered = filtered.filter(u => u.last_activity && u.last_activity >= fiveMinAgo);
   }
   else if (roleFilter) filtered = filtered.filter(u => u.role_ids && u.role_ids.includes(roleFilter));
   renderUsersTable(filtered);
