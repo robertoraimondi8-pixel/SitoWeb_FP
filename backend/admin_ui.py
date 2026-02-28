@@ -1456,18 +1456,20 @@ function onMdLeagueChange() {
   if (canManage || isAll) {
     const sOpts = (window._mdSeasons||[]).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
     const leaguePicker = isAll
-      ? `<select id="md-create-league" style="flex:1">${manageableLeagues.map(l => `<option value="${l.id}">${l.name}</option>`).join('')}</select>`
+      ? `<select id="md-create-league" style="flex:1" onchange="updateAvailableNumbers()">${manageableLeagues.map(l => `<option value="${l.id}">${l.name}</option>`).join('')}</select>`
       : '';
     createZone.innerHTML = `
       <div class="form-row" style="margin:0">
         ${leaguePicker}
         <select id="md-season" style="flex:1">${sOpts}</select>
-        <input id="md-num" type="number" placeholder="Numero" min="1" style="width:80px">
+        <select id="md-num" style="width:120px" data-testid="md-num-select"><option value="">Numero...</option></select>
         <input id="md-label" placeholder="Etichetta" style="flex:1">
         <select id="md-half" style="width:90px"><option value="1">Andata</option><option value="2">Ritorno</option></select>
         <input id="md-kickoff" type="datetime-local" style="flex:1">
         <button class="btn" onclick="createMatchday()" data-testid="create-md-btn">+ Crea</button>
       </div>`;
+    // Populate available numbers after rendering
+    setTimeout(() => updateAvailableNumbers(), 100);
   } else {
     createZone.innerHTML = isAll
       ? '<p style="color:#94A3B8;font-size:12px;margin:8px 0">Vista globale: seleziona una lega specifica per creare giornate.</p>'
