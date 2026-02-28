@@ -4136,7 +4136,7 @@ async def admin_get_audit_logs(limit: int = 50, admin=Depends(require_permission
 
 
 @admin_router.get("/leagues")
-async def admin_list_leagues(admin=Depends(require_admin)):
+async def admin_list_leagues(admin=Depends(require_permission("admin.leagues.manage"))):
     leagues = await leagues_col.find({}, {"_id": 0}).to_list(100)
     for l in leagues:
         l["member_count"] = await memberships_col.count_documents({"league_id": l["id"], "status": "active"})
@@ -4144,12 +4144,12 @@ async def admin_list_leagues(admin=Depends(require_admin)):
 
 
 @admin_router.get("/payments")
-async def admin_list_payments(admin=Depends(require_admin)):
+async def admin_list_payments(admin=Depends(require_permission("admin.payments.view"))):
     return await payments_col.find({}, {"_id": 0}).sort("created_at", -1).to_list(100)
 
 
 @admin_router.get("/score-summaries/{matchday_id}")
-async def admin_score_summaries(matchday_id: str, admin=Depends(require_admin)):
+async def admin_score_summaries(matchday_id: str, admin=Depends(require_permission("admin.dashboard.view"))):
     summaries = await score_summaries_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(1000)
     for s in summaries:
         u = await users_col.find_one({"id": s["user_id"]}, {"_id": 0, "password": 0})
@@ -4461,7 +4461,7 @@ async def _check_auto_complete_matchday(matchday_id: str):
 
 
 @fixtures_router.post("/refresh-live")
-async def real_fixtures_refresh_live(admin=Depends(require_admin)):
+async def real_fixtures_refresh_live(admin=Depends(require_permission("admin.matches.manage"))):
     """Manually trigger a live refresh of imported matches."""
     try:
         await _refresh_live_fixtures()
