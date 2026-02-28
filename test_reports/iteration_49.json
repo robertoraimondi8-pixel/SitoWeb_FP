@@ -1,0 +1,79 @@
+{
+  "summary": "RBAC User/League Governance Testing Complete - 30/30 backend tests PASSED, Frontend UI fully functional. All new governance features working correctly: Users table with league counts (C/A/M), last_login, soft-delete with orphan protection; Leagues page with owner, admin count, Gestisci button; League management modal with transfer ownership and admin toggle.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "total": 30,
+      "passed": 30,
+      "failed": 0,
+      "test_file": "/app/backend/tests/test_rbac_user_league_governance.py"
+    },
+    "frontend_tests": {
+      "login": "PASS",
+      "users_table_leghe_column": "PASS - Shows C/A/M counts format (e.g., 0C / 0A / 6M)",
+      "users_table_ultimo_login": "PASS - Shows login timestamps",
+      "users_table_elimina_button": "PASS - Purple Elimina button visible",
+      "user_leagues_modal": "PASS - Opens on league count click, shows league details",
+      "leagues_table": "PASS - Shows Owner, Admin count, Gestisci button",
+      "league_manage_modal": "PASS - Transfer ownership dropdown, members list with admin toggle"
+    }
+  },
+  "verified_features": [
+    "GET /api/rbac/users returns leagues_created, leagues_admin, leagues_member, last_login, is_deleted",
+    "GET /api/rbac/users/{id}/leagues returns detailed league list with membership_role, is_owner, is_creator",
+    "PUT /api/rbac/users/{id}/soft-delete soft deletes user (sets is_deleted=true, is_disabled=true)",
+    "PUT /api/rbac/users/{id}/soft-delete blocks if user is sole owner/admin (409 with orphan_leagues)",
+    "PUT /api/rbac/users/{id}/soft-delete cannot delete super_admin or yourself",
+    "GET /api/rbac/leagues returns leagues with owner (id/username/email), admins list, member_count",
+    "GET /api/rbac/leagues/{id}/members returns all league members with roles and is_owner flag",
+    "PUT /api/rbac/leagues/{id}/transfer-owner transfers ownership and updates membership roles",
+    "PUT /api/rbac/leagues/{id}/admins add/remove admin (not owner)",
+    "Login endpoint sets last_login timestamp on user",
+    "All RBAC actions logged in audit with before/after fields",
+    "Frontend Users table shows Leghe column with C/A/M format",
+    "Frontend Users table shows Ultimo Login column",
+    "Frontend Elimina button opens soft-delete modal",
+    "Frontend click on league count opens modal with detailed league list",
+    "Frontend Leagues page shows owner, admin count, Gestisci button",
+    "Frontend Gestisci modal shows transfer ownership dropdown and member list with admin toggle"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_rbac_user_league_governance.py",
+    "/app/test_reports/pytest/rbac_user_league_governance_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Implementation is complete and correct for all governance features",
+    "Orphan league protection working as expected - blocks deletion when user is sole owner/admin",
+    "Audit logging includes before/after for all RBAC actions",
+    "Frontend admin_ui.py correctly implements all UI elements from spec"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_rbac_user_league_governance.py"
+  ],
+  "success_rate": {
+    "backend": "100% (30/30 tests passed)",
+    "frontend": "100% (all UI elements verified)"
+  },
+  "test_credentials": {
+    "super_admin": "admin@fantapronostic.com / admin123",
+    "standard_user": "ilio@raimondi.it / password123",
+    "admin_ui_url": "https://notify-center-13.preview.emergentagent.com/api/admin-ui"
+  },
+  "seed_data_creation": "No new seed data created - used existing users and leagues",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "RBAC User/League Governance complete. All features tested: users table with league counts (C/A/M), last_login, soft-delete with orphan protection; leagues management with owner transfer and admin toggle. National league 'Lega Nazionale FantaPronostic' has no owner (shown as 'Nessuno'). Private leagues have owners. The admin UI at /api/admin-ui is a vanilla JS HTML page served from admin_ui.py.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
