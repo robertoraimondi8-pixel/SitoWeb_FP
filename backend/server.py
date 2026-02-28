@@ -5242,6 +5242,51 @@ async def manage_league_admins(league_id: str, request: Request, user=Depends(re
     return {"league_id": league_id, "user_id": target_user_id, "new_role": new_role}
 
 
+# ========================================
+# EDIT LEAGUE RULES (SUPER ADMIN ONLY)
+# ========================================
+@rbac_router.put("/leagues/{league_id}/rules")
+async def edit_league_rules(league_id: str, request: Request, user=Depends(require_permission("admin.leagues.manage"))):
+    """Edit league rules. Requires super admin. Strong confirmation via 'confirm' field."""
+    if not user.get("is_super_admin"):
+        raise HTTPException(403, "Solo i Super Admin possono modificare le regole della lega")
+
+    body = await request.json()
+    if not body.get("confirm"):
+        raise HTTPException(400, "Conferma richiesta: invia confirm=true")
+
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+
+    allowed_fields = {
+        "scoring_config", "start_matchday", "end_matchday",
+        "bet_deadline_minutes", "include_championship_predictions",
+        "competition_name"
+    }
+
+    updates = {}
+    before = {}
+    for field in allowed_fields:
+        if field in body and body[field] is not None:
+            before[field] = league.get(field)
+            updates[field] = body[field]
+
+    if not updates:
+        raise HTTPException(400, "Nessuna modifica fornita")
+
+    await leagues_col.update_one({"id": league_id}, {"$set": updates})
+
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+    await log_audit(
+        user["id"], user["username"], "EDIT_LEAGUE_RULES", "league", league_id,
+        {"league_name": league["name"], "fields": list(updates.keys())},
+        actor_roles=user.get("role_ids", []), ip=ip,
+        before=before, after=updates
+    )
+    return {"league_id": league_id, "updates": updates}
+
+
 @rbac_router.get("/leagues/{league_id}/members")
 async def get_league_members(league_id: str, user=Depends(require_permission("admin.leagues.manage"))):
     """Get all members of a league."""
