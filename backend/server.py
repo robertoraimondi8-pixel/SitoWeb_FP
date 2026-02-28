@@ -5138,11 +5138,20 @@ async def rbac_list_leagues(user=Depends(require_permission("admin.leagues.manag
             "id": lg["id"],
             "name": lg["name"],
             "league_type": lg.get("league_type", ""),
+            "match_source_type": lg.get("match_source_type", ""),
             "invite_code": lg.get("invite_code"),
             "owner": owner,
             "admins": admin_list,
             "member_count": member_count,
             "created_at": lg.get("created_at"),
+            "scoring_config": lg.get("scoring_config", {}),
+            "start_matchday": lg.get("start_matchday"),
+            "end_matchday": lg.get("end_matchday"),
+            "bet_deadline_minutes": lg.get("bet_deadline_minutes"),
+            "include_championship_predictions": lg.get("include_championship_predictions", False),
+            "rules_locked": lg.get("rules_locked", False),
+            "season_id": lg.get("season_id"),
+            "competition_name": lg.get("competition_name", ""),
         })
     return result
 
