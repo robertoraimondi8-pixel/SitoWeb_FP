@@ -1452,10 +1452,15 @@ function onMdLeagueChange() {
 
   // Show create form only for manageable leagues
   const createZone = document.getElementById('md-create-zone');
-  if (canManage) {
+  const manageableLeagues = allLeaguesCache.filter(l => l.league_type === 'national' || l.match_source_type !== 'national');
+  if (canManage || isAll) {
     const sOpts = (window._mdSeasons||[]).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    const leaguePicker = isAll
+      ? `<select id="md-create-league" style="flex:1">${manageableLeagues.map(l => `<option value="${l.id}">${l.name}</option>`).join('')}</select>`
+      : '';
     createZone.innerHTML = `
       <div class="form-row" style="margin:0">
+        ${leaguePicker}
         <select id="md-season" style="flex:1">${sOpts}</select>
         <input id="md-num" type="number" placeholder="Numero" min="1" style="width:80px">
         <input id="md-label" placeholder="Etichetta" style="flex:1">
