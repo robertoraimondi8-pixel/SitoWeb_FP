@@ -139,7 +139,7 @@ export default function PredictionsScreen() {
       }
 
       // Fallback: preferisci l'ultima OPEN per numero (la più recente),
-      // poi LOCKED/LIVE più recente, poi l'ultima giornata
+      // poi LOCKED/LIVE più recente, poi l'ultima giornata CLOSED (mai DRAFT)
       if (!activeMatchday) {
         const openMatchdays = matchdays.filter((md: Matchday) => md.status === 'OPEN');
         if (openMatchdays.length > 0) {
@@ -155,8 +155,12 @@ export default function PredictionsScreen() {
             (md.number > max.number ? md : max), lockedLive[0]);
         }
       }
-      if (!activeMatchday && matchdays.length > 0) {
-        activeMatchday = matchdays[matchdays.length - 1];
+      if (!activeMatchday) {
+        // Escludi DRAFT - prendi la giornata CLOSED più recente
+        const nonDraft = matchdays.filter((md: Matchday) => md.status !== 'DRAFT');
+        if (nonDraft.length > 0) {
+          activeMatchday = nonDraft[nonDraft.length - 1];
+        }
       }
 
       console.log('  activeMatchday =', activeMatchday?.id, activeMatchday?.label);
