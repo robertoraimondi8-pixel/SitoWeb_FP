@@ -388,17 +388,19 @@ async function render_users() {
     allRolesCache = roles;
 
     // Counters
-    const totalUsers = users.length;
-    const superAdmins = users.filter(u => u.is_super_admin).length;
-    const disabled = users.filter(u => u.is_disabled).length;
-    const withRoles = users.filter(u => u.roles && u.roles.length > 0).length;
+    const totalUsers = users.filter(u => !u.is_deleted).length;
+    const superAdmins = users.filter(u => u.is_super_admin && !u.is_deleted).length;
+    const disabled = users.filter(u => u.is_disabled && !u.is_deleted).length;
+    const deleted = users.filter(u => u.is_deleted).length;
+    const withRoles = users.filter(u => u.roles && u.roles.length > 0 && !u.is_deleted).length;
 
     document.getElementById('users-counters').innerHTML = `
     <div class="counter-row">
-      <div class="counter-box"><div class="num">${totalUsers}</div><div class="label">Utenti Totali</div></div>
+      <div class="counter-box"><div class="num">${totalUsers}</div><div class="label">Utenti Attivi</div></div>
       <div class="counter-box"><div class="num" style="color:#EF4444">${superAdmins}</div><div class="label">Super Admin</div></div>
       <div class="counter-box"><div class="num" style="color:#10B981">${withRoles}</div><div class="label">Con Ruoli</div></div>
       <div class="counter-box"><div class="num" style="color:#6B7280">${disabled}</div><div class="label">Disabilitati</div></div>
+      <div class="counter-box"><div class="num" style="color:#EF4444">${deleted}</div><div class="label">Eliminati</div></div>
     </div>`;
 
     // Filter bar
@@ -407,15 +409,16 @@ async function render_users() {
       <div class="form-row">
         <input class="search-bar" style="margin:0;flex:2" id="user-search" placeholder="Cerca per email o username..." oninput="filterUsers()" data-testid="user-search-input">
         <select id="user-role-filter" onchange="filterUsers()" style="flex:1" data-testid="user-role-filter">
-          <option value="">Tutti i ruoli</option>
+          <option value="">Tutti gli utenti</option>
           <option value="__super__">Super Admin</option>
           <option value="__norole__">Senza ruolo</option>
           <option value="__disabled__">Disabilitati</option>
+          <option value="__deleted__">Eliminati (soft)</option>
           ${roleOpts}
         </select>
       </div>`;
 
-    renderUsersTable(users);
+    renderUsersTable(users.filter(u => !u.is_deleted));
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -423,42 +426,125 @@ function filterUsers() {
   const q = (document.getElementById('user-search').value || '').toLowerCase();
   const roleFilter = document.getElementById('user-role-filter').value;
   let filtered = allUsersCache;
+  if (roleFilter !== '__deleted__') filtered = filtered.filter(u => !u.is_deleted);
   if (q) filtered = filtered.filter(u => u.email.toLowerCase().includes(q) || u.username.toLowerCase().includes(q));
   if (roleFilter === '__super__') filtered = filtered.filter(u => u.is_super_admin);
   else if (roleFilter === '__norole__') filtered = filtered.filter(u => !u.roles || u.roles.length === 0);
   else if (roleFilter === '__disabled__') filtered = filtered.filter(u => u.is_disabled);
+  else if (roleFilter === '__deleted__') filtered = filtered.filter(u => u.is_deleted);
   else if (roleFilter) filtered = filtered.filter(u => u.role_ids && u.role_ids.includes(roleFilter));
   renderUsersTable(filtered);
 }
 
 function renderUsersTable(users) {
-  let html = '<table><tr><th>Username</th><th>Email</th><th>Ruoli</th><th>Stato</th><th>Registrato</th><th>Azioni</th></tr>';
+  let html = '<table><tr><th>Username</th><th>Email</th><th>Ruoli</th><th>Leghe</th><th>Ultimo Login</th><th>Stato</th><th>Azioni</th></tr>';
   users.forEach(u => {
     let tags = '';
     if (u.is_super_admin) tags += '<span class="tag tag-super">SUPER ADMIN</span> ';
-    if (u.is_disabled) tags += '<span class="tag tag-disabled">DISABILITATO</span> ';
+    if (u.is_deleted) tags += '<span class="tag tag-disabled">ELIMINATO</span> ';
+    else if (u.is_disabled) tags += '<span class="tag tag-disabled">DISABILITATO</span> ';
     (u.roles||[]).forEach(r => { tags += `<span class="tag tag-role">${r.name}</span> `; });
-    if (!u.is_super_admin && (!u.roles || u.roles.length === 0)) tags += '<span class="tag" style="color:#475569">Nessun ruolo</span>';
+    if (!u.is_super_admin && (!u.roles || u.roles.length === 0) && !u.is_deleted) tags += '<span class="tag" style="color:#475569">Nessun ruolo</span>';
 
-    const date = u.created_at ? new Date(u.created_at).toLocaleDateString('it') : '-';
-    const statusBadge = u.is_disabled
-      ? '<span class="status-badge status-void">Disabilitato</span>'
-      : '<span class="status-badge status-live">Attivo</span>';
+    // League counts with clickable numbers
+    const leagueHtml = `
+      <span style="cursor:pointer;color:#F5A623" onclick="showUserLeagues('${u.id}')" title="Clicca per dettagli">
+        <span title="Create">${u.leagues_created||0}C</span> /
+        <span title="Admin">${u.leagues_admin||0}A</span> /
+        <span title="Membro">${u.leagues_member||0}M</span>
+      </span>`;
 
-    html += `<tr data-testid="user-row-${u.id}" style="${u.is_disabled ? 'opacity:.5' : ''}">
+    const lastLogin = u.last_login ? new Date(u.last_login).toLocaleString('it') : '<span style="color:#475569">Mai</span>';
+
+    const statusBadge = u.is_deleted
+      ? '<span class="status-badge status-void">Eliminato</span>'
+      : u.is_disabled
+        ? '<span class="status-badge status-void">Disabilitato</span>'
+        : '<span class="status-badge status-live">Attivo</span>';
+
+    let actions = '';
+    if (!u.is_deleted) {
+      actions += `<button class="btn btn-sm btn-outline" onclick="showAssignRolesModal('${u.id}')" data-testid="assign-roles-${u.id}">Ruoli</button> `;
+      actions += `<button class="btn btn-sm ${u.is_disabled ? 'btn-success' : 'btn-danger'}" onclick="toggleUserStatus('${u.id}')" data-testid="toggle-status-${u.id}">${u.is_disabled ? 'Abilita' : 'Disabilita'}</button> `;
+      actions += `<button class="btn btn-sm btn-danger" onclick="showSoftDeleteModal('${u.id}')" data-testid="soft-delete-${u.id}" style="background:#7C3AED">Elimina</button> `;
+      if (hasPerm('admin.roles.manage') && isSuperAdmin) {
+        actions += `<button class="btn btn-sm ${u.is_super_admin ? 'btn-danger' : 'btn-outline'}" onclick="toggleSuperAdmin('${u.id}',${!u.is_super_admin})" data-testid="toggle-sa-${u.id}">${u.is_super_admin ? 'Rimuovi SA' : 'Promuovi SA'}</button>`;
+      }
+    }
+
+    html += `<tr data-testid="user-row-${u.id}" style="${u.is_deleted ? 'opacity:.35' : u.is_disabled ? 'opacity:.5' : ''}">
       <td><strong>${u.username}</strong></td>
       <td style="color:#94A3B8;font-size:12px">${u.email}</td>
       <td>${tags}</td>
+      <td style="font-size:12px">${leagueHtml}</td>
+      <td style="font-size:12px">${lastLogin}</td>
       <td>${statusBadge}</td>
-      <td style="font-size:12px">${date}</td>
-      <td>
-        <button class="btn btn-sm btn-outline" onclick="showAssignRolesModal('${u.id}')" data-testid="assign-roles-${u.id}">Ruoli</button>
-        <button class="btn btn-sm ${u.is_disabled ? 'btn-success' : 'btn-danger'}" onclick="toggleUserStatus('${u.id}')" data-testid="toggle-status-${u.id}">${u.is_disabled ? 'Abilita' : 'Disabilita'}</button>
-        ${hasPerm('admin.roles.manage') && isSuperAdmin ? `<button class="btn btn-sm ${u.is_super_admin ? 'btn-danger' : 'btn-outline'}" onclick="toggleSuperAdmin('${u.id}',${!u.is_super_admin})" data-testid="toggle-sa-${u.id}">${u.is_super_admin ? 'Rimuovi SA' : 'Promuovi SA'}</button>` : ''}
-      </td></tr>`;
+      <td style="white-space:nowrap">${actions}</td></tr>`;
   });
   html += '</table>';
   document.getElementById('users-list').innerHTML = html;
+}
+
+async function showUserLeagues(userId) {
+  const user = allUsersCache.find(u => u.id === userId);
+  if (!user) return;
+  try {
+    const leagues = await apiCall('/rbac/users/' + userId + '/leagues');
+    let html = `<h3>Leghe di ${user.username}</h3>`;
+    if (leagues.length === 0) {
+      html += '<p style="color:#94A3B8;margin:12px 0">Nessuna lega</p>';
+    } else {
+      html += '<table><tr><th>Lega</th><th>Tipo</th><th>Ruolo</th><th>Owner</th><th>Iscritto</th></tr>';
+      leagues.forEach(l => {
+        const ownerTag = l.is_owner ? '<span class="tag tag-super">OWNER</span>' : '';
+        const creatorTag = l.is_creator ? '<span class="tag tag-system">CREATOR</span>' : '';
+        html += `<tr>
+          <td><strong>${l.league_name}</strong></td>
+          <td><span class="tag tag-role">${l.league_type}</span></td>
+          <td>${l.membership_role}</td>
+          <td>${ownerTag} ${creatorTag}</td>
+          <td style="font-size:12px">${l.joined_at ? new Date(l.joined_at).toLocaleDateString('it') : '-'}</td></tr>`;
+      });
+      html += '</table>';
+    }
+    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Chiudi</button></div>';
+    showModal(html);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function showSoftDeleteModal(userId) {
+  const user = allUsersCache.find(u => u.id === userId);
+  if (!user) return;
+  showModal(`
+    <h3 style="color:#7C3AED">Elimina Utente: ${user.username}</h3>
+    <p style="margin:12px 0;color:#94A3B8">Soft-delete: l'utente verra' disabilitato e segnato come eliminato. I dati rimangono nel database.</p>
+    ${user.leagues_created > 0 || user.leagues_admin > 0 ? `<p style="margin:8px 0;color:#F59E0B">Attenzione: l'utente ha ${user.leagues_created} leghe create e ${user.leagues_admin} ruoli admin. Se e' l'unico admin/owner, dovrai trasferire la ownership prima.</p>` : ''}
+    <p style="margin:8px 0">Digita <strong style="color:#7C3AED">DELETE</strong> per confermare:</p>
+    <div class="form-row"><input id="soft-delete-confirm" placeholder="Digita DELETE" data-testid="soft-delete-confirm-input"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Annulla</button>
+      <button class="btn" style="background:#7C3AED;color:#fff" onclick="doSoftDelete('${userId}')" data-testid="confirm-soft-delete">Elimina Utente</button>
+    </div>`);
+}
+
+async function doSoftDelete(userId) {
+  if (document.getElementById('soft-delete-confirm').value !== 'DELETE') {
+    showToast('Devi digitare DELETE per confermare', 'error'); return;
+  }
+  try {
+    await apiCall('/rbac/users/' + userId + '/soft-delete', 'PUT');
+    closeModal(); showToast('Utente eliminato (soft)'); render_users();
+  } catch(e) {
+    // Handle orphan leagues error
+    let msg = e.message;
+    try {
+      const parsed = JSON.parse(e.message.replace(/^[^{]*/, ''));
+      if (parsed.orphan_leagues) {
+        msg = parsed.message + ' Leghe: ' + parsed.orphan_leagues.map(l => l.name).join(', ');
+      }
+    } catch(ignore) {}
+    showToast(msg, 'error');
+  }
 }
 
 function showAssignRolesModal(userId) {
