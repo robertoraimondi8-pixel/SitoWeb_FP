@@ -2702,11 +2702,11 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
                     {"user_id": {"$in": member_user_ids}, "league_id": league_id}
                 )
                 
-                # Includi anche matchday OPEN/LIVE nazionali (possono essere LIVE senza predictions)
+                # Includi anche matchday OPEN/LIVE/LOCKED nazionali (possono essere LIVE senza predictions)
                 season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
                 if season:
                     active_national_mds = await matchdays_col.find(
-                        {"season_id": season["id"], "league_id": NATIONAL_LEAGUE_ID, "status": {"$in": ["OPEN", "LIVE"]}},
+                        {"season_id": season["id"], "league_id": NATIONAL_LEAGUE_ID, "status": {"$in": ["OPEN", "LIVE", "LOCKED"]}},
                         {"_id": 0, "id": 1}
                     ).to_list(5)
                     for amd in active_national_mds:
