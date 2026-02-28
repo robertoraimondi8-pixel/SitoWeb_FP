@@ -654,6 +654,7 @@ function renderUsersTable(users) {
 
     let actions = '';
     if (!u.is_deleted) {
+      actions += `<button class="btn btn-sm btn-outline" onclick="showEditUserModal('${u.id}')" data-testid="edit-user-${u.id}">Dettagli</button> `;
       actions += `<button class="btn btn-sm btn-outline" onclick="showAssignRolesModal('${u.id}')" data-testid="assign-roles-${u.id}">Ruoli</button> `;
       actions += `<button class="btn btn-sm ${u.is_disabled ? 'btn-success' : 'btn-danger'}" onclick="toggleUserStatus('${u.id}')" data-testid="toggle-status-${u.id}">${u.is_disabled ? 'Abilita' : 'Disabilita'}</button> `;
       actions += `<button class="btn btn-sm btn-danger" onclick="showSoftDeleteModal('${u.id}')" data-testid="soft-delete-${u.id}" style="background:#7C3AED">Elimina</button> `;
