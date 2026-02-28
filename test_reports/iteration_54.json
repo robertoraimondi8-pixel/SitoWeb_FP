@@ -1,0 +1,114 @@
+{
+  "summary": "L1 & L2 League Features Testing Complete - All 15 backend tests PASSED, All UI tests PASSED. L1: Dashboard shows 5 clickable league KPIs (Totale, Nazionale, Private Custom, Private Naz., A Rischio) with type-based navigation. L2: Control Room modal with 3 tabs working correctly - Info & Regole shows scoring table, Modifica tab has editable name field + all league settings + ATTENZIONE warning, Team tab shows owner/members with transfer/promote actions.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "total": 15,
+      "passed": 15,
+      "failed": 0,
+      "test_file": "/app/backend/tests/test_l1_l2_league_control_room.py"
+    },
+    "l1_dashboard_kpis": {
+      "totale_kpi": "PASS - Shows total league count (58)",
+      "nazionale_kpi": "PASS - Shows national_count (1), clickable, navigates with type=national filter",
+      "private_custom_kpi": "PASS - Shows private_custom_count (38), clickable, navigates with type=private_custom filter",
+      "private_naz_kpi": "PASS - Shows private_national_count (19), clickable",
+      "a_rischio_kpi": "PASS - Shows at_risk count (7), clickable, navigates with risk=all filter",
+      "totals_validation": "PASS - national + private_custom + private_national = total (1 + 38 + 19 = 58)"
+    },
+    "l2_control_room": {
+      "control_room_button": "PASS - Each league row has 'Control Room' button",
+      "three_tabs": "PASS - Modal has Info & Regole, Modifica, Team & Admin tabs",
+      "info_tab_content": "PASS - Shows ID, season, matchday range, deadline, match source, championship predictions, members, owner, invite code, created date + scoring table",
+      "modifica_tab_attenzione": "PASS - Shows red ATTENZIONE warning box",
+      "modifica_tab_name_field": "PASS - Editable 'Nome Lega' input field present",
+      "modifica_tab_markets": "PASS - 4 market checkboxes (1X2, Over/Under, Goal/No Goal, Risultato Esatto) with points inputs",
+      "modifica_tab_matchday_range": "PASS - Giornata Inizio/Fine inputs present",
+      "modifica_tab_deadline": "PASS - 'Minuti prima del fischio d'inizio' input present",
+      "modifica_tab_championship": "PASS - 'Pronostici Campionato' dropdown (Si/No)",
+      "team_tab_owner": "PASS - Shows OWNER section with owner info",
+      "team_tab_transfer": "PASS - Transfer ownership dropdown + 'Trasferisci' button for super admin",
+      "team_tab_members_table": "PASS - Members table with Username, Email, Ruolo, Azioni columns",
+      "admin_count_click": "PASS - Clicking admin count in leagues table opens Control Room on Team tab"
+    },
+    "l2_edit_rules_api": {
+      "confirm_required": "PASS - PUT /api/rbac/leagues/{id}/rules requires confirm=true (returns 400 without)",
+      "accepts_name_field": "PASS - API accepts and updates 'name' field",
+      "name_validation_min": "PASS - Rejects name < 2 characters (400)",
+      "name_validation_max": "PASS - Rejects name > 60 characters (400)",
+      "updates_scoring_config": "PASS - Can update scoring_config",
+      "updates_matchday_range": "PASS - Can update start_matchday/end_matchday",
+      "updates_deadline_championship": "PASS - Can update bet_deadline_minutes and include_championship_predictions"
+    },
+    "access_control": {
+      "non_admin_denied_dashboard": "PASS - Non-admin users denied access to dashboard stats (403)",
+      "non_super_admin_denied_edit": "PASS - Non-super-admin users denied edit rules access (403)"
+    }
+  },
+  "verified_features": [
+    "L1: Dashboard shows 5 league KPIs: Totale (58), Nazionale (1), Private Custom (38), Private Naz. (19), A Rischio (7)",
+    "L1: All 5 KPIs are clickable with cursor:pointer styling",
+    "L1: Clicking 'Nazionale' KPI navigates to leagues page with type filter set to 'national'",
+    "L1: Clicking 'Private Custom' KPI navigates to leagues page with type filter set to 'private_custom'",
+    "L1: Clicking 'Private Naz.' KPI navigates to leagues page with type filter set to 'private_national'",
+    "L1: Clicking 'A Rischio' KPI navigates to leagues page with risk filter set to 'all'",
+    "L1: GET /api/rbac/dashboard-stats returns national_count, private_custom_count, private_national_count fields",
+    "L1: League counts sum validates: national + private_custom + private_national = total",
+    "L2: Each league row has a 'Control Room' button (replaced old Dettaglio/Gestisci buttons)",
+    "L2: Control Room modal has 3 tabs: 'Info & Regole', 'Modifica', 'Team & Admin'",
+    "L2: Info tab shows complete league details grid (ID, season, matchday range, deadline, source, championship, members, owner, invite code, created)",
+    "L2: Info tab shows 'Mercati e Punteggi' scoring table with Mercato/Stato/Punti columns",
+    "L2: Modifica tab shows red ATTENZIONE warning box",
+    "L2: Modifica tab has editable 'Nome Lega' input field (new feature)",
+    "L2: Modifica tab has 4 market checkboxes with points inputs",
+    "L2: Modifica tab has Giornata Inizio/Fine range inputs",
+    "L2: Modifica tab has deadline minutes input",
+    "L2: Modifica tab has championship predictions dropdown",
+    "L2: Modifica tab has 'Salva Tutte le Modifiche' button",
+    "L2: Team tab shows OWNER section with owner username/email",
+    "L2: Team tab has transfer ownership dropdown for super admin",
+    "L2: Team tab shows members table with promote/remove admin actions",
+    "L2: PUT /api/rbac/leagues/{id}/rules accepts 'name' field",
+    "L2: Name validation: minimum 2 characters, maximum 60 characters",
+    "L2: Clicking admin count in leagues table opens Control Room on Team tab"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_l1_l2_league_control_room.py",
+    "/app/test_reports/pytest/l1_l2_league_control_room_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Dashboard stats API correctly calculates national_count, private_custom_count, private_national_count",
+    "Edit rules API properly validates name field (2-60 chars) before updating",
+    "Control Room tabs use data-testid attributes: cr-tab-info, cr-tab-edit, cr-tab-team",
+    "Name edit field uses id='rule-name' with data-testid='edit-league-name'",
+    "All edit fields have proper data-testid attributes for testing"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_l1_l2_league_control_room.py"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 tests passed)",
+    "frontend": "100% (All UI tests passed)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123 (Super Admin)",
+    "standard_user": "ilio@raimondi.it / password123 (correctly denied admin access)"
+  },
+  "seed_data_creation": "No new seed data created. Used existing leagues for testing.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "L1 & L2 league features fully tested and working. Dashboard shows 5 clickable league KPIs. Control Room modal replaces old Dettaglio/Gestisci buttons with unified 3-tab interface. Edit tab now includes Name field with validation. Team tab shows owner management and member admin controls. showLeagueManage and showLeagueDetail functions now redirect to showLeagueControlRoom.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
