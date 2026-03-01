@@ -295,9 +295,9 @@ export default function HomeScreen() {
             >
               <Animated.View style={{ transform: [{ scale: ctaScale }] }}>
                 <LinearGradient
-                  colors={['#14263D', '#0E1A2B']}
-                  start={{ x: 0.2, y: 0 }}
-                  end={{ x: 0.8, y: 1 }}
+                  colors={['#10223A', '#0B1625']}
+                  start={{ x: 0.1, y: 0 }}
+                  end={{ x: 0.9, y: 1 }}
                   style={s.heroCard}
                 >
                   {data?.matchday ? (
@@ -318,7 +318,7 @@ export default function HomeScreen() {
                         <Text style={s.heroSub}>{matchdayMsg}</Text>
                       )}
 
-                      {/* CTA Button */}
+                      {/* CTA Button — icon inline, no circle */}
                       {ctaConfig && (
                         <LinearGradient
                           colors={['#F5A623', '#F59E0B']}
@@ -327,9 +327,7 @@ export default function HomeScreen() {
                           style={s.ctaBtn}
                         >
                           <Text style={s.ctaText}>{ctaConfig.label}</Text>
-                          <View style={s.ctaIconWrap}>
-                            <Ionicons name={ctaConfig.icon} size={18} color={DARK.card} />
-                          </View>
+                          <Ionicons name={ctaConfig.icon} size={20} color={'rgba(255,255,255,0.9)'} />
                         </LinearGradient>
                       )}
                     </>
@@ -568,30 +566,27 @@ const s = StyleSheet.create({
     marginBottom: 16,
   },
 
-  // CTA Button (orange gradient)
+  // CTA Button (orange gradient — icon inline)
   ctaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingLeft: 24,
-    paddingRight: 8,
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     borderRadius: 16,
     marginTop: 8,
+    shadowColor: '#F5A623',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 4,
   },
   ctaText: {
     fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  ctaIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    letterSpacing: 0.3,
   },
 
   // Empty hero
@@ -599,15 +594,20 @@ const s = StyleSheet.create({
   emptyHeroTitle: { fontSize: 18, fontWeight: '700', color: DARK.textSub },
   emptyHeroSub: { fontSize: 13, color: DARK.textMuted, textAlign: 'center' },
 
-  // ── 2. Classifica LIVE ──
+  // ── 2. Classifica LIVE (soft gray, not pure white) ──
   liveCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#EEF1F5',
     borderLeftWidth: 4,
     borderLeftColor: colors.success,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 3,
   },
   liveLeft: { flex: 1, gap: 4 },
   liveBadge: {
@@ -650,9 +650,15 @@ const s = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: DARK.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 3,
   },
   perfCardWarm: {
-    borderColor: 'rgba(245,166,35,0.15)',
+    backgroundColor: '#182D48',
+    borderColor: 'rgba(245,166,35,0.12)',
   },
   perfIcon: {
     width: 40,
