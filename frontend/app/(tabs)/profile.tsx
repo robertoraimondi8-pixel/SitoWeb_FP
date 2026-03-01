@@ -371,22 +371,22 @@ const styles = StyleSheet.create({
   
   // Section Card
   sectionCard: { 
-    backgroundColor: colors.card,
+    backgroundColor: colors.primary,
     marginHorizontal: spacing.lg,
     marginTop: spacing.lg,
     borderRadius: borderRadius.xl,
     borderWidth: 1.5,
     borderColor: colors.accent,
-    shadowColor: '#000',
+    shadowColor: '#162F5C',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.15,
     shadowRadius: 20,
     elevation: 4,
     overflow: 'hidden',
   },
   sectionTitle: { 
     ...typography.sectionLabel,
-    color: colors.textSecondary,
+    color: colors.accent,
     paddingHorizontal: spacing.xl, 
     paddingTop: spacing.lg, 
     paddingBottom: spacing.sm,
@@ -409,11 +409,11 @@ const styles = StyleSheet.create({
   settingLabel: { 
     flex: 1, 
     ...typography.bodyM,
-    color: colors.textPrimary,
+    color: '#FFFFFF',
   },
   settingDivider: {
     height: 1,
-    backgroundColor: colors.borderLight,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     marginLeft: spacing.xl + 36 + spacing.md,
   },
   
