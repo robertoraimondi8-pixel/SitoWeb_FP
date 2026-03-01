@@ -295,10 +295,10 @@ const s = StyleSheet.create({
   
   // Teams
   teamsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  teamCol: { flex: 1 },
-  teamName: { fontSize: 14, fontWeight: '600' },
-  scoreCol: { paddingHorizontal: 12, minWidth: 70, alignItems: 'center' },
-  score: { fontSize: 18, fontWeight: '800' },
+  teamCol: { flex: 1, overflow: 'hidden' },
+  teamName: { fontSize: 13, fontWeight: '600' },
+  scoreCol: { paddingHorizontal: 8, minWidth: 60, alignItems: 'center' },
+  score: { fontSize: 16, fontWeight: '800' },
   vs: { fontSize: 12 },
   
   // Prediction row
