@@ -446,12 +446,16 @@ const styles = StyleSheet.create({
   
   // Admin Card
   adminCard: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#14263D',
     marginHorizontal: spacing.lg,
     marginTop: spacing.lg,
     padding: spacing.xl,
     borderRadius: borderRadius.xl,
-    ...shadows.card,
+    shadowColor: '#0E1A2B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 6,
   },
   adminTitle: {
     ...typography.sectionLabel,
@@ -476,7 +480,11 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     borderWidth: 1,
     borderColor: colors.accent,
-    ...shadows.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 4,
   },
   creatorTitle: {
     ...typography.sectionLabel,
