@@ -8,14 +8,14 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../src/contexts/AuthContext';
-import { useTheme } from '../src/contexts/ThemeContext';
 import { useLeague } from '../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, spacing, borderRadius } from '../src/theme/designSystem';
 
 export default function OnboardingScreen() {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const { token, user, logout, handleAuthError } = useAuth();
   const { refreshLeagues } = useLeague();
   const router = useRouter();
