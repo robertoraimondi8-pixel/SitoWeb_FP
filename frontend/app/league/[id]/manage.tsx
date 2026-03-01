@@ -296,10 +296,10 @@ export default function LeagueManageScreen() {
   );
 }
 
-const makeStyles = (colors: typeof import("../../../src/theme/designSystem").colors) => StyleSheet.create({
-  container: { flex: 1 },
+const makeStyles = () => StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F5F6F8' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border, gap: 4 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border, gap: 4, backgroundColor: '#F3F4F6' },
   backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '700' },
   headerSub: { fontSize: 12, fontWeight: '500', marginTop: 1 },
