@@ -14,7 +14,7 @@ import type { SupportedLang } from '../../src/i18n';
 
 // Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
-import { SectionCard } from '../../src/components/ui';
+import { SectionCard, AnimatedSweep } from '../../src/components/ui';
 
 interface OwnedLeague {
   id: string;
@@ -102,6 +102,7 @@ export default function ProfileScreen() {
               end={{ x: 1, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
+            <AnimatedSweep />
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
