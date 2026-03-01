@@ -17,6 +17,10 @@ import { League, Matchday, StandingsData, getErrorMessage } from '../../src/type
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
 import { StatusBadge } from '../../src/components/ui';
 
+// Podium medal colors
+const PODIUM_COLORS = [colors.gold, colors.silver, colors.bronze];
+const PODIUM_ICONS: Array<React.ComponentProps<typeof Ionicons>['name']> = ['trophy', 'medal-outline', 'medal-outline'];
+
 interface StandingEntry {
   user_id: string;
   username: string;
