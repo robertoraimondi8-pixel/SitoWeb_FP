@@ -58,8 +58,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 6,
-    gap: spacing.xs,
+    borderRadius: 8,
+    gap: 4,
   },
   badgeSmall: {
     paddingHorizontal: 8,
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   textSmall: {
