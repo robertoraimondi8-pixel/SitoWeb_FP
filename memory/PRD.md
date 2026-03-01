@@ -270,14 +270,20 @@ Complete visual transformation to premium dark sport theme matching user's mocku
 - **New dependency**: expo-linear-gradient for hero card and CTA gradients
 - Files: home.tsx (complete rewrite), designSystem.ts (v4 palette), LastFiveIndicator.tsx (dark prop), StatusBadge.tsx (consistent 8px radius)
 
-### Fine Tuning Premium (Mar 1, 2026) - COMPLETED
-6 micro-refinements for 9.5/10 premium perception:
-1. **Unified background**: Hero gradient darkened (#10223A → #0B1625) to be 5-8% darker than header (#0E1A2B), creating seamless visual flow
-2. **CTA icon integration**: Removed external circle wrapper, icon now inline with text, centered layout with gap 10, cleaner alignment
-3. **Classifica card contrast**: Changed from #FFFFFF to #EEF1F5 soft gray, blends with dark theme without breaking mood
-4. **Performance card hierarchy**: First card (Position) has brighter bg (#182D48) with warm accent border, others standard dark, creating visual guide for the eye
-5. **Natural shadows**: All shadows softened - blur 16-24px, opacity 0.08-0.15, spread diffuse. CTA gets orange-tinted shadow. No sharp/digital edges
-6. **Micro-interactions**: Already present: Press scale 0.97 (spring), fade-in 150-200ms stagger, LIVE badge pulse. Confirmed working
+### Premium Balanced Design Direction (Mar 1, 2026) - COMPLETED
+Switched from full dark to "Premium Balanced" direction per user's definitive mockup:
+- **Header**: White background (#FFFFFF) with dark text icons, centered logo, border-bottom
+- **Background**: Light gray surface (#F3F4F6) - creates depth with white cards
+- **Hero Card**: Dark navy gradient (#14263D → #0E1A2B) - premium focal point KEPT
+- **CTA Button**: Orange gradient with dark navy icon circle on right (icon in #0E1A2B circle)
+- **Classifica LIVE**: White card on light bg, green left accent 4px
+- **Performance Cards**: 3x dark navy (#14263D) on light bg - contrast creates depth
+- **Trend Card**: White card (#FFFFFF) with normal (non-dark) chart
+- **League Switcher**: White pill with border on white header bg
+- **Tab Bar**: White bg, orange active (#F5A623), gray inactive (#94A3B8)
+- **Shadows**: All updated to natural/diffuse (blur 16-24px, opacity 0.06-0.12)
+- **Design System v4**: Updated global shadows to be softer throughout all screens
+- **Consistency**: All screens (Rankings, Predictions, Profile) auto-inherit updated colors.background (#F3F4F6), shadows, and borderRadius from designSystem.ts
 
 ## Prioritized Backlog
 
