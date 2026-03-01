@@ -14,13 +14,19 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.card,
           borderTopColor: colors.border,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 4,
+          borderTopWidth: 0.5,
+          height: 64,
+          paddingBottom: 10,
+          paddingTop: 6,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
         },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textSecondary,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600', letterSpacing: 0.2 },
       }}
     >
       <Tabs.Screen name="home" options={{ title: t('tabs.home'), tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} /> }} />
