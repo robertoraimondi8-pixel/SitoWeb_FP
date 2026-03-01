@@ -72,29 +72,29 @@ export default function HomeScreen() {
   const runEntryAnimation = () => {
     // Reset
     fadeScreen.setValue(0);
-    slideHero.setValue(24); fadeHero.setValue(0);
-    slideLive.setValue(24); fadeLive.setValue(0);
-    slidePerf.setValue(24); fadePerf.setValue(0);
-    slideTrend.setValue(24); fadeTrend.setValue(0);
+    slideHero.setValue(6); fadeHero.setValue(0);
+    slideLive.setValue(6); fadeLive.setValue(0);
+    slidePerf.setValue(6); fadePerf.setValue(0);
+    slideTrend.setValue(6); fadeTrend.setValue(0);
 
     Animated.parallel([
       Animated.timing(fadeScreen, { toValue: 1, duration: 200, useNativeDriver: true }),
-      Animated.stagger(100, [
+      Animated.stagger(80, [
         Animated.parallel([
-          Animated.timing(fadeHero, { toValue: 1, duration: 300, useNativeDriver: true }),
-          Animated.timing(slideHero, { toValue: 0, duration: 300, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+          Animated.timing(fadeHero, { toValue: 1, duration: 220, useNativeDriver: true }),
+          Animated.timing(slideHero, { toValue: 0, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
         ]),
         Animated.parallel([
-          Animated.timing(fadeLive, { toValue: 1, duration: 300, useNativeDriver: true }),
-          Animated.timing(slideLive, { toValue: 0, duration: 300, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+          Animated.timing(fadeLive, { toValue: 1, duration: 200, useNativeDriver: true }),
+          Animated.timing(slideLive, { toValue: 0, duration: 200, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
         ]),
         Animated.parallel([
-          Animated.timing(fadePerf, { toValue: 1, duration: 300, useNativeDriver: true }),
-          Animated.timing(slidePerf, { toValue: 0, duration: 300, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+          Animated.timing(fadePerf, { toValue: 1, duration: 200, useNativeDriver: true }),
+          Animated.timing(slidePerf, { toValue: 0, duration: 200, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
         ]),
         Animated.parallel([
-          Animated.timing(fadeTrend, { toValue: 1, duration: 300, useNativeDriver: true }),
-          Animated.timing(slideTrend, { toValue: 0, duration: 300, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+          Animated.timing(fadeTrend, { toValue: 1, duration: 180, useNativeDriver: true }),
+          Animated.timing(slideTrend, { toValue: 0, duration: 180, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
         ]),
       ]),
     ]).start();
