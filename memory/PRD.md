@@ -255,14 +255,20 @@ Major visual refresh of the mobile app:
 - **StatusBadge**: Enhanced LIVE animation with subtle scale pulse (1→1.08) in addition to dot opacity.
 - Files: designSystem.ts, rankings.tsx, home.tsx, predictions.tsx, profile.tsx, StatusBadge.tsx, _layout.tsx
 
-### Homepage Premium Redesign (Mar 1, 2026) - COMPLETED
-Complete visual transformation of the home screen to premium sports app aesthetic:
-- **Hero Matchday Card**: Dark blue gradient (LinearGradient #1E3A7D → #0F2352) with white text, progress bar for predictions count, countdown timer in frosted glass box, orange CTA with white arrow circle. Makes matchday info the visual centerpiece.
-- **LIVE Standings Card**: Redesigned from flat green border to white card with green left accent bar, horizontal layout (badge + rank number side by side), more prominent rank display.
-- **Performance Card**: Transformed from single centered number + stats row to 2x2 icon grid. Each stat has colored icon circle (trophy/star/football/trending) with label. Position card has subtle accent highlight.
-- **Header**: Simplified - logo centered, hamburger and action buttons symmetrical. Removed greeting text from header for cleaner look. Smaller icon buttons without borders.
-- **New dependency**: expo-linear-gradient for hero card gradient
-- Files modified: home.tsx (complete rewrite of card layout and styles)
+### Homepage Premium Dark Redesign (Mar 1, 2026) - COMPLETED
+Complete visual transformation to premium dark sport theme matching user's mockup:
+- **Dark Background**: Full dark navy (#0E1A2B) background for entire home screen
+- **Hero Card**: LinearGradient (#14263D → #0E1A2B) with 16px radius, "Giornata" label in uppercase muted, title 32px bold white, subtitle 15px with 75% opacity. Orange gradient CTA button (#F5A623 → #F59E0B) with white icon circle and press animation (scale 0.97)
+- **LIVE Badge**: White background with red text and animated red dot (consistent with spec)
+- **Classifica LIVE**: White card with green left accent (4px), horizontal layout, green rank 30px bold, points below
+- **Performance**: 3 cards in a horizontal row (not 2x2), dark navy (#14263D) with border, colored icons (trophy gold, star white, football green), values 28px bold white, labels 9px uppercase muted
+- **Trend Chart**: Dark navy card, LastFiveIndicator updated with `dark` prop for light text on dark background
+- **Header**: Dark background, white icons, centered logo, symmetric layout
+- **League Switcher**: White pill on dark background with trophy icon
+- **Spacing**: Consistent 8/16/24 multiples throughout
+- **Micro-interactions**: Stagger fade-in (200ms screen, 300ms cards with 100ms delay), Pressable scale 0.97 on CTA
+- **New dependency**: expo-linear-gradient for hero card and CTA gradients
+- Files: home.tsx (complete rewrite), designSystem.ts (v4 palette), LastFiveIndicator.tsx (dark prop), StatusBadge.tsx (consistent 8px radius)
 
 ## Prioritized Backlog
 
