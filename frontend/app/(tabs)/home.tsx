@@ -17,18 +17,26 @@ import { colors, typography, spacing, borderRadius, shadows } from '../../src/th
 import { StatusBadge, LastFiveIndicator } from '../../src/components/ui';
 import { BrandLogo } from '../../src/components/BrandLogo';
 
-// ── Premium color constants (home-specific dark theme) ──
+// ── Color constants ──
 const DARK = {
-  bg: '#0E1A2B',
-  card: '#14263D',
-  cardLight: '#1A3050',
+  navy: '#14263D',
+  navyDeep: '#0E1A2B',
   accent: '#F5A623',
   accentGrad: '#F59E0B',
   text: '#FFFFFF',
   textMuted: 'rgba(255,255,255,0.55)',
   textSub: 'rgba(255,255,255,0.75)',
   border: 'rgba(255,255,255,0.08)',
-  warmBg: '#1E2D1E', // very subtle warm for position card
+};
+const LIGHT = {
+  bg: '#F3F4F6',
+  card: '#FFFFFF',
+  headerBg: '#FFFFFF',
+  text: '#111827',
+  textSec: '#64748B',
+  textMuted: '#94A3B8',
+  border: '#E5E7EB',
+  green: '#16A34A',
 };
 
 export default function HomeScreen() {
