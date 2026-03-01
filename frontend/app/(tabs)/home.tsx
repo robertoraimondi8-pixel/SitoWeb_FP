@@ -513,14 +513,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   headerButton: {
-    width: 42,
-    height: 42,
+    width: 38,
+    height: 38,
     borderRadius: borderRadius.md,
     backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   bellBadge: {
     position: 'absolute',
