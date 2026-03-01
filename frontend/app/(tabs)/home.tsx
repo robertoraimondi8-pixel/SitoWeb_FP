@@ -634,6 +634,8 @@ const s = StyleSheet.create({
     borderRadius: 22,
     padding: 24,
     overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: DARK.accent,
     shadowColor: '#0E1A2B',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.2,
@@ -721,15 +723,15 @@ const s = StyleSheet.create({
   emptyHeroTitle: { fontSize: 18, fontWeight: '700', color: DARK.textSub },
   emptyHeroSub: { fontSize: 13, color: DARK.textMuted, textAlign: 'center' },
 
-  // ── 2. Classifica LIVE (white, premium shadow) ──
+  // ── 2. Classifica LIVE (premium with orange border) ──
   liveCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderRadius: 22,
     backgroundColor: '#FFFFFF',
-    borderLeftWidth: 4,
-    borderLeftColor: LIGHT.green,
+    borderWidth: 1.5,
+    borderColor: DARK.accent,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.08,
@@ -771,8 +773,8 @@ const s = StyleSheet.create({
   perfCardOuter: {
     flex: 1,
     borderRadius: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1.5,
+    borderColor: DARK.accent,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 12 },
@@ -823,20 +825,15 @@ const s = StyleSheet.create({
   },
 
   // ── 4. Trend (white card, radius 22) ──
-  trendCard: {
-    backgroundColor: LIGHT.card,
-    borderRadius: 22,
+  trendCardGrad: {
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
-    shadowRadius: 24,
-    elevation: 4,
+    borderRadius: 22,
+    overflow: 'hidden',
   },
   sectionLabelInCard: {
     fontSize: 13,
     fontWeight: '700',
-    color: LIGHT.textMuted,
+    color: 'rgba(255,255,255,0.55)',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 12,
