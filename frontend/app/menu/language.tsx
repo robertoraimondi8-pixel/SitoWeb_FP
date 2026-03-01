@@ -3,10 +3,11 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { setAppLanguage, SUPPORTED_LANGS } from '../../src/i18n';
 import type { SupportedLang } from '../../src/i18n';
 import { useTranslation } from 'react-i18next';
-import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+import { colors, typography, spacing, borderRadius, brandGradients } from '../../src/theme/designSystem';
 
 const LANG_LABELS: Record<string, { label: string; flag: string }> = {
   it: { label: 'Italiano', flag: '\u{1F1EE}\u{1F1F9}' },
@@ -26,6 +27,7 @@ export default function LanguageScreen() {
 
   return (
     <SafeAreaView style={s.container} edges={['top']}>
+      <LinearGradient colors={brandGradients.background} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} data-testid="back-btn">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
@@ -60,9 +62,9 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.lg, backgroundColor: '#F3F4F6' },
   headerTitle: { ...typography.titleM, color: colors.textPrimary },
   content: { padding: spacing.lg, gap: 8 },
-  langItem: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: borderRadius.xl, padding: spacing.lg, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 4 },
+  langItem: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.primary, borderRadius: borderRadius.xl, padding: spacing.lg, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.08)' },
   langItemActive: { borderWidth: 2, borderColor: colors.accent },
   flag: { fontSize: 24 },
-  langText: { flex: 1, fontSize: 16, fontWeight: '500', color: colors.textPrimary },
+  langText: { flex: 1, fontSize: 16, fontWeight: '500', color: '#FFFFFF' },
   langTextActive: { fontWeight: '700', color: colors.accent },
 });

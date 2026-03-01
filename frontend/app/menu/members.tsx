@@ -3,10 +3,11 @@ import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall } from '../../src/api/client';
-import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+import { colors, typography, spacing, borderRadius, brandGradients } from '../../src/theme/designSystem';
 
 type Member = {
   user_id: string;
@@ -46,6 +47,7 @@ export default function MembersScreen() {
 
   return (
     <SafeAreaView style={s.container} edges={['top']}>
+      <LinearGradient colors={brandGradients.background} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} data-testid="back-btn">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
@@ -95,14 +97,14 @@ const s = StyleSheet.create({
   headerTitle: { ...typography.titleM, color: colors.textPrimary },
   subtitle: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, textAlign: 'center', paddingVertical: 10, backgroundColor: '#F3F4F6' },
   content: { padding: spacing.lg, gap: 8 },
-  memberCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: borderRadius.xl, padding: spacing.md, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 4 },
-  avatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  memberCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.primary, borderRadius: borderRadius.xl, padding: spacing.md, borderWidth: 1.5, borderColor: colors.accent },
+  avatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primaryDark, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 16, fontWeight: '800', color: '#fff' },
   memberInfo: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  memberName: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
-  badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
+  memberName: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
+  badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: borderRadius.badge },
   badgeText: { fontSize: 10, fontWeight: '800', color: '#fff', textTransform: 'uppercase' },
-  rank: { fontSize: 14, fontWeight: '700', color: colors.textMuted },
+  rank: { fontSize: 14, fontWeight: '700', color: 'rgba(255,255,255,0.5)' },
   empty: { textAlign: 'center', color: colors.textSecondary, marginTop: 40, fontSize: 14 },
 });
