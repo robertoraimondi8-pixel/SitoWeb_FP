@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+import { AnimatedSweep } from '../../src/components/ui';
 
 type StatsLeague = {
   league_id: number;
