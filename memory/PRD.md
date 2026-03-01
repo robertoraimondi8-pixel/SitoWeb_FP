@@ -1,7 +1,7 @@
 # FantaPronostic - PRD & Progress
 
 ## Original Problem Statement
-Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy football predictions platform. The app has evolved into a premium UI/UX product with a "Premium Balanced" design system featuring light gray backgrounds, dark navy cards, orange accents, and animated visual effects.
+Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy football predictions platform. The app has evolved into a premium UI/UX product with an official **Brand Color System v5**.
 
 ## Architecture
 - **Backend**: FastAPI (Python) + MongoDB
@@ -9,43 +9,65 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - **3rd Party**: API-Football, Expo Push, APScheduler, expo-linear-gradient, react-native-reanimated
 - **Auth**: JWT + Google OAuth (Emergent-managed)
 
-## Design System
-- Light gray background (#F5F6F8 → #ECEFF3 gradient)
-- Dark navy cards (#14263D, #1A2F4D → #0E1A2B gradients)
-- Orange accent (#F5A623) borders on all cards
-- AnimatedSweep component on all dark navy cards
-- White text on dark cards, dark text on gray headers
-- Tab bar: dark navy (#0E1A2B) background
+## Brand Color System v5 (Official)
+
+### Primary Brand Colors
+| Color | HEX | Usage |
+|-------|-----|-------|
+| Logo Blue | `#1F4C8F` | Card principali, elementi premium |
+| Deep Blue | `#162F5C` | Gradienti basso, hover, profondita |
+| Primary Orange | `#F5A623` | CTA, bottoni, punteggi |
+| Dark Orange | `#E18B00` | Ombra bottoni, pressed |
+
+### Support Colors
+| Color | HEX | Usage |
+|-------|-----|-------|
+| Success Green | `#2ECC71` | +1.0, check verde, LIVE |
+| Error Red | `#E74C3C` | Pronostico errato, alert |
+
+### Neutral System
+| Color | HEX | Usage |
+|-------|-----|-------|
+| Warm Background | `#F5F6F8` | Base app chiara |
+| Light Gradient | `#ECEFF3` | Sfondi dinamici |
+| Text Primary | `#2C3E50` | Testo su fondo chiaro |
+| White Pure | `#FFFFFF` | Testo su blu |
+
+### Official Gradients
+- **Card Premium**: `['#2C5FA8', '#1F4C8F', '#162F5C']`
+- **CTA**: `['#F8B13A', '#F5A623', '#E18B00']`
+- **Background**: `['#F5F6F8', '#ECEFF3']`
+
+### Radius System
+- Card principali: 22
+- Bottoni: 18
+- Badge piccoli: 12
+- Cerchi icone: 20
 
 ## What's Been Implemented
 
-### Completed (Mar 2026)
-- [x] HomeScreen with premium dark navy theme, AnimatedSweep, white sweep effect
-- [x] Rankings screen with dark theme + AnimatedSweep
-- [x] Predictions screen with dark navy match cards + AnimatedSweep + fixed text colors
-- [x] Statistics screen with dark theme elements + AnimatedSweep import
-- [x] Profile screen with dark user card + AnimatedSweep
-- [x] Live screen rewritten with dark navy theme + AnimatedSweep + overlap fix
-- [x] User Predictions screen rewritten with dark navy theme + AnimatedSweep + overlap fix
-- [x] User Detail screen rewritten with dark navy theme
-- [x] League List screen rewritten with dark navy theme
-- [x] League Create/Join/Join-Private screens converted to design system
-- [x] League Manage screen converted to design system
-- [x] Admin Console screens converted to design system
-- [x] Onboarding screen converted with dark navy path cards
-- [x] Auth Callback screen converted to design system
-- [x] Tab bar converted to dark navy (#0E1A2B) with orange active tint
-- [x] Team name overlap bug fix (flex: 1 + flexShrink: 1 on teamCol, fixed width scoreCol)
-- [x] All `useTheme` references removed except Profile (needed for dark mode toggle)
+### Completed (Mar 2026 - Latest Session)
+- [x] **Brand Color System v5** — Full official brand colors applied across entire app
+- [x] **designSystem.ts** — Central source of truth with brandGradients export
+- [x] **Tab screens**: HomeScreen, Rankings, Predictions, Statistics, Profile — all brand blue
+- [x] **Sub-screens**: Live, User-Predictions, User-Detail — brand blue cards + overlap fix
+- [x] **League screens**: List, Create, Join, Join-Private, Manage — brand blue
+- [x] **Menu screens**: Invites, Language, Members, My-Leagues, News, Notifications, Profile-Edit, Rules — all brand blue cards with CTA gradient buttons
+- [x] **Tab bar**: Deep Blue (#162F5C) background, orange active tint
+- [x] **Profile**: Section cards converted to brand blue, language options styled for dark bg
+- [x] **Admin screens**: Console + League admin converted from useTheme to design system
+- [x] **Onboarding**: Path cards converted to brand blue
+- [x] **AnimatedSweep**: On all premium dark cards across the app
+- [x] **Team name overlap fix**: Robust flex constraints in predictions screens
+- [x] **ThemeContext alignment**: theme/index.ts colors synced with brand v5
+- [x] All `useTheme` removed except Profile (needed for dark mode toggle)
 
 ### Testing Status
-- Backend: 21/21 API tests pass (iteration_63)
+- Backend iteration_63: 21/21 pass
+- Backend iteration_64: 22/22 pass (post brand color system)
 - Frontend: Visual changes require user testing on device
 
 ## Prioritized Backlog
-
-### P0 (Critical)
-- None currently
 
 ### P1 (High)
 - [ ] Activate Push Notifications (PUSH_NOTIFICATIONS_ENABLED=True)
@@ -64,3 +86,4 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 ## Credentials
 - Admin: admin@fantapronostic.com / admin123
 - User: ilio@raimondi.it / password123
+- League Owner: test@raimondi.it / password
