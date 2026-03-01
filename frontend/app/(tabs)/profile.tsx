@@ -194,7 +194,7 @@ export default function ProfileScreen() {
               <Ionicons name="add-circle-outline" size={18} color={colors.success} />
             </View>
             <Text style={styles.settingLabel}>{t('profile.create_league')}</Text>
-            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.4)" />
           </TouchableOpacity>
 
           <View style={styles.settingDivider} />
@@ -204,7 +204,7 @@ export default function ProfileScreen() {
               <Ionicons name="enter-outline" size={18} color={colors.accent} />
             </View>
             <Text style={styles.settingLabel}>{t('profile.join_league')}</Text>
-            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.4)" />
           </TouchableOpacity>
         </View>
 
@@ -221,7 +221,7 @@ export default function ProfileScreen() {
                 <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
               </View>
               <Text style={styles.settingLabel}>{t('profile.admin_console_btn', { defaultValue: 'Apri Console Admin' })}</Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.4)" />
             </TouchableOpacity>
           </View>
         )}
@@ -239,14 +239,14 @@ export default function ProfileScreen() {
                 <Ionicons name="settings" size={18} color={colors.accent} />
               </View>
               <Text style={styles.settingLabel}>{t('profile.creator_console_btn', { defaultValue: 'Gestisci le tue leghe' })}</Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.4)" />
             </TouchableOpacity>
           </View>
         )}
 
         {/* Logout - tono secondario, non prominente */}
         <TouchableOpacity testID="logout-btn" style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={18} color={colors.textMuted} />
+          <Ionicons name="log-out-outline" size={18} color="rgba(255,255,255,0.4)" />
           <Text style={styles.logoutText}>{t('profile.logout')}</Text>
         </TouchableOpacity>
 
