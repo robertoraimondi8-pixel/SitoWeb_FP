@@ -425,11 +425,11 @@ export default function AdminConsoleV3() {
           <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/profile')} style={s.backBtn}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[s.headerTitle, { color: colors.text }]}>Console Admin</Text>
+          <Text style={[s.headerTitle, { color: colors.textPrimary }]}>Console Admin</Text>
         </View>
         <View style={s.center}>
           <Ionicons name="information-circle" size={48} color={colors.accent} />
-          <Text style={[s.errorText, { color: colors.text }]}>Nessuna lega da gestire</Text>
+          <Text style={[s.errorText, { color: colors.textPrimary }]}>Nessuna lega da gestire</Text>
           <Text style={{ color: colors.textSecondary, fontSize: 14, textAlign: 'center', paddingHorizontal: 32, marginTop: 8 }}>
             Le leghe che usano le partite della Lega Nazionale non richiedono gestione manuale.
           </Text>
@@ -445,7 +445,7 @@ export default function AdminConsoleV3() {
         <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/profile')} style={s.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[s.headerTitle, { color: colors.text }]}>Console Admin</Text>
+        <Text style={[s.headerTitle, { color: colors.textPrimary }]}>Console Admin</Text>
         {actionLoading && <ActivityIndicator size="small" color={colors.accent} />}
       </View>
 
@@ -457,7 +457,7 @@ export default function AdminConsoleV3() {
           onPress={() => setShowLeagueDropdown(true)}
         >
           <Ionicons name={selectedLeague?._is_national ? 'trophy' : 'shield'} size={20} color={colors.accent} />
-          <Text style={[s.leagueSelectorText, { color: colors.text }]} numberOfLines={1}>
+          <Text style={[s.leagueSelectorText, { color: colors.textPrimary }]} numberOfLines={1}>
             {selectedLeague?.name || 'Seleziona lega...'}
           </Text>
           {selectedLeague?._is_national && (
@@ -473,7 +473,7 @@ export default function AdminConsoleV3() {
           style={[s.leagueSelector, { backgroundColor: colors.card, borderColor: colors.border }]}
         >
           <Ionicons name="shield" size={20} color={colors.accent} />
-          <Text style={[s.leagueSelectorText, { color: colors.text }]} numberOfLines={1}>
+          <Text style={[s.leagueSelectorText, { color: colors.textPrimary }]} numberOfLines={1}>
             {selectedLeague?.name || 'Nessuna lega attiva'}
           </Text>
         </View>
@@ -515,7 +515,7 @@ export default function AdminConsoleV3() {
               onPress={() => setShowMatchdayDropdown(true)}
             >
               <Ionicons name="calendar-outline" size={20} color={colors.accent} />
-              <Text style={[s.dropdownText, { color: colors.text }]}>
+              <Text style={[s.dropdownText, { color: colors.textPrimary }]}>
                 {selectedMatchday ? (selectedMatchday.label || `Giornata ${selectedMatchday.number}`) : 'Seleziona giornata...'}
               </Text>
               {selectedMatchday && (
@@ -534,17 +534,17 @@ export default function AdminConsoleV3() {
             {/* Stats Row */}
             <View style={[s.statsRow, { backgroundColor: colors.card }]}>
               <View style={s.statItem}>
-                <Text style={[s.statValue, { color: colors.text }]}>{selectedMatchday.match_count}</Text>
+                <Text style={[s.statValue, { color: colors.textPrimary }]}>{selectedMatchday.match_count}</Text>
                 <Text style={[s.statLabel, { color: colors.textSecondary }]}>Partite</Text>
               </View>
               <View style={[s.statDivider, { backgroundColor: colors.border }]} />
               <View style={s.statItem}>
-                <Text style={[s.statValue, { color: colors.text }]}>{selectedMatchday.results_count}/{selectedMatchday.match_count}</Text>
+                <Text style={[s.statValue, { color: colors.textPrimary }]}>{selectedMatchday.results_count}/{selectedMatchday.match_count}</Text>
                 <Text style={[s.statLabel, { color: colors.textSecondary }]}>Risultati</Text>
               </View>
               <View style={[s.statDivider, { backgroundColor: colors.border }]} />
               <View style={s.statItem}>
-                <Text style={[s.statValue, { color: colors.text }]}>{selectedMatchday.predictions_user_count}</Text>
+                <Text style={[s.statValue, { color: colors.textPrimary }]}>{selectedMatchday.predictions_user_count}</Text>
                 <Text style={[s.statLabel, { color: colors.textSecondary }]}>Pronostici</Text>
               </View>
             </View>
@@ -587,7 +587,7 @@ export default function AdminConsoleV3() {
                 <View style={[s.autoStatusBanner, { backgroundColor: 'rgba(59,130,246,0.1)', borderColor: 'rgba(59,130,246,0.3)' }]}>
                   <Ionicons name="time-outline" size={18} color="rgba(59,130,246,0.9)" />
                   <View style={{ flex: 1 }}>
-                    <Text style={[s.autoStatusTitle, { color: colors.text }]}>Pronostici aperti</Text>
+                    <Text style={[s.autoStatusTitle, { color: colors.textPrimary }]}>Pronostici aperti</Text>
                     <Text style={[s.autoStatusDesc, { color: colors.textSecondary }]}>
                       Diventerà LIVE automaticamente al primo fischio:{'\n'}
                       {new Date(selectedMatchday.first_kickoff).toLocaleString('it-IT', { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })}
@@ -599,7 +599,7 @@ export default function AdminConsoleV3() {
                 <View style={[s.autoStatusBanner, { backgroundColor: 'rgba(245,166,35,0.1)', borderColor: 'rgba(245,166,35,0.3)' }]}>
                   <Ionicons name="warning-outline" size={18} color="rgba(245,166,35,0.9)" />
                   <View style={{ flex: 1 }}>
-                    <Text style={[s.autoStatusTitle, { color: colors.text }]}>Nessun orario kickoff</Text>
+                    <Text style={[s.autoStatusTitle, { color: colors.textPrimary }]}>Nessun orario kickoff</Text>
                     <Text style={[s.autoStatusDesc, { color: colors.textSecondary }]}>
                       Le partite non hanno un orario di inizio. La transizione LIVE non avverrà automaticamente.
                     </Text>
@@ -610,7 +610,7 @@ export default function AdminConsoleV3() {
                 <View style={[s.autoStatusBanner, { backgroundColor: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)' }]}>
                   <Ionicons name="radio" size={18} color="rgba(239,68,68,0.9)" />
                   <View style={{ flex: 1 }}>
-                    <Text style={[s.autoStatusTitle, { color: colors.text }]}>Giornata in corso</Text>
+                    <Text style={[s.autoStatusTitle, { color: colors.textPrimary }]}>Giornata in corso</Text>
                     <Text style={[s.autoStatusDesc, { color: colors.textSecondary }]}>
                       Diventerà COMPLETATA automaticamente quando tutte le partite saranno finite.
                     </Text>
@@ -730,9 +730,9 @@ export default function AdminConsoleV3() {
                               <Text style={s.specialBadgeText}>X3</Text>
                             </View>
                           )}
-                          <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>{match.home_team}</Text>
+                          <Text style={[s.teamName, { color: colors.textPrimary }]} numberOfLines={1}>{match.home_team}</Text>
                           <Text style={[s.vsText, { color: colors.textSecondary }]}>vs</Text>
-                          <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>{match.away_team}</Text>
+                          <Text style={[s.teamName, { color: colors.textPrimary }]} numberOfLines={1}>{match.away_team}</Text>
                           {canEditMatches && (
                             <TouchableOpacity onPress={() => deleteMatch(match.id)} data-testid={`delete-match-${match.id}`}>
                               <Ionicons name="close-circle" size={22} color={colors.error} />
@@ -871,7 +871,7 @@ export default function AdminConsoleV3() {
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowLeagueDropdown(false)}>
           <View style={[s.dropdownModal, { backgroundColor: colors.card }]}>
             <View style={s.dropdownModalHandle} />
-            <Text style={[s.modalTitle, { color: colors.text }]}>Seleziona Lega</Text>
+            <Text style={[s.modalTitle, { color: colors.textPrimary }]}>Seleziona Lega</Text>
             <ScrollView style={s.dropdownList}>
               {leagues.filter(l => l._is_national).map(lg => (
                 <TouchableOpacity
@@ -910,7 +910,7 @@ export default function AdminConsoleV3() {
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowMatchdayDropdown(false)}>
           <View style={[s.dropdownModal, { backgroundColor: colors.card }]}>
             <View style={s.dropdownModalHandle} />
-            <Text style={[s.modalTitle, { color: colors.text }]}>Seleziona Giornata</Text>
+            <Text style={[s.modalTitle, { color: colors.textPrimary }]}>Seleziona Giornata</Text>
             <ScrollView style={s.dropdownList}>
               {matchdays.map(md => {
                 const isSelected = selectedMatchday?.id === md.id;
@@ -921,7 +921,7 @@ export default function AdminConsoleV3() {
                     onPress={() => { setSelectedMatchday(md); setShowMatchdayDropdown(false); }}
                   >
                     <View style={{ flex: 1 }}>
-                      <Text style={[s.dropdownItemText, { color: colors.text }]}>{md.label || `Giornata ${md.number}`}</Text>
+                      <Text style={[s.dropdownItemText, { color: colors.textPrimary }]}>{md.label || `Giornata ${md.number}`}</Text>
                       <Text style={[s.dropdownItemMeta, { color: colors.textSecondary }]}>
                         {md.match_count} partite | {md.results_count}/{md.match_count} risultati | {md.predictions_user_count} pronostici
                       </Text>
@@ -942,12 +942,12 @@ export default function AdminConsoleV3() {
       <Modal visible={!!showMatchStatusPicker} transparent animationType="fade">
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowMatchStatusPicker(null)}>
           <View style={[s.modalContent, { backgroundColor: colors.card }]}>
-            <Text style={[s.modalTitle, { color: colors.text }]}>Stato Partita</Text>
+            <Text style={[s.modalTitle, { color: colors.textPrimary }]}>Stato Partita</Text>
             {MATCH_STATUS_OPTIONS.map(st => (
               <TouchableOpacity key={st} style={[s.modalOption, { borderColor: colors.border }]}
                 onPress={() => { updateMatchResult(showMatchStatusPicker!, 'status', st); setShowMatchStatusPicker(null); }}>
                 <View style={[s.statusDot, { backgroundColor: getMatchStatusColor(st) }]} />
-                <Text style={[s.modalOptionText, { color: colors.text }]}>{st}</Text>
+                <Text style={[s.modalOptionText, { color: colors.textPrimary }]}>{st}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -959,7 +959,7 @@ export default function AdminConsoleV3() {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.modalOverlay}>
           <ScrollView style={{ width: '100%' }} contentContainerStyle={{ padding: 0 }} keyboardShouldPersistTaps="handled">
             <View style={[s.modalForm, { backgroundColor: colors.card }]}>
-              <Text style={[s.modalTitle, { color: colors.text }]}>Nuova Giornata</Text>
+              <Text style={[s.modalTitle, { color: colors.textPrimary }]}>Nuova Giornata</Text>
               <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Numero *</Text>
               <TouchableOpacity
                 style={[s.formInput, { borderColor: showNumberPicker ? colors.accent : colors.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
@@ -977,7 +977,7 @@ export default function AdminConsoleV3() {
                     getAvailableNumbers().map(num => (
                       <TouchableOpacity key={num} style={[s.inlinePickerItem, { borderBottomColor: colors.border }]}
                         onPress={() => { setNewMatchday(p => ({ ...p, number: String(num), label: `Giornata ${num}` })); setShowNumberPicker(false); }}>
-                        <Text style={[s.inlinePickerItemText, { color: colors.text }]}>Giornata {num}</Text>
+                        <Text style={[s.inlinePickerItemText, { color: colors.textPrimary }]}>Giornata {num}</Text>
                         {newMatchday.number === String(num) && <Ionicons name="checkmark-circle" size={18} color={colors.accent} />}
                       </TouchableOpacity>
                     ))
@@ -1012,7 +1012,7 @@ export default function AdminConsoleV3() {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.modalOverlay}>
           <ScrollView style={{ width: '100%' }} contentContainerStyle={{ padding: 24 }}>
             <View style={[s.modalForm, { backgroundColor: colors.card }]}>
-              <Text style={[s.modalTitle, { color: colors.text }]}>Aggiungi Partita</Text>
+              <Text style={[s.modalTitle, { color: colors.textPrimary }]}>Aggiungi Partita</Text>
               <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Squadra Casa *</Text>
               <TextInput style={[s.formInput, { color: colors.text, borderColor: colors.border }]} placeholder="Es: Juventus" placeholderTextColor={colors.textSecondary}
                 value={newMatch.home_team} onChangeText={t => setNewMatch(p => ({ ...p, home_team: t }))} />
@@ -1026,11 +1026,11 @@ export default function AdminConsoleV3() {
               <View style={s.dateTimeRow}>
                 <TouchableOpacity style={[s.dateTimeBtn, { borderColor: colors.border }]} onPress={() => setShowMatchDatePicker(true)}>
                   <Ionicons name="calendar" size={20} color={colors.accent} />
-                  <Text style={[s.dateTimeBtnText, { color: colors.text }]}>{matchDate.toLocaleDateString('it-IT')}</Text>
+                  <Text style={[s.dateTimeBtnText, { color: colors.textPrimary }]}>{matchDate.toLocaleDateString('it-IT')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[s.dateTimeBtn, { borderColor: colors.border }]} onPress={() => setShowMatchTimePicker(true)}>
                   <Ionicons name="time" size={20} color={colors.accent} />
-                  <Text style={[s.dateTimeBtnText, { color: colors.text }]}>{matchDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</Text>
+                  <Text style={[s.dateTimeBtnText, { color: colors.textPrimary }]}>{matchDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</Text>
                 </TouchableOpacity>
               </View>
               {showMatchDatePicker && (isWeb
@@ -1074,7 +1074,7 @@ export default function AdminConsoleV3() {
               <TouchableOpacity key={st} style={[s.modalOption, { borderColor: colors.border }]}
                 onPress={() => doOverride(st)}>
                 <View style={[s.statusDot, { backgroundColor: getStatusColor(st) }]} />
-                <Text style={[s.modalOptionText, { color: colors.text }]}>{STATUS_LABELS[st] || st}</Text>
+                <Text style={[s.modalOptionText, { color: colors.textPrimary }]}>{STATUS_LABELS[st] || st}</Text>
                 {selectedMatchday?.status === st && <Ionicons name="checkmark" size={18} color={colors.accent} />}
               </TouchableOpacity>
             ))}
@@ -1091,7 +1091,7 @@ export default function AdminConsoleV3() {
       <Modal visible={confirmModal.visible} transparent animationType="fade">
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setConfirmModal(p => ({ ...p, visible: false }))}>
           <View style={[s.modalContent, { backgroundColor: colors.card }]}>
-            <Text style={[s.modalTitle, { color: colors.text }]}>{confirmModal.title}</Text>
+            <Text style={[s.modalTitle, { color: colors.textPrimary }]}>{confirmModal.title}</Text>
             <Text style={{ color: colors.textSecondary, fontSize: 15, textAlign: 'center', marginBottom: 20 }}>{confirmModal.message}</Text>
             <View style={s.modalBtns}>
               <TouchableOpacity style={[s.modalBtn, { borderColor: colors.border }]}
