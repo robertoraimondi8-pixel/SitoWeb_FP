@@ -139,7 +139,7 @@ export default function ProfileEditScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.lg, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.lg, backgroundColor: '#F3F4F6' },
   headerTitle: { ...typography.titleM, color: colors.textPrimary },
   content: { padding: spacing.lg, gap: spacing.md },
   card: { backgroundColor: colors.card, borderRadius: borderRadius.lg, padding: spacing.lg, ...shadows.card },

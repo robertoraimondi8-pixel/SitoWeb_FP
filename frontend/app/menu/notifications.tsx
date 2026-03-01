@@ -116,7 +116,7 @@ export default function NotificationsScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.lg, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.lg, backgroundColor: '#F3F4F6' },
   headerTitle: { ...typography.titleM, color: colors.textPrimary },
   content: { padding: spacing.lg, gap: 8 },
   notifCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: colors.card, borderRadius: borderRadius.lg, padding: spacing.md, ...shadows.card },

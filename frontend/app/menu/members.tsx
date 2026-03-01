@@ -91,7 +91,7 @@ export default function MembersScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.lg, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.lg, backgroundColor: '#F3F4F6' },
   headerTitle: { ...typography.titleM, color: colors.textPrimary },
   subtitle: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, textAlign: 'center', paddingVertical: 10, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
   content: { padding: spacing.lg, gap: 8 },
