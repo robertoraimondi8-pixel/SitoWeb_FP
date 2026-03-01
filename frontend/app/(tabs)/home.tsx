@@ -14,7 +14,7 @@ import { goToPredictionsHub } from '../../src/utils/navigation';
 import { SideMenu } from '../../src/components/SideMenu';
 
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
-import { StatusBadge, LastFiveIndicator } from '../../src/components/ui';
+import { StatusBadge, LastFiveIndicator, AnimatedSweep } from '../../src/components/ui';
 import { BrandLogo } from '../../src/components/BrandLogo';
 
 // ── Color constants ──
