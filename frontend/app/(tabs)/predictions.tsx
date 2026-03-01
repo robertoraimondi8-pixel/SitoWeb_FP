@@ -884,17 +884,17 @@ const styles = StyleSheet.create({
   
   // Match Card
   matchCard: { 
-    backgroundColor: colors.card,
+    backgroundColor: '#14263D',
     borderRadius: borderRadius.xl, 
     padding: spacing.lg, 
     marginBottom: spacing.md, 
     borderWidth: 1.5,
     borderColor: colors.accent,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 4,
+    shadowColor: '#0E1A2B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    elevation: 6,
   },
   matchCardLocked: {
     opacity: 0.65,
