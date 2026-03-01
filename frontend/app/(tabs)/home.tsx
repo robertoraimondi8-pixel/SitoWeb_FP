@@ -411,7 +411,7 @@ export default function HomeScreen() {
           <Animated.View style={{ opacity: fadeTrend, transform: [{ translateY: slideTrend }] }}>
             <View style={s.trendCard}>
               <Text style={s.sectionLabelInCard}>{t('home.trend')}</Text>
-              <LastFiveIndicator data={data.last_5_performance} label={t('home.points_per_matchday')} />
+              <LastFiveIndicator data={data.last_5_performance} label={t('home.points_per_matchday')} dark />
             </View>
           </Animated.View>
         )}
