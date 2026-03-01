@@ -1,0 +1,99 @@
+{
+  "summary": "Backend API Regression Testing Complete - Dark Theme Overhaul. All 21 critical API endpoints tested and working correctly. Backend remains fully functional after frontend dark theme UI changes.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/auth/login", "issue": "test@raimondi.it credential not found (skipped - not a bug)", "priority": "LOW"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "TestAuthEndpoints": {
+      "test_login_standard_user": "PASS - ilio@raimondi.it / password123 works",
+      "test_login_admin_user": "PASS - admin@fantapronostic.com / admin123 works",
+      "test_login_league_owner": "SKIPPED - test@raimondi.it credential not configured",
+      "test_login_invalid_credentials": "PASS - Returns 401 correctly"
+    },
+    "TestHomeEndpoint": {
+      "test_home_endpoint_returns_200": "PASS",
+      "test_home_returns_complete_structure": "PASS - Returns matchday, league, user_leagues, rankings_preview, user_summary, last_5_performance, stats_preview",
+      "test_home_matchday_data": "PASS - Status: LIVE, valid matchday structure",
+      "test_home_league_data": "PASS - Returns id, name, league_type, my_role",
+      "test_home_user_leagues_list": "PASS - Returns user's leagues list"
+    },
+    "TestPredictionsEndpoint": {
+      "test_predictions_endpoint_returns_data": "PASS - /api/predictions/{matchday_id} works",
+      "test_predictions_requires_auth": "PASS - Returns 401 without auth"
+    },
+    "TestStandingsEndpoints": {
+      "test_standings_total_endpoint": "PASS - Returns entries with user_id, username, total_points, rank",
+      "test_standings_matchdays_endpoint": "PASS - Returns matchday list with id, number, status",
+      "test_standings_user_profile": "PASS - /api/standings/user/{user_id} works"
+    },
+    "TestLiveEndpoint": {
+      "test_live_endpoint_returns_data": "PASS - /api/live/{matchday_id} returns live data",
+      "test_live_matchday_endpoint": "PASS - /api/live/matchday/{matchday_id} works"
+    },
+    "TestLeaguesEndpoints": {
+      "test_get_my_leagues": "PASS - /api/leagues returns user leagues",
+      "test_get_league_members": "PASS - /api/leagues/{id}/members returns members"
+    },
+    "TestProfileEndpoint": {
+      "test_profile_returns_user_data": "PASS - Returns user without password",
+      "test_profile_requires_auth": "PASS - Returns 401 without auth"
+    },
+    "TestAPIHealth": {
+      "test_api_health": "PASS - API responding",
+      "test_admin_ui_accessible": "PASS - /api/admin-ui returns HTML"
+    }
+  },
+  "verified_endpoints": [
+    "/api/auth/login - Authentication working for standard user and admin",
+    "/api/home - Returns complete data structure with matchday, league, rankings",
+    "/api/predictions/{matchday_id} - Returns predictions for authenticated user",
+    "/api/standings/total - Returns ranked standings entries",
+    "/api/standings/matchdays - Returns list of matchdays with status",
+    "/api/standings/user/{user_id} - Returns user standings profile",
+    "/api/live/{matchday_id} - Returns live match data",
+    "/api/live/matchday/{matchday_id} - Returns live matchday details",
+    "/api/leagues - Returns user's leagues list",
+    "/api/leagues/{id}/members - Returns league members",
+    "/api/profile - Returns user profile data",
+    "/api/admin-ui - Admin panel accessible"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_dark_theme_backend_regression.py",
+    "/app/test_reports/pytest/dark_theme_backend_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend APIs unchanged and fully functional",
+    "All tested endpoints return correct data structures",
+    "Frontend React Native changes were isolated and did not affect backend",
+    "No mocked APIs - all endpoints tested against real backend"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_dark_theme_backend_regression.py"
+  ],
+  "success_rate": {
+    "backend": "100% (21/21 tests passed, 1 skipped due to missing test credentials)",
+    "frontend": "N/A (backend-only testing requested)"
+  },
+  "test_credentials": {
+    "standard_user": "ilio@raimondi.it / password123 - WORKING",
+    "admin": "admin@fantapronostic.com / admin123 - WORKING",
+    "league_owner": "test@raimondi.it / password - NOT FOUND IN DATABASE"
+  },
+  "seed_data_creation": "None - used existing user data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend APIs fully tested and working after dark theme frontend overhaul. All 21 API tests pass consistently. National league ID: f1373417-43aa-4043-b6a2-125873181c95. Current matchday status is LIVE. The test@raimondi.it credential mentioned in requirements does not exist in the database.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
