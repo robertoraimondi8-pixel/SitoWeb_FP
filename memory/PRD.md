@@ -243,6 +243,18 @@ Only visible for API-Football matches (not manual). No navigation, no schema cha
 ### Bug Fix - Predictions Screen Shows OPEN Instead of LIVE (Feb 23, 2026) - COMPLETED
 The `/api/leagues/{league_id}/fixtures` endpoint returned raw matchday status from DB without computing effective status. This caused the Predictions tab to show "APERTA" (OPEN) for matchdays that should be "LIVE" (first kickoff already passed). Fixed by adding `compute_matchday_status()` call in the fixtures loop so OPEN→LIVE and LIVE→COMPLETED transitions are applied.
 
+### UI/UX Overhaul Phase 1 (Mar 1, 2026) - COMPLETED
+Major visual refresh of the mobile app:
+- **Bug Fix**: Fixed crash in rankings.tsx (syntax error `)}}`→`)}` at line 316)
+- **Design System v3**: Added podium colors (gold/silver/bronze) to `designSystem.ts`
+- **Rankings**: Top 3 users now displayed with trophy/medal icons and podium colors (gold, silver, bronze). Rank labels "Primo", "Secondo", "Terzo" for context.
+- **Home Screen**: Staggered entry animations (Animated.View with translateY + opacity) for matchday card, LIVE box, performance card, and trend chart. Improved empty matchday state with icon and descriptive text.
+- **Predictions**: Added LOCKED banner at top when matchday is closed ("Giornata chiusa — i pronostici non sono modificabili"). Enhanced locked card with border. Value button selections have shadow feedback.
+- **Profile**: Replaced bulky admin/creator console cards with simple setting-row style buttons (icon + text + chevron). Logout button de-emphasized (muted text, no red border/background).
+- **Tab Bar**: Enhanced with elevation shadow, refined spacing (64px height), letter-spacing.
+- **StatusBadge**: Enhanced LIVE animation with subtle scale pulse (1→1.08) in addition to dot opacity.
+- Files: designSystem.ts, rankings.tsx, home.tsx, predictions.tsx, profile.tsx, StatusBadge.tsx, _layout.tsx
+
 ## Prioritized Backlog
 
 ### P1
