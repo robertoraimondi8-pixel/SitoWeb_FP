@@ -50,7 +50,24 @@ export default function HomeScreen() {
       const res = await apiCall(url, { token: authToken });
       setData(res);
       if (res.matchday?.countdown_seconds) setCountdown(res.matchday.countdown_seconds);
-      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+      // Stagger reveal animation
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+        Animated.stagger(120, [
+          Animated.parallel([
+            Animated.timing(fadeCard1, { toValue: 1, duration: 350, useNativeDriver: true }),
+            Animated.timing(slideAnim1, { toValue: 0, duration: 350, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+          ]),
+          Animated.parallel([
+            Animated.timing(fadeCard2, { toValue: 1, duration: 350, useNativeDriver: true }),
+            Animated.timing(slideAnim2, { toValue: 0, duration: 350, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+          ]),
+          Animated.parallel([
+            Animated.timing(fadeCard3, { toValue: 1, duration: 350, useNativeDriver: true }),
+            Animated.timing(slideAnim3, { toValue: 0, duration: 350, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+          ]),
+        ]),
+      ]).start();
       // Fetch unread notification count
       try {
         const nc = await apiCall<{ count: number }>('/notifications/unread-count', { token: authToken });
