@@ -16,7 +16,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { League, Matchday, StandingsData, getErrorMessage } from '../../src/types/api';
 
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
-import { StatusBadge } from '../../src/components/ui';
+import { StatusBadge, AnimatedSweep } from '../../src/components/ui';
 
 // Podium medal colors
 const PODIUM_COLORS = [colors.gold, colors.silver, colors.bronze];
