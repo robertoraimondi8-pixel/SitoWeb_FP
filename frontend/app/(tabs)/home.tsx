@@ -431,13 +431,13 @@ export default function HomeScreen() {
 }
 
 // ═══════════════════════════════════════════════════
-// STYLES — Premium Dark Sport Theme
+// STYLES — Premium Balanced (Light BG + Dark Hero)
 // ═══════════════════════════════════════════════════
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: DARK.bg },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: DARK.bg },
+  container: { flex: 1, backgroundColor: LIGHT.bg },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: LIGHT.bg },
 
-  // ── Header ──
+  // ── Header (light) ──
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -445,7 +445,9 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 8,
-    backgroundColor: DARK.bg,
+    backgroundColor: LIGHT.headerBg,
+    borderBottomWidth: 1,
+    borderBottomColor: LIGHT.border,
   },
   headerIcon: {
     width: 40,
@@ -469,11 +471,11 @@ const s = StyleSheet.create({
   },
   bellBadgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
 
-  // ── League Switcher ──
+  // ── League Switcher (white pill with border) ──
   leagueWrap: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: DARK.bg,
+    backgroundColor: LIGHT.headerBg,
     alignItems: 'center',
   },
   leagueBtn: {
@@ -483,36 +485,42 @@ const s = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 24,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: LIGHT.card,
+    borderWidth: 1,
+    borderColor: LIGHT.border,
     maxWidth: 320,
   },
   leagueText: {
     flex: 1,
     fontSize: 14,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: LIGHT.text,
   },
 
   // ── Switcher overlay ──
   switcherOverlay: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     zIndex: 100,
     justifyContent: 'flex-start',
     paddingTop: 120,
     paddingHorizontal: 24,
   },
   switcherDropdown: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: LIGHT.card,
     borderRadius: 16,
     padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
     elevation: 8,
   },
   switcherTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.textSecondary,
+    color: LIGHT.textSec,
     textTransform: 'uppercase',
     letterSpacing: 1,
     paddingHorizontal: 12,
@@ -527,25 +535,25 @@ const s = StyleSheet.create({
     borderRadius: 12,
   },
   switcherItemActive: { backgroundColor: DARK.accent + '12' },
-  switcherItemText: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
-  switcherItemSub: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+  switcherItemText: { fontSize: 14, fontWeight: '600', color: LIGHT.text },
+  switcherItemSub: { fontSize: 11, color: LIGHT.textSec, marginTop: 2 },
 
   // ── Scroll ──
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 16,
     paddingBottom: 80,
     gap: 16,
   },
 
-  // ── 1. Hero Card (seamless with header, slightly darker) ──
+  // ── 1. Hero Card (dark navy gradient) ──
   heroCard: {
     borderRadius: 16,
     padding: 24,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: '#0E1A2B',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 24,
     elevation: 6,
   },
@@ -581,19 +589,19 @@ const s = StyleSheet.create({
     marginBottom: 16,
   },
 
-  // CTA Button (orange gradient — icon inline)
+  // CTA Button (orange gradient + dark icon circle)
   ctaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingLeft: 24,
+    paddingRight: 8,
     borderRadius: 16,
     marginTop: 8,
     shadowColor: '#F5A623',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 16,
     elevation: 4,
   },
@@ -603,24 +611,32 @@ const s = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 0.3,
   },
+  ctaIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: DARK.navyDeep,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   // Empty hero
   emptyHero: { alignItems: 'center', paddingVertical: 32, gap: 8 },
   emptyHeroTitle: { fontSize: 18, fontWeight: '700', color: DARK.textSub },
   emptyHeroSub: { fontSize: 13, color: DARK.textMuted, textAlign: 'center' },
 
-  // ── 2. Classifica LIVE (soft gray, not pure white) ──
+  // ── 2. Classifica LIVE (white card, green accent) ──
   liveCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderRadius: 16,
-    backgroundColor: '#EEF1F5',
+    backgroundColor: LIGHT.card,
     borderLeftWidth: 4,
-    borderLeftColor: colors.success,
+    borderLeftColor: LIGHT.green,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
     shadowRadius: 16,
     elevation: 3,
   },
@@ -632,21 +648,21 @@ const s = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
-    backgroundColor: colors.success,
+    backgroundColor: LIGHT.green,
     alignSelf: 'flex-start',
   },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' },
   liveBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
-  liveTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary, letterSpacing: -0.3 },
+  liveTitle: { fontSize: 17, fontWeight: '700', color: LIGHT.text, letterSpacing: -0.3 },
   liveRight: { alignItems: 'flex-end', marginRight: 4 },
-  liveRank: { fontSize: 30, fontWeight: '800', color: colors.success, lineHeight: 34 },
-  livePoints: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginTop: 2 },
+  liveRank: { fontSize: 30, fontWeight: '800', color: LIGHT.green, lineHeight: 34 },
+  livePoints: { fontSize: 13, fontWeight: '600', color: LIGHT.textSec, marginTop: 2 },
 
-  // ── 3. Performance ──
+  // ── 3. Performance (dark navy cards on light bg) ──
   sectionLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: DARK.textMuted,
+    color: LIGHT.textMuted,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 8,
@@ -661,19 +677,16 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 8,
-    backgroundColor: DARK.card,
+    backgroundColor: DARK.navy,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: DARK.border,
-    shadowColor: '#000',
+    shadowColor: '#0E1A2B',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.15,
     shadowRadius: 16,
-    elevation: 3,
+    elevation: 4,
   },
   perfCardWarm: {
     backgroundColor: '#182D48',
-    borderColor: 'rgba(245,166,35,0.12)',
   },
   perfIcon: {
     width: 40,
@@ -701,18 +714,21 @@ const s = StyleSheet.create({
     lineHeight: 13,
   },
 
-  // ── 4. Trend ──
+  // ── 4. Trend (white card on light bg) ──
   trendCard: {
-    backgroundColor: DARK.card,
+    backgroundColor: LIGHT.card,
     borderRadius: 16,
     padding: 16,
-    borderWidth: 1,
-    borderColor: DARK.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 3,
   },
   sectionLabelInCard: {
     fontSize: 13,
     fontWeight: '700',
-    color: DARK.textMuted,
+    color: LIGHT.textMuted,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 12,
