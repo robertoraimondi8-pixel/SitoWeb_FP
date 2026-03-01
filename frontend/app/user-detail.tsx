@@ -140,7 +140,7 @@ export default function UserDetailScreen() {
       <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Rank Card — Dark Navy */}
         <View style={s.rankOuter}>
-          <LinearGradient colors={['#1A2F4D', '#0E1A2B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.rankCard}>
+          <LinearGradient colors={['#2C5FA8', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.rankCard}>
             <AnimatedSweep />
             <View style={[s.rankBadge, { backgroundColor: data.rank <= 3 ? colors.accent : 'rgba(255,255,255,0.1)' }]}>
               <Text style={s.rankNum}>#{data.rank}</Text>
@@ -155,14 +155,14 @@ export default function UserDetailScreen() {
         {/* Stats Grid — Dark Navy */}
         <View style={s.statsGrid}>
           <View style={s.statOuter}>
-            <LinearGradient colors={['#1B3050', '#142640']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.statCard}>
+            <LinearGradient colors={['#2C5FA8', '#1F4C8F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.statCard}>
               <Ionicons name="calendar" size={24} color={colors.info} />
               <Text style={s.statValue}>{data.matchdays_played}</Text>
               <Text style={s.statLabel}>Giornate</Text>
             </LinearGradient>
           </View>
           <View style={s.statOuter}>
-            <LinearGradient colors={['#1B3050', '#142640']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.statCard}>
+            <LinearGradient colors={['#2C5FA8', '#1F4C8F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.statCard}>
               <Ionicons name="trophy" size={24} color={colors.accent} />
               <Text style={s.statValue}>{data.total_base_points.toFixed(1)}</Text>
               <Text style={s.statLabel}>Punti Base</Text>
@@ -253,7 +253,7 @@ const s = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.accent,
     marginBottom: spacing.lg,
-    shadowColor: '#0E1A2B',
+    shadowColor: '#162F5C',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.2,
     shadowRadius: 30,
@@ -310,7 +310,7 @@ const s = StyleSheet.create({
   currentWeekCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#14263D',
+    backgroundColor: '#1F4C8F',
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
     borderLeftWidth: 4,
@@ -333,7 +333,7 @@ const s = StyleSheet.create({
   sectionTitle: { ...typography.titleM, color: colors.textPrimary, marginBottom: spacing.md },
   
   emptyCard: {
-    backgroundColor: '#14263D',
+    backgroundColor: '#1F4C8F',
     borderRadius: borderRadius.xl,
     padding: spacing.xl,
     alignItems: 'center',
@@ -347,7 +347,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#14263D',
+    backgroundColor: '#1F4C8F',
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
     marginBottom: spacing.sm,

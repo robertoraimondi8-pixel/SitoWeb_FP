@@ -19,8 +19,8 @@ import { BrandLogo } from '../../src/components/BrandLogo';
 
 // ── Color constants ──
 const DARK = {
-  navy: '#14263D',
-  navyDeep: '#0E1A2B',
+  navy: '#1F4C8F',
+  navyDeep: '#162F5C',
   accent: '#F5A623',
   accentGrad: '#F59E0B',
   text: '#FFFFFF',
@@ -32,7 +32,7 @@ const LIGHT = {
   bg: '#F3F4F6',
   card: '#FFFFFF',
   headerBg: '#FFFFFF',
-  text: '#111827',
+  text: '#2C3E50',
   textSec: '#64748B',
   textMuted: '#94A3B8',
   border: '#E5E7EB',
@@ -312,7 +312,7 @@ export default function HomeScreen() {
             >
               <Animated.View style={{ transform: [{ scale: ctaScale }] }}>
                 <LinearGradient
-                  colors={['#1A2F4D', '#0E1A2B']}
+                  colors={['#2C5FA8', '#162F5C']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.heroCard}
@@ -431,7 +431,7 @@ export default function HomeScreen() {
               {/* Position */}
               <View style={s.perfCardOuter}>
                 <LinearGradient
-                  colors={['#1B3050', '#142640']}
+                  colors={['#2C5FA8', '#1F4C8F']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.perfCardGrad}
@@ -467,7 +467,7 @@ export default function HomeScreen() {
               {/* Total Points */}
               <View style={s.perfCardOuter}>
                 <LinearGradient
-                  colors={['#1B3050', '#142640']}
+                  colors={['#2C5FA8', '#1F4C8F']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.perfCardGrad}
@@ -500,7 +500,7 @@ export default function HomeScreen() {
               {/* Avg Last 5 */}
               <View style={s.perfCardOuter}>
                 <LinearGradient
-                  colors={['#1B3050', '#142640']}
+                  colors={['#2C5FA8', '#1F4C8F']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.perfCardGrad}
@@ -539,7 +539,7 @@ export default function HomeScreen() {
           <Animated.View style={{ opacity: fadeTrend, transform: [{ translateY: slideTrend }] }}>
             <View style={s.perfCardOuter}>
                 <LinearGradient
-                  colors={['#1B3050', '#142640']}
+                  colors={['#2C5FA8', '#1F4C8F']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.trendCardGrad}
@@ -701,7 +701,7 @@ const s = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1.5,
     borderColor: DARK.accent,
-    shadowColor: '#0E1A2B',
+    shadowColor: '#162F5C',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.2,
     shadowRadius: 30,

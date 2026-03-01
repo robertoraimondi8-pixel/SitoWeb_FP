@@ -180,7 +180,7 @@ export default function LiveScreen() {
       {/* Points Summary — Dark Navy */}
       <View style={s.pointsOuter}>
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <LinearGradient colors={['#1A2F4D', '#0E1A2B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.pointsCard}>
+          <LinearGradient colors={['#2C5FA8', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.pointsCard}>
             <AnimatedSweep />
             <View style={s.pointsRow}>
               <View style={s.pointsItem}>
@@ -368,7 +368,7 @@ const s = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1.5,
     borderColor: colors.accent,
-    shadowColor: '#0E1A2B',
+    shadowColor: '#162F5C',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.2,
     shadowRadius: 30,
@@ -389,14 +389,14 @@ const s = StyleSheet.create({
   // Matches List
   scrollContent: { padding: spacing.lg, paddingBottom: 100 },
   matchCard: { 
-    backgroundColor: '#14263D',
+    backgroundColor: '#1F4C8F',
     borderRadius: borderRadius.xl, 
     padding: spacing.lg, 
     marginBottom: spacing.md, 
     borderWidth: 1.5,
     borderColor: colors.accent,
     overflow: 'hidden',
-    shadowColor: '#0E1A2B',
+    shadowColor: '#162F5C',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 24,
@@ -465,7 +465,7 @@ const s = StyleSheet.create({
     borderRadius: borderRadius.xl, 
     alignItems: 'center', 
     marginTop: spacing.sm,
-    backgroundColor: '#14263D',
+    backgroundColor: '#1F4C8F',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },

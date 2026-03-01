@@ -156,7 +156,7 @@ export default function OnboardingScreen() {
           <TouchableOpacity
             key={nl.id}
             testID="onboarding-national-btn"
-            style={[s.pathCard, { backgroundColor: '#14263D', borderColor: colors.accent }]}
+            style={[s.pathCard, { backgroundColor: '#1F4C8F', borderColor: colors.accent }]}
             onPress={() => handleNational(nl.id)}
             disabled={payLoading}
             activeOpacity={0.85}
@@ -183,7 +183,7 @@ export default function OnboardingScreen() {
         {/* Path B: Create Private League */}
         <TouchableOpacity
           testID="onboarding-create-private-btn"
-          style={[s.pathCard, { backgroundColor: '#14263D', borderColor: 'rgba(255,255,255,0.08)' }]}
+          style={[s.pathCard, { backgroundColor: '#1F4C8F', borderColor: 'rgba(255,255,255,0.08)' }]}
           onPress={handleCreatePrivate}
           activeOpacity={0.85}
         >
@@ -203,7 +203,7 @@ export default function OnboardingScreen() {
         {/* Path C: Join Private League */}
         <TouchableOpacity
           testID="onboarding-join-private-btn"
-          style={[s.pathCard, { backgroundColor: '#14263D', borderColor: 'rgba(255,255,255,0.08)' }]}
+          style={[s.pathCard, { backgroundColor: '#1F4C8F', borderColor: 'rgba(255,255,255,0.08)' }]}
           onPress={handleJoinPrivate}
           activeOpacity={0.85}
         >

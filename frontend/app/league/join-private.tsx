@@ -63,7 +63,7 @@ export default function JoinPrivateScreen() {
             {t('join_private_desc')}
           </Text>
 
-          <View style={[s.inputWrap, { borderColor: colors.border, backgroundColor: '#14263D' }]}>
+          <View style={[s.inputWrap, { borderColor: colors.border, backgroundColor: '#1F4C8F' }]}>
             <TextInput
               testID="join-code-input"
               style={[s.codeInput, { color: '#FFFFFF' }]}

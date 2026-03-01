@@ -91,7 +91,7 @@ export default function ProfileScreen() {
         {/* User Card — Premium Dark */}
         <View style={styles.userCardOuter}>
           <LinearGradient
-            colors={['#1A2F4D', '#0E1A2B']}
+            colors={['#2C5FA8', '#162F5C']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.userCard}
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
-    shadowColor: '#0E1A2B',
+    shadowColor: '#162F5C',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.2,
     shadowRadius: 30,
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#1A2F4D',
+    borderColor: '#2C5FA8',
   },
   username: { 
     ...typography.titleL,
@@ -449,12 +449,12 @@ const styles = StyleSheet.create({
   
   // Admin Card
   adminCard: {
-    backgroundColor: '#14263D',
+    backgroundColor: '#1F4C8F',
     marginHorizontal: spacing.lg,
     marginTop: spacing.lg,
     padding: spacing.xl,
     borderRadius: borderRadius.xl,
-    shadowColor: '#0E1A2B',
+    shadowColor: '#162F5C',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 24,

@@ -66,7 +66,7 @@ export default function JoinLeagueScreen() {
             <View style={s.section}>
               <Text style={[s.sectionTitle, { color: colors.accent }]}>{t('join_national')}</Text>
               {nationalLeagues.map(l => (
-                  <View key={l.id} style={[s.nationalCard, { backgroundColor: '#14263D', borderColor: colors.accent }]}>
+                  <View key={l.id} style={[s.nationalCard, { backgroundColor: '#1F4C8F', borderColor: colors.accent }]}>
                   <Ionicons name="globe" size={28} color={colors.accent} />
                   <View style={{ flex: 1 }}>
                     <Text style={[s.nationalName, { color: '#FFFFFF' }]}>{l.name}</Text>

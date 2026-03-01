@@ -219,7 +219,7 @@ export default function LeagueManageScreen() {
                       style={s.deleteMdBtn}
                       onPress={() => handleDeleteMatchday(md.id, md.number)}
                     >
-                      <Ionicons name="trash-outline" size={16} color={colors.error || '#EF4444'} />
+                      <Ionicons name="trash-outline" size={16} color={colors.error || '#E74C3C'} />
                     </TouchableOpacity>
                     <Ionicons name={expandedMd === md.id ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textSecondary} />
                   </TouchableOpacity>
@@ -233,7 +233,7 @@ export default function LeagueManageScreen() {
                             {match.start_time && <Text style={[s.matchKickoff, { color: colors.textSecondary }]}>{match.start_time}</Text>}
                           </View>
                           <TouchableOpacity onPress={() => handleDeleteMatch(md.id, match.id)} style={s.deleteMatchBtn}>
-                            <Ionicons name="close-circle-outline" size={20} color={colors.error || '#EF4444'} />
+                            <Ionicons name="close-circle-outline" size={20} color={colors.error || '#E74C3C'} />
                           </TouchableOpacity>
                         </View>
                       ))}

@@ -117,12 +117,12 @@ export default function CreateLeagueScreen() {
             Condividi il codice con i tuoi amici per invitarli.
           </Text>
 
-          <View style={[s.codeCard, { backgroundColor: '#14263D', borderColor: colors.accent }]}>
+          <View style={[s.codeCard, { backgroundColor: '#1F4C8F', borderColor: colors.accent }]}>
             <Text style={[s.codeLabel, { color: 'rgba(255,255,255,0.5)' }]}>CODICE INVITO</Text>
             <Text style={[s.codeValue, { color: colors.accent }]}>{created.invite_code}</Text>
           </View>
 
-          <View style={[s.rulesCard, { backgroundColor: '#14263D', borderColor: 'rgba(255,255,255,0.08)' }]}>
+          <View style={[s.rulesCard, { backgroundColor: '#1F4C8F', borderColor: 'rgba(255,255,255,0.08)' }]}>
             <Text style={[s.rulesTitle, { color: '#FFFFFF' }]}>Regole configurate</Text>
             <Text style={[s.rulesRow, { color: 'rgba(255,255,255,0.5)' }]}>Giornate: {created.start_matchday} → {created.end_matchday}</Text>
             <Text style={[s.rulesRow, { color: 'rgba(255,255,255,0.5)' }]}>Termine giocata: {created.bet_deadline_minutes} min prima</Text>
@@ -296,7 +296,7 @@ export default function CreateLeagueScreen() {
             ))}
           </View>
 
-          {error ? <Text style={[s.errorText, { color: colors.error || '#EF4444' }]}>{error}</Text> : null}
+          {error ? <Text style={[s.errorText, { color: colors.error || '#E74C3C' }]}>{error}</Text> : null}
 
           {/* Submit */}
           <TouchableOpacity

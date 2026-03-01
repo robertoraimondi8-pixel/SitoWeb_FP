@@ -323,7 +323,7 @@ export default function RankingsScreen() {
 
           <View style={styles.listCardOuter}>
             <LinearGradient
-              colors={['#1B3050', '#142640']}
+              colors={['#2C5FA8', '#1F4C8F']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.listCard}
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   },
   tabRow: { 
     flexDirection: 'row', 
-    backgroundColor: '#14263D',
+    backgroundColor: '#1F4C8F',
     borderRadius: borderRadius.xl, 
     padding: spacing.xs,
   },
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg, 
     paddingVertical: spacing.md, 
     borderRadius: borderRadius.xl, 
-    backgroundColor: '#14263D',
+    backgroundColor: '#1F4C8F',
     borderWidth: 1.5,
     borderColor: colors.accent,
     shadowColor: '#000',
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#14263D',
+    backgroundColor: '#1F4C8F',
     borderRadius: borderRadius.xl,
     paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.accent,
     overflow: 'hidden',
-    shadowColor: '#0E1A2B',
+    shadowColor: '#162F5C',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.2,
     shadowRadius: 30,

@@ -480,8 +480,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   leagueChipActive: {
-    backgroundColor: '#14263D',
-    borderColor: '#14263D',
+    backgroundColor: '#1F4C8F',
+    borderColor: '#1F4C8F',
   },
   leagueChipText: {
     fontSize: 14,
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: 10,
-    backgroundColor: '#14263D',
+    backgroundColor: '#1F4C8F',
   },
   tableHeaderCell: {
     fontSize: 11,

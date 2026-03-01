@@ -131,7 +131,7 @@ export default function UserPredictionsScreen() {
 
       {/* Summary Card — Dark Navy */}
       <View style={s.summaryOuter}>
-        <LinearGradient colors={['#1A2F4D', '#0E1A2B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.summaryCard}>
+        <LinearGradient colors={['#2C5FA8', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.summaryCard}>
           <AnimatedSweep />
           <View style={s.summaryRow}>
             <View style={s.summaryItem}>
@@ -267,7 +267,7 @@ const s = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1.5,
     borderColor: colors.accent,
-    shadowColor: '#0E1A2B',
+    shadowColor: '#162F5C',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.2,
     shadowRadius: 30,
@@ -290,14 +290,14 @@ const s = StyleSheet.create({
   
   // Prediction card — Dark Navy
   predCard: { 
-    backgroundColor: '#14263D',
+    backgroundColor: '#1F4C8F',
     borderRadius: borderRadius.xl, 
     padding: spacing.lg, 
     marginBottom: spacing.md, 
     borderWidth: 1.5, 
     borderColor: colors.accent,
     overflow: 'hidden',
-    shadowColor: '#0E1A2B',
+    shadowColor: '#162F5C',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 24,

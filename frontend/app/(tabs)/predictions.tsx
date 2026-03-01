@@ -885,14 +885,14 @@ const styles = StyleSheet.create({
   
   // Match Card
   matchCard: { 
-    backgroundColor: '#14263D',
+    backgroundColor: '#1F4C8F',
     borderRadius: borderRadius.xl, 
     padding: spacing.lg, 
     marginBottom: spacing.md, 
     borderWidth: 1.5,
     borderColor: colors.accent,
     overflow: 'hidden',
-    shadowColor: '#0E1A2B',
+    shadowColor: '#162F5C',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 24,
@@ -1125,8 +1125,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   valueBtnActive: {
-    backgroundColor: '#14263D',
-    borderColor: '#14263D',
+    backgroundColor: '#1F4C8F',
+    borderColor: '#1F4C8F',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
