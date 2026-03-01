@@ -10,14 +10,17 @@ interface MatchdayPerformance {
 interface LastFiveIndicatorProps {
   data: MatchdayPerformance[];
   label?: string;
+  dark?: boolean;
 }
 
 const BAR_MAX_HEIGHT = 72;
 const BAR_WIDTH = 20;
 
-export const LastFiveIndicator: React.FC<LastFiveIndicatorProps> = ({ data, label }) => {
+export const LastFiveIndicator: React.FC<LastFiveIndicatorProps> = ({ data, label, dark }) => {
   const maxPts = Math.max(...data.map(d => d.points), 1);
   const lastIdx = data.length - 1;
+  const mutedColor = dark ? 'rgba(255,255,255,0.45)' : colors.textMuted;
+  const primaryColor = dark ? '#FFFFFF' : colors.textPrimary;
 
   return (
     <View style={styles.container}>
@@ -27,32 +30,29 @@ export const LastFiveIndicator: React.FC<LastFiveIndicatorProps> = ({ data, labe
           const isLatest = idx === lastIdx;
           return (
             <View key={item.matchday_number} style={styles.barGroup}>
-              {/* Points label above bar */}
-              <Text style={[styles.barValue, isLatest && styles.barValueHighlight]}>
+              <Text style={[styles.barValue, { color: isLatest ? colors.accent : mutedColor }]}>
                 {item.points.toFixed(1)}
               </Text>
-              {/* Bar */}
               <View style={styles.barTrack}>
                 <View
                   style={[
                     styles.bar,
                     {
                       height: barH,
-                      backgroundColor: isLatest ? colors.accent : colors.accent + '38',
+                      backgroundColor: isLatest ? colors.accent : (dark ? 'rgba(245,166,35,0.25)' : colors.accent + '38'),
                     },
                     isLatest && styles.barHighlight,
                   ]}
                 />
               </View>
-              {/* Matchday number */}
-              <Text style={[styles.barLabel, isLatest && styles.barLabelHighlight]}>
+              <Text style={[styles.barLabel, { color: isLatest ? primaryColor : mutedColor }, isLatest && { fontWeight: '700' }]}>
                 {item.matchday_number}
               </Text>
             </View>
           );
         })}
       </View>
-      {label && <Text style={styles.hint}>{label}</Text>}
+      {label && <Text style={[styles.hint, { color: mutedColor }]}>{label}</Text>}
     </View>
   );
 };
