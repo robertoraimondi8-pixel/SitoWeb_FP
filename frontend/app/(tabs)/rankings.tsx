@@ -321,15 +321,23 @@ export default function RankingsScreen() {
             )}
           </View>
 
-          <View style={styles.listCard}>
+          <View style={styles.listCardOuter}>
+            <LinearGradient
+              colors={['#1B3050', '#142640']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.listCard}
+            >
+              <AnimatedSweep />
             {filteredEntries.length > 0 ? (
               filteredEntries.map((entry: StandingEntry, i: number) => renderEntry(entry, i))
             ) : (
               <View style={styles.emptySearch} data-testid="no-results">
-                <Ionicons name="person-outline" size={32} color={colors.textMuted} />
+                <Ionicons name="person-outline" size={32} color="rgba(255,255,255,0.4)" />
                 <Text style={styles.emptySearchText}>Nessun utente trovato</Text>
               </View>
             )}
+            </LinearGradient>
           </View>
 
           {standings?.my_position && !standings.entries?.find((e: StandingEntry) => e.is_current_user) && (
