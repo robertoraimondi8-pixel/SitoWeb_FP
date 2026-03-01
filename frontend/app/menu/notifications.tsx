@@ -119,7 +119,7 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.lg, backgroundColor: '#F3F4F6' },
   headerTitle: { ...typography.titleM, color: colors.textPrimary },
   content: { padding: spacing.lg, gap: 8 },
-  notifCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: colors.card, borderRadius: borderRadius.lg, padding: spacing.md, ...shadows.card },
+  notifCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: colors.card, borderRadius: borderRadius.xl, padding: spacing.md, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 4 },
   notifUnread: { borderLeftWidth: 3, borderLeftColor: colors.accent },
   iconWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.accent + '15', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   iconWrapRead: { backgroundColor: colors.border + '40' },
