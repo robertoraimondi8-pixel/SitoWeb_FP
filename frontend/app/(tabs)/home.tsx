@@ -213,17 +213,17 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={s.container} edges={['top']}>
-      {/* ═══ HEADER (dark premium) ═══ */}
+      {/* ═══ HEADER (light premium) ═══ */}
       <View style={s.header}>
         <TouchableOpacity style={s.headerIcon} onPress={() => setMenuOpen(true)} testID="hamburger-menu-btn">
-          <Ionicons name="menu" size={24} color={DARK.text} />
+          <Ionicons name="menu" size={24} color={LIGHT.text} />
         </TouchableOpacity>
         <View style={s.headerCenter}>
           <BrandLogo variant="wordmark" size="lg" />
         </View>
         <View style={s.headerRight}>
           <TouchableOpacity style={s.headerIcon} onPress={() => router.push('/menu/notifications')} testID="notification-bell-btn">
-            <Ionicons name="notifications-outline" size={22} color={DARK.text} />
+            <Ionicons name="notifications-outline" size={22} color={LIGHT.text} />
             {unreadCount > 0 && (
               <View style={s.bellBadge} testID="notification-badge">
                 <Text style={s.bellBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
@@ -231,7 +231,7 @@ export default function HomeScreen() {
             )}
           </TouchableOpacity>
           <TouchableOpacity style={s.headerIcon} onPress={() => router.push('/league/list')}>
-            <Ionicons name="people-outline" size={22} color={DARK.text} />
+            <Ionicons name="people-outline" size={22} color={LIGHT.text} />
           </TouchableOpacity>
         </View>
       </View>
