@@ -150,7 +150,7 @@ export const borderRadius = {
   sm: 8,
   md: 12,
   lg: 16,
-  xl: 16,
+  xl: 22,
   pill: 9999,
 };
 
