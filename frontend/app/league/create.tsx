@@ -144,14 +144,14 @@ export default function CreateLeagueScreen() {
 
   // ── FORM ────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView style={[s.container, { backgroundColor: '#F5F6F8' }]} edges={['top']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         {/* Header */}
         <View style={s.header}>
           <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <Ionicons name="close" size={24} color={colors.text} />
+            <Ionicons name="close" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={[s.headerTitle, { color: colors.text }]}>Crea Nuova Lega</Text>
+          <Text style={[s.headerTitle, { color: colors.textPrimary }]}>Crea Nuova Lega</Text>
           <View style={s.backBtn} />
         </View>
 
