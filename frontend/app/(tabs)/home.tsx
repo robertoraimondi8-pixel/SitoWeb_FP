@@ -677,6 +677,20 @@ const styles = StyleSheet.create({
   ctaButton: {
     marginTop: spacing.sm,
   },
+  emptyMatchdayState: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    gap: spacing.sm,
+  },
+  emptyMatchdayTitle: {
+    ...typography.titleM,
+    color: colors.textSecondary,
+  },
+  emptyMatchdaySubtitle: {
+    ...typography.bodyS,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
 
   // ── 2. Performance Card ──
   perfCard: {
