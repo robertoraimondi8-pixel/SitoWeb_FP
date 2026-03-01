@@ -4,14 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { useTheme } from '../../src/contexts/ThemeContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, spacing, borderRadius } from '../../src/theme/designSystem';
 import * as WebBrowser from 'expo-web-browser';
 
 export default function JoinLeagueScreen() {
   const { t } = useTranslation();
-  const { colors } = useTheme();
   const { token } = useAuth();
   const router = useRouter();
   const [code, setCode] = useState('');
@@ -51,13 +51,13 @@ export default function JoinLeagueScreen() {
   };
 
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView style={[s.container, { backgroundColor: '#F5F6F8' }]} edges={['top']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <View style={s.header}>
+        <View style={[s.header, { backgroundColor: '#F3F4F6' }]}>
           <TouchableOpacity testID="back-btn" onPress={() => router.back()} style={s.backBtn}>
-            <Ionicons name="close" size={24} color={colors.text} />
+            <Ionicons name="close" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={[s.headerTitle, { color: colors.text }]}>{t('join_league')}</Text>
+          <Text style={[s.headerTitle, { color: colors.textPrimary }]}>{t('join_league')}</Text>
         </View>
 
         <ScrollView contentContainerStyle={s.content}>
@@ -66,11 +66,11 @@ export default function JoinLeagueScreen() {
             <View style={s.section}>
               <Text style={[s.sectionTitle, { color: colors.accent }]}>{t('join_national')}</Text>
               {nationalLeagues.map(l => (
-                <View key={l.id} style={[s.nationalCard, { backgroundColor: colors.card, borderColor: colors.accent }]}>
+                  <View key={l.id} style={[s.nationalCard, { backgroundColor: '#14263D', borderColor: colors.accent }]}>
                   <Ionicons name="globe" size={28} color={colors.accent} />
                   <View style={{ flex: 1 }}>
-                    <Text style={[s.nationalName, { color: colors.text }]}>{l.name}</Text>
-                    <Text style={[s.nationalMeta, { color: colors.textSecondary }]}>{l.member_count} membri</Text>
+                    <Text style={[s.nationalName, { color: '#FFFFFF' }]}>{l.name}</Text>
+                    <Text style={[s.nationalMeta, { color: 'rgba(255,255,255,0.5)' }]}>{l.member_count} membri</Text>
                   </View>
                   <View>
                     <Text style={[s.price, { color: colors.accent }]}>{t('membership_price')}</Text>
