@@ -1,27 +1,29 @@
 /**
- * FantaPronostic Premium Dark Sport Design System v4
- * Palette ufficiale: Deep Navy + Orange Accent
- * Dark premium background with elevated cards
+ * FantaPronostic – BRAND COLOR SYSTEM UFFICIALE v5
+ * Primary Blue (#1F4C8F) + Deep Blue (#162F5C) + Orange CTA (#F5A623)
  */
 
 export const colors = {
-  // Primary palette (PREMIUM)
-  primary: '#0E1A2B',
-  primaryLight: '#14263D',
-  accent: '#F5A623',
-  accentDark: '#F59E0B',
-  accentLight: '#FEF3C7',
+  // 1️⃣ PRIMARY BRAND COLORS
+  primary: '#1F4C8F',        // Logo Blue — card principali, elementi premium
+  primaryLight: '#2C5FA8',   // Gradient top — parte alta gradienti
+  primaryDark: '#162F5C',    // Deep Blue — parte bassa gradienti, hover, profondità
+  
+  accent: '#F5A623',         // Primary Orange — CTA, bottoni, punteggi
+  accentDark: '#E18B00',     // Dark Orange — ombra bottoni, pressed
+  accentLight: '#FEF3C7',    // Light accent — badge sfondo
   accentGlow: 'rgba(245, 166, 35, 0.25)',
   
-  // Backgrounds - PREMIUM DARK
-  background: '#F3F4F6',
-  card: '#FFFFFF',
+  // 3️⃣ NEUTRAL SYSTEM
+  background: '#F5F6F8',     // Warm Background — base app chiara
+  backgroundBottom: '#ECEFF3', // Light Gradient Bottom
+  card: '#FFFFFF',           // White Pure — testo su blu
   cardHighlight: '#F8FAFC',
   
-  // Premium dark surfaces (for home & hero sections)
-  surfaceDark: '#0E1A2B',
-  surfaceNavy: '#14263D',
-  surfaceNavyLight: '#1A3050',
+  // Premium dark surfaces
+  surfaceDark: '#162F5C',    // Deep Blue
+  surfaceNavy: '#1F4C8F',   // Logo Blue
+  surfaceNavyLight: '#2C5FA8', // Lighter blue
   
   // Borders & Separators
   border: '#E5E7EB',
@@ -29,10 +31,10 @@ export const colors = {
   borderDark: 'rgba(255,255,255,0.08)',
   separator: '#E5E7EB',
   
-  // Status colors
-  success: '#16A34A',
+  // 2️⃣ SUPPORT COLORS
+  success: '#2ECC71',        // +1.0, check verde, LIVE indicator
   successLight: '#DCFCE7',
-  error: '#DC2626',
+  error: '#E74C3C',          // Pronostico errato, alert, stato negativo
   errorLight: '#FEE2E2',
   warning: '#F5A623',
   warningLight: '#FEF3C7',
@@ -40,16 +42,16 @@ export const colors = {
   infoLight: '#DBEAFE',
   
   // Text
-  textPrimary: '#111827',
+  textPrimary: '#2C3E50',    // Primary Text Dark — testo su fondo chiaro
   textSecondary: '#64748B',
   textMuted: '#94A3B8',
-  textInverse: '#FFFFFF',
+  textInverse: '#FFFFFF',    // White Pure — testo su blu
   textOnDark: '#FFFFFF',
   textOnDarkMuted: 'rgba(255,255,255,0.6)',
   
   // Matchday status
   statusOpen: '#1D4ED8',
-  statusLive: '#DC2626',
+  statusLive: '#E74C3C',
   statusLocked: '#D97706',
   statusCompleted: '#64748B',
   
@@ -65,10 +67,20 @@ export const colors = {
   bronze: '#CD7F32',
   
   // Tab bar
-  tabBarBackground: '#FFFFFF',
+  tabBarBackground: '#162F5C',
   tabBarActive: '#F5A623',
   tabBarInactive: '#94A3B8',
-  tabBarBorder: '#E5E7EB',
+  tabBarBorder: 'rgba(255,255,255,0.06)',
+};
+
+// 🎯 GRADIENTI UFFICIALI
+export const brandGradients = {
+  // Card Gradient Premium: colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
+  cardPremium: ['#2C5FA8', '#1F4C8F', '#162F5C'] as const,
+  // CTA Gradient: colors={['#F8B13A', '#F5A623', '#E18B00']}
+  cta: ['#F8B13A', '#F5A623', '#E18B00'] as const,
+  // Background App: colors={['#F5F6F8', '#ECEFF3']}
+  background: ['#F5F6F8', '#ECEFF3'] as const,
 };
 
 export const typography = {
@@ -146,11 +158,14 @@ export const spacing = {
   xxxl: 48,
 };
 
+// 📐 RADIUS SYSTEM UFFICIALE
 export const borderRadius = {
   sm: 8,
   md: 12,
-  lg: 16,
-  xl: 22,
+  lg: 18,     // Bottoni
+  xl: 22,     // Card principali
+  icon: 20,   // Cerchi icone
+  badge: 12,  // Badge piccoli
   pill: 9999,
 };
 
@@ -177,6 +192,13 @@ export const shadows = {
     shadowRadius: 24,
     elevation: 6,
   },
+  premium: {
+    shadowColor: '#162F5C' as string,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 30,
+    elevation: 10,
+  },
   button: {
     shadowColor: '#F5A623' as string,
     shadowOffset: { width: 0, height: 4 },
@@ -194,9 +216,9 @@ export const shadows = {
   tabBar: {
     shadowColor: '#000' as string,
     shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
-    elevation: 4,
+    elevation: 8,
   },
 };
 
@@ -231,6 +253,7 @@ export const getPerformanceColor = (points: number) => {
 
 export default {
   colors,
+  brandGradients,
   typography,
   spacing,
   borderRadius,
