@@ -735,75 +735,70 @@ const styles = StyleSheet.create({
   },
   emptyMatchdayState: {
     alignItems: 'center',
-    paddingVertical: spacing.xl,
+    paddingVertical: spacing.xxl,
     gap: spacing.sm,
   },
   emptyMatchdayTitle: {
-    ...typography.titleM,
-    color: colors.textSecondary,
+    fontSize: 18,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.7)',
   },
   emptyMatchdaySubtitle: {
-    ...typography.bodyS,
-    color: colors.textMuted,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.4)',
     textAlign: 'center',
   },
 
-  // ── 2. Performance Card ──
+  // ── 2. Performance Card (Premium Grid) ──
   perfCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
     padding: spacing.xl,
-    ...shadows.card,
+    elevation: 4,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
   },
-  perfPositionRow: {
-    alignItems: 'center',
+  perfGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
     marginTop: spacing.lg,
-    marginBottom: spacing.md,
   },
-  perfPositionValue: {
-    fontSize: 40,
+  perfGridItem: {
+    flex: 1,
+    minWidth: '45%',
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.lg,
+  },
+  perfGridItemHighlight: {
+    backgroundColor: colors.accent + '08',
+    borderWidth: 1,
+    borderColor: colors.accent + '20',
+  },
+  perfGridIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
+  perfGridValue: {
+    fontSize: 22,
     fontWeight: '800',
     color: colors.textPrimary,
-    lineHeight: 46,
+    letterSpacing: -0.5,
   },
-  perfPositionLabel: {
-    ...typography.meta,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  perfDivider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.lg,
-  },
-  perfStatsRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  perfStatItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  perfStatValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  perfStatLabel: {
-    ...typography.metaSmall,
+  perfGridLabel: {
+    fontSize: 10,
+    fontWeight: '600',
     color: colors.textMuted,
-    marginTop: spacing.xs,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    marginTop: 4,
     textAlign: 'center',
-  },
-  perfStatSep: {
-    width: 1,
-    height: 32,
-    backgroundColor: colors.border,
-    alignSelf: 'center',
   },
 
   // ── 4. Rankings ──
