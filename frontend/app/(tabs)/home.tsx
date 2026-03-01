@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, RefreshControl, ActivityIndicator, Animated, Easing } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, RefreshControl, ActivityIndicator, Animated, Easing, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,10 +13,23 @@ import { HomeData, League } from '../../src/types/api';
 import { goToPredictionsHub } from '../../src/utils/navigation';
 import { SideMenu } from '../../src/components/SideMenu';
 
-// Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
-import { SectionCard, StatusBadge, PrimaryButton, LastFiveIndicator } from '../../src/components/ui';
+import { StatusBadge, LastFiveIndicator } from '../../src/components/ui';
 import { BrandLogo } from '../../src/components/BrandLogo';
+
+// ── Premium color constants (home-specific dark theme) ──
+const DARK = {
+  bg: '#0E1A2B',
+  card: '#14263D',
+  cardLight: '#1A3050',
+  accent: '#F5A623',
+  accentGrad: '#F59E0B',
+  text: '#FFFFFF',
+  textMuted: 'rgba(255,255,255,0.55)',
+  textSub: 'rgba(255,255,255,0.75)',
+  border: 'rgba(255,255,255,0.08)',
+  warmBg: '#1E2D1E', // very subtle warm for position card
+};
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -30,17 +43,54 @@ export default function HomeScreen() {
   const [showLeagueSwitcher, setShowLeagueSwitcher] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const fadeAnim = useState(new Animated.Value(0))[0];
-  const slideAnim1 = useState(new Animated.Value(30))[0];
-  const slideAnim2 = useState(new Animated.Value(30))[0];
-  const slideAnim3 = useState(new Animated.Value(30))[0];
-  const fadeCard1 = useState(new Animated.Value(0))[0];
-  const fadeCard2 = useState(new Animated.Value(0))[0];
-  const fadeCard3 = useState(new Animated.Value(0))[0];
+
+  // Animations
+  const fadeScreen = useRef(new Animated.Value(0)).current;
+  const slideHero = useRef(new Animated.Value(24)).current;
+  const fadeHero = useRef(new Animated.Value(0)).current;
+  const slideLive = useRef(new Animated.Value(24)).current;
+  const fadeLive = useRef(new Animated.Value(0)).current;
+  const slidePerf = useRef(new Animated.Value(24)).current;
+  const fadePerf = useRef(new Animated.Value(0)).current;
+  const slideTrend = useRef(new Animated.Value(24)).current;
+  const fadeTrend = useRef(new Animated.Value(0)).current;
+  // CTA press animation
+  const ctaScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (token) refreshLeagues(token);
   }, [token]);
+
+  const runEntryAnimation = () => {
+    // Reset
+    fadeScreen.setValue(0);
+    slideHero.setValue(24); fadeHero.setValue(0);
+    slideLive.setValue(24); fadeLive.setValue(0);
+    slidePerf.setValue(24); fadePerf.setValue(0);
+    slideTrend.setValue(24); fadeTrend.setValue(0);
+
+    Animated.parallel([
+      Animated.timing(fadeScreen, { toValue: 1, duration: 200, useNativeDriver: true }),
+      Animated.stagger(100, [
+        Animated.parallel([
+          Animated.timing(fadeHero, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.timing(slideHero, { toValue: 0, duration: 300, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        ]),
+        Animated.parallel([
+          Animated.timing(fadeLive, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.timing(slideLive, { toValue: 0, duration: 300, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        ]),
+        Animated.parallel([
+          Animated.timing(fadePerf, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.timing(slidePerf, { toValue: 0, duration: 300, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        ]),
+        Animated.parallel([
+          Animated.timing(fadeTrend, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.timing(slideTrend, { toValue: 0, duration: 300, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        ]),
+      ]),
+    ]).start();
+  };
 
   const fetchHome = useCallback(async (overrideLeagueId?: string) => {
     const authToken = token || await AsyncStorage.getItem('access_token');
@@ -51,25 +101,7 @@ export default function HomeScreen() {
       const res = await apiCall(url, { token: authToken });
       setData(res);
       if (res.matchday?.countdown_seconds) setCountdown(res.matchday.countdown_seconds);
-      // Stagger reveal animation
-      Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-        Animated.stagger(120, [
-          Animated.parallel([
-            Animated.timing(fadeCard1, { toValue: 1, duration: 350, useNativeDriver: true }),
-            Animated.timing(slideAnim1, { toValue: 0, duration: 350, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-          ]),
-          Animated.parallel([
-            Animated.timing(fadeCard2, { toValue: 1, duration: 350, useNativeDriver: true }),
-            Animated.timing(slideAnim2, { toValue: 0, duration: 350, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-          ]),
-          Animated.parallel([
-            Animated.timing(fadeCard3, { toValue: 1, duration: 350, useNativeDriver: true }),
-            Animated.timing(slideAnim3, { toValue: 0, duration: 350, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-          ]),
-        ]),
-      ]).start();
-      // Fetch unread notification count
+      runEntryAnimation();
       try {
         const nc = await apiCall<{ count: number }>('/notifications/unread-count', { token: authToken });
         setUnreadCount(nc.count);
@@ -80,19 +112,16 @@ export default function HomeScreen() {
         if (didLogout) router.replace('/(auth)/login');
         return;
       }
-      console.error('Home fetch error:', e.message);
+      console.error('Home fetch error:', (e as any).message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token, activeLeague?.id, handleAuthError, router, fadeAnim]);
+  }, [token, activeLeague?.id, handleAuthError, router]);
 
-  // Re-fetch when activeLeague changes (e.g. from context)
   useEffect(() => {
     if (activeLeague?.id) {
-      setData(null);
-      setCountdown(0);
-      setLoading(true);
+      setData(null); setCountdown(0); setLoading(true);
       fetchHome(activeLeague.id);
     }
   }, [activeLeague?.id]);
@@ -115,33 +144,30 @@ export default function HomeScreen() {
     return num.toFixed(1);
   };
 
-  const getStatusLabel = (status: string) => {
-    return t(`status.${status?.toUpperCase()}`, { defaultValue: status });
-  };
+  const getStatusLabel = (status: string) => t(`status.${status?.toUpperCase()}`, { defaultValue: status });
 
   const getCtaConfig = (status: string) => {
     switch (status?.toUpperCase()) {
-      case 'OPEN':
-        return { icon: 'create-outline' as const, label: t('home.insert_predictions') };
-      case 'LIVE':
-        return { icon: 'pulse' as const, label: t('home.follow_live') };
-      case 'COMPLETED':
-        return { icon: 'checkmark-circle' as const, label: t('home.view_results') };
-      default:
-        return null;
+      case 'OPEN': return { icon: 'create-outline' as const, label: t('home.insert_predictions') };
+      case 'LIVE': return { icon: 'pulse' as const, label: t('home.follow_live') };
+      case 'COMPLETED': return { icon: 'checkmark-circle' as const, label: t('home.view_results') };
+      default: return null;
     }
   };
 
-  // Dynamic micro-message
   const getMatchdayMessage = () => {
     if (!data?.matchday) return '';
     const status = data.matchday.status?.toUpperCase();
+    const totalMatches = Math.min(data.matchday.total_matches || 0, 10);
     if (status === 'OPEN' && countdown > 0) {
-      return `${t('home.closes_in')} ${formatCountdown(countdown)}`;
+      return `${totalMatches} partite \u00B7 Scadenza tra ${formatCountdown(countdown)}`;
+    }
+    if (status === 'OPEN') {
+      return `${data.matchday.my_predictions_count}/${totalMatches} partite`;
     }
     if (status === 'LIVE') {
       const pts = data.live?.total_provisional;
-      if (pts != null) return `${t('home.in_progress')} · ${formatPoints(pts)} pts`;
+      if (pts != null) return `${t('home.in_progress')} \u00B7 ${formatPoints(pts)} pts`;
       return t('home.in_progress');
     }
     if (status === 'COMPLETED') {
@@ -150,15 +176,10 @@ export default function HomeScreen() {
         const pts = data.matchday.my_points ?? data.live?.total_provisional;
         if (pts != null) return t('home.you_scored', { points: formatPoints(pts) });
       }
-      return '';
-    }
-    if (status === 'OPEN') {
-      return `${data.matchday.my_predictions_count}/${Math.min(data.matchday.total_matches || 0, 10)} ${t('predictions.matches_label', { defaultValue: 'partite' })}`;
     }
     return '';
   };
 
-  // Average of last 5
   const getAvgLast5 = () => {
     const perf = data?.last_5_performance;
     if (!Array.isArray(perf) || perf.length === 0) return null;
@@ -166,10 +187,14 @@ export default function HomeScreen() {
     return (sum / perf.length).toFixed(1);
   };
 
+  // CTA press handlers
+  const onCtaPressIn = () => { Animated.spring(ctaScale, { toValue: 0.97, useNativeDriver: true, speed: 50, bounciness: 4 }).start(); };
+  const onCtaPressOut = () => { Animated.spring(ctaScale, { toValue: 1, useNativeDriver: true, speed: 50, bounciness: 4 }).start(); };
+
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.accent} />
+      <View style={s.loadingContainer}>
+        <ActivityIndicator size="large" color={DARK.accent} />
       </View>
     );
   }
@@ -179,411 +204,301 @@ export default function HomeScreen() {
   const avg5 = getAvgLast5();
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* HEADER - Premium minimal */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.hamburgerBtn}
-          onPress={() => setMenuOpen(true)}
-          testID="hamburger-menu-btn"
-        >
-          <Ionicons name="menu" size={24} color={colors.textPrimary} />
+    <SafeAreaView style={s.container} edges={['top']}>
+      {/* ═══ HEADER (dark premium) ═══ */}
+      <View style={s.header}>
+        <TouchableOpacity style={s.headerIcon} onPress={() => setMenuOpen(true)} testID="hamburger-menu-btn">
+          <Ionicons name="menu" size={24} color={DARK.text} />
         </TouchableOpacity>
-        <View style={styles.headerCenter}>
+        <View style={s.headerCenter}>
           <BrandLogo variant="wordmark" size="lg" />
         </View>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => router.push('/menu/notifications')}
-            testID="notification-bell-btn"
-          >
-            <Ionicons name="notifications-outline" size={21} color={colors.primary} />
+        <View style={s.headerRight}>
+          <TouchableOpacity style={s.headerIcon} onPress={() => router.push('/menu/notifications')} testID="notification-bell-btn">
+            <Ionicons name="notifications-outline" size={22} color={DARK.text} />
             {unreadCount > 0 && (
-              <View style={styles.bellBadge} testID="notification-badge">
-                <Text style={styles.bellBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+              <View style={s.bellBadge} testID="notification-badge">
+                <Text style={s.bellBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
               </View>
             )}
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => router.push('/league/list')}
-          >
-            <Ionicons name="people-outline" size={21} color={colors.primary} />
+          <TouchableOpacity style={s.headerIcon} onPress={() => router.push('/league/list')}>
+            <Ionicons name="people-outline" size={22} color={DARK.text} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* LEAGUE SWITCHER */}
+      {/* ═══ LEAGUE SWITCHER (white pill on dark) ═══ */}
       {data?.league && (
-        <View style={styles.leagueSwitcherWrap}>
+        <View style={s.leagueWrap}>
           <TouchableOpacity
-            style={styles.leagueSwitcherBtn}
+            style={s.leagueBtn}
             onPress={() => leagues.length > 1 ? setShowLeagueSwitcher(true) : null}
             activeOpacity={leagues.length > 1 ? 0.7 : 1}
           >
-            <Ionicons name="trophy-outline" size={16} color={colors.accent} />
-            <Text style={styles.leagueSwitcherText} numberOfLines={1}>{data.league.name}</Text>
-            {leagues.length > 1 && (
-              <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
-            )}
+            <Ionicons name="trophy-outline" size={15} color={DARK.accent} />
+            <Text style={s.leagueText} numberOfLines={1}>{data.league.name}</Text>
+            {leagues.length > 1 && <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />}
           </TouchableOpacity>
         </View>
       )}
 
-      {/* LEAGUE SWITCHER DROPDOWN */}
+      {/* League Switcher Dropdown */}
       {showLeagueSwitcher && leagues.length > 0 && (
-        <TouchableOpacity
-          style={styles.switcherOverlay}
-          activeOpacity={1}
-          onPress={() => setShowLeagueSwitcher(false)}
-        >
-          <View style={styles.switcherDropdown}>
-            <Text style={styles.switcherTitle}>{t('home.switch_league', { defaultValue: 'Cambia Lega' })}</Text>
+        <TouchableOpacity style={s.switcherOverlay} activeOpacity={1} onPress={() => setShowLeagueSwitcher(false)}>
+          <View style={s.switcherDropdown}>
+            <Text style={s.switcherTitle}>{t('home.switch_league', { defaultValue: 'Cambia Lega' })}</Text>
             {leagues.map((lg: League) => (
               <TouchableOpacity
                 key={lg.id}
-                style={[styles.switcherItem, lg.id === activeLeague?.id && styles.switcherItemActive]}
+                style={[s.switcherItem, lg.id === activeLeague?.id && s.switcherItemActive]}
                 onPress={async () => {
                   setShowLeagueSwitcher(false);
-                  // Reset state immediately to prevent stale data flash
-                  setData(null);
-                  setCountdown(0);
-                  setLoading(true);
-                  // Update global context (triggers re-fetch via useEffect)
+                  setData(null); setCountdown(0); setLoading(true);
                   setActiveLeague(lg);
-                  // Persist on server
                   const authToken = token || await AsyncStorage.getItem('access_token');
-                  if (authToken) {
-                    apiCall(`/profile/current-league?league_id=${lg.id}`, { method: 'PATCH', token: authToken }).catch(() => {});
-                  }
+                  if (authToken) apiCall(`/profile/current-league?league_id=${lg.id}`, { method: 'PATCH', token: authToken }).catch(() => {});
                 }}
               >
-                <Ionicons
-                  name={lg.id === activeLeague?.id ? 'trophy' : 'trophy-outline'}
-                  size={18}
-                  color={lg.id === activeLeague?.id ? colors.accent : colors.textSecondary}
-                />
+                <Ionicons name={lg.id === activeLeague?.id ? 'trophy' : 'trophy-outline'} size={18} color={lg.id === activeLeague?.id ? DARK.accent : colors.textSecondary} />
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.switcherItemText, lg.id === activeLeague?.id && { color: colors.accent }]}>
-                    {lg.name}
-                  </Text>
-                  <Text style={styles.switcherItemSub}>
-                    {lg.league_type === 'national' ? 'Lega Nazionale' : `${lg.member_count ?? ''} membri`}
-                  </Text>
+                  <Text style={[s.switcherItemText, lg.id === activeLeague?.id && { color: DARK.accent }]}>{lg.name}</Text>
+                  <Text style={s.switcherItemSub}>{lg.league_type === 'national' ? 'Lega Nazionale' : `${lg.member_count ?? ''} membri`}</Text>
                 </View>
-                {lg.id === activeLeague?.id && <Ionicons name="checkmark" size={16} color={colors.accent} />}
+                {lg.id === activeLeague?.id && <Ionicons name="checkmark" size={16} color={DARK.accent} />}
               </TouchableOpacity>
             ))}
           </View>
         </TouchableOpacity>
       )}
 
+      {/* ═══ SCROLL CONTENT ═══ */}
       <Animated.ScrollView
-        style={{ opacity: fadeAnim }}
-        contentContainerStyle={styles.scrollContent}
+        style={{ opacity: fadeScreen }}
+        contentContainerStyle={s.scrollContent}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); fetchHome(); }}
-            tintColor={colors.accent}
-            colors={[colors.accent]}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchHome(); }} tintColor={DARK.accent} colors={[DARK.accent]} />
         }
       >
-        {/* ─── 1. MATCHDAY HERO CARD (Gradient Dark Blue) ─── */}
+        {/* ─── 1. HERO MATCHDAY CARD ─── */}
         {data?.league && (
-          <Animated.View style={{ opacity: fadeCard1, transform: [{ translateY: slideAnim1 }] }}>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => {
-              if (!data?.matchday) return;
-              goToPredictionsHub(router, data.matchday.status, data.matchday.id, data.league?.id);
-            }}
-            disabled={!data?.matchday}
-            testID="matchday-card"
-          >
-          <LinearGradient
-            colors={['#1E3A7D', '#0F2352']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.heroCard}
-          >
-            {data?.matchday ? (
-              <>
-                <View style={styles.heroHeader}>
-                  <View style={styles.heroLabelRow}>
-                    <Ionicons name="football" size={14} color="rgba(255,255,255,0.5)" />
-                    <Text style={styles.heroLabel}>{t('home.matchday_label')}</Text>
-                  </View>
-                  <StatusBadge status={data.matchday.status} label={getStatusLabel(data.matchday.status)} />
-                </View>
+          <Animated.View style={{ opacity: fadeHero, transform: [{ translateY: slideHero }] }}>
+            <Pressable
+              onPressIn={onCtaPressIn}
+              onPressOut={onCtaPressOut}
+              onPress={() => {
+                if (!data?.matchday) return;
+                goToPredictionsHub(router, data.matchday.status, data.matchday.id, data.league?.id);
+              }}
+              disabled={!data?.matchday}
+              testID="matchday-card"
+            >
+              <Animated.View style={{ transform: [{ scale: ctaScale }] }}>
+                <LinearGradient
+                  colors={['#14263D', '#0E1A2B']}
+                  start={{ x: 0.2, y: 0 }}
+                  end={{ x: 0.8, y: 1 }}
+                  style={s.heroCard}
+                >
+                  {data?.matchday ? (
+                    <>
+                      <View style={s.heroTop}>
+                        <View style={s.heroLabelRow}>
+                          <Ionicons name="football" size={13} color={DARK.textMuted} />
+                          <Text style={s.heroLabel}>GIORNATA</Text>
+                        </View>
+                        <StatusBadge status={data.matchday.status} label={getStatusLabel(data.matchday.status)} />
+                      </View>
 
-                <Text style={styles.heroTitle}>
-                  {data.matchday.label || `Giornata ${data.matchday.number}`}
-                </Text>
+                      <Text style={s.heroTitle}>
+                        {data.matchday.label || `Giornata ${data.matchday.number}`}
+                      </Text>
 
-                {/* Match count + progress for OPEN */}
-                {data.matchday.status?.toUpperCase() === 'OPEN' && (
-                  <View style={styles.heroProgressWrap}>
-                    <Text style={styles.heroSubInfo}>
-                      {data.matchday.my_predictions_count}/{Math.min(data.matchday.total_matches || 0, 10)} pronostici inseriti
-                    </Text>
-                    <View style={styles.heroProgressBar}>
-                      <View style={[styles.heroProgressFill, { 
-                        width: `${Math.min(100, ((data.matchday.my_predictions_count || 0) / Math.max(1, Math.min(data.matchday.total_matches || 10, 10))) * 100)}%`
-                      }]} />
+                      {matchdayMsg !== '' && (
+                        <Text style={s.heroSub}>{matchdayMsg}</Text>
+                      )}
+
+                      {/* CTA Button */}
+                      {ctaConfig && (
+                        <LinearGradient
+                          colors={['#F5A623', '#F59E0B']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={s.ctaBtn}
+                        >
+                          <Text style={s.ctaText}>{ctaConfig.label}</Text>
+                          <View style={s.ctaIconWrap}>
+                            <Ionicons name={ctaConfig.icon} size={18} color={DARK.card} />
+                          </View>
+                        </LinearGradient>
+                      )}
+                    </>
+                  ) : (
+                    <View style={s.emptyHero}>
+                      <Ionicons name="football-outline" size={40} color={DARK.textMuted} />
+                      <Text style={s.emptyHeroTitle}>{t('home.no_matchday')}</Text>
+                      <Text style={s.emptyHeroSub}>Nessuna giornata in programma</Text>
                     </View>
-                  </View>
-                )}
-
-                {/* COUNTDOWN TIMER */}
-                {data.matchday.status?.toUpperCase() === 'OPEN' && countdown > 0 && (
-                  <View style={styles.heroCountdown} data-testid="countdown-timer">
-                    <Ionicons name="time-outline" size={20} color={colors.accent} />
-                    <Text style={styles.heroCountdownText}>{formatCountdown(countdown)}</Text>
-                  </View>
-                )}
-
-                {/* Dynamic micro-message */}
-                {data.matchday.status?.toUpperCase() !== 'OPEN' && matchdayMsg !== '' && (
-                  <Text style={styles.heroMessage}>{matchdayMsg}</Text>
-                )}
-
-                {/* CTA row */}
-                <View style={styles.heroCta}>
-                  <Text style={styles.heroCtaText}>{ctaConfig?.label ?? t('home.insert_predictions')}</Text>
-                  <View style={styles.heroCtaArrow}>
-                    <Ionicons name={(ctaConfig?.icon ?? 'create-outline') as any} size={18} color={colors.primary} />
-                  </View>
-                </View>
-              </>
-            ) : (
-              <View style={styles.emptyMatchdayState}>
-                <Ionicons name="football-outline" size={40} color="rgba(255,255,255,0.4)" />
-                <Text style={styles.emptyMatchdayTitle}>{t('home.no_matchday')}</Text>
-                <Text style={styles.emptyMatchdaySubtitle}>Nessuna giornata in programma per ora</Text>
-              </View>
-            )}
-          </LinearGradient>
-          </TouchableOpacity>
-          </Animated.View>
-        )}
-
-        {/* ─── CLASSIFICA LIVE (Premium) ─── */}
-        {data?.matchday?.status?.toUpperCase() === 'LIVE' && (
-          <Animated.View style={{ opacity: fadeCard1, transform: [{ translateY: slideAnim1 }] }}>
-          <TouchableOpacity
-            style={styles.liveBox}
-            data-testid="live-standings-btn"
-            activeOpacity={0.7}
-            onPress={() => {
-              router.push({
-                pathname: '/(tabs)/rankings',
-                params: { tab: 'weekly', matchdayId: data.matchday?.id, leagueId: data.league?.id }
-              } as any);
-            }}
-          >
-            <View style={styles.liveBoxLeft}>
-              <View style={styles.liveBoxBadge}>
-                <View style={styles.liveBoxDot} />
-                <Text style={styles.liveBoxBadgeText}>LIVE</Text>
-              </View>
-              <Text style={styles.liveBoxTitle}>Classifica</Text>
-            </View>
-            <View style={styles.liveBoxRight}>
-              <Text style={styles.liveBoxRankBig}>
-                {data.live?.live_rank ? `${data.live.live_rank}°` : '-'}
-              </Text>
-              <Text style={styles.liveBoxPoints}>{formatPoints(data.live?.live_points ?? 0)} pts</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.success} style={{ marginLeft: 4 }} />
-          </TouchableOpacity>
-          </Animated.View>
-        )}
-
-        {/* ─── 2. PERFORMANCE CARD (Premium Grid) ─── */}
-        {data?.user_summary && (
-          <Animated.View style={{ opacity: fadeCard2, transform: [{ translateY: slideAnim2 }] }}>
-          <View style={styles.perfCard} data-testid="performance-card">
-            <Text style={styles.sectionLabel}>{t('home.performance')}</Text>
-
-            {/* Stat grid: 2x2 */}
-            <View style={styles.perfGrid}>
-              <View style={[styles.perfGridItem, styles.perfGridItemHighlight]}>
-                <View style={[styles.perfGridIcon, { backgroundColor: colors.accent + '20' }]}>
-                  <Ionicons name="trophy" size={18} color={colors.accent} />
-                </View>
-                <Text style={styles.perfGridValue}>
-                  {data.user_summary.rank ? `${data.user_summary.rank}°` : '-'}
-                </Text>
-                <Text style={styles.perfGridLabel}>{t('home.current_position')}</Text>
-              </View>
-
-              <View style={styles.perfGridItem}>
-                <View style={[styles.perfGridIcon, { backgroundColor: colors.primary + '15' }]}>
-                  <Ionicons name="star" size={18} color={colors.primary} />
-                </View>
-                <Text style={styles.perfGridValue}>{formatPoints(data.user_summary.total_points)}</Text>
-                <Text style={styles.perfGridLabel}>{t('home.total_points')}</Text>
-              </View>
-
-              <View style={styles.perfGridItem}>
-                <View style={[styles.perfGridIcon, { backgroundColor: colors.success + '15' }]}>
-                  <Ionicons name="football" size={18} color={colors.success} />
-                </View>
-                <Text style={styles.perfGridValue}>
-                  {formatPoints(
-                    (data.matchday?.my_predictions_count || 0) > 0
-                      ? (data.matchday?.my_points ?? data.live?.total_provisional ?? 0)
-                      : 0
                   )}
-                </Text>
-                <Text style={styles.perfGridLabel}>{t('home.matchday_points')}</Text>
-              </View>
+                </LinearGradient>
+              </Animated.View>
+            </Pressable>
+          </Animated.View>
+        )}
 
-              <View style={styles.perfGridItem}>
-                <View style={[styles.perfGridIcon, { backgroundColor: colors.info + '15' }]}>
-                  <Ionicons name="trending-up" size={18} color={colors.info} />
+        {/* ─── 2. CLASSIFICA LIVE ─── */}
+        {data?.matchday?.status?.toUpperCase() === 'LIVE' && (
+          <Animated.View style={{ opacity: fadeLive, transform: [{ translateY: slideLive }] }}>
+            <TouchableOpacity
+              style={s.liveCard}
+              activeOpacity={0.7}
+              data-testid="live-standings-btn"
+              onPress={() => {
+                router.push({ pathname: '/(tabs)/rankings', params: { tab: 'weekly', matchdayId: data.matchday?.id, leagueId: data.league?.id } } as any);
+              }}
+            >
+              <View style={s.liveLeft}>
+                <View style={s.liveBadge}>
+                  <View style={s.liveDot} />
+                  <Text style={s.liveBadgeText}>LIVE</Text>
                 </View>
-                <Text style={styles.perfGridValue}>{avg5 ?? '-'}</Text>
-                <Text style={styles.perfGridLabel}>{t('home.avg_last_5')}</Text>
+                <Text style={s.liveTitle}>Classifica</Text>
+              </View>
+              <View style={s.liveRight}>
+                <Text style={s.liveRank}>{data.live?.live_rank ? `${data.live.live_rank}\u00B0` : '-'}</Text>
+                <Text style={s.livePoints}>{formatPoints(data.live?.live_points ?? 0)} pts</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.success} style={{ marginLeft: 8 }} />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {/* ─── 3. PERFORMANCE (3 cards in a row) ─── */}
+        {data?.user_summary && (
+          <Animated.View style={{ opacity: fadePerf, transform: [{ translateY: slidePerf }] }}>
+            <Text style={s.sectionLabel}>PERFORMANCE</Text>
+            <View style={s.perfRow}>
+              {/* Position */}
+              <View style={[s.perfCard, s.perfCardWarm]}>
+                <View style={[s.perfIcon, { backgroundColor: 'rgba(245,166,35,0.15)' }]}>
+                  <Ionicons name="trophy" size={20} color={DARK.accent} />
+                </View>
+                <Text style={s.perfValue}>{data.user_summary.rank ? `${data.user_summary.rank}\u00B0` : '-'}</Text>
+                <Text style={s.perfLabel}>POSIZIONE{'\n'}ATTUALE</Text>
+              </View>
+              {/* Total Points */}
+              <View style={s.perfCard}>
+                <View style={[s.perfIcon, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
+                  <Ionicons name="star" size={20} color="#FFFFFF" />
+                </View>
+                <Text style={s.perfValue}>{formatPoints(data.user_summary.total_points)}</Text>
+                <Text style={s.perfLabel}>PUNTI{'\n'}TOTALI</Text>
+              </View>
+              {/* Avg Last 5 */}
+              <View style={s.perfCard}>
+                <View style={[s.perfIcon, { backgroundColor: 'rgba(22,163,74,0.15)' }]}>
+                  <Ionicons name="football" size={20} color={colors.success} />
+                </View>
+                <Text style={s.perfValue}>{avg5 ?? '-'}</Text>
+                <Text style={s.perfLabel}>MEDIA{'\n'}ULTIME 5</Text>
               </View>
             </View>
-          </View>
           </Animated.View>
         )}
 
-        {/* ─── 3. LAST 5 TREND (BAR CHART) ─── */}
+        {/* ─── 4. TREND ─── */}
         {Array.isArray(data?.last_5_performance) && data.last_5_performance.length > 0 && (
-          <Animated.View style={{ opacity: fadeCard3, transform: [{ translateY: slideAnim3 }] }}>
-          <SectionCard title={t('home.trend')}>
-            <LastFiveIndicator
-              data={data.last_5_performance}
-              label={t('home.points_per_matchday')}
-            />
-          </SectionCard>
+          <Animated.View style={{ opacity: fadeTrend, transform: [{ translateY: slideTrend }] }}>
+            <View style={s.trendCard}>
+              <Text style={s.sectionLabelInCard}>{t('home.trend')}</Text>
+              <LastFiveIndicator data={data.last_5_performance} label={t('home.points_per_matchday')} />
+            </View>
           </Animated.View>
         )}
-
       </Animated.ScrollView>
 
-      {/* Side Menu */}
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-  },
+// ═══════════════════════════════════════════════════
+// STYLES — Premium Dark Sport Theme
+// ═══════════════════════════════════════════════════
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: DARK.bg },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: DARK.bg },
 
-  // ── Header ── Premium minimal
+  // ── Header ──
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
-    backgroundColor: colors.card,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.border,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+    backgroundColor: DARK.bg,
   },
-  hamburgerBtn: {
-    width: 38,
-    height: 38,
+  headerIcon: {
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.background,
-    borderRadius: borderRadius.md,
   },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  headerButton: {
-    width: 38,
-    height: 38,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   bellBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.accent,
+    top: 2,
+    right: 2,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: DARK.accent,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
   },
-  bellBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#fff',
-  },
+  bellBadgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
 
   // ── League Switcher ──
-  leagueSwitcherWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
+  leagueWrap: {
+    paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    gap: 8,
+    backgroundColor: DARK.bg,
+    alignItems: 'center',
   },
-  leagueSwitcherBtn: {
-    flex: 1,
+  leagueBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.accent + '44',
-    backgroundColor: colors.accent + '10',
-    maxWidth: 280,
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    maxWidth: 320,
   },
-  leagueSwitcherText: {
+  leagueText: {
     flex: 1,
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.accent,
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
   },
+
+  // ── Switcher overlay ──
   switcherOverlay: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     zIndex: 100,
     justifyContent: 'flex-start',
-    paddingTop: 130,
-    paddingHorizontal: spacing.xl,
+    paddingTop: 120,
+    paddingHorizontal: 24,
   },
   switcherDropdown: {
-    backgroundColor: colors.card,
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    boxShadow: '0 8px 12px rgba(0, 0, 0, 0.15)',
     elevation: 8,
   },
   switcherTitle: {
@@ -601,47 +516,31 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 12,
     paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: 12,
   },
-  switcherItemActive: {
-    backgroundColor: colors.accent + '15',
-  },
-  switcherItemText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  switcherItemSub: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
+  switcherItemActive: { backgroundColor: DARK.accent + '12' },
+  switcherItemText: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  switcherItemSub: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
 
   // ── Scroll ──
   scrollContent: {
-    padding: spacing.xl,
-    paddingBottom: spacing.xxxl + 32,
-    gap: spacing.xl, // consistent gap between cards
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 80,
+    gap: 16,
   },
 
-  sectionLabel: {
-    ...typography.sectionLabel,
-    color: colors.textSecondary,
-  },
-
-  // ── 1. Hero Matchday Card (Dark Blue Gradient) ──
+  // ── 1. Hero Card ──
   heroCard: {
-    borderRadius: borderRadius.xl,
-    padding: spacing.xl,
+    borderRadius: 16,
+    padding: 24,
     overflow: 'hidden',
-    elevation: 8,
-    boxShadow: '0 8px 24px rgba(31, 58, 138, 0.25)',
   },
-  heroHeader: {
+  heroTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   heroLabelRow: {
     flexDirection: 'row',
@@ -649,279 +548,152 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   heroLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.6)',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    color: DARK.textMuted,
+    letterSpacing: 1.2,
   },
   heroTitle: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: DARK.text,
     letterSpacing: -0.5,
-    marginBottom: spacing.xs,
-  },
-  heroProgressWrap: {
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  heroSubInfo: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.6)',
+    lineHeight: 38,
     marginBottom: 8,
   },
-  heroProgressBar: {
-    height: 4,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 2,
-    overflow: 'hidden',
+  heroSub: {
+    fontSize: 15,
+    fontWeight: '400',
+    color: DARK.textSub,
+    marginBottom: 16,
   },
-  heroProgressFill: {
-    height: 4,
-    backgroundColor: colors.accent,
-    borderRadius: 2,
-  },
-  heroCountdown: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: borderRadius.md,
-    alignSelf: 'flex-start',
-  },
-  heroCountdownText: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: colors.accent,
-    letterSpacing: 2,
-    fontVariant: ['tabular-nums'],
-  },
-  heroMessage: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  heroCta: {
+
+  // CTA Button (orange gradient)
+  ctaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: spacing.lg,
     paddingVertical: 14,
-    paddingHorizontal: 20,
-    backgroundColor: colors.accent,
-    borderRadius: borderRadius.lg,
+    paddingLeft: 24,
+    paddingRight: 8,
+    borderRadius: 16,
+    marginTop: 8,
   },
-  heroCtaText: {
-    fontSize: 15,
+  ctaText: {
+    fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
-  heroCtaArrow: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyMatchdayState: {
-    alignItems: 'center',
-    paddingVertical: spacing.xxl,
-    gap: spacing.sm,
-  },
-  emptyMatchdayTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.7)',
-  },
-  emptyMatchdaySubtitle: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.4)',
-    textAlign: 'center',
-  },
-
-  // ── 2. Performance Card (Premium Grid) ──
-  perfCard: {
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.xl,
-    padding: spacing.xl,
-    elevation: 4,
-    boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-  },
-  perfGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginTop: spacing.lg,
-  },
-  perfGridItem: {
-    flex: 1,
-    minWidth: '45%',
-    alignItems: 'center',
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.background,
-    borderRadius: borderRadius.lg,
-  },
-  perfGridItemHighlight: {
-    backgroundColor: colors.accent + '08',
-    borderWidth: 1,
-    borderColor: colors.accent + '20',
-  },
-  perfGridIcon: {
+  ctaIconWrap: {
     width: 40,
     height: 40,
     borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.sm,
-  },
-  perfGridValue: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    letterSpacing: -0.5,
-  },
-  perfGridLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginTop: 4,
-    textAlign: 'center',
   },
 
-  // ── 4. Rankings ──
-  rankingsCard: {
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.xl,
-    padding: spacing.xl,
-    ...shadows.card,
-  },
-  rankingsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  rankingsMore: { padding: spacing.xs },
-  leagueName: {
-    ...typography.titleM,
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
-  },
-  rankRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
-    borderRadius: borderRadius.sm,
-    marginBottom: spacing.xs,
-  },
-  rankRowHighlight: {
-    backgroundColor: colors.cardHighlight,
-    marginLeft: -spacing.sm,
-    marginRight: -spacing.sm,
-    paddingLeft: spacing.lg,
-  },
-  rankRowAccent: {
-    position: 'absolute',
-    left: 0,
-    top: spacing.xs,
-    bottom: spacing.xs,
-    width: 3,
-    backgroundColor: colors.accent,
-    borderRadius: 2,
-  },
-  rankPosition: {
-    width: 28,
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.textSecondary,
-  },
-  rankPositionTop3: {
-    color: colors.primary,
-  },
-  rankName: {
-    flex: 1,
-    ...typography.bodyM,
-    color: colors.textPrimary,
-  },
-  rankNameBold: { fontWeight: '700' },
-  rankPoints: {
-    ...typography.statMedium,
-    color: colors.textPrimary,
-    fontWeight: '700',
-  },
+  // Empty hero
+  emptyHero: { alignItems: 'center', paddingVertical: 32, gap: 8 },
+  emptyHeroTitle: { fontSize: 18, fontWeight: '700', color: DARK.textSub },
+  emptyHeroSub: { fontSize: 13, color: DARK.textMuted, textAlign: 'center' },
 
-  // ── LIVE Box (Premium horizontal) ──
-  liveBox: {
+  // ── 2. Classifica LIVE ──
+  liveCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.lg,
-    borderRadius: borderRadius.xl,
-    backgroundColor: colors.card,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
     borderLeftWidth: 4,
     borderLeftColor: colors.success,
-    elevation: 4,
-    boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
   },
-  liveBoxLeft: {
-    flex: 1,
-    gap: 6,
-  },
-  liveBoxBadge: {
+  liveLeft: { flex: 1, gap: 4 },
+  liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 10,
+    borderRadius: 8,
     backgroundColor: colors.success,
     alignSelf: 'flex-start',
   },
-  liveBoxDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: '#fff',
-  },
-  liveBoxBadgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  liveBoxTitle: {
-    fontSize: 16,
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' },
+  liveBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
+  liveTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary, letterSpacing: -0.3 },
+  liveRight: { alignItems: 'flex-end', marginRight: 4 },
+  liveRank: { fontSize: 30, fontWeight: '800', color: colors.success, lineHeight: 34 },
+  livePoints: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginTop: 2 },
+
+  // ── 3. Performance ──
+  sectionLabel: {
+    fontSize: 13,
     fontWeight: '700',
-    color: colors.textPrimary,
-    letterSpacing: -0.3,
+    color: DARK.textMuted,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+    marginLeft: 4,
   },
-  liveBoxRight: {
-    alignItems: 'flex-end',
-    marginRight: 4,
+  perfRow: {
+    flexDirection: 'row',
+    gap: 8,
   },
-  liveBoxRankBig: {
+  perfCard: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    backgroundColor: DARK.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: DARK.border,
+  },
+  perfCardWarm: {
+    borderColor: 'rgba(245,166,35,0.15)',
+  },
+  perfIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  perfValue: {
     fontSize: 28,
     fontWeight: '800',
-    color: colors.success,
+    color: DARK.text,
+    letterSpacing: -0.5,
     lineHeight: 32,
   },
-  liveBoxPoints: {
-    fontSize: 13,
+  perfLabel: {
+    fontSize: 9,
     fontWeight: '600',
-    color: colors.textSecondary,
-    marginTop: 2,
+    color: DARK.textMuted,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    marginTop: 4,
+    lineHeight: 13,
+  },
+
+  // ── 4. Trend ──
+  trendCard: {
+    backgroundColor: DARK.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: DARK.border,
+  },
+  sectionLabelInCard: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: DARK.textMuted,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 12,
   },
 });
