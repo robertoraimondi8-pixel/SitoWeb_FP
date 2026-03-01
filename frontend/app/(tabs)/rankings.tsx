@@ -150,6 +150,7 @@ export default function RankingsScreen() {
     const isTop3 = index < 3;
     const isCurrentUser = entry.user_id === user?.id;
     const points = tab === 'total' ? entry.total_points : entry.matchday_points;
+    const podiumColor = isTop3 ? PODIUM_COLORS[index] : undefined;
     
     return (
       <TouchableOpacity
@@ -167,14 +168,13 @@ export default function RankingsScreen() {
         <View style={[
           styles.rankBadge,
           isTop3 && styles.rankBadgeTop3,
-          { backgroundColor: isTop3 ? colors.accent : colors.background }
+          { backgroundColor: isTop3 ? podiumColor : colors.background }
         ]}>
-          <Text style={[
-            styles.rankText,
-            isTop3 && styles.rankTextTop3,
-          ]}>
-            {entry.rank}
-          </Text>
+          {isTop3 ? (
+            <Ionicons name={PODIUM_ICONS[index]} size={index === 0 ? 18 : 16} color={colors.textInverse} />
+          ) : (
+            <Text style={styles.rankText}>{entry.rank}</Text>
+          )}
         </View>
         
         <View style={styles.entryInfo}>
@@ -182,15 +182,20 @@ export default function RankingsScreen() {
             {entry.username}
             {isCurrentUser && ' (Tu)'}
           </Text>
-          {isTop3 && tab === 'total' && (
-            <Text style={styles.entryMeta}>
-              {entry.matchdays_played || 0} giornate
+          {isTop3 && (
+            <Text style={[styles.entryMeta, { color: podiumColor }]}>
+              {index === 0 ? 'Primo' : index === 1 ? 'Secondo' : 'Terzo'}
+              {tab === 'total' && entry.matchdays_played ? ` · ${entry.matchdays_played} giornate` : ''}
             </Text>
           )}
         </View>
         
         <View style={styles.pointsContainer}>
-          <Text style={[styles.pointsText, isTop3 && styles.pointsTextLarge]}>
+          <Text style={[
+            styles.pointsText,
+            isTop3 && styles.pointsTextLarge,
+            isTop3 && { color: podiumColor },
+          ]}>
             {formatPoints(points || 0)}
           </Text>
           {tab === 'total' && entry.current_week_points !== undefined && entry.current_week_points > 0 && (
