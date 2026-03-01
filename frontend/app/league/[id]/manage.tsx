@@ -137,7 +137,7 @@ export default function LeagueManageScreen() {
             <Ionicons name="arrow-back" size={22} color={colors.text} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={[s.headerTitle, { color: colors.text }]}>{league?.name}</Text>
+            <Text style={[s.headerTitle, { color: colors.textPrimary }]}>{league?.name}</Text>
             <Text style={[s.headerSub, { color: colors.textSecondary }]}>Creator Console</Text>
           </View>
         </View>
@@ -148,7 +148,7 @@ export default function LeagueManageScreen() {
           {!isManual ? (
             <View style={[s.infoBox, { backgroundColor: colors.accent + '15', borderColor: colors.accent + '44' }]}>
               <Ionicons name="information-circle-outline" size={20} color={colors.accent} />
-              <Text style={[s.infoText, { color: colors.text }]}>
+              <Text style={[s.infoText, { color: colors.textPrimary }]}>
                 Questa lega usa le partite della Lega Nazionale. Le partite si aggiornano automaticamente.
               </Text>
             </View>
@@ -163,7 +163,7 @@ export default function LeagueManageScreen() {
             <>
               {/* Add Matchday */}
               <View style={s.sectionHeader}>
-                <Text style={[s.sectionTitle, { color: colors.text }]}>Giornate ({matchdays.length})</Text>
+                <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>Giornate ({matchdays.length})</Text>
                 <TouchableOpacity
                   style={[s.addBtn, { backgroundColor: colors.accent }]}
                   onPress={() => setShowAddMd(!showAddMd)}
@@ -175,7 +175,7 @@ export default function LeagueManageScreen() {
 
               {showAddMd && (
                 <View style={[s.formCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <Text style={[s.formTitle, { color: colors.text }]}>Nuova Giornata</Text>
+                  <Text style={[s.formTitle, { color: colors.textPrimary }]}>Nuova Giornata</Text>
                   <View style={s.formRow}>
                     <View style={{ flex: 1 }}>
                       <Text style={[s.fieldLabel, { color: colors.textSecondary }]}>Numero *</Text>
@@ -212,7 +212,7 @@ export default function LeagueManageScreen() {
                       <Text style={[s.mdNumText, { color: colors.accent }]}>{md.number}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[s.mdLabel, { color: colors.text }]}>{md.label || `Giornata ${md.number}`}</Text>
+                      <Text style={[s.mdLabel, { color: colors.textPrimary }]}>{md.label || `Giornata ${md.number}`}</Text>
                       <Text style={[s.mdMeta, { color: colors.textSecondary }]}>{md.match_count || 0} partite</Text>
                     </View>
                     <TouchableOpacity
@@ -229,7 +229,7 @@ export default function LeagueManageScreen() {
                       {(mdMatches[md.id] || []).map(match => (
                         <View key={match.id} style={[s.matchRow, { borderTopColor: colors.border }]}>
                           <View style={{ flex: 1 }}>
-                            <Text style={[s.matchTeams, { color: colors.text }]}>{match.home_team} – {match.away_team}</Text>
+                            <Text style={[s.matchTeams, { color: colors.textPrimary }]}>{match.home_team} – {match.away_team}</Text>
                             {match.start_time && <Text style={[s.matchKickoff, { color: colors.textSecondary }]}>{match.start_time}</Text>}
                           </View>
                           <TouchableOpacity onPress={() => handleDeleteMatch(md.id, match.id)} style={s.deleteMatchBtn}>
@@ -240,7 +240,7 @@ export default function LeagueManageScreen() {
 
                       {addMatchFor === md.id ? (
                         <View style={[s.addMatchForm, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
-                          <Text style={[s.formTitle, { color: colors.text }]}>Nuova Partita</Text>
+                          <Text style={[s.formTitle, { color: colors.textPrimary }]}>Nuova Partita</Text>
                           <View style={s.formRow}>
                             <View style={{ flex: 1 }}>
                               <Text style={[s.fieldLabel, { color: colors.textSecondary }]}>Casa *</Text>
@@ -262,7 +262,7 @@ export default function LeagueManageScreen() {
                               {savingMatch ? <ActivityIndicator color={colors.background} /> : <Text style={[s.submitBtnText, { color: colors.background }]}>Aggiungi</Text>}
                             </TouchableOpacity>
                             <TouchableOpacity style={[s.cancelBtn, { flex: 1, borderColor: colors.border }]} onPress={() => { setAddMatchFor(null); setNewHome(''); setNewAway(''); setNewKickoff(''); }}>
-                              <Text style={[s.cancelBtnText, { color: colors.text }]}>Annulla</Text>
+                              <Text style={[s.cancelBtnText, { color: colors.textPrimary }]}>Annulla</Text>
                             </TouchableOpacity>
                           </View>
                         </View>
