@@ -7,14 +7,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { useTheme } from '../../src/contexts/ThemeContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, spacing, borderRadius } from '../../src/theme/designSystem';
 
 export default function JoinPrivateScreen() {
   const { t } = useTranslation();
-  const { colors } = useTheme();
   const { token } = useAuth();
   const { refreshLeagues } = useLeague();
   const router = useRouter();
@@ -44,13 +44,13 @@ export default function JoinPrivateScreen() {
   };
 
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView style={[s.container, { backgroundColor: '#F5F6F8' }]} edges={['top']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <View style={s.header}>
+        <View style={[s.header, { backgroundColor: '#F3F4F6' }]}>
           <TouchableOpacity testID="back-btn" onPress={() => router.back()} style={s.backBtn}>
-            <Ionicons name="close" size={24} color={colors.text} />
+            <Ionicons name="close" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={[s.headerTitle, { color: colors.text }]}>{t('join_private_title')}</Text>
+          <Text style={[s.headerTitle, { color: colors.textPrimary }]}>{t('join_private_title')}</Text>
           <View style={s.backBtn} />
         </View>
 
@@ -63,10 +63,10 @@ export default function JoinPrivateScreen() {
             {t('join_private_desc')}
           </Text>
 
-          <View style={[s.inputWrap, { borderColor: colors.border, backgroundColor: colors.card }]}>
+          <View style={[s.inputWrap, { borderColor: colors.border, backgroundColor: '#14263D' }]}>
             <TextInput
               testID="join-code-input"
-              style={[s.codeInput, { color: colors.text }]}
+              style={[s.codeInput, { color: '#FFFFFF' }]}
               placeholder="XXXXXXXX"
               placeholderTextColor={colors.textSecondary}
               value={code}
