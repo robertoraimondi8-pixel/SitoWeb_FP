@@ -269,9 +269,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    backgroundColor: '#F3F4F6',
   },
   headerTitle: {
     ...typography.titleL,
@@ -285,15 +283,23 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   
-  // User Card
-  userCard: {
-    backgroundColor: colors.card,
+  // User Card — Premium Dark
+  userCardOuter: {
     marginHorizontal: spacing.lg,
     marginTop: spacing.lg,
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    shadowColor: '#0E1A2B',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 30,
+    elevation: 10,
+  },
+  userCard: {
     padding: spacing.xl,
     borderRadius: borderRadius.xl,
     alignItems: 'center',
-    ...shadows.card,
+    overflow: 'hidden',
   },
   avatarContainer: {
     position: 'relative',
@@ -327,11 +333,11 @@ const styles = StyleSheet.create({
   },
   username: { 
     ...typography.titleL,
-    color: colors.textPrimary,
+    color: '#FFFFFF',
   },
   email: { 
     ...typography.bodyS,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.6)',
     marginTop: spacing.xs,
   },
   
@@ -340,7 +346,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     paddingTop: spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
+    borderTopColor: 'rgba(255,255,255,0.08)',
     width: '100%',
   },
   statItem: { 
@@ -353,13 +359,13 @@ const styles = StyleSheet.create({
   },
   statLabel: { 
     ...typography.metaSmall,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.5)',
     marginTop: spacing.xs,
     textTransform: 'uppercase',
   },
   statDivider: { 
     width: 1, 
-    backgroundColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   
   // Section Card
@@ -368,7 +374,11 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
     marginTop: spacing.lg,
     borderRadius: borderRadius.xl,
-    ...shadows.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 4,
     overflow: 'hidden',
   },
   sectionTitle: { 
