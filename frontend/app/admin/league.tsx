@@ -15,10 +15,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { useTheme } from '../../src/contexts/ThemeContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { colors } from '../../src/theme/designSystem';
 
 interface League {
   id: string;
@@ -56,7 +56,6 @@ const MATCH_STATUS_OPTIONS = ['scheduled', 'live', 'finished', 'postponed', 'can
 const MARKET_TYPES = ['1X2', 'GOAL_NGOAL', 'OVER_UNDER', 'EXACT_SCORE'];
 
 export default function LeagueAdminConsole() {
-  const { colors } = useTheme();
   const { user, token, handleAuthError } = useAuth();
   const router = useRouter();
   const { leagueId } = useLocalSearchParams<{ leagueId: string }>();
@@ -503,7 +502,7 @@ export default function LeagueAdminConsole() {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[s.headerTitle, { color: colors.text }]} numberOfLines={1}>
+        <Text style={[s.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
           {league.name}
         </Text>
         {actionLoading && <ActivityIndicator size="small" color={colors.accent} />}
@@ -513,7 +512,7 @@ export default function LeagueAdminConsole() {
       <View style={[s.descBanner, { backgroundColor: colors.card, borderColor: colors.accent }]}>
         <Ionicons name="create" size={24} color={colors.accent} />
         <View style={s.descBannerText}>
-          <Text style={[s.descTitle, { color: colors.text }]}>Console Lega</Text>
+          <Text style={[s.descTitle, { color: colors.textPrimary }]}>Console Lega</Text>
           <Text style={[s.descSubtitle, { color: colors.textSecondary }]}>
             Crea giornate e partite per questa lega
           </Text>
@@ -557,7 +556,7 @@ export default function LeagueAdminConsole() {
                 onPress={() => setShowMatchdayDropdown(true)}
               >
                 <Ionicons name="calendar-outline" size={20} color={colors.accent} />
-                <Text style={[s.dropdownText, { color: colors.text }]}>
+                <Text style={[s.dropdownText, { color: colors.textPrimary }]}>
                   {selectedMatchday 
                     ? `${selectedMatchday.label || `Giornata ${selectedMatchday.number}`}` 
                     : 'Seleziona giornata...'}
@@ -637,11 +636,11 @@ export default function LeagueAdminConsole() {
                       isModified && { borderWidth: 2 }
                     ]}>
                       <View style={s.matchTeamsRow}>
-                        <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>
+                        <Text style={[s.teamName, { color: colors.textPrimary }]} numberOfLines={1}>
                           {match.home_team}
                         </Text>
                         <Text style={[s.vsText, { color: colors.textSecondary }]}>vs</Text>
-                        <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>
+                        <Text style={[s.teamName, { color: colors.textPrimary }]} numberOfLines={1}>
                           {match.away_team}
                         </Text>
                         <TouchableOpacity onPress={() => deleteMatch(match.id)}>
@@ -714,7 +713,7 @@ export default function LeagueAdminConsole() {
       <Modal visible={showStatusPicker} transparent animationType="fade">
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowStatusPicker(false)}>
           <View style={[s.modalContent, { backgroundColor: colors.card }]}>
-            <Text style={[s.modalTitle, { color: colors.text }]}>Status Giornata</Text>
+            <Text style={[s.modalTitle, { color: colors.textPrimary }]}>Status Giornata</Text>
             {STATUS_OPTIONS.map((status) => (
               <TouchableOpacity
                 key={status}
@@ -722,7 +721,7 @@ export default function LeagueAdminConsole() {
                 onPress={() => updateMatchdayStatus(status)}
               >
                 <View style={[s.statusDot, { backgroundColor: getStatusColor(status) }]} />
-                <Text style={[s.modalOptionText, { color: colors.text }]}>{status}</Text>
+                <Text style={[s.modalOptionText, { color: colors.textPrimary }]}>{status}</Text>
                 {selectedMatchday?.status === status && <Ionicons name="checkmark" size={20} color={colors.accent} />}
               </TouchableOpacity>
             ))}
@@ -734,7 +733,7 @@ export default function LeagueAdminConsole() {
       <Modal visible={!!showMatchStatusPicker} transparent animationType="fade">
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowMatchStatusPicker(null)}>
           <View style={[s.modalContent, { backgroundColor: colors.card }]}>
-            <Text style={[s.modalTitle, { color: colors.text }]}>Status Partita</Text>
+            <Text style={[s.modalTitle, { color: colors.textPrimary }]}>Status Partita</Text>
             {MATCH_STATUS_OPTIONS.map((status) => (
               <TouchableOpacity
                 key={status}
@@ -742,7 +741,7 @@ export default function LeagueAdminConsole() {
                 onPress={() => updateMatchStatus(showMatchStatusPicker!, status)}
               >
                 <View style={[s.statusDot, { backgroundColor: getMatchStatusColor(status) }]} />
-                <Text style={[s.modalOptionText, { color: colors.text }]}>{status}</Text>
+                <Text style={[s.modalOptionText, { color: colors.textPrimary }]}>{status}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -754,7 +753,7 @@ export default function LeagueAdminConsole() {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.modalOverlay}>
           <ScrollView style={{ width: '100%' }} contentContainerStyle={{ padding: 0 }} keyboardShouldPersistTaps="handled">
             <View style={[s.modalForm, { backgroundColor: colors.card }]}>
-              <Text style={[s.modalTitle, { color: colors.text }]}>Nuova Giornata</Text>
+              <Text style={[s.modalTitle, { color: colors.textPrimary }]}>Nuova Giornata</Text>
               
               <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Numero *</Text>
               <TouchableOpacity
@@ -781,7 +780,7 @@ export default function LeagueAdminConsole() {
                           setShowNumberPicker(false);
                         }}
                       >
-                        <Text style={[s.inlinePickerItemText, { color: colors.text }]}>Giornata {num}</Text>
+                        <Text style={[s.inlinePickerItemText, { color: colors.textPrimary }]}>Giornata {num}</Text>
                       </TouchableOpacity>
                     ))
                   )}
@@ -804,7 +803,7 @@ export default function LeagueAdminConsole() {
                   onPress={() => setShowDatePicker(true)}
                 >
                   <Ionicons name="calendar" size={20} color={colors.accent} />
-                  <Text style={[s.dateTimeBtnText, { color: colors.text }]}>
+                  <Text style={[s.dateTimeBtnText, { color: colors.textPrimary }]}>
                     {selectedDate.toLocaleDateString('it-IT')}
                   </Text>
                 </TouchableOpacity>
@@ -813,7 +812,7 @@ export default function LeagueAdminConsole() {
                   onPress={() => setShowTimePicker(true)}
                 >
                   <Ionicons name="time" size={20} color={colors.accent} />
-                  <Text style={[s.dateTimeBtnText, { color: colors.text }]}>
+                  <Text style={[s.dateTimeBtnText, { color: colors.textPrimary }]}>
                     {selectedDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                   </Text>
                 </TouchableOpacity>
@@ -856,7 +855,7 @@ export default function LeagueAdminConsole() {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.modalOverlay}>
           <ScrollView style={{ width: '100%' }} contentContainerStyle={{ padding: 24 }}>
             <View style={[s.modalForm, { backgroundColor: colors.card }]}>
-              <Text style={[s.modalTitle, { color: colors.text }]}>Aggiungi Partita</Text>
+              <Text style={[s.modalTitle, { color: colors.textPrimary }]}>Aggiungi Partita</Text>
               
               <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Squadra Casa *</Text>
               <TextInput
@@ -893,7 +892,7 @@ export default function LeagueAdminConsole() {
                   onPress={() => setShowMatchDatePicker(true)}
                 >
                   <Ionicons name="calendar" size={20} color={colors.accent} />
-                  <Text style={[s.dateTimeBtnText, { color: colors.text }]}>
+                  <Text style={[s.dateTimeBtnText, { color: colors.textPrimary }]}>
                     {matchDate.toLocaleDateString('it-IT')}
                   </Text>
                 </TouchableOpacity>
@@ -902,7 +901,7 @@ export default function LeagueAdminConsole() {
                   onPress={() => setShowMatchTimePicker(true)}
                 >
                   <Ionicons name="time" size={20} color={colors.accent} />
-                  <Text style={[s.dateTimeBtnText, { color: colors.text }]}>
+                  <Text style={[s.dateTimeBtnText, { color: colors.textPrimary }]}>
                     {matchDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                   </Text>
                 </TouchableOpacity>
@@ -945,7 +944,7 @@ export default function LeagueAdminConsole() {
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowMatchdayDropdown(false)}>
           <View style={[s.dropdownModal, { backgroundColor: colors.card }]}>
             <View style={s.dropdownModalHandle} />
-            <Text style={[s.modalTitle, { color: colors.text }]}>Seleziona Giornata</Text>
+            <Text style={[s.modalTitle, { color: colors.textPrimary }]}>Seleziona Giornata</Text>
             <ScrollView style={s.dropdownList}>
               {matchdays.map((md) => {
                 const isSelected = selectedMatchday?.id === md.id;
@@ -955,7 +954,7 @@ export default function LeagueAdminConsole() {
                     style={[s.dropdownItem, { borderColor: colors.border }, isSelected && { backgroundColor: 'rgba(245,166,35,0.1)', borderColor: colors.accent }]}
                     onPress={() => { setSelectedMatchday(md); setShowMatchdayDropdown(false); }}
                   >
-                    <Text style={[s.dropdownItemText, { color: colors.text }]}>
+                    <Text style={[s.dropdownItemText, { color: colors.textPrimary }]}>
                       {md.label || `Giornata ${md.number}`}
                     </Text>
                     <View style={[s.statusDot, { backgroundColor: getStatusColor(md.status) }]} />
