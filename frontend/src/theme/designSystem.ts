@@ -1,7 +1,8 @@
 /**
- * FantaPronostic Premium Sport Light Design System v2
+ * FantaPronostic Premium Sport Light Design System v3
  * Based on official logo colors: Blue (#1F3A8A) + Orange (#F59E0B)
  * Surface gray background + white cards for depth
+ * Enhanced with podium colors & refined hierarchy
  */
 
 export const colors = {
@@ -49,6 +50,11 @@ export const colors = {
   statusLiveBg: '#FEF2F2',
   statusLockedBg: '#FFFBEB',
   statusCompletedBg: '#F1F5F9',
+  
+  // Podium / Rankings
+  gold: '#F59E0B',
+  silver: '#94A3B8',
+  bronze: '#CD7F32',
   
   // Tab bar
   tabBarBackground: '#FFFFFF',
