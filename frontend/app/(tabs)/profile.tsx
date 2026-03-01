@@ -7,6 +7,7 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { setAppLanguage, SUPPORTED_LANGS } from '../../src/i18n';
 import type { SupportedLang } from '../../src/i18n';

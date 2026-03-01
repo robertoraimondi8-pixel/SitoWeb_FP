@@ -9,6 +9,7 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 
 // Design System
