@@ -541,13 +541,13 @@ export default function PredictionsScreen() {
                 <View style={styles.teamsRow}>
                   <View style={styles.teamWithLogo}>
                     {m.home_logo && <Image source={{ uri: m.home_logo }} style={styles.teamLogo} />}
-                    <Text style={styles.teamName}>{m.home_team}</Text>
+                    <Text style={styles.teamName} numberOfLines={1}>{m.home_team}</Text>
                   </View>
                   <View style={styles.vsContainer}>
                     <Text style={styles.vs}>vs</Text>
                   </View>
                   <View style={[styles.teamWithLogo, { justifyContent: 'flex-end' }]}>
-                    <Text style={styles.teamName}>{m.away_team}</Text>
+                    <Text style={styles.teamName} numberOfLines={1}>{m.away_team}</Text>
                     {m.away_logo && <Image source={{ uri: m.away_logo }} style={styles.teamLogo} />}
                   </View>
                 </View>
