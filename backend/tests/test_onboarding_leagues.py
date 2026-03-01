@@ -14,7 +14,7 @@ import pytest
 import requests
 import random
 
-BASE_URL = "https://admin-unified-ui.preview.emergentagent.com"
+BASE_URL = "https://premium-mobile-app-1.preview.emergentagent.com"
 
 
 @pytest.fixture

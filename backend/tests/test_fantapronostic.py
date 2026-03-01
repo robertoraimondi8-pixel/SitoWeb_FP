@@ -12,7 +12,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://admin-unified-ui.preview.emergentagent.com"
+BASE_URL = "https://premium-mobile-app-1.preview.emergentagent.com"
 
 class TestHealth:
     """API health check"""

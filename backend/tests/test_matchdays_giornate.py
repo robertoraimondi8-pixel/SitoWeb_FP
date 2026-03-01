@@ -13,7 +13,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://admin-unified-ui.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://premium-mobile-app-1.preview.emergentagent.com').rstrip('/')
 ADMIN_EMAIL = "admin@fantapronostic.com"
 ADMIN_PASSWORD = "admin123"
 

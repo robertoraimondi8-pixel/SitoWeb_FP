@@ -77,7 +77,7 @@
   },
   "test_credentials": {
     "super_admin": "admin@fantapronostic.com / admin123",
-    "admin_ui_url": "https://admin-unified-ui.preview.emergentagent.com/api/admin-ui"
+    "admin_ui_url": "https://premium-mobile-app-1.preview.emergentagent.com/api/admin-ui"
   },
   "seed_data_creation": "No new seed data created - used existing data",
   "retest_needed": false,

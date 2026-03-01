@@ -12,7 +12,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://admin-unified-ui.preview.emergentagent.com").rstrip('/')
+BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://premium-mobile-app-1.preview.emergentagent.com").rstrip('/')
 
 
 class TestUserControlRoom:
