@@ -428,6 +428,20 @@ export default function HomeScreen() {
                     end={{ x: 1, y: 0 }}
                     style={s.perfInset}
                   />
+                  {/* Layer A — Diagonal white sweep */}
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']}
+                    start={{ x: 0.1, y: 0.0 }}
+                    end={{ x: 0.9, y: 1.0 }}
+                    style={s.whiteSweep}
+                  />
+                  {/* Layer B — Inset highlight top */}
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.10)', 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={s.topGlow}
+                  />
                   <View style={s.perfIconWrap}>
                     <Ionicons name="trophy" size={20} color={DARK.accent} />
                   </View>
@@ -449,6 +463,18 @@ export default function HomeScreen() {
                     end={{ x: 1, y: 0 }}
                     style={s.perfInset}
                   />
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']}
+                    start={{ x: 0.1, y: 0.0 }}
+                    end={{ x: 0.9, y: 1.0 }}
+                    style={s.whiteSweep}
+                  />
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.10)', 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={s.topGlow}
+                  />
                   <View style={s.perfIconWrap}>
                     <Ionicons name="star" size={20} color="#FFFFFF" />
                   </View>
@@ -469,6 +495,18 @@ export default function HomeScreen() {
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={s.perfInset}
+                  />
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']}
+                    start={{ x: 0.1, y: 0.0 }}
+                    end={{ x: 0.9, y: 1.0 }}
+                    style={s.whiteSweep}
+                  />
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.10)', 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={s.topGlow}
                   />
                   <View style={s.perfIconWrap}>
                     <Ionicons name="football" size={20} color={LIGHT.green} />
