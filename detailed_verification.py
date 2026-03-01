@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime
 
-BASE_URL = "https://home-screen-final.preview.emergentagent.com/api"
+BASE_URL = "https://dark-theme-overhaul-2.preview.emergentagent.com/api"
 TEST_USER = {"email": "marco@test.com", "password": "password123"}
 
 def detailed_verification():

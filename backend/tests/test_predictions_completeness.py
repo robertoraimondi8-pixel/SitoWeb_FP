@@ -12,7 +12,7 @@ import pytest
 import requests
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://home-screen-final.preview.emergentagent.com"
+BASE_URL = "https://dark-theme-overhaul-2.preview.emergentagent.com"
 LEAGUE_ID = "1762173a-31fe-463b-9668-d757114f440b"  # ilio@raimondi.it's league
 
 

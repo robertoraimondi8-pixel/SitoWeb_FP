@@ -20,7 +20,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://home-screen-final.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://dark-theme-overhaul-2.preview.emergentagent.com')
 
 # Test credentials
 SUPER_ADMIN_EMAIL = "admin@fantapronostic.com"

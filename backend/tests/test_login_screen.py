@@ -9,7 +9,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://home-screen-final.preview.emergentagent.com"
+BASE_URL = "https://dark-theme-overhaul-2.preview.emergentagent.com"
 
 
 class TestLoginEmailPassword:

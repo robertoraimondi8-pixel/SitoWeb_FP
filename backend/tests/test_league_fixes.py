@@ -10,7 +10,7 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://home-screen-final.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://dark-theme-overhaul-2.preview.emergentagent.com").rstrip("/")
 NATIONAL_LEAGUE_ID = "f1373417-43aa-4043-b6a2-125873181c95"
 
 # Test credentials

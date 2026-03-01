@@ -11,7 +11,7 @@ import os
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://home-screen-final.preview.emergentagent.com"
+    BASE_URL = "https://dark-theme-overhaul-2.preview.emergentagent.com"
 
 # Test constants
 ADMIN_EMAIL = "admin@fantapronostic.com"

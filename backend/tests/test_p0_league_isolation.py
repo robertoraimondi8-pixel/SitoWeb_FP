@@ -25,7 +25,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://home-screen-final.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://dark-theme-overhaul-2.preview.emergentagent.com').rstrip('/')
 
 # Test credentials from review request
 DESIREE_EMAIL = "desiree@raimondi.it"
