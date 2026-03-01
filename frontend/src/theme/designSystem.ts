@@ -1,34 +1,40 @@
 /**
- * FantaPronostic Premium Sport Light Design System v3
- * Based on official logo colors: Blue (#1F3A8A) + Orange (#F59E0B)
- * Surface gray background + white cards for depth
- * Enhanced with podium colors & refined hierarchy
+ * FantaPronostic Premium Dark Sport Design System v4
+ * Palette ufficiale: Deep Navy + Orange Accent
+ * Dark premium background with elevated cards
  */
 
 export const colors = {
-  // Primary palette
-  primary: '#1F3A8A',
-  primaryLight: '#3B82F6',
-  accent: '#F59E0B',
+  // Primary palette (PREMIUM)
+  primary: '#0E1A2B',
+  primaryLight: '#14263D',
+  accent: '#F5A623',
+  accentDark: '#F59E0B',
   accentLight: '#FEF3C7',
-  accentGlow: 'rgba(245, 158, 11, 0.25)',
+  accentGlow: 'rgba(245, 166, 35, 0.25)',
   
-  // Backgrounds - PREMIUM LIGHT (gray surface + white cards)
-  background: '#F2F4F7',
+  // Backgrounds - PREMIUM DARK
+  background: '#F3F4F6',
   card: '#FFFFFF',
   cardHighlight: '#F8FAFC',
   
+  // Premium dark surfaces (for home & hero sections)
+  surfaceDark: '#0E1A2B',
+  surfaceNavy: '#14263D',
+  surfaceNavyLight: '#1A3050',
+  
   // Borders & Separators
-  border: '#E2E8F0',
+  border: '#E5E7EB',
   borderLight: '#F1F5F9',
-  separator: '#E2E8F0',
+  borderDark: 'rgba(255,255,255,0.08)',
+  separator: '#E5E7EB',
   
   // Status colors
   success: '#16A34A',
   successLight: '#DCFCE7',
   error: '#DC2626',
   errorLight: '#FEE2E2',
-  warning: '#F59E0B',
+  warning: '#F5A623',
   warningLight: '#FEF3C7',
   info: '#2563EB',
   infoLight: '#DBEAFE',
@@ -38,6 +44,8 @@ export const colors = {
   textSecondary: '#64748B',
   textMuted: '#94A3B8',
   textInverse: '#FFFFFF',
+  textOnDark: '#FFFFFF',
+  textOnDarkMuted: 'rgba(255,255,255,0.6)',
   
   // Matchday status
   statusOpen: '#1D4ED8',
@@ -47,20 +55,20 @@ export const colors = {
   
   // Status backgrounds (for badges)
   statusOpenBg: '#EFF6FF',
-  statusLiveBg: '#FEF2F2',
+  statusLiveBg: '#FFFFFF',
   statusLockedBg: '#FFFBEB',
   statusCompletedBg: '#F1F5F9',
   
   // Podium / Rankings
-  gold: '#F59E0B',
+  gold: '#F5A623',
   silver: '#94A3B8',
   bronze: '#CD7F32',
   
   // Tab bar
   tabBarBackground: '#FFFFFF',
-  tabBarActive: '#F59E0B',
+  tabBarActive: '#F5A623',
   tabBarInactive: '#94A3B8',
-  tabBarBorder: '#E2E8F0',
+  tabBarBorder: '#E5E7EB',
 };
 
 export const typography = {
