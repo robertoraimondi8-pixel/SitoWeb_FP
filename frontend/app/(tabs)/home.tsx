@@ -746,8 +746,8 @@ const s = StyleSheet.create({
   // ── 3. Performance (gradient cards + inset + sospensione) ──
   sectionLabel: {
     fontSize: 13,
-    fontWeight: '700',
-    color: LIGHT.textMuted,
+    fontWeight: '800',
+    color: '#6B7280',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 8,
@@ -755,7 +755,7 @@ const s = StyleSheet.create({
   },
   perfRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
   perfCardOuter: {
     flex: 1,
