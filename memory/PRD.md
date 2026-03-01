@@ -271,19 +271,17 @@ Complete visual transformation to premium dark sport theme matching user's mocku
 - Files: home.tsx (complete rewrite), designSystem.ts (v4 palette), LastFiveIndicator.tsx (dark prop), StatusBadge.tsx (consistent 8px radius)
 
 ### Premium Balanced Design Direction (Mar 1, 2026) - COMPLETED
-Switched from full dark to "Premium Balanced" direction per user's definitive mockup:
-- **Header**: White background (#FFFFFF) with dark text icons, centered logo, border-bottom
-- **Background**: Light gray surface (#F3F4F6) - creates depth with white cards
-- **Hero Card**: Dark navy gradient (#14263D → #0E1A2B) - premium focal point KEPT
-- **CTA Button**: Orange gradient with dark navy icon circle on right (icon in #0E1A2B circle)
-- **Classifica LIVE**: White card on light bg, green left accent 4px
-- **Performance Cards**: 3x dark navy (#14263D) on light bg - contrast creates depth
-- **Trend Card**: White card (#FFFFFF) with normal (non-dark) chart
-- **League Switcher**: White pill with border on white header bg
-- **Tab Bar**: White bg, orange active (#F5A623), gray inactive (#94A3B8)
-- **Shadows**: All updated to natural/diffuse (blur 16-24px, opacity 0.06-0.12)
-- **Design System v4**: Updated global shadows to be softer throughout all screens
-- **Consistency**: All screens (Rankings, Predictions, Profile) auto-inherit updated colors.background (#F3F4F6), shadows, and borderRadius from designSystem.ts
+Switched from full dark to "Premium Balanced" direction per user's definitive mockup.
+
+### UI Premium Refinement (Mar 1, 2026) - COMPLETED
+Final premium polish — "da 8/10 a 9.5/10":
+1. **Background dinamico**: LinearGradient (#F5F6F8 → #ECEFF3) diagonal + ambient light overlay (white 4% opacity) — eliminato effetto piatto
+2. **Performance cards premium**: LinearGradient interno (#1E3553 → #13263F) diagonale + inset highlight (gradient bianco 8% → transparent top 40px) + bordo luminoso (rgba white 6%) + icone incastonate (bg 5% + border 8%) + ombre sospensione (offset Y:12, blur:30, elevation:10)
+3. **Radius 22px**: Tutte le card (hero, LIVE, perf, trend, CTA) uniformate a borderRadius 22
+4. **Spaziatura 24px**: Gap verticale sezioni costante a 24px, perf row gap 10px
+5. **Ombre naturali diffuse**: Hero (Y:12, blur:30, opacity:0.2), LIVE (Y:8, blur:24, opacity:0.06), Trend (Y:8, blur:24), CTA (orange shadow Y:8, blur:20, opacity:0.3)
+6. **Micro-animazioni premium**: translateY ridotto a 6px (da 24px), durata 180-220ms, easing easeOut, stagger 80ms — eleganti, non invasive
+7. **CTA button**: Dark navy circle (#0E1A2B) per icona mantenuto, shadow orange diffusa
 
 ## Prioritized Backlog
 
