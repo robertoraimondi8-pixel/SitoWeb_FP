@@ -679,20 +679,20 @@ const s = StyleSheet.create({
   emptyHeroTitle: { fontSize: 18, fontWeight: '700', color: DARK.textSub },
   emptyHeroSub: { fontSize: 13, color: DARK.textMuted, textAlign: 'center' },
 
-  // ── 2. Classifica LIVE (white card, green accent) ──
+  // ── 2. Classifica LIVE ──
   liveCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 22,
     backgroundColor: LIGHT.card,
     borderLeftWidth: 4,
     borderLeftColor: LIGHT.green,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
+    shadowRadius: 24,
+    elevation: 4,
   },
   liveLeft: { flex: 1, gap: 4 },
   liveBadge: {
