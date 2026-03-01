@@ -319,9 +319,9 @@ export default function CreateLeagueScreen() {
   );
 }
 
-const makeStyles = (colors: typeof import("../../src/theme/designSystem").colors) => StyleSheet.create({
-  container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 12 },
+const makeStyles = () => StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F5F6F8' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 12, backgroundColor: '#F3F4F6' },
   backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 20, fontWeight: '700' },
   scroll: { padding: 20, paddingBottom: 40 },
