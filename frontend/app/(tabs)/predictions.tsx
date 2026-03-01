@@ -1087,6 +1087,7 @@ const styles = StyleSheet.create({
   valueBtnActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
+    ...shadows.card,
   },
   valueBtnText: { 
     ...typography.bodyM,
