@@ -139,7 +139,11 @@ const s = StyleSheet.create({
     borderRadius: borderRadius.xl,
     padding: spacing.xl,
     alignItems: 'center',
-    ...shadows.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 5,
   },
   iconWrap: {
     width: 64, height: 64, borderRadius: 32,
