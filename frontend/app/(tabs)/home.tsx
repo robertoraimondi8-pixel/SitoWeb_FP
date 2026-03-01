@@ -326,7 +326,7 @@ export default function HomeScreen() {
                         <Text style={s.heroSub}>{matchdayMsg}</Text>
                       )}
 
-                      {/* CTA Button — icon inline, no circle */}
+                      {/* CTA Button — orange gradient + dark icon circle */}
                       {ctaConfig && (
                         <LinearGradient
                           colors={['#F5A623', '#F59E0B']}
@@ -335,7 +335,9 @@ export default function HomeScreen() {
                           style={s.ctaBtn}
                         >
                           <Text style={s.ctaText}>{ctaConfig.label}</Text>
-                          <Ionicons name={ctaConfig.icon} size={20} color={'rgba(255,255,255,0.9)'} />
+                          <View style={s.ctaIconCircle}>
+                            <Ionicons name={ctaConfig.icon} size={18} color="#FFFFFF" />
+                          </View>
                         </LinearGradient>
                       )}
                     </>
