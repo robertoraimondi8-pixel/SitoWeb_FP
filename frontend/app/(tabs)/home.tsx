@@ -338,6 +338,7 @@ export default function HomeScreen() {
                     end={{ x: 0, y: 1 }}
                     style={s.topGlow}
                   />
+                  <AnimatedSweep />
                   {data?.matchday ? (
                     <>
                       <View style={s.heroTop}>
