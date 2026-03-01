@@ -483,8 +483,13 @@ export default function HomeScreen() {
 // STYLES — Premium Balanced (Light BG + Dark Hero)
 // ═══════════════════════════════════════════════════
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: LIGHT.bg },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: LIGHT.bg },
+  container: { flex: 1, backgroundColor: '#F5F6F8' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F6F8' },
+  ambientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#FFFFFF',
+    opacity: 0.04,
+  },
 
   // ── Header (light) ──
   header: {
