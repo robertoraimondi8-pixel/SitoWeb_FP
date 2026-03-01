@@ -84,14 +84,14 @@ export default function OnboardingScreen() {
 
   if (loading) {
     return (
-      <View style={[s.center, { backgroundColor: colors.background }]}>
+      <View style={[s.center, { backgroundColor: '#F5F6F8' }]}>
         <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[s.container, { backgroundColor: '#F5F6F8' }]} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
         {/* Top bar — pulsante Esci */}
