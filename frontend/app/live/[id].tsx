@@ -5,13 +5,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { useTheme } from '../../src/contexts/ThemeContext';
 import { LiveScreenData, getErrorMessage } from '../../src/types/api';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, typography, spacing, borderRadius } from '../../src/theme/designSystem';
+import { AnimatedSweep } from '../../src/components/ui';
 
-const POLLING_INTERVAL = 60000; // 60 seconds
+const POLLING_INTERVAL = 60000;
 
 interface LiveMatch {
   match_id: string;
@@ -34,7 +36,6 @@ interface LiveMatch {
 }
 
 export default function LiveScreen() {
-  const { colors } = useTheme();
   const { token, handleAuthError } = useAuth();
   const params = useLocalSearchParams<{ id: string; league_id?: string }>();
   
@@ -44,7 +45,6 @@ export default function LiveScreen() {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [countdown, setCountdown] = useState(60);
   
-  // Animation for score changes
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const prevScoresRef = useRef<Record<string, string>>({});
 
@@ -54,16 +54,13 @@ export default function LiveScreen() {
       const leagueParam = params.league_id ? `?league_id=${params.league_id}` : '';
       const res = await apiCall(`/live/${params.id}${leagueParam}`, { token });
       
-      // Check for score changes and trigger animation
       if (data?.matches) {
         const newScores: Record<string, string> = {};
         res.matches.forEach((m: LiveMatch) => {
           const scoreKey = `${m.home_score}-${m.away_score}`;
           newScores[m.match_id] = scoreKey;
-          
           const prevScore = prevScoresRef.current[m.match_id];
           if (prevScore && prevScore !== scoreKey) {
-            // Score changed! Trigger animation
             Animated.sequence([
               Animated.timing(pulseAnim, { toValue: 1.1, duration: 150, useNativeDriver: true }),
               Animated.timing(pulseAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
@@ -90,40 +87,28 @@ export default function LiveScreen() {
     }
   }, [params.id, token, data?.matches, pulseAnim, handleAuthError]);
 
-  // Initial load
   useEffect(() => { fetchLiveData(); }, []);
 
-  // Polling every 60 seconds
   useEffect(() => {
     if (!data || data.matchday_status !== 'LIVE') return;
-    
-    const interval = setInterval(() => {
-      fetchLiveData();
-    }, POLLING_INTERVAL);
-
+    const interval = setInterval(() => fetchLiveData(), POLLING_INTERVAL);
     return () => clearInterval(interval);
   }, [data?.matchday_status, fetchLiveData]);
 
-  // Countdown timer
   useEffect(() => {
     if (!data || data.matchday_status !== 'LIVE') return;
-    
     const timer = setInterval(() => {
-      setCountdown(c => {
-        if (c <= 1) return 60;
-        return c - 1;
-      });
+      setCountdown(c => c <= 1 ? 60 : c - 1);
     }, 1000);
-
     return () => clearInterval(timer);
   }, [data?.matchday_status]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'live': return colors.success;
-      case 'finished': return colors.textSecondary;
+      case 'finished': return 'rgba(255,255,255,0.4)';
       case 'scheduled': return colors.info;
-      default: return colors.textSecondary;
+      default: return 'rgba(255,255,255,0.4)';
     }
   };
 
@@ -131,7 +116,7 @@ export default function LiveScreen() {
     switch (outcome) {
       case 'correct': return colors.success;
       case 'wrong': return colors.error;
-      default: return colors.textSecondary;
+      default: return 'rgba(255,255,255,0.4)';
     }
   };
 
@@ -148,12 +133,11 @@ export default function LiveScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <SafeAreaView style={s.container} edges={['top']}>
+        <LinearGradient colors={['#F5F6F8', '#ECEFF3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
         <View style={s.center}>
           <ActivityIndicator size="large" color={colors.accent} />
-          <Text style={[s.loadingText, { color: colors.textSecondary }]}>
-            Caricamento Live...
-          </Text>
+          <Text style={s.loadingText}>Caricamento Live...</Text>
         </View>
       </SafeAreaView>
     );
@@ -161,105 +145,85 @@ export default function LiveScreen() {
 
   const isLive = data?.matchday_status === 'LIVE';
   const isCompleted = data?.matchday_status === 'COMPLETED';
-  const isLocked = data?.matchday_status === 'LOCKED';
-  
-  // DEBUG - remove after fix
-  console.log('[LiveScreen] matchday_status:', data?.matchday_status, 'isCompleted:', isCompleted);
-  
-  // Determine points label based on status
-  const getPointsLabel = () => {
-    console.log('[getPointsLabel] isCompleted:', isCompleted, 'isLive:', isLive, 'isLocked:', isLocked);
-    if (isCompleted) return 'Punti Ufficiali';
-    if (isLive || isLocked) return 'Punti Provvisori';
-    return 'Punti';
-  };
 
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView style={s.container} edges={['top']}>
+      <LinearGradient colors={['#F5F6F8', '#ECEFF3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity testID="live-back-btn" accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.replace('/(tabs)/home' as any)} style={s.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+        <TouchableOpacity testID="live-back-btn" onPress={() => router.replace('/(tabs)/home' as any)} style={s.backBtn}>
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={s.headerInfo}>
-          <Text style={[s.headerTitle, { color: colors.text }]}>
-            {data?.matchday_label || `Giornata ${data?.matchday_number}`}
-          </Text>
+          <Text style={s.headerTitle}>{data?.matchday_label || `Giornata ${data?.matchday_number}`}</Text>
           <View style={s.headerMeta}>
             {isLive && (
-              <View style={[s.liveBadge, { backgroundColor: colors.success }]}>
+              <View style={s.liveBadgeHeader}>
                 <View style={s.liveDot} />
-                <Text style={s.liveText}>LIVE</Text>
+                <Text style={s.liveBadgeText}>LIVE</Text>
               </View>
             )}
-            <Text style={[s.lastUpdateText, { color: colors.textSecondary }]}>
+            <Text style={s.lastUpdateText}>
               Agg. {lastUpdate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </View>
         </View>
         {isLive && (
-          <View style={[s.countdownBadge, { backgroundColor: colors.card }]}>
+          <View style={s.countdownBadge}>
             <Ionicons name="refresh" size={14} color={colors.textSecondary} />
-            <Text style={[s.countdownText, { color: colors.textSecondary }]}>{countdown}s</Text>
+            <Text style={s.countdownText}>{countdown}s</Text>
           </View>
         )}
       </View>
 
-      {/* Points Summary */}
-      <Animated.View style={[
-        s.pointsCard, 
-        { backgroundColor: colors.card, transform: [{ scale: pulseAnim }] }
-      ]}>
-        <View style={s.pointsRow}>
-          <View style={s.pointsItem}>
-            <Text style={[s.pointsLabel, { color: colors.textSecondary }]}>Punti Base</Text>
-            <Text style={[s.pointsValue, { color: colors.text }]}>
-              {(data?.base_points || 0).toFixed(1)}
-            </Text>
-          </View>
-          
-          <View style={s.pointsItem}>
-            <Text style={[s.pointsLabel, { color: colors.textSecondary }]}>
-              {data?.matchday_status === 'COMPLETED' ? 'Punti Ufficiali' : 'Punti Provvisori'}
-            </Text>
-            <Text style={[s.pointsValueBig, { color: colors.accent }]}>
-              {(data?.total_live_points || 0).toFixed(1)}
-            </Text>
-          </View>
-        </View>
-        
-      </Animated.View>
+      {/* Points Summary — Dark Navy */}
+      <View style={s.pointsOuter}>
+        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          <LinearGradient colors={['#1A2F4D', '#0E1A2B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.pointsCard}>
+            <AnimatedSweep />
+            <View style={s.pointsRow}>
+              <View style={s.pointsItem}>
+                <Text style={s.pointsLabel}>Punti Base</Text>
+                <Text style={s.pointsValue}>{(data?.base_points || 0).toFixed(1)}</Text>
+              </View>
+              <View style={s.pointsDivider} />
+              <View style={s.pointsItem}>
+                <Text style={s.pointsLabel}>{isCompleted ? 'Punti Ufficiali' : 'Punti Provvisori'}</Text>
+                <Text style={s.pointsValueBig}>{(data?.total_live_points || 0).toFixed(1)}</Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </Animated.View>
+      </View>
 
       {/* Matches List */}
       <ScrollView 
         contentContainerStyle={s.scrollContent}
         refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={() => fetchLiveData(true)} 
-            tintColor={colors.accent}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={() => fetchLiveData(true)} tintColor={colors.accent} />
         }
       >
         {data?.matches?.map((match: LiveMatch, idx: number) => (
           <View 
             key={match.match_id} 
             style={[
-              s.matchCard, 
-              { backgroundColor: colors.card, borderColor: colors.border },
-              match.status === 'live' && { borderColor: colors.success, borderWidth: 2 },
-              match.is_special && { borderColor: colors.accent, borderWidth: 2 }
+              s.matchCard,
+              match.status === 'live' && s.matchCardLive,
+              match.is_special && s.matchCardSpecial,
             ]}
+            data-testid={`live-match-${idx}`}
           >
+            <AnimatedSweep />
             {/* Match Header */}
             <View style={s.matchHeader}>
-              <Text style={[s.matchNum, { color: match.is_special ? colors.accent : colors.textSecondary }]}>{idx + 1}</Text>
-              <Text style={[s.competition, { color: colors.textSecondary }]}>
-                {match.competition}
-              </Text>
+              <View style={[s.matchNumBadge, match.is_special && { backgroundColor: colors.accent }]}>
+                <Text style={s.matchNum}>{idx + 1}</Text>
+              </View>
+              <Text style={s.competition}>{match.competition}</Text>
               {match.is_special && (
-                <View style={{ backgroundColor: colors.accent, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
-                  <Text style={{ color: '#fff', fontSize: 11, fontWeight: '800', letterSpacing: 1 }}>X3</Text>
+                <View style={s.specialBadge}>
+                  <Text style={s.specialText}>X3</Text>
                 </View>
               )}
               {match.status === 'live' && match.elapsed != null && (
@@ -268,7 +232,7 @@ export default function LiveScreen() {
                 </View>
               )}
               {match.status === 'scheduled' && match.start_time && (
-                <Text style={[s.kickoffTime, { color: colors.textSecondary }]}>
+                <Text style={s.kickoffTime}>
                   {new Date(match.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                 </Text>
               )}
@@ -280,35 +244,30 @@ export default function LiveScreen() {
               </View>
             </View>
 
-            {/* Teams & Score */}
+            {/* Teams & Score — FIXED OVERLAP */}
             <View style={s.teamsRow}>
               <View style={s.teamCol}>
                 <View style={s.teamNameRow}>
                   {match.home_logo && <Image source={{ uri: match.home_logo }} style={s.teamLogo} />}
-                  <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>
-                    {match.home_team}
-                  </Text>
+                  <Text style={s.teamName} numberOfLines={1} ellipsizeMode="tail">{match.home_team}</Text>
                 </View>
               </View>
               <View style={s.scoreCol}>
                 {match.home_score !== null ? (
-                  <Text style={[
-                    s.score, 
-                    { color: match.status === 'live' ? colors.success : colors.text }
-                  ]}>
+                  <Text style={[s.score, match.status === 'live' && { color: colors.success }]}>
                     {match.home_score} - {match.away_score}
                   </Text>
                 ) : match.status === 'scheduled' && match.start_time ? (
-                  <Text style={[s.schedTime, { color: colors.textSecondary }]}>
+                  <Text style={s.schedTime}>
                     {new Date(match.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                   </Text>
                 ) : (
-                  <Text style={[s.vs, { color: colors.textSecondary }]}>vs</Text>
+                  <Text style={s.vs}>vs</Text>
                 )}
               </View>
               <View style={s.teamCol}>
                 <View style={[s.teamNameRow, { justifyContent: 'flex-end' }]}>
-                  <Text style={[s.teamName, { color: colors.text, textAlign: 'right' }]} numberOfLines={1}>
+                  <Text style={[s.teamName, { textAlign: 'right' }]} numberOfLines={1} ellipsizeMode="tail">
                     {match.away_team}
                   </Text>
                   {match.away_logo && <Image source={{ uri: match.away_logo }} style={s.teamLogo} />}
@@ -317,27 +276,19 @@ export default function LiveScreen() {
             </View>
 
             {/* My Prediction */}
-            <View style={[s.predRow, { borderTopColor: colors.border }]}>
+            <View style={s.predRow}>
               <View style={s.predInfo}>
                 {match.my_prediction ? (
                   <View style={s.predValueRow}>
-                    <View style={[s.marketBadge, { backgroundColor: 'rgba(59,130,246,0.15)' }]}>
-                      <Text style={[s.marketText, { color: colors.info }]}>
-                        {formatMarket(match.my_market)}
-                      </Text>
+                    <View style={s.marketBadge}>
+                      <Text style={s.marketText}>{formatMarket(match.my_market)}</Text>
                     </View>
-                    <Text style={[s.predValue, { color: colors.text }]}>
-                      {match.my_prediction}
-                    </Text>
+                    <Text style={s.predValue}>{match.my_prediction}</Text>
                   </View>
                 ) : (
-                  <Text style={[s.noPred, { color: colors.textSecondary }]}>
-                    Nessun pronostico
-                  </Text>
+                  <Text style={s.noPred}>Nessun pronostico</Text>
                 )}
               </View>
-
-              {/* Points */}
               <View style={s.pointsCol2}>
                 {match.outcome !== 'pending' && match.outcome !== 'no_prediction' && (
                   <>
@@ -352,7 +303,7 @@ export default function LiveScreen() {
                   </>
                 )}
                 {match.outcome === 'pending' && match.my_prediction && (
-                  <Ionicons name="time" size={20} color={colors.textSecondary} />
+                  <Ionicons name="time" size={20} color="rgba(255,255,255,0.4)" />
                 )}
               </View>
             </View>
@@ -360,11 +311,11 @@ export default function LiveScreen() {
         ))}
 
         {/* Summary Footer */}
-        <View style={[s.summaryFooter, { backgroundColor: colors.card }]}>
-          <Text style={[s.summaryText, { color: colors.textSecondary }]}>
-            {data?.valid_matches || 0} partite valide • {data?.void_matches || 0} annullate
+        <View style={s.summaryFooter}>
+          <Text style={s.summaryText}>
+            {data?.valid_matches || 0} partite valide &bull; {data?.void_matches || 0} annullate
           </Text>
-          <Text style={[s.serverTime, { color: colors.textSecondary }]}>
+          <Text style={s.serverTime}>
             Server: {data?.server_time ? new Date(data.server_time).toLocaleTimeString('it-IT') : '-'}
           </Text>
         </View>
@@ -374,70 +325,150 @@ export default function LiveScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#F5F6F8' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  loadingText: { fontSize: 14 },
+  loadingText: { ...typography.bodyS, color: colors.textSecondary },
   
-  // Header
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
+  // Header — gray
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: spacing.lg, 
+    paddingVertical: spacing.md, 
+    gap: spacing.md,
+    backgroundColor: '#F3F4F6',
+  },
   backBtn: { padding: 4 },
   headerInfo: { flex: 1 },
-  headerTitle: { fontSize: 18, fontWeight: '700' },
+  headerTitle: { ...typography.titleM, color: colors.textPrimary },
   headerMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  liveBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
+  liveBadgeHeader: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, backgroundColor: colors.success },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' },
-  liveText: { color: '#fff', fontSize: 10, fontWeight: '700' },
-  lastUpdateText: { fontSize: 11 },
-  countdownBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
-  countdownText: { fontSize: 12, fontWeight: '600' },
+  liveBadgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  lastUpdateText: { ...typography.metaSmall, color: colors.textSecondary },
+  countdownBadge: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 4, 
+    paddingHorizontal: 10, 
+    paddingVertical: 6, 
+    borderRadius: borderRadius.sm, 
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  countdownText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
   
-  // Points Card
-  pointsCard: { marginHorizontal: 16, padding: 16, borderRadius: 14, marginBottom: 8 },
-  pointsRow: { flexDirection: 'row', justifyContent: 'space-around' },
-  pointsItem: { alignItems: 'center' },
-  pointsLabel: { fontSize: 10, fontWeight: '500', textTransform: 'uppercase' },
-  pointsValue: { fontSize: 18, fontWeight: '700', marginTop: 4 },
-  pointsValueBig: { fontSize: 28, fontWeight: '800', marginTop: 4 },
-  jollyBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12, paddingVertical: 8, borderRadius: 8 },
-  jollyText: { fontSize: 13, fontWeight: '700' },
+  // Points Card — Dark Navy
+  pointsOuter: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: colors.accent,
+    shadowColor: '#0E1A2B',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 30,
+    elevation: 10,
+  },
+  pointsCard: { 
+    padding: spacing.xl, 
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+  },
+  pointsRow: { flexDirection: 'row', alignItems: 'center' },
+  pointsItem: { flex: 1, alignItems: 'center' },
+  pointsDivider: { width: 1, height: 40, backgroundColor: 'rgba(255,255,255,0.08)' },
+  pointsLabel: { ...typography.metaSmall, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' },
+  pointsValue: { ...typography.statMedium, color: '#FFFFFF', marginTop: 4 },
+  pointsValueBig: { fontSize: 28, fontWeight: '800', color: colors.accent, marginTop: 4 },
   
   // Matches List
-  scrollContent: { padding: 16, paddingBottom: 100 },
-  matchCard: { borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1 },
-  matchHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  matchNum: { fontSize: 11, fontWeight: '700', width: 20, textAlign: 'center' },
-  competition: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase', flex: 1 },
+  scrollContent: { padding: spacing.lg, paddingBottom: 100 },
+  matchCard: { 
+    backgroundColor: '#14263D',
+    borderRadius: borderRadius.xl, 
+    padding: spacing.lg, 
+    marginBottom: spacing.md, 
+    borderWidth: 1.5,
+    borderColor: colors.accent,
+    overflow: 'hidden',
+    shadowColor: '#0E1A2B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    elevation: 6,
+  },
+  matchCardLive: {
+    borderColor: colors.success,
+    borderWidth: 2,
+  },
+  matchCardSpecial: {
+    borderColor: colors.accent,
+    borderWidth: 2,
+  },
+  matchHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
+  matchNumBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  matchNum: { ...typography.metaSmall, color: '#FFFFFF', fontWeight: '800' },
+  competition: { ...typography.metaSmall, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', flex: 1 },
+  specialBadge: { backgroundColor: colors.accent, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  specialText: { color: '#fff', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  elapsedBadge: { backgroundColor: 'rgba(239,68,68,0.2)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  elapsedText: { fontSize: 12, fontWeight: '700', color: colors.error },
+  kickoffTime: { ...typography.meta, color: 'rgba(255,255,255,0.5)' },
   statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
   liveDotSmall: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#fff' },
   statusText: { color: '#fff', fontSize: 9, fontWeight: '700' },
-  elapsedBadge: { backgroundColor: 'rgba(239,68,68,0.15)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  elapsedText: { fontSize: 12, fontWeight: '700', color: 'rgb(239,68,68)' },
-  kickoffTime: { fontSize: 12, fontWeight: '600' },
   
-  // Teams
-  teamsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  teamCol: { flex: 1 },
+  // Teams — OVERLAP FIX
+  teamsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
+  teamCol: { flex: 1, flexShrink: 1 },
   teamNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  teamLogo: { width: 22, height: 22, borderRadius: 11 },
-  teamName: { fontSize: 14, fontWeight: '600' },
-  scoreCol: { paddingHorizontal: 12, minWidth: 70, alignItems: 'center' },
-  score: { fontSize: 20, fontWeight: '800' },
-  vs: { fontSize: 12 },
-  schedTime: { fontSize: 14, fontWeight: '700' },
+  teamLogo: { width: 22, height: 22, borderRadius: 11, flexShrink: 0 },
+  teamName: { ...typography.bodyM, color: '#FFFFFF', fontWeight: '600', flex: 1, flexShrink: 1 },
+  scoreCol: { width: 80, alignItems: 'center', flexShrink: 0 },
+  score: { fontSize: 20, fontWeight: '800', color: '#FFFFFF' },
+  vs: { ...typography.meta, color: 'rgba(255,255,255,0.4)' },
+  schedTime: { ...typography.bodyM, color: 'rgba(255,255,255,0.5)', fontWeight: '700' },
   
   // Prediction row
-  predRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTopWidth: 1 },
+  predRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingTop: spacing.md, 
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+  },
   predInfo: { flex: 1 },
   predValueRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  marketBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
-  marketText: { fontSize: 10, fontWeight: '700' },
-  predValue: { fontSize: 15, fontWeight: '700' },
-  noPred: { fontSize: 12, fontStyle: 'italic' },
+  marketBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, backgroundColor: 'rgba(59,130,246,0.2)' },
+  marketText: { fontSize: 10, fontWeight: '700', color: '#60A5FA' },
+  predValue: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  noPred: { fontSize: 12, fontStyle: 'italic', color: 'rgba(255,255,255,0.35)' },
   pointsCol2: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   matchPoints: { fontSize: 14, fontWeight: '700' },
   
   // Footer
-  summaryFooter: { padding: 16, borderRadius: 14, alignItems: 'center', marginTop: 8 },
-  summaryText: { fontSize: 12 },
-  serverTime: { fontSize: 10, marginTop: 4 },
+  summaryFooter: { 
+    padding: spacing.lg, 
+    borderRadius: borderRadius.xl, 
+    alignItems: 'center', 
+    marginTop: spacing.sm,
+    backgroundColor: '#14263D',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  summaryText: { ...typography.meta, color: 'rgba(255,255,255,0.5)' },
+  serverTime: { ...typography.metaSmall, color: 'rgba(255,255,255,0.35)', marginTop: 4 },
 });
