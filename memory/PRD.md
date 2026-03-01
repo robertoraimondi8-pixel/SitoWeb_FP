@@ -257,6 +257,9 @@ Major visual refresh of the mobile app:
 
 ## Prioritized Backlog
 
+### P0
+- UI/UX Overhaul Phase 2: Further refinements based on user feedback (micro-animations, font consistency, additional dynamic elements)
+
 ### P1
 - Activate Push Notifications when app is published to stores (set PUSH_NOTIFICATIONS_ENABLED=true, install expo-notifications on frontend, register push tokens on login)
 - Integrate email service (SendGrid/Resend) to automate password reset link delivery
