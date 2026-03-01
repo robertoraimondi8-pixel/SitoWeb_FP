@@ -255,6 +255,15 @@ Major visual refresh of the mobile app:
 - **StatusBadge**: Enhanced LIVE animation with subtle scale pulse (1→1.08) in addition to dot opacity.
 - Files: designSystem.ts, rankings.tsx, home.tsx, predictions.tsx, profile.tsx, StatusBadge.tsx, _layout.tsx
 
+### Homepage Premium Redesign (Mar 1, 2026) - COMPLETED
+Complete visual transformation of the home screen to premium sports app aesthetic:
+- **Hero Matchday Card**: Dark blue gradient (LinearGradient #1E3A7D → #0F2352) with white text, progress bar for predictions count, countdown timer in frosted glass box, orange CTA with white arrow circle. Makes matchday info the visual centerpiece.
+- **LIVE Standings Card**: Redesigned from flat green border to white card with green left accent bar, horizontal layout (badge + rank number side by side), more prominent rank display.
+- **Performance Card**: Transformed from single centered number + stats row to 2x2 icon grid. Each stat has colored icon circle (trophy/star/football/trending) with label. Position card has subtle accent highlight.
+- **Header**: Simplified - logo centered, hamburger and action buttons symmetrical. Removed greeting text from header for cleaner look. Smaller icon buttons without borders.
+- **New dependency**: expo-linear-gradient for hero card gradient
+- Files modified: home.tsx (complete rewrite of card layout and styles)
+
 ## Prioritized Backlog
 
 ### P0
