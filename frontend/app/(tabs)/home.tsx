@@ -780,16 +780,16 @@ const s = StyleSheet.create({
     lineHeight: 13,
   },
 
-  // ── 4. Trend (white card on light bg) ──
+  // ── 4. Trend (white card, radius 22) ──
   trendCard: {
     backgroundColor: LIGHT.card,
-    borderRadius: 16,
+    borderRadius: 22,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
+    shadowRadius: 24,
+    elevation: 4,
   },
   sectionLabelInCard: {
     fontSize: 13,
