@@ -1,83 +1,84 @@
 {
-  "brand_identity": {
-    "name": "FantaPronostic",
-    "ethos": "The Arena in Your Pocket",
-    "emotion": "Electric, Precise, Competitive",
-    "theme_mode": "dark_default_with_toggle"
-  },
-  "design_principles": {
-    "fusion": "Sports Data x Neo-Brutalism. Raw numbers meet glowing accents.",
-    "interaction": "Tactile cards. Pressing a prediction button should feel like punching a ticket.",
-    "hierarchy": "Score > Status > Team Names. The data that changes most often gets the brightest color.",
-    "density": "High density for rankings, spacious for prediction inputs."
-  },
-  "typography": {
-    "font_family_headings": "Barlow Condensed",
-    "font_family_body": "Manrope",
-    "weights": {
-      "light": "300",
-      "regular": "400",
-      "semiBold": "600",
-      "bold": "700",
-      "extraBold": "800"
-    },
-    "sizes": {
-      "xs": 12,
-      "sm": 14,
-      "base": 16,
-      "lg": 18,
-      "xl": 20,
-      "2xl": 24,
-      "3xl": 30,
-      "4xl": 36,
-      "display": 48
-    },
-    "line_heights": {
-      "tight": 1.1,
-      "normal": 1.5,
-      "relaxed": 1.75
-    },
-    "instructions": "Use expo-font to load 'Barlow Condensed' for all headers/scores and 'Manrope' for UI text. Fallback to system sans-serif."
+  "meta": {
+    "app_name": "FantaPronostic",
+    "theme_name": "Premium Sport Light",
+    "version": "2.0.0",
+    "design_philosophy": "Refined, cohesive, airy. White cards on soft gray. 16px radius everywhere."
   },
   "colors": {
-    "palette": {
-      "primary": {
-        "default": "#1A3A6B",
-        "light": "#2C528A",
-        "dark": "#122646"
+    "background": {
+      "default": "#F2F4F7",
+      "card": "#FFFFFF",
+      "modal": "#FFFFFF",
+      "header": "#FFFFFF"
+    },
+    "text": {
+      "primary": "#111827",
+      "secondary": "#64748B",
+      "tertiary": "#94A3B8",
+      "inverse": "#FFFFFF",
+      "highlight": "#1F3A8A"
+    },
+    "brand": {
+      "primary": "#1F3A8A",
+      "primary_light": "#3B82F6",
+      "primary_dark": "#1E3A8A",
+      "accent": "#F59E0B",
+      "accent_light": "#FEF3C7",
+      "accent_glow": "rgba(245, 158, 11, 0.3)"
+    },
+    "status": {
+      "open": {
+        "bg": "#EFF6FF",
+        "text": "#1D4ED8",
+        "indicator": "#3B82F6"
       },
-      "accent": {
-        "default": "#F5A623",
-        "glow": "rgba(245, 166, 35, 0.5)",
-        "muted": "#B87A16"
+      "live": {
+        "bg": "#FEF2F2",
+        "text": "#B91C1C",
+        "indicator": "#EF4444"
       },
-      "background": {
-        "dark": "#0F172A",
-        "card": "#1E293B",
-        "light": "#F8FAFC",
-        "card_light": "#FFFFFF"
+      "completed": {
+        "bg": "#F1F5F9",
+        "text": "#475569",
+        "indicator": "#64748B"
       },
-      "text": {
-        "dark_primary": "#F1F5F9",
-        "dark_secondary": "#94A3B8",
-        "light_primary": "#0F172A",
-        "light_secondary": "#64748B"
-      },
-      "status": {
-        "success": "#10B981",
-        "error": "#EF4444",
-        "warning": "#F59E0B",
-        "info": "#3B82F6"
+      "locked": {
+        "bg": "#FFFBEB",
+        "text": "#B45309",
+        "indicator": "#F59E0B"
       }
     },
-    "gradients": {
-      "primary_card": ["#1A3A6B", "#162E54"],
-      "accent_action": ["#F5A623", "#E09215"]
+    "border": {
+      "subtle": "#E2E8F0",
+      "focus": "#1F3A8A"
     }
   },
-  "layout_spacing": {
-    "spacing_scale": {
-      "xxs": 2,
+  "typography": {
+    "font_family": {
+      "ios": "System",
+      "android": "Roboto"
+    },
+    "weights": {
+      "regular": "400",
+      "medium": "500",
+      "semibold": "600",
+      "bold": "700",
+      "heavy": "800"
+    },
+    "sizes": {
+      "h1": { "size": 28, "line_height": 34, "weight": "800" },
+      "h2": { "size": 22, "line_height": 28, "weight": "700" },
+      "h3": { "size": 18, "line_height": 24, "weight": "700" },
+      "body_lg": { "size": 16, "line_height": 24, "weight": "400" },
+      "body_md": { "size": 14, "line_height": 20, "weight": "500" },
+      "body_sm": { "size": 13, "line_height": 18, "weight": "400" },
+      "caption": { "size": 11, "line_height": 14, "weight": "600", "letter_spacing": 0.5, "case": "uppercase" }
+    }
+  },
+  "spacing": {
+    "base": 4,
+    "scale": {
       "xs": 4,
       "sm": 8,
       "md": 12,
@@ -85,109 +86,143 @@
       "xl": 24,
       "2xl": 32,
       "3xl": 48
+    }
+  },
+  "layout": {
+    "radius": {
+      "small": 8,
+      "medium": 12,
+      "card": 16,
+      "button": 12,
+      "pill": 9999
     },
-    "border_radius": {
-      "sm": 4,
-      "md": 8,
-      "lg": 12,
-      "xl": 16,
-      "full": 9999
-    },
-    "containers": {
-      "screen_padding": 16,
-      "card_padding": 16
+    "shadows": {
+      "card_sm": {
+        "shadowColor": "#000",
+        "shadowOffset": { "width": 0, "height": 2 },
+        "shadowOpacity": 0.05,
+        "shadowRadius": 6,
+        "elevation": 2
+      },
+      "card_md": {
+        "shadowColor": "#000",
+        "shadowOffset": { "width": 0, "height": 4 },
+        "shadowOpacity": 0.08,
+        "shadowRadius": 12,
+        "elevation": 4
+      },
+      "card_lg": {
+        "shadowColor": "#000",
+        "shadowOffset": { "width": 0, "height": 8 },
+        "shadowOpacity": 0.12,
+        "shadowRadius": 24,
+        "elevation": 8
+      },
+      "glow": {
+        "shadowColor": "#F59E0B",
+        "shadowOffset": { "width": 0, "height": 4 },
+        "shadowOpacity": 0.3,
+        "shadowRadius": 8,
+        "elevation": 5
+      }
     }
   },
   "components": {
     "buttons": {
       "primary": {
-        "bg": "#F5A623",
-        "text": "#0F172A",
+        "height": 52,
         "radius": 12,
-        "height": 48,
-        "font_weight": "bold",
-        "uppercase": true
+        "bg": "#1F3A8A",
+        "text_color": "#FFFFFF",
+        "text_size": 16,
+        "text_weight": "600",
+        "shadow": "glow"
       },
       "secondary": {
-        "bg": "transparent",
-        "border": "#F5A623",
-        "text": "#F5A623",
+        "height": 52,
         "radius": 12,
-        "height": 48
+        "bg": "#FFFFFF",
+        "border": "#E2E8F0",
+        "text_color": "#1F3A8A",
+        "text_size": 16,
+        "text_weight": "600"
       },
       "ghost": {
+        "height": 40,
         "bg": "transparent",
-        "text": "#94A3B8"
+        "text_color": "#64748B"
+      }
+    },
+    "badges": {
+      "base": {
+        "height": 26,
+        "padding_x": 10,
+        "radius": 6,
+        "text_size": 11,
+        "text_weight": "700",
+        "letter_spacing": 0.5,
+        "case": "uppercase"
       }
     },
     "cards": {
-      "match_card": {
-        "bg": "#1E293B",
-        "border_color": "rgba(255,255,255,0.1)",
-        "border_width": 1,
-        "shadow": "0px 4px 12px rgba(0,0,0,0.3)"
+      "default": {
+        "bg": "#FFFFFF",
+        "radius": 16,
+        "padding": 20,
+        "shadow": "card_md",
+        "border": "none"
       },
-      "ranking_row": {
-        "bg_alternate": "rgba(255,255,255,0.03)",
-        "highlight_user": "rgba(245, 166, 35, 0.1)"
-      }
-    },
-    "navigation": {
-      "bottom_tab": {
-        "height": 60,
-        "bg": "rgba(15, 23, 42, 0.95)",
-        "blur_intensity": 20,
-        "active_color": "#F5A623",
-        "inactive_color": "#64748B"
+      "highlighted": {
+        "bg": "#F8FAFC",
+        "radius": 16,
+        "padding": 16,
+        "border": "#E2E8F0"
       }
     }
   },
-  "visual_enhancers": {
-    "glassmorphism": {
-      "style": "bg-opacity-90 backdrop-blur-md border-t border-white/10"
-    },
-    "shadows": {
-      "glow": {
-        "shadowColor": "#F5A623",
-        "shadowOffset": { "width": 0, "height": 0 },
-        "shadowOpacity": 0.4,
-        "shadowRadius": 10,
-        "elevation": 5
-      }
-    }
-  },
-  "assets": {
-    "images": [
-      {
-        "category": "backgrounds",
-        "url": "https://images.unsplash.com/photo-1709078477781-3f885189ecbf?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwyfHxmb290YmFsbCUyMHN0YWRpdW0lMjBuaWdodCUyMGRhcmslMjBhdG1vc3BoZXJlfGVufDB8fHx8MTc3MTE4NTcxNHww&ixlib=rb-4.1.0&q=85",
-        "description": "Atmospheric foggy stadium night - Use as subtle overlay background with low opacity"
-      },
-      {
-        "category": "placeholders",
-        "url": "https://images.unsplash.com/photo-1674941063377-69c61db07740?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwxfHxzb2NjZXIlMjBwbGF5ZXIlMjBzaWxob3VldHRlJTIwYWN0aW9uJTIwZHluYW1pY3xlbnwwfHx8fDE3NzExODU3MTR8MA&ixlib=rb-4.1.0&q=85",
-        "description": "Dynamic player silhouette - Use for empty states or promo cards"
-      }
-    ],
-    "logo_url": "https://customer-assets.emergentagent.com/job_matchday-hub-29/artifacts/i3zag5z6_ChatGPT%20Image%2015%20feb%202026%2C%2019_21_56.png",
-    "icons": "Use @expo/vector-icons (Ionicons or MaterialCommunityIcons) for all UI icons."
+  "micro_interactions": {
+    "active_opacity": 0.8,
+    "scale_pressed": 0.96,
+    "animation_duration_short": 200,
+    "animation_duration_medium": 350
   },
   "instructions_to_main_agent": [
-    "1. USE StyleSheet.create() for all styling. Do not use Tailwind/NativeWind unless explicitly configured.",
-    "2. REACT NATIVE SPECIFIC: Use <View>, <Text>, <TouchableOpacity>, <FlatList>, <ScrollView>. NO HTML tags (div, span).",
-    "3. NAVIGATION: Use 'expo-router'. File structure: /app/index.js, /app/(tabs)/_layout.js, etc.",
-    "4. THEME: Implement a ThemeContext to handle the Dark/Light toggle. Default to DARK.",
-    "5. PREDICTION INPUTS: For the 11 matches, use a horizontal scroll or segmented control for the market types (1X2, Goal/NoGoal). Don't show all inputs at once; keep it clean.",
-    "6. LIVE SCORE: Use a polling mechanism (setInterval) to fetch scores every 30-60s.",
-    "7. HEADER: Custom header component with 'Barlow Condensed' font.",
-    "8. DATA-TESTID: Add 'testID' prop to all interactables (React Native uses 'testID' not 'data-testid')."
+    "STEP 1: Update '/app/frontend/src/theme/designSystem.ts' to match these new colors, typography, and shadows. Ensure keys remain compatible where possible but update values.",
+    "STEP 2: Deprecate or unify '/app/frontend/src/theme/index.ts' if it conflicts.",
+    "STEP 3: Refactor 'Home' screen (/app/frontend/app/(tabs)/home.tsx):",
+    "  - Change background color to 'colors.background.default' (#F2F4F7).",
+    "  - Update Matchday Card to use 'shadows.card_md' and 'radius.card' (16px).",
+    "  - Add the dynamic info row below matchday title as requested (countdown or match count).",
+    "  - Add subtle fade-in animation on load (Animated.timing).",
+    "  - Update 'StatusBadge' component to use the new uniform badge styles.",
+    "STEP 4: Refactor 'Predictions' screen:",
+    "  - Ensure locked state has reduced saturation (opacity 0.6).",
+    "  - Make 1X2 buttons large, 16px radius, high contrast on selection.",
+    "STEP 5: Refactor 'Rankings' screen:",
+    "  - Highlight top 3 with special background (gold/silver/bronze tint or just 'colors.status.locked.bg' for 1st).",
+    "STEP 6: Refactor 'Profile' screen:",
+    "  - Make 'Admin Console' a clean, distinct button.",
+    "  - Subtle logout button.",
+    "STEP 7: General Polish:",
+    "  - Verify all touchables have 'activeOpacity' and maybe a 'scale' transform on press using Animated.",
+    "  - Ensure no pure black (#000) text; use #111827.",
+    "  - Ensure padding is consistent (multiples of 4, prefer 16/24)."
   ],
-  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
     "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
     "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
     "Create depth through layered design elements with z-index hierarchy",
-    "Every interaction needs micro-animations - hover states (Pressable pressed), transitions.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: 'transition: all'. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add '.App { text-align: center; }' in the css file. This disrupts the human natural reading flow of text",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
     "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
-    "Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN"
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Component Reuse: Prioritize using pre-existing components from src/components/ui when applicable.",
+    "Export Conventions: Components MUST use named exports (export const ComponentName = ...), Pages MUST use default exports (export default function PageName() {...}).",
+    "Toasts: Use 'sonner' for toasts if available, or build a custom Toast component in React Native (do not use web libraries)."
   ]
 }
