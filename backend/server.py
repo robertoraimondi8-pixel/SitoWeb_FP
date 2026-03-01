@@ -2217,6 +2217,10 @@ async def get_predictions(matchday_id: str, league_id: str = None, user=Depends(
             "is_locked": is_locked,
         })
 
+    # Compute effective status (OPEN/LOCKED → LIVE after kickoff)
+    effective_status = await compute_matchday_status(matchday, matchday.get("league_id", ""))
+    matchday["status"] = effective_status
+
     return {
         "matchday": matchday,
         "predictions": result,
