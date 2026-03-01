@@ -629,63 +629,109 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 
-  // ── 1. Matchday Card ──
-  matchdayCard: {
-    backgroundColor: colors.card,
+  // ── 1. Hero Matchday Card (Dark Blue Gradient) ──
+  heroCard: {
     borderRadius: borderRadius.xl,
     padding: spacing.xl,
-    ...shadows.card,
+    overflow: 'hidden',
+    elevation: 8,
+    boxShadow: '0 8px 24px rgba(31, 58, 138, 0.25)',
   },
-  matchdayHeader: {
+  heroHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
   },
-  matchdayTitle: {
-    ...typography.titleL,
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  matchdaySubInfo: {
-    ...typography.bodyS,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  countdownWrap: {
-    marginTop: spacing.md,
-    marginBottom: spacing.md,
-  },
-  countdownLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 6,
-  },
-  countdownRow: {
+  heroLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
   },
-  countdownDigits: {
-    fontSize: 34,
+  heroLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.6)',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+    marginBottom: spacing.xs,
+  },
+  heroProgressWrap: {
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  heroSubInfo: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.6)',
+    marginBottom: 8,
+  },
+  heroProgressBar: {
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  heroProgressFill: {
+    height: 4,
+    backgroundColor: colors.accent,
+    borderRadius: 2,
+  },
+  heroCountdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: borderRadius.md,
+    alignSelf: 'flex-start',
+  },
+  heroCountdownText: {
+    fontSize: 26,
     fontWeight: '800',
     color: colors.accent,
     letterSpacing: 2,
     fontVariant: ['tabular-nums'],
   },
-  matchdayMessage: {
-    ...typography.bodyS,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-  },
-  matchdayMessageHighlight: {
-    color: colors.primary,
+  heroMessage: {
+    fontSize: 14,
     fontWeight: '600',
-  },
-  ctaButton: {
+    color: 'rgba(255,255,255,0.7)',
     marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  heroCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.lg,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    backgroundColor: colors.accent,
+    borderRadius: borderRadius.lg,
+  },
+  heroCtaText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  heroCtaArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyMatchdayState: {
     alignItems: 'center',
