@@ -324,6 +324,20 @@ export default function HomeScreen() {
                     end={{ x: 1, y: 1 }}
                     style={StyleSheet.absoluteFill}
                   />
+                  {/* Layer A — Diagonal white sweep */}
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']}
+                    start={{ x: 0.1, y: 0.0 }}
+                    end={{ x: 0.9, y: 1.0 }}
+                    style={s.whiteSweep}
+                  />
+                  {/* Layer B — Inset highlight top */}
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.10)', 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={s.topGlow}
+                  />
                   {data?.matchday ? (
                     <>
                       <View style={s.heroTop}>
