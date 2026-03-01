@@ -13,7 +13,7 @@ import type { SupportedLang } from '../../src/i18n';
 
 // Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
-import { SectionCard, PrimaryButton } from '../../src/components/ui';
+import { SectionCard } from '../../src/components/ui';
 
 interface OwnedLeague {
   id: string;
