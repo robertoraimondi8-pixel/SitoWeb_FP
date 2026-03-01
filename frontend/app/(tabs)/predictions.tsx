@@ -466,6 +466,14 @@ export default function PredictionsScreen() {
         <StatusBadge status={matchdayStatus} label={getStatusLabel()} />
       </View>
 
+      {/* LOCKED banner */}
+      {isLocked && (
+        <View style={styles.lockedBanner} data-testid="locked-banner">
+          <Ionicons name="lock-closed" size={16} color={colors.statusLocked} />
+          <Text style={styles.lockedBannerText}>Giornata chiusa — i pronostici non sono modificabili</Text>
+        </View>
+      )}
+
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           {/* Sort matches by start_time */}
