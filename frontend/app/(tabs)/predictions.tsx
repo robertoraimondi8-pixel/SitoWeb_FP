@@ -17,7 +17,7 @@ import { MatchPreviewSheet } from '../../src/components/MatchPreviewSheet';
 
 // Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
-import { StatusBadge, PrimaryButton } from '../../src/components/ui';
+import { StatusBadge, PrimaryButton, AnimatedSweep } from '../../src/components/ui';
 
 const ALL_MARKETS = [
   { key: '1X2',          configKey: '1x2',         label: '1X2',               info: 'Scegli il risultato finale:\n1 = squadra di casa\nX = pareggio\n2 = squadra ospite', defaultPts: 1.0 },
@@ -505,6 +505,7 @@ export default function PredictionsScreen() {
                   m.is_special && styles.matchCardSpecial,
                 ]}
               >
+                <AnimatedSweep />
                 {/* Match Header */}
                 <View style={styles.matchHeader}>
                   <View style={[styles.matchNumBadge, m.is_special && { backgroundColor: colors.accent }]}>
