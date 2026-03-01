@@ -661,7 +661,17 @@ const s = StyleSheet.create({
     marginBottom: 16,
   },
 
-  // CTA Button (orange gradient + dark icon circle)
+  // CTA Button (premium with highlight + top line)
+  ctaBtnWrap: {
+    marginTop: 8,
+    borderRadius: 22,
+    overflow: 'hidden',
+    shadowColor: '#F7A21B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 6,
+  },
   ctaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -670,12 +680,15 @@ const s = StyleSheet.create({
     paddingLeft: 24,
     paddingRight: 8,
     borderRadius: 22,
-    marginTop: 8,
-    shadowColor: '#F5A623',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 6,
+    overflow: 'hidden',
+  },
+  ctaTopLine: {
+    position: 'absolute',
+    top: 1,
+    left: 20,
+    right: 20,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.25)',
   },
   ctaText: {
     fontSize: 16,
