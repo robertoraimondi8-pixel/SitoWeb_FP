@@ -295,6 +295,7 @@ export default function HomeScreen() {
       >
         {/* ─── 1. MATCHDAY CARD ─── */}
         {data?.league && (
+          <Animated.View style={{ opacity: fadeCard1, transform: [{ translateY: slideAnim1 }] }}>
           <View style={styles.matchdayCard} data-testid="matchday-card">
             {data?.matchday ? (
               <>
@@ -336,23 +337,28 @@ export default function HomeScreen() {
                 )}
               </>
             ) : (
-              <View style={styles.matchdayHeader}>
-                <Text style={styles.sectionLabel}>{t('home.no_matchday')}</Text>
+              <View style={styles.emptyMatchdayState}>
+                <Ionicons name="football-outline" size={40} color={colors.textMuted} />
+                <Text style={styles.emptyMatchdayTitle}>{t('home.no_matchday')}</Text>
+                <Text style={styles.emptyMatchdaySubtitle}>Nessuna giornata in programma per ora</Text>
               </View>
             )}
 
-            <PrimaryButton
-              testID="matchday-cta-btn"
-              title={ctaConfig?.label ?? t('home.insert_predictions')}
-              icon={(ctaConfig?.icon ?? 'create-outline') as React.ComponentProps<typeof Ionicons>['name']}
-              onPress={() => {
-                if (!data?.matchday) return;
-                goToPredictionsHub(router, data.matchday.status, data.matchday.id, data.league?.id);
-              }}
-              disabled={!data?.matchday}
-              style={styles.ctaButton}
-            />
+            {data?.matchday && (
+              <PrimaryButton
+                testID="matchday-cta-btn"
+                title={ctaConfig?.label ?? t('home.insert_predictions')}
+                icon={(ctaConfig?.icon ?? 'create-outline') as React.ComponentProps<typeof Ionicons>['name']}
+                onPress={() => {
+                  if (!data?.matchday) return;
+                  goToPredictionsHub(router, data.matchday.status, data.matchday.id, data.league?.id);
+                }}
+                disabled={!data?.matchday}
+                style={styles.ctaButton}
+              />
+            )}
           </View>
+          </Animated.View>
         )}
 
         {/* ─── CLASSIFICA LIVE ─── */}
