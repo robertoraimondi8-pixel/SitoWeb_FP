@@ -363,6 +363,7 @@ export default function HomeScreen() {
 
         {/* ─── CLASSIFICA LIVE ─── */}
         {data?.matchday?.status?.toUpperCase() === 'LIVE' && (
+          <Animated.View style={{ opacity: fadeCard1, transform: [{ translateY: slideAnim1 }] }}>
           <TouchableOpacity
             style={styles.liveBox}
             data-testid="live-standings-btn"
@@ -386,10 +387,12 @@ export default function HomeScreen() {
               {data.live?.live_rank ? `${data.live.live_rank}°` : '-'} {'\u2022'} {formatPoints(data.live?.live_points ?? 0)} pts
             </Text>
           </TouchableOpacity>
+          </Animated.View>
         )}
 
         {/* ─── 2. PERFORMANCE CARD ─── */}
         {data?.user_summary && (
+          <Animated.View style={{ opacity: fadeCard2, transform: [{ translateY: slideAnim2 }] }}>
           <View style={styles.perfCard} data-testid="performance-card">
             <Text style={styles.sectionLabel}>{t('home.performance')}</Text>
 
