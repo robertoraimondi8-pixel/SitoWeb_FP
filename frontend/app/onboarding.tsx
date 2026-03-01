@@ -114,7 +114,7 @@ export default function OnboardingScreen() {
             style={s.logo}
             resizeMode="contain"
           />
-          <Text style={[s.welcome, { color: colors.text }]}>
+          <Text style={[s.welcome, { color: colors.textPrimary }]}>
             {t('onboarding.welcome')}, {user?.username}!
           </Text>
           <Text style={[s.subtitle, { color: colors.textSecondary }]}>
@@ -142,7 +142,7 @@ export default function OnboardingScreen() {
                 ]}
               >
                 <Text style={s.flag}>{l.flag}</Text>
-                <Text style={[s.langName, { color: lang === l.code ? colors.accent : colors.text }]}>{l.label}</Text>
+                <Text style={[s.langName, { color: lang === l.code ? colors.accent : colors.textPrimary }]}>{l.label}</Text>
                 {lang === l.code && <Ionicons name="checkmark-circle" size={18} color={colors.accent} />}
               </TouchableOpacity>
             ))}
@@ -156,7 +156,7 @@ export default function OnboardingScreen() {
           <TouchableOpacity
             key={nl.id}
             testID="onboarding-national-btn"
-            style={[s.pathCard, { backgroundColor: colors.card, borderColor: colors.accent }]}
+            style={[s.pathCard, { backgroundColor: '#14263D', borderColor: colors.accent }]}
             onPress={() => handleNational(nl.id)}
             disabled={payLoading}
             activeOpacity={0.85}
@@ -165,8 +165,8 @@ export default function OnboardingScreen() {
               <Ionicons name="globe" size={28} color={colors.accent} />
             </View>
             <View style={s.pathContent}>
-              <Text style={[s.pathTitle, { color: colors.text }]}>{t('onboarding.national_title')}</Text>
-              <Text style={[s.pathDesc, { color: colors.textSecondary }]}>{t('onboarding.national_desc')}</Text>
+              <Text style={[s.pathTitle, { color: '#FFFFFF' }]}>{t('onboarding.national_title')}</Text>
+              <Text style={[s.pathDesc, { color: 'rgba(255,255,255,0.5)' }]}>{t('onboarding.national_desc')}</Text>
               <View style={s.priceRow}>
                 <Text style={[s.price, { color: colors.accent }]}>€20.00</Text>
                 <Text style={[s.pricePer, { color: colors.textSecondary }]}>/ {t('onboarding.season')}</Text>
@@ -183,7 +183,7 @@ export default function OnboardingScreen() {
         {/* Path B: Create Private League */}
         <TouchableOpacity
           testID="onboarding-create-private-btn"
-          style={[s.pathCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+          style={[s.pathCard, { backgroundColor: '#14263D', borderColor: 'rgba(255,255,255,0.08)' }]}
           onPress={handleCreatePrivate}
           activeOpacity={0.85}
         >
@@ -191,8 +191,8 @@ export default function OnboardingScreen() {
             <Ionicons name="add-circle" size={28} color={colors.info} />
           </View>
           <View style={s.pathContent}>
-            <Text style={[s.pathTitle, { color: colors.text }]}>{t('onboarding.create_title')}</Text>
-            <Text style={[s.pathDesc, { color: colors.textSecondary }]}>{t('onboarding.create_desc')}</Text>
+            <Text style={[s.pathTitle, { color: '#FFFFFF' }]}>{t('onboarding.create_title')}</Text>
+            <Text style={[s.pathDesc, { color: 'rgba(255,255,255,0.5)' }]}>{t('onboarding.create_desc')}</Text>
             <View style={[s.freeBadge, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
               <Text style={[s.freeText, { color: colors.success }]}>{t('onboarding.free')}</Text>
             </View>
@@ -203,7 +203,7 @@ export default function OnboardingScreen() {
         {/* Path C: Join Private League */}
         <TouchableOpacity
           testID="onboarding-join-private-btn"
-          style={[s.pathCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+          style={[s.pathCard, { backgroundColor: '#14263D', borderColor: 'rgba(255,255,255,0.08)' }]}
           onPress={handleJoinPrivate}
           activeOpacity={0.85}
         >
@@ -211,8 +211,8 @@ export default function OnboardingScreen() {
             <Ionicons name="enter" size={28} color="#8B5CF6" />
           </View>
           <View style={s.pathContent}>
-            <Text style={[s.pathTitle, { color: colors.text }]}>{t('onboarding.join_title')}</Text>
-            <Text style={[s.pathDesc, { color: colors.textSecondary }]}>{t('onboarding.join_desc')}</Text>
+            <Text style={[s.pathTitle, { color: '#FFFFFF' }]}>{t('onboarding.join_title')}</Text>
+            <Text style={[s.pathDesc, { color: 'rgba(255,255,255,0.5)' }]}>{t('onboarding.join_desc')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
         </TouchableOpacity>
