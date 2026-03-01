@@ -162,7 +162,7 @@ export default function CreateLeagueScreen() {
           <View style={[s.inputWrap, { borderColor: name.length >= 3 ? colors.accent : colors.border, backgroundColor: colors.card }]}>
             <Ionicons name="create-outline" size={18} color={colors.accent} />
             <TextInput
-              style={[s.input, { color: colors.text }]}
+              style={[s.input, { color: colors.textPrimary }]}
               placeholder="Es. Champions Friends"
               placeholderTextColor={colors.textSecondary}
               value={name}
@@ -176,12 +176,12 @@ export default function CreateLeagueScreen() {
           <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>GIORNATE</Text>
           <View style={s.row}>
             <View style={{ flex: 1 }}>
-              <Text style={[s.fieldLabel, { color: colors.text }]}>Inizio</Text>
+              <Text style={[s.fieldLabel, { color: colors.textPrimary }]}>Inizio</Text>
               <TouchableOpacity
                 style={[s.dropdown, { backgroundColor: colors.card, borderColor: colors.border }]}
                 onPress={() => { setShowStart(!showStart); setShowEnd(false); setShowDeadline(false); }}
               >
-                <Text style={[s.dropdownText, { color: colors.text }]}>Giornata {startMD}</Text>
+                <Text style={[s.dropdownText, { color: colors.textPrimary }]}>Giornata {startMD}</Text>
                 <Ionicons name={showStart ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} />
               </TouchableOpacity>
               {showStart && (
@@ -189,7 +189,7 @@ export default function CreateLeagueScreen() {
                   {MATCHDAY_OPTIONS.map(n => (
                     <TouchableOpacity key={n} style={[s.dropdownItem, startMD === n && { backgroundColor: colors.accent + '22' }]}
                       onPress={() => { setStartMD(n); setShowStart(false); if (endMD < n) setEndMD(n); }}>
-                      <Text style={[s.dropdownItemText, { color: startMD === n ? colors.accent : colors.text }]}>Giornata {n}</Text>
+                      <Text style={[s.dropdownItemText, { color: startMD === n ? colors.accent : colors.textPrimary }]}>Giornata {n}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -197,12 +197,12 @@ export default function CreateLeagueScreen() {
             </View>
             <View style={{ width: 12 }} />
             <View style={{ flex: 1 }}>
-              <Text style={[s.fieldLabel, { color: colors.text }]}>Fine</Text>
+              <Text style={[s.fieldLabel, { color: colors.textPrimary }]}>Fine</Text>
               <TouchableOpacity
                 style={[s.dropdown, { backgroundColor: colors.card, borderColor: colors.border }]}
                 onPress={() => { setShowEnd(!showEnd); setShowStart(false); setShowDeadline(false); }}
               >
-                <Text style={[s.dropdownText, { color: colors.text }]}>Giornata {endMD}</Text>
+                <Text style={[s.dropdownText, { color: colors.textPrimary }]}>Giornata {endMD}</Text>
                 <Ionicons name={showEnd ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} />
               </TouchableOpacity>
               {showEnd && (
@@ -210,7 +210,7 @@ export default function CreateLeagueScreen() {
                   {MATCHDAY_OPTIONS.filter(n => n >= startMD).map(n => (
                     <TouchableOpacity key={n} style={[s.dropdownItem, endMD === n && { backgroundColor: colors.accent + '22' }]}
                       onPress={() => { setEndMD(n); setShowEnd(false); }}>
-                      <Text style={[s.dropdownItemText, { color: endMD === n ? colors.accent : colors.text }]}>Giornata {n}</Text>
+                      <Text style={[s.dropdownItemText, { color: endMD === n ? colors.accent : colors.textPrimary }]}>Giornata {n}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -225,7 +225,7 @@ export default function CreateLeagueScreen() {
             onPress={() => { setShowDeadline(!showDeadline); setShowStart(false); setShowEnd(false); }}
           >
             <Ionicons name="time-outline" size={18} color={colors.accent} />
-            <Text style={[s.dropdownText, { color: colors.text }]}>
+            <Text style={[s.dropdownText, { color: colors.textPrimary }]}>
               {deadline === 0 ? 'Nessun limite (fino al fischio)' : `${deadline} minuti prima del fischio`}
             </Text>
             <Ionicons name={showDeadline ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} />
@@ -235,7 +235,7 @@ export default function CreateLeagueScreen() {
               {DEADLINE_OPTIONS.map(d => (
                 <TouchableOpacity key={d} style={[s.dropdownItem, deadline === d && { backgroundColor: colors.accent + '22' }]}
                   onPress={() => { setDeadline(d); setShowDeadline(false); }}>
-                  <Text style={[s.dropdownItemText, { color: deadline === d ? colors.accent : colors.text }]}>
+                  <Text style={[s.dropdownItemText, { color: deadline === d ? colors.accent : colors.textPrimary }]}>
                     {d === 0 ? 'Nessun limite' : `${d} minuti prima`}
                   </Text>
                 </TouchableOpacity>
@@ -260,7 +260,7 @@ export default function CreateLeagueScreen() {
                 data-testid={`source-type-${type}`}
               >
                 <Ionicons name={c.icon} size={22} color={sourceType === type ? colors.accent : colors.textSecondary} />
-                <Text style={[s.sourceLabel, { color: sourceType === type ? colors.accent : colors.text }]}>
+                <Text style={[s.sourceLabel, { color: sourceType === type ? colors.accent : colors.textPrimary }]}>
                   {c.label}
                 </Text>
                 {c.recommended && (
