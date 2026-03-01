@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useTheme } from '../../src/contexts/ThemeContext';
 import { apiCall } from '../../src/api/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../../src/theme/designSystem';
 
 const LOG_PREFIX = '[GoogleCallback]';
 
 export default function AuthCallbackScreen() {
-  const { colors } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams();
   const [error, setError] = useState('');
