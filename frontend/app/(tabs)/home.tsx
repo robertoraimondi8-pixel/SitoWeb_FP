@@ -390,34 +390,74 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* ─── 3. PERFORMANCE (3 cards in a row) ─── */}
+        {/* ─── 3. PERFORMANCE (premium gradient cards) ─── */}
         {data?.user_summary && (
           <Animated.View style={{ opacity: fadePerf, transform: [{ translateY: slidePerf }] }}>
             <Text style={s.sectionLabel}>PERFORMANCE</Text>
             <View style={s.perfRow}>
               {/* Position */}
-              <View style={[s.perfCard, s.perfCardWarm]}>
-                <View style={[s.perfIcon, { backgroundColor: 'rgba(245,166,35,0.15)' }]}>
-                  <Ionicons name="trophy" size={20} color={DARK.accent} />
-                </View>
-                <Text style={s.perfValue}>{data.user_summary.rank ? `${data.user_summary.rank}\u00B0` : '-'}</Text>
-                <Text style={s.perfLabel}>POSIZIONE{'\n'}ATTUALE</Text>
+              <View style={s.perfCardOuter}>
+                <LinearGradient
+                  colors={['#1E3553', '#13263F']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={s.perfCardGrad}
+                >
+                  {/* Inset highlight */}
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.08)', 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={s.perfInset}
+                  />
+                  <View style={s.perfIconWrap}>
+                    <Ionicons name="trophy" size={20} color={DARK.accent} />
+                  </View>
+                  <Text style={s.perfValue}>{data.user_summary.rank ? `${data.user_summary.rank}\u00B0` : '-'}</Text>
+                  <Text style={s.perfLabel}>POSIZIONE{'\n'}ATTUALE</Text>
+                </LinearGradient>
               </View>
               {/* Total Points */}
-              <View style={s.perfCard}>
-                <View style={[s.perfIcon, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
-                  <Ionicons name="star" size={20} color="#FFFFFF" />
-                </View>
-                <Text style={s.perfValue}>{formatPoints(data.user_summary.total_points)}</Text>
-                <Text style={s.perfLabel}>PUNTI{'\n'}TOTALI</Text>
+              <View style={s.perfCardOuter}>
+                <LinearGradient
+                  colors={['#1E3553', '#13263F']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={s.perfCardGrad}
+                >
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.08)', 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={s.perfInset}
+                  />
+                  <View style={s.perfIconWrap}>
+                    <Ionicons name="star" size={20} color="#FFFFFF" />
+                  </View>
+                  <Text style={s.perfValue}>{formatPoints(data.user_summary.total_points)}</Text>
+                  <Text style={s.perfLabel}>PUNTI{'\n'}TOTALI</Text>
+                </LinearGradient>
               </View>
               {/* Avg Last 5 */}
-              <View style={s.perfCard}>
-                <View style={[s.perfIcon, { backgroundColor: 'rgba(22,163,74,0.15)' }]}>
-                  <Ionicons name="football" size={20} color={colors.success} />
-                </View>
-                <Text style={s.perfValue}>{avg5 ?? '-'}</Text>
-                <Text style={s.perfLabel}>MEDIA{'\n'}ULTIME 5</Text>
+              <View style={s.perfCardOuter}>
+                <LinearGradient
+                  colors={['#1E3553', '#13263F']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={s.perfCardGrad}
+                >
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.08)', 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={s.perfInset}
+                  />
+                  <View style={s.perfIconWrap}>
+                    <Ionicons name="football" size={20} color={LIGHT.green} />
+                  </View>
+                  <Text style={s.perfValue}>{avg5 ?? '-'}</Text>
+                  <Text style={s.perfLabel}>MEDIA{'\n'}ULTIME 5</Text>
+                </LinearGradient>
               </View>
             </View>
           </Animated.View>
