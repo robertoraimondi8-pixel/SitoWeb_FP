@@ -891,6 +891,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md, 
     borderWidth: 1.5,
     borderColor: colors.accent,
+    overflow: 'hidden',
     shadowColor: '#0E1A2B',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
