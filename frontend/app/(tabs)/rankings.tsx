@@ -467,31 +467,31 @@ const styles = StyleSheet.create({
   },
   tabRow: { 
     flexDirection: 'row', 
-    backgroundColor: colors.background,
-    borderRadius: borderRadius.md, 
+    backgroundColor: '#14263D',
+    borderRadius: borderRadius.xl, 
     padding: spacing.xs,
   },
   tabBtn: { 
     flex: 1, 
     paddingVertical: spacing.md, 
-    borderRadius: borderRadius.sm, 
+    borderRadius: borderRadius.lg, 
     alignItems: 'center' 
   },
   tabBtnActive: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.accent,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 3,
   },
   tabText: { 
     ...typography.bodyM,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.55)',
   },
   tabTextActive: {
-    color: colors.primary,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   
   // League header (blue box with league name)
@@ -520,12 +520,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg, 
     paddingVertical: spacing.md, 
     borderRadius: borderRadius.xl, 
-    backgroundColor: colors.card,
+    backgroundColor: '#14263D',
     borderWidth: 1.5,
     borderColor: colors.accent,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.15,
     shadowRadius: 20,
     elevation: 4,
     gap: spacing.sm,
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
   matchdaySelectorText: { 
     flex: 1, 
     ...typography.bodyM,
-    color: colors.textPrimary,
+    color: '#FFFFFF',
   },
   matchdaySelectorBadge: {
     paddingHorizontal: spacing.sm,
@@ -587,16 +587,13 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: '#14263D',
     borderRadius: borderRadius.xl,
     paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
     height: 44,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   searchIcon: {
     marginRight: spacing.sm,
@@ -604,7 +601,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     ...typography.body,
-    color: colors.text,
+    color: '#FFFFFF',
     height: '100%',
     paddingVertical: 0,
   },
@@ -616,18 +613,21 @@ const styles = StyleSheet.create({
   },
   emptySearchText: {
     ...typography.body,
-    color: colors.textMuted,
+    color: 'rgba(255,255,255,0.5)',
   },
-  listCard: {
-    backgroundColor: colors.card,
+  listCardOuter: {
     borderRadius: borderRadius.xl,
     borderWidth: 1.5,
     borderColor: colors.accent,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 5,
+    overflow: 'hidden',
+    shadowColor: '#0E1A2B',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 30,
+    elevation: 10,
+  },
+  listCard: {
+    borderRadius: borderRadius.xl,
     overflow: 'hidden',
   },
   
@@ -638,15 +638,15 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
     gap: spacing.md,
   },
   entryRowTop3: {
     paddingVertical: spacing.lg,
-    backgroundColor: colors.background,
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
   entryRowCurrent: {
-    backgroundColor: colors.cardHighlight,
+    backgroundColor: 'rgba(245,166,35,0.12)',
   },
   currentUserAccent: {
     position: 'absolute',
@@ -672,7 +672,7 @@ const styles = StyleSheet.create({
   },
   rankText: {
     ...typography.bodyM,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.6)',
     fontWeight: '700',
   },
   rankTextTop3: {
@@ -686,14 +686,14 @@ const styles = StyleSheet.create({
   },
   entryName: { 
     ...typography.bodyM,
-    color: colors.textPrimary,
+    color: '#FFFFFF',
   },
   entryNameBold: {
     fontWeight: '700',
   },
   entryMeta: { 
     ...typography.metaSmall,
-    color: colors.textMuted,
+    color: 'rgba(255,255,255,0.45)',
     marginTop: spacing.xs,
   },
   
