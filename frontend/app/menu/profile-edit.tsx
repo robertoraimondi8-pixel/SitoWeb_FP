@@ -3,9 +3,10 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
-import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+import { colors, typography, spacing, borderRadius, brandGradients } from '../../src/theme/designSystem';
 
 export default function ProfileEditScreen() {
   const { user, token, logout, updateUser } = useAuth();
@@ -26,13 +27,9 @@ export default function ProfileEditScreen() {
       const res = await apiCall<{ email: string }>('/profile/email', { token, method: 'PUT', body: { new_email: newEmail.trim(), password: emailPwd } });
       updateUser({ email: res.email });
       Alert.alert('Salvato', 'Email aggiornata con successo');
-      setNewEmail('');
-      setEmailPwd('');
-    } catch (e: any) {
-      Alert.alert('Errore', e.message || 'Errore nel cambio email');
-    } finally {
-      setEmailSaving(false);
-    }
+      setNewEmail(''); setEmailPwd('');
+    } catch (e: any) { Alert.alert('Errore', e.message || 'Errore nel cambio email'); }
+    finally { setEmailSaving(false); }
   };
 
   const saveUsername = async () => {
@@ -42,11 +39,8 @@ export default function ProfileEditScreen() {
       const updated = await apiCall('/profile', { token, method: 'PUT', body: { username: username.trim() } });
       updateUser({ username: updated.username });
       Alert.alert('Salvato', 'Nome utente aggiornato');
-    } catch (e: any) {
-      Alert.alert('Errore', e.message || 'Errore nel salvataggio');
-    } finally {
-      setSaving(false);
-    }
+    } catch (e: any) { Alert.alert('Errore', e.message || 'Errore nel salvataggio'); }
+    finally { setSaving(false); }
   };
 
   const changePassword = async () => {
@@ -55,38 +49,24 @@ export default function ProfileEditScreen() {
     try {
       await apiCall('/profile/password', { token, method: 'PUT', body: { current_password: currentPwd, new_password: newPwd } });
       Alert.alert('Salvato', 'Password aggiornata con successo');
-      setCurrentPwd('');
-      setNewPwd('');
-    } catch (e: any) {
-      Alert.alert('Errore', e.message || 'Password non corretta');
-    } finally {
-      setPwdSaving(false);
-    }
+      setCurrentPwd(''); setNewPwd('');
+    } catch (e: any) { Alert.alert('Errore', e.message || 'Password non corretta'); }
+    finally { setPwdSaving(false); }
   };
 
   const deleteAccount = () => {
-    Alert.alert(
-      'Elimina Account',
-      'Sei sicuro? Tutti i tuoi dati verranno eliminati permanentemente.',
-      [
-        { text: 'Annulla', style: 'cancel' },
-        {
-          text: 'Elimina', style: 'destructive', onPress: async () => {
-            try {
-              await apiCall('/profile', { token, method: 'DELETE' });
-              await logout();
-              router.replace('/(auth)/login' as any);
-            } catch (e: any) {
-              Alert.alert('Errore', e.message);
-            }
-          }
-        },
-      ]
-    );
+    Alert.alert('Elimina Account', 'Sei sicuro? Tutti i tuoi dati verranno eliminati permanentemente.', [
+      { text: 'Annulla', style: 'cancel' },
+      { text: 'Elimina', style: 'destructive', onPress: async () => {
+        try { await apiCall('/profile', { token, method: 'DELETE' }); await logout(); router.replace('/(auth)/login' as any); }
+        catch (e: any) { Alert.alert('Errore', e.message); }
+      }},
+    ]);
   };
 
   return (
     <SafeAreaView style={s.container} edges={['top']}>
+      <LinearGradient colors={brandGradients.background} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} data-testid="back-btn">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
@@ -101,29 +81,35 @@ export default function ProfileEditScreen() {
           <Text style={s.value}>{user?.email}</Text>
           <View style={s.divider} />
           <Text style={[s.label, { marginTop: 12 }]}>Cambia Email</Text>
-          <TextInput style={s.input} value={newEmail} onChangeText={setNewEmail} placeholder="Nuova email" keyboardType="email-address" autoCapitalize="none" placeholderTextColor={colors.textMuted} data-testid="new-email-input" />
-          <TextInput style={[s.input, { marginTop: 8 }]} value={emailPwd} onChangeText={setEmailPwd} placeholder="Conferma con password" secureTextEntry placeholderTextColor={colors.textMuted} data-testid="email-pwd-input" />
+          <TextInput style={s.input} value={newEmail} onChangeText={setNewEmail} placeholder="Nuova email" keyboardType="email-address" autoCapitalize="none" placeholderTextColor="rgba(255,255,255,0.3)" data-testid="new-email-input" />
+          <TextInput style={[s.input, { marginTop: 8 }]} value={emailPwd} onChangeText={setEmailPwd} placeholder="Conferma con password" secureTextEntry placeholderTextColor="rgba(255,255,255,0.3)" data-testid="email-pwd-input" />
           <TouchableOpacity style={s.saveBtn} onPress={changeEmail} disabled={emailSaving} data-testid="change-email-btn">
-            {emailSaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>Aggiorna Email</Text>}
+            <LinearGradient colors={brandGradients.cta} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.saveBtnGradient}>
+              {emailSaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>Aggiorna Email</Text>}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
         {/* Username */}
         <View style={s.card}>
           <Text style={s.label}>Nome utente</Text>
-          <TextInput style={s.input} value={username} onChangeText={setUsername} placeholder="Username" placeholderTextColor={colors.textMuted} data-testid="username-input" />
+          <TextInput style={s.input} value={username} onChangeText={setUsername} placeholder="Username" placeholderTextColor="rgba(255,255,255,0.3)" data-testid="username-input" />
           <TouchableOpacity style={s.saveBtn} onPress={saveUsername} disabled={saving} data-testid="save-username-btn">
-            {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>Salva</Text>}
+            <LinearGradient colors={brandGradients.cta} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.saveBtnGradient}>
+              {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>Salva</Text>}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
         {/* Password */}
         <View style={s.card}>
           <Text style={s.label}>Cambia Password</Text>
-          <TextInput style={s.input} value={currentPwd} onChangeText={setCurrentPwd} placeholder="Password attuale" secureTextEntry placeholderTextColor={colors.textMuted} data-testid="current-pwd-input" />
-          <TextInput style={[s.input, { marginTop: 8 }]} value={newPwd} onChangeText={setNewPwd} placeholder="Nuova password" secureTextEntry placeholderTextColor={colors.textMuted} data-testid="new-pwd-input" />
+          <TextInput style={s.input} value={currentPwd} onChangeText={setCurrentPwd} placeholder="Password attuale" secureTextEntry placeholderTextColor="rgba(255,255,255,0.3)" data-testid="current-pwd-input" />
+          <TextInput style={[s.input, { marginTop: 8 }]} value={newPwd} onChangeText={setNewPwd} placeholder="Nuova password" secureTextEntry placeholderTextColor="rgba(255,255,255,0.3)" data-testid="new-pwd-input" />
           <TouchableOpacity style={s.saveBtn} onPress={changePassword} disabled={pwdSaving} data-testid="change-pwd-btn">
-            {pwdSaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>Cambia Password</Text>}
+            <LinearGradient colors={brandGradients.cta} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.saveBtnGradient}>
+              {pwdSaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>Cambia Password</Text>}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
@@ -142,12 +128,13 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.lg, backgroundColor: '#F3F4F6' },
   headerTitle: { ...typography.titleM, color: colors.textPrimary },
   content: { padding: spacing.lg, gap: spacing.md },
-  card: { backgroundColor: colors.card, borderRadius: borderRadius.xl, padding: spacing.lg, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 4 },
-  label: { fontSize: 12, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
-  value: { fontSize: 15, color: colors.textPrimary, fontWeight: '500' },
-  divider: { height: 1, backgroundColor: colors.border, marginVertical: 12 },
-  input: { backgroundColor: colors.background, borderRadius: borderRadius.md, padding: 12, fontSize: 15, color: colors.textPrimary, borderWidth: 1, borderColor: colors.border },
-  saveBtn: { backgroundColor: colors.primary, borderRadius: borderRadius.md, paddingVertical: 10, alignItems: 'center', marginTop: 10 },
+  card: { backgroundColor: colors.primary, borderRadius: borderRadius.xl, padding: spacing.lg, borderWidth: 1.5, borderColor: colors.accent },
+  label: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
+  value: { fontSize: 15, color: '#FFFFFF', fontWeight: '500' },
+  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 12 },
+  input: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: borderRadius.md, padding: 12, fontSize: 15, color: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
+  saveBtn: { borderRadius: borderRadius.lg, overflow: 'hidden', marginTop: 10 },
+  saveBtnGradient: { paddingVertical: 10, alignItems: 'center', borderRadius: borderRadius.lg },
   saveBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
   deleteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, marginTop: spacing.lg },
   deleteBtnText: { fontSize: 15, fontWeight: '600', color: colors.error },

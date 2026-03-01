@@ -3,10 +3,11 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall } from '../../src/api/client';
-import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+import { colors, typography, spacing, borderRadius, brandGradients } from '../../src/theme/designSystem';
 
 type ScoringItem = { enabled: boolean; points: number } | number;
 
@@ -41,14 +42,9 @@ export default function RulesScreen() {
   useEffect(() => {
     if (!activeLeague || !token) return;
     (async () => {
-      try {
-        const data = await apiCall(`/leagues/${activeLeague.id}`, { token });
-        setLeague(data);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
+      try { setLeague(await apiCall(`/leagues/${activeLeague.id}`, { token })); }
+      catch (e) { console.error(e); }
+      finally { setLoading(false); }
     })();
   }, [activeLeague, token]);
 
@@ -62,6 +58,7 @@ export default function RulesScreen() {
 
   return (
     <SafeAreaView style={s.container} edges={['top']}>
+      <LinearGradient colors={brandGradients.background} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} data-testid="back-btn">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
@@ -75,19 +72,14 @@ export default function RulesScreen() {
         <ScrollView contentContainerStyle={s.content}>
           <Text style={s.leagueName}>{league.name}</Text>
 
-          {/* Scoring Rules — only show enabled ones */}
           <View style={s.card}>
             <Text style={s.cardTitle}>Punteggi</Text>
             {SCORING_LABELS.map(({ key, label }) => {
               if (!isEnabled(sc[key])) return null;
-              const pts = getPoints(sc[key]);
-              return (
-                <RuleRow key={key} label={label} value={`${pts} pts`} />
-              );
+              return <RuleRow key={key} label={label} value={`${getPoints(sc[key])} pts`} />;
             })}
           </View>
 
-          {/* League Settings */}
           <View style={s.card}>
             <Text style={s.cardTitle}>Impostazioni Lega</Text>
             <RuleRow label="Partite da pronosticare" value={matchSourceLabel()} />
@@ -117,10 +109,10 @@ const s = StyleSheet.create({
   headerTitle: { ...typography.titleM, color: colors.textPrimary },
   content: { padding: spacing.lg, gap: spacing.md },
   leagueName: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, textAlign: 'center', marginBottom: 4 },
-  card: { backgroundColor: colors.card, borderRadius: borderRadius.xl, padding: spacing.lg, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 4 },
+  card: { backgroundColor: colors.primary, borderRadius: borderRadius.xl, padding: spacing.lg, borderWidth: 1.5, borderColor: colors.accent },
   cardTitle: { fontSize: 13, fontWeight: '700', color: colors.accent, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 },
-  ruleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  ruleLabel: { fontSize: 14, color: colors.textPrimary, flex: 1 },
-  ruleValue: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  ruleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  ruleLabel: { fontSize: 14, color: 'rgba(255,255,255,0.7)', flex: 1 },
+  ruleValue: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
   empty: { textAlign: 'center', color: colors.textSecondary, marginTop: 40, fontSize: 14 },
 });

@@ -3,17 +3,12 @@ import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
-import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+import { colors, typography, spacing, borderRadius, brandGradients } from '../../src/theme/designSystem';
 
-type NewsItem = {
-  id: string;
-  title: string;
-  body: string;
-  author_name: string;
-  created_at: string;
-};
+type NewsItem = { id: string; title: string; body: string; author_name: string; created_at: string };
 
 export default function NewsScreen() {
   const router = useRouter();
@@ -24,24 +19,16 @@ export default function NewsScreen() {
   useEffect(() => {
     if (!token) return;
     (async () => {
-      try {
-        const data = await apiCall<NewsItem[]>('/news', { token });
-        setNews(data);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
+      try { setNews(await apiCall<NewsItem[]>('/news', { token })); } catch (e) { console.error(e); }
+      finally { setLoading(false); }
     })();
   }, [token]);
 
-  const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
+  const formatDate = (iso: string) => new Date(iso).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
 
   return (
     <SafeAreaView style={s.container} edges={['top']}>
+      <LinearGradient colors={brandGradients.background} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} data-testid="back-btn">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
@@ -61,7 +48,7 @@ export default function NewsScreen() {
               <Text style={s.newsTitle}>{item.title}</Text>
               <Text style={s.newsBody}>{item.body}</Text>
               <View style={s.newsMeta}>
-                <Ionicons name="person-outline" size={12} color={colors.textMuted} />
+                <Ionicons name="person-outline" size={12} color="rgba(255,255,255,0.4)" />
                 <Text style={s.newsMetaText}>{item.author_name}</Text>
                 <Text style={s.newsMetaText}>{formatDate(item.created_at)}</Text>
               </View>
@@ -69,7 +56,7 @@ export default function NewsScreen() {
           )}
           ListEmptyComponent={
             <View style={s.emptyWrap}>
-              <Ionicons name="newspaper-outline" size={48} color={colors.border} />
+              <Ionicons name="newspaper-outline" size={48} color="rgba(255,255,255,0.2)" />
               <Text style={s.empty}>Nessuna news al momento</Text>
               <Text style={s.emptyDesc}>Le novita appariranno qui</Text>
             </View>
@@ -85,11 +72,11 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.lg, backgroundColor: '#F3F4F6' },
   headerTitle: { ...typography.titleM, color: colors.textPrimary },
   content: { padding: spacing.lg, gap: spacing.md },
-  newsCard: { backgroundColor: colors.card, borderRadius: borderRadius.xl, padding: spacing.lg, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 4 },
-  newsTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 },
-  newsBody: { fontSize: 14, color: colors.textSecondary, lineHeight: 21 },
-  newsMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  newsMetaText: { fontSize: 11, color: colors.textMuted },
+  newsCard: { backgroundColor: colors.primary, borderRadius: borderRadius.xl, padding: spacing.lg, borderWidth: 1.5, borderColor: colors.accent },
+  newsTitle: { fontSize: 17, fontWeight: '700', color: '#FFFFFF', marginBottom: 8 },
+  newsBody: { fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 21 },
+  newsMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.08)' },
+  newsMetaText: { fontSize: 11, color: 'rgba(255,255,255,0.4)' },
   emptyWrap: { alignItems: 'center', paddingTop: 80, gap: 10 },
   empty: { fontSize: 16, fontWeight: '600', color: colors.textSecondary },
   emptyDesc: { fontSize: 13, color: colors.textMuted },
