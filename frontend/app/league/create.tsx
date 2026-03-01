@@ -7,10 +7,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { useTheme } from '../../src/contexts/ThemeContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, spacing, borderRadius } from '../../src/theme/designSystem';
 
 const MATCHDAY_OPTIONS = Array.from({ length: 38 }, (_, i) => i + 1);
 const DEADLINE_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60];
@@ -23,7 +24,6 @@ const DEFAULT_SCORING: Record<string, { enabled: boolean; points: number; label:
 };
 
 export default function CreateLeagueScreen() {
-  const { colors } = useTheme();
   const { token, handleAuthError } = useAuth();
   const { refreshLeagues } = useLeague();
   const router = useRouter();
@@ -102,7 +102,7 @@ export default function CreateLeagueScreen() {
     } catch (_) {}
   };
 
-  const s = makeStyles(colors);
+  const s = makeStyles();
 
   // ── SUCCESS STATE ───────────────────────────────────────────────────────────
   if (created) {
