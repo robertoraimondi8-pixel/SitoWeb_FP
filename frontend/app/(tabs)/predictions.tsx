@@ -188,8 +188,8 @@ export default function PredictionsScreen() {
       
       setData({
         matchday: {
-          ...activeMatchday,
           ...predsRes.matchday,
+          ...activeMatchday,
         },
         predictions: matchesForMatchday.map((m: MatchItem) => {
           const predForMatch = predsRes.predictions?.find((p: { match?: { id: string } }) => p.match?.id === m.id);
