@@ -6,14 +6,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../../../src/contexts/AuthContext';
-import { useTheme } from '../../../src/contexts/ThemeContext';
 import { apiCall, isAuthError } from '../../../src/api/client';
 import { LeagueDetail, getErrorMessage } from '../../../src/types/api';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, spacing, borderRadius } from '../../../src/theme/designSystem';
 
 export default function LeagueManageScreen() {
   const { id: leagueId } = useLocalSearchParams<{ id: string }>();
-  const { colors } = useTheme();
   const { token, user, handleAuthError } = useAuth();
   const router = useRouter();
 
@@ -37,7 +36,7 @@ export default function LeagueManageScreen() {
   const [newKickoff, setNewKickoff]   = useState('');
   const [savingMatch, setSavingMatch] = useState(false);
 
-  const s = makeStyles(colors);
+  const s = makeStyles();
 
   const load = useCallback(async () => {
     if (!token || !leagueId) return;
@@ -124,13 +123,13 @@ export default function LeagueManageScreen() {
     ]);
   };
 
-  if (loading) return <View style={[s.center, { backgroundColor: colors.background }]}><ActivityIndicator color={colors.accent} /></View>;
+  if (loading) return <View style={[s.center, { backgroundColor: '#F5F6F8' }]}><ActivityIndicator color={colors.accent} /></View>;
 
   const isOwner = league?.owner_id === user?.id;
   const isManual = league?.match_source_type === 'manual';
 
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView style={[s.container, { backgroundColor: '#F5F6F8' }]} edges={['top']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         {/* Header */}
         <View style={s.header}>
