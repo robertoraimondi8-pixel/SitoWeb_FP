@@ -471,7 +471,11 @@ const styles = StyleSheet.create({
   },
   tabBtnActive: {
     backgroundColor: colors.card,
-    ...shadows.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
   tabText: { 
     ...typography.bodyM,
