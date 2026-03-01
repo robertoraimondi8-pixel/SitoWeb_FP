@@ -445,9 +445,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
     paddingBottom: spacing.md,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: '#F3F4F6',
     flexShrink: 0,
   },
   headerTitle: {
@@ -457,9 +455,7 @@ const styles = StyleSheet.create({
 
   // League selector — chips must NOT shrink
   leagueSelector: {
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: '#F3F4F6',
     flexShrink: 0,
     flexGrow: 0,
     height: 64,
@@ -477,14 +473,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: colors.background,
+    backgroundColor: colors.card,
     borderWidth: 1.5,
-    borderColor: colors.accent,
+    borderColor: colors.border,
     flexShrink: 0,
   },
   leagueChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: '#14263D',
+    borderColor: '#14263D',
   },
   leagueChipText: {
     fontSize: 14,
@@ -501,9 +497,7 @@ const styles = StyleSheet.create({
   // Sub-tab bar
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: '#F3F4F6',
     paddingHorizontal: spacing.lg,
     flexShrink: 0,
   },
@@ -547,14 +541,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
-    ...shadows.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 5,
   },
   tableHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: 10,
-    backgroundColor: colors.primary,
+    backgroundColor: '#14263D',
   },
   tableHeaderCell: {
     fontSize: 11,
@@ -600,7 +598,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
     backgroundColor: 'transparent',
   },
-  rankTop: { backgroundColor: colors.primaryLight },
+  rankTop: { backgroundColor: colors.accent },
   rankBottom: { backgroundColor: colors.error },
 
   // ── Round Picker ──
@@ -681,10 +679,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: colors.card,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     padding: spacing.md,
-    marginBottom: spacing.xs,
-    ...shadows.card,
+    marginBottom: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 3,
   },
   fixtureTeams: {
     flex: 1,
