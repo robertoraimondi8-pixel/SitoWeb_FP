@@ -35,7 +35,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.card,
-    borderRadius: borderRadius.xl,
+    borderRadius: borderRadius.lg,
     ...shadows.card,
     marginBottom: spacing.lg,
   },

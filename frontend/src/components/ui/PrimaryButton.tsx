@@ -1,13 +1,13 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, ActivityIndicator } from 'react-native';
+import React, { useRef } from 'react';
+import { Pressable, Text, StyleSheet, ViewStyle, ActivityIndicator, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, borderRadius, shadows } from '../../theme/designSystem';
+import { colors, spacing, borderRadius, shadows } from '../../theme/designSystem';
 
 interface PrimaryButtonProps {
   title: string;
   onPress: () => void;
   icon?: keyof typeof Ionicons.glyphMap;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   loading?: boolean;
@@ -26,12 +26,22 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   style,
   testID,
 }) => {
-  const getBackgroundColor = () => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Animated.spring(scaleAnim, { toValue: 0.96, useNativeDriver: true, speed: 50, bounciness: 4 }).start();
+  };
+  const onPressOut = () => {
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 50, bounciness: 4 }).start();
+  };
+
+  const getBg = () => {
     if (disabled) return colors.border;
     switch (variant) {
       case 'primary': return colors.accent;
       case 'secondary': return colors.primary;
-      case 'outline': return 'transparent';
+      case 'danger': return colors.error;
+      case 'outline': case 'ghost': return 'transparent';
       default: return colors.accent;
     }
   };
@@ -39,45 +49,41 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   const getTextColor = () => {
     if (disabled) return colors.textMuted;
     if (variant === 'outline') return colors.primary;
+    if (variant === 'ghost') return colors.textSecondary;
     return colors.textInverse;
   };
 
-  const getHeight = () => {
-    switch (size) {
-      case 'small': return 36;
-      case 'medium': return 44;
-      case 'large': return 52;
-      default: return 44;
-    }
-  };
+  const h = size === 'small' ? 40 : size === 'large' ? 52 : 48;
 
   return (
-    <TouchableOpacity
-      testID={testID}
-      style={[
-        styles.button,
-        { 
-          backgroundColor: getBackgroundColor(),
-          height: getHeight(),
-          borderWidth: variant === 'outline' ? 1.5 : 0,
-          borderColor: variant === 'outline' ? colors.primary : undefined,
-        },
-        variant === 'primary' && !disabled && shadows.button,
-        style,
-      ]}
-      onPress={onPress}
-      disabled={disabled || loading}
-      activeOpacity={0.8}
-    >
-      {loading ? (
-        <ActivityIndicator color={getTextColor()} size="small" />
-      ) : (
-        <>
-          {icon && <Ionicons name={icon} size={20} color={getTextColor()} />}
-          <Text style={[styles.text, { color: getTextColor() }]}>{title}</Text>
-        </>
-      )}
-    </TouchableOpacity>
+    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
+      <Pressable
+        testID={testID}
+        style={[
+          styles.button,
+          { 
+            backgroundColor: getBg(),
+            height: h,
+            borderWidth: variant === 'outline' ? 1.5 : 0,
+            borderColor: variant === 'outline' ? colors.primary : undefined,
+          },
+          variant === 'primary' && !disabled && shadows.button,
+        ]}
+        onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        disabled={disabled || loading}
+      >
+        {loading ? (
+          <ActivityIndicator color={getTextColor()} size="small" />
+        ) : (
+          <>
+            {icon && <Ionicons name={icon} size={size === 'small' ? 16 : 20} color={getTextColor()} />}
+            <Text style={[styles.text, { color: getTextColor(), fontSize: size === 'small' ? 13 : 15 }]}>{title}</Text>
+          </>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 };
 
@@ -86,12 +92,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     paddingHorizontal: spacing.xl,
-    gap: spacing.sm,
+    gap: 8,
   },
   text: {
-    fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
