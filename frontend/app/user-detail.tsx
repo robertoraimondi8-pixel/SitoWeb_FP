@@ -5,10 +5,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../src/contexts/AuthContext';
-import { useTheme } from '../src/contexts/ThemeContext';
 import { apiCall, isAuthError } from '../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, typography, spacing, borderRadius } from '../src/theme/designSystem';
+import { AnimatedSweep } from '../src/components/ui';
 
 const { width } = Dimensions.get('window');
 
@@ -41,7 +43,6 @@ interface UserProfile {
 }
 
 export default function UserDetailScreen() {
-  const { colors } = useTheme();
   const { token, handleAuthError } = useAuth();
   const params = useLocalSearchParams<{ userId: string; leagueId?: string }>();
   
@@ -91,7 +92,8 @@ export default function UserDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <SafeAreaView style={s.container} edges={['top']}>
+        <LinearGradient colors={['#F5F6F8', '#ECEFF3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
         <View style={s.center}>
           <ActivityIndicator size="large" color={colors.accent} />
         </View>
@@ -101,88 +103,87 @@ export default function UserDetailScreen() {
 
   if (error || !data) {
     return (
-      <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <SafeAreaView style={s.container} edges={['top']}>
+        <LinearGradient colors={['#F5F6F8', '#ECEFF3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
         <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <TouchableOpacity onPress={() => router.back()} style={s.backBtn} data-testid="back-btn">
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={[s.headerTitle, { color: colors.text }]}>Profilo Utente</Text>
+          <Text style={s.headerTitle}>Profilo Utente</Text>
         </View>
         <View style={s.center}>
           <Ionicons name="alert-circle" size={48} color={colors.error} />
-          <Text style={[s.errorText, { color: colors.error }]}>{error}</Text>
+          <Text style={s.errorText}>{error}</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView style={s.container} edges={['top']}>
+      <LinearGradient colors={['#F5F6F8', '#ECEFF3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+        <TouchableOpacity onPress={() => router.back()} style={s.backBtn} data-testid="back-btn">
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={s.headerInfo}>
-          <Text style={[s.headerTitle, { color: colors.text }]}>
+          <Text style={s.headerTitle} data-testid="user-detail-name">
             {data.username}
             {data.is_current_user && ' (Tu)'}
           </Text>
-          <Text style={[s.headerSub, { color: colors.textSecondary }]}>
-            {data.league_name}
-          </Text>
+          <Text style={s.headerSub}>{data.league_name}</Text>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Rank Card */}
-        <View style={[s.rankCard, { backgroundColor: colors.card }]}>
-          <View style={[s.rankBadge, { backgroundColor: data.rank <= 3 ? colors.accent : colors.border }]}>
-            <Text style={[s.rankNum, { color: data.rank <= 3 ? colors.background : colors.text }]}>
-              #{data.rank}
-            </Text>
-          </View>
-          <View style={s.rankPointsWrap}>
-            <Text style={[s.totalPointsLabel, { color: colors.textSecondary }]}>
-              Punti Totali
-            </Text>
-            <Text style={[s.totalPointsValue, { color: colors.accent }]}>
-              {data.total_points.toFixed(1)}
-            </Text>
-          </View>
+        {/* Rank Card — Dark Navy */}
+        <View style={s.rankOuter}>
+          <LinearGradient colors={['#1A2F4D', '#0E1A2B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.rankCard}>
+            <AnimatedSweep />
+            <View style={[s.rankBadge, { backgroundColor: data.rank <= 3 ? colors.accent : 'rgba(255,255,255,0.1)' }]}>
+              <Text style={s.rankNum}>#{data.rank}</Text>
+            </View>
+            <View style={s.rankPointsWrap}>
+              <Text style={s.totalPointsLabel}>Punti Totali</Text>
+              <Text style={s.totalPointsValue}>{data.total_points.toFixed(1)}</Text>
+            </View>
+          </LinearGradient>
         </View>
 
-        {/* Stats Grid */}
+        {/* Stats Grid — Dark Navy */}
         <View style={s.statsGrid}>
-          <View style={[s.statCard, { backgroundColor: colors.card }]}>
-            <Ionicons name="calendar" size={24} color={colors.info} />
-            <Text style={[s.statValue, { color: colors.text }]}>{data.matchdays_played}</Text>
-            <Text style={[s.statLabel, { color: colors.textSecondary }]}>Giornate</Text>
+          <View style={s.statOuter}>
+            <LinearGradient colors={['#1B3050', '#142640']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.statCard}>
+              <Ionicons name="calendar" size={24} color={colors.info} />
+              <Text style={s.statValue}>{data.matchdays_played}</Text>
+              <Text style={s.statLabel}>Giornate</Text>
+            </LinearGradient>
           </View>
-          <View style={[s.statCard, { backgroundColor: colors.card }]}>
-            <Ionicons name="trophy" size={24} color={colors.accent} />
-            <Text style={[s.statValue, { color: colors.text }]}>{data.total_base_points.toFixed(1)}</Text>
-            <Text style={[s.statLabel, { color: colors.textSecondary }]}>Punti Base</Text>
+          <View style={s.statOuter}>
+            <LinearGradient colors={['#1B3050', '#142640']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.statCard}>
+              <Ionicons name="trophy" size={24} color={colors.accent} />
+              <Text style={s.statValue}>{data.total_base_points.toFixed(1)}</Text>
+              <Text style={s.statLabel}>Punti Base</Text>
+            </LinearGradient>
           </View>
         </View>
 
         {/* Current Week Highlight */}
         {data.current_week_points > 0 && data.current_matchday && (
-          <View style={[s.currentWeekCard, { backgroundColor: colors.card, borderLeftColor: colors.success }]}>
+          <View style={s.currentWeekCard}>
             <View style={s.currentWeekInfo}>
-              <Text style={[s.currentWeekLabel, { color: colors.textSecondary }]}>
-                Giornata {data.current_matchday}
-              </Text>
-              <Text style={[s.currentWeekPoints, { color: colors.success }]}>
-                +{data.current_week_points.toFixed(1)} pts
-              </Text>
+              <Text style={s.currentWeekLabel}>Giornata {data.current_matchday}</Text>
+              <Text style={s.currentWeekPoints}>+{data.current_week_points.toFixed(1)} pts</Text>
             </View>
             {data.last_matchday_id && (
               <TouchableOpacity 
                 onPress={() => viewMatchdayPredictions(data.last_matchday_id!)}
-                style={[s.viewBtn, { borderColor: colors.accent }]}
+                style={s.viewBtn}
+                data-testid="view-current-week-btn"
               >
-                <Text style={[s.viewBtnText, { color: colors.accent }]}>Vedi</Text>
+                <Text style={s.viewBtnText}>Vedi</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -190,16 +191,12 @@ export default function UserDetailScreen() {
 
         {/* Matchday Breakdown */}
         <View style={s.breakdownSection}>
-          <Text style={[s.sectionTitle, { color: colors.text }]}>
-            Storico Giornate
-          </Text>
+          <Text style={s.sectionTitle}>Storico Giornate</Text>
           
           {data.matchday_breakdown.length === 0 ? (
-            <View style={[s.emptyCard, { backgroundColor: colors.card }]}>
-              <Ionicons name="document-text-outline" size={32} color={colors.textSecondary} />
-              <Text style={[s.emptyText, { color: colors.textSecondary }]}>
-                Nessuna giornata giocata
-              </Text>
+            <View style={s.emptyCard}>
+              <Ionicons name="document-text-outline" size={32} color={colors.textMuted} />
+              <Text style={s.emptyText}>Nessuna giornata giocata</Text>
             </View>
           ) : (
             data.matchday_breakdown.map((md) => {
@@ -208,27 +205,19 @@ export default function UserDetailScreen() {
                 <TouchableOpacity
                   key={md.matchday_id}
                   onPress={() => viewMatchdayPredictions(md.matchday_id)}
-                  style={[s.breakdownRow, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  style={s.breakdownRow}
                   activeOpacity={0.7}
+                  data-testid={`breakdown-${md.matchday_id}`}
                 >
                   <View style={s.breakdownLeft}>
-                    <Text style={[s.breakdownLabel, { color: colors.text }]}>
-                      {md.matchday_label}
-                    </Text>
+                    <Text style={s.breakdownLabel}>{md.matchday_label}</Text>
                     <View style={[s.statusBadge, { backgroundColor: statusStyle.bg }]}>
-                      <Text style={[s.statusText, { color: statusStyle.text }]}>
-                        {md.status}
-                      </Text>
+                      <Text style={[s.statusText, { color: statusStyle.text }]}>{md.status}</Text>
                     </View>
                   </View>
-                  
                   <View style={s.breakdownRight}>
-                    <View style={s.breakdownPointsCol}>
-                      <Text style={[s.breakdownPointsValue, { color: colors.accent }]}>
-                        {md.total_points.toFixed(1)}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+                    <Text style={s.breakdownPointsValue}>{md.total_points.toFixed(1)}</Text>
+                    <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.4)" />
                   </View>
                 </TouchableOpacity>
               );
@@ -241,30 +230,42 @@ export default function UserDetailScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#F5F6F8' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 },
   
-  // Header
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
+  header: { 
+    flexDirection: 'row', alignItems: 'center', 
+    paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md,
+    backgroundColor: '#F3F4F6',
+  },
   backBtn: { padding: 4 },
   headerInfo: { flex: 1 },
-  headerTitle: { fontSize: 20, fontWeight: '800' },
-  headerSub: { fontSize: 13, marginTop: 2 },
+  headerTitle: { ...typography.titleL, color: colors.textPrimary },
+  headerSub: { ...typography.meta, color: colors.textSecondary, marginTop: 2 },
+  errorText: { ...typography.bodyM, color: colors.error, textAlign: 'center', marginHorizontal: 32 },
   
-  // Error
-  errorText: { fontSize: 15, textAlign: 'center', marginHorizontal: 32 },
+  scrollContent: { padding: spacing.lg, paddingBottom: 100 },
   
-  // Scroll
-  scrollContent: { padding: 16, paddingBottom: 100 },
-  
-  // Rank Card
+  // Rank Card — Dark Navy
+  rankOuter: {
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: colors.accent,
+    marginBottom: spacing.lg,
+    shadowColor: '#0E1A2B',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 30,
+    elevation: 10,
+  },
   rankCard: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    borderRadius: 16, 
-    padding: 20,
+    borderRadius: borderRadius.xl, 
+    padding: spacing.xl,
     gap: 20,
-    marginBottom: 16,
+    overflow: 'hidden',
   },
   rankBadge: {
     width: 64,
@@ -273,81 +274,91 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rankNum: { fontSize: 24, fontWeight: '900' },
+  rankNum: { fontSize: 24, fontWeight: '900', color: '#FFFFFF' },
   rankPointsWrap: { flex: 1 },
-  totalPointsLabel: { fontSize: 13, fontWeight: '500', textTransform: 'uppercase' },
-  totalPointsValue: { fontSize: 36, fontWeight: '900', marginTop: 4 },
+  totalPointsLabel: { ...typography.metaSmall, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' },
+  totalPointsValue: { fontSize: 36, fontWeight: '900', color: colors.accent, marginTop: 4 },
   
-  // Stats Grid
+  // Stats Grid — Dark Navy
   statsGrid: { 
     flexDirection: 'row', 
-    flexWrap: 'wrap', 
     gap: 10,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
+  },
+  statOuter: {
+    flex: 1,
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: colors.accent,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 6,
   },
   statCard: {
-    width: (width - 32 - 10) / 2,
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
     alignItems: 'center',
     gap: 6,
   },
-  statValue: { fontSize: 20, fontWeight: '800' },
-  statLabel: { fontSize: 11, fontWeight: '500', textTransform: 'uppercase' },
+  statValue: { fontSize: 20, fontWeight: '800', color: '#FFFFFF' },
+  statLabel: { ...typography.metaSmall, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' },
   
   // Current Week
   currentWeekCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    padding: 14,
+    backgroundColor: '#14263D',
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
     borderLeftWidth: 4,
-    marginBottom: 20,
+    borderLeftColor: colors.success,
+    borderWidth: 1.5,
+    borderColor: colors.accent,
+    marginBottom: spacing.xl,
   },
   currentWeekInfo: { flex: 1 },
-  currentWeekLabel: { fontSize: 12, fontWeight: '500' },
-  currentWeekPoints: { fontSize: 18, fontWeight: '800', marginTop: 2 },
+  currentWeekLabel: { ...typography.meta, color: 'rgba(255,255,255,0.5)' },
+  currentWeekPoints: { fontSize: 18, fontWeight: '800', color: colors.success, marginTop: 2 },
   viewBtn: { 
-    paddingHorizontal: 16, 
-    paddingVertical: 8, 
-    borderRadius: 8, 
-    borderWidth: 1 
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: borderRadius.sm, 
+    borderWidth: 1, borderColor: colors.accent,
   },
-  viewBtnText: { fontSize: 13, fontWeight: '600' },
+  viewBtnText: { ...typography.bodyM, color: colors.accent, fontWeight: '600' },
   
   // Breakdown Section
   breakdownSection: { marginTop: 4 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12 },
+  sectionTitle: { ...typography.titleM, color: colors.textPrimary, marginBottom: spacing.md },
   
   emptyCard: {
-    borderRadius: 12,
-    padding: 24,
+    backgroundColor: '#14263D',
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
     alignItems: 'center',
     gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
-  emptyText: { fontSize: 14 },
+  emptyText: { ...typography.bodyM, color: 'rgba(255,255,255,0.4)' },
   
   breakdownRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 8,
-    borderWidth: 1,
+    backgroundColor: '#14263D',
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.sm,
+    borderWidth: 1.5,
+    borderColor: colors.accent,
   },
   breakdownLeft: { flex: 1, gap: 6 },
-  breakdownLabel: { fontSize: 15, fontWeight: '600' },
-  statusBadge: { 
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8, 
-    paddingVertical: 3, 
-    borderRadius: 4 
-  },
+  breakdownLabel: { ...typography.bodyM, color: '#FFFFFF', fontWeight: '600' },
+  statusBadge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
   statusText: { fontSize: 10, fontWeight: '700' },
   
   breakdownRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  breakdownPointsCol: { alignItems: 'flex-end' },
-  breakdownPointsValue: { fontSize: 18, fontWeight: '800' },
-  breakdownJolly: { fontSize: 11, fontWeight: '500' },
+  breakdownPointsValue: { fontSize: 18, fontWeight: '800', color: colors.accent },
 });
