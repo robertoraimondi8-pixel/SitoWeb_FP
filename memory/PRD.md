@@ -273,15 +273,15 @@ Complete visual transformation to premium dark sport theme matching user's mocku
 ### Premium Balanced Design Direction (Mar 1, 2026) - COMPLETED
 Switched from full dark to "Premium Balanced" direction per user's definitive mockup.
 
-### UI Premium Refinement (Mar 1, 2026) - COMPLETED
-Final premium polish — "da 8/10 a 9.5/10":
-1. **Background dinamico**: LinearGradient (#F5F6F8 → #ECEFF3) diagonal + ambient light overlay (white 4% opacity) — eliminato effetto piatto
-2. **Performance cards premium**: LinearGradient interno (#1E3553 → #13263F) diagonale + inset highlight (gradient bianco 8% → transparent top 40px) + bordo luminoso (rgba white 6%) + icone incastonate (bg 5% + border 8%) + ombre sospensione (offset Y:12, blur:30, elevation:10)
-3. **Radius 22px**: Tutte le card (hero, LIVE, perf, trend, CTA) uniformate a borderRadius 22
-4. **Spaziatura 24px**: Gap verticale sezioni costante a 24px, perf row gap 10px
-5. **Ombre naturali diffuse**: Hero (Y:12, blur:30, opacity:0.2), LIVE (Y:8, blur:24, opacity:0.06), Trend (Y:8, blur:24), CTA (orange shadow Y:8, blur:20, opacity:0.3)
-6. **Micro-animazioni premium**: translateY ridotto a 6px (da 24px), durata 180-220ms, easing easeOut, stagger 80ms — eleganti, non invasive
-7. **CTA button**: Dark navy circle (#0E1A2B) per icona mantenuto, shadow orange diffusa
+### Final UI Polish — Studio-Level (Mar 1, 2026) - COMPLETED
+Definitive premium polish — all 7 interventions from detailed spec:
+1. **Background**: LinearGradient (#F5F6F8 → #ECEFF3) diagonal + white ambient overlay 4% — eliminates flat feel
+2. **Hero card deeper**: Richer gradient (#1A2F4D → #0E1A2B) + diagonal light curve overlay (white 8% → transparent full-coverage)
+3. **CTA premium button**: Gradient (#F7A21B → #E88E00) + highlight diagonal overlay (white 18%/5%/transparent) + top light line (white 25% 1px) + orange shadow (Y:8, blur:16, opacity:0.25) + dark navy icon circle (#0E1A2B)
+4. **Classifica card**: Pure white #FFFFFF, premium shadow (Y:10, blur:25, opacity:0.08, elevation:6)
+5. **Performance cards refined**: Slightly desaturated blue (#1B3050 → #142640), inset highlight reduced to 7%, icon wrap with border 8%, gap 12px, section label weight 800 color #6B7280
+6. **Spacing**: 24px vertical gap between all sections, consistent
+7. **Micro animations**: 200ms fade-in, 6px translateY, easeOut, 80ms stagger — confirmed
 
 ## Prioritized Backlog
 
