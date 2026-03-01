@@ -11,10 +11,12 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 ## Design System: "Premium Balanced"
 - **Background**: LinearGradient `['#F5F6F8', '#ECEFF3']` (subtle gray gradient)
 - **Header backgrounds**: `#F3F4F6` (no white, no bottom borders)
-- **Dark hero cards**: LinearGradient `['#1A2F4D', '#0E1A2B']` with overlay highlight
+- **Dark hero cards**: LinearGradient `['#1A2F4D', '#0E1A2B']` with white sweep overlay
 - **Card border radius**: 22px (`borderRadius.xl`)
+- **Orange borders**: `borderWidth: 1.5, borderColor: #F5A623` on ALL card sections
 - **Premium shadows**: Deep, diffuse (shadowOffset 6-12, shadowRadius 16-30)
 - **Accent color**: `#F5A623` (orange)
+- **White sweep effect**: 3-layer overlay on dark cards (diagonal sweep + inset highlight + top glow)
 - **No bottom borders on headers** - clean, modern look
 
 ## What's Been Implemented
@@ -31,14 +33,20 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Multi-language support (IT/EN)
 
 ### UI/UX Overhaul (Complete - Mar 2026)
-- **Home Screen**: Fully polished with LinearGradient bg, dark navy hero card, performance cards, CTA button, entry animations
-- **Rankings Screen**: LinearGradient bg, gray headers, premium shadows, upgraded card styling
-- **Predictions Screen**: LinearGradient bg, gray headers, premium match cards, dark navy value buttons
-- **Profile Screen**: LinearGradient bg, dark navy gradient user card with white text, premium section cards
-- **Statistics Screen**: LinearGradient bg, dark navy table headers and league chips, premium fixture cards
+- **Home Screen**: Polished with LinearGradient bg, dark navy hero card, performance cards with white sweep effect, CTA button, entry animations, orange borders on all cards
+- **Rankings Screen**: LinearGradient bg, gray headers, orange borders on cards, premium shadows
+- **Predictions Screen**: LinearGradient bg, gray headers, orange border match cards, text truncation for long team names
+- **Profile Screen**: LinearGradient bg, dark navy gradient user card with white text, orange border section cards
+- **Statistics Screen**: LinearGradient bg, dark navy table headers and league chips, orange border fixture cards
 - **All Menu Screens** (8 screens): Gray headers, upgraded card radius and shadows
 - **Auth Screens**: Premium shadow cards
-- **Design System**: Updated `borderRadius.xl` to 22, consistent shadow properties
+- **Design System**: borderRadius.xl=22, consistent shadows
+
+### Bug Fixes (Mar 2026)
+- Fixed TREND card missing `trendCardGrad` style (was rendering broken)
+- Fixed team name overlap with score in user-predictions (added numberOfLines + minWidth)
+- Fixed Classifica LIVE card white → orange border
+- Added white sweep premium overlay on all dark gradient cards (Performance, TREND, Hero)
 
 ## Credentials
 - **Admin**: admin@fantapronostic.com / admin123
