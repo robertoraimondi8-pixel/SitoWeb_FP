@@ -312,11 +312,18 @@ export default function HomeScreen() {
             >
               <Animated.View style={{ transform: [{ scale: ctaScale }] }}>
                 <LinearGradient
-                  colors={['#10223A', '#0B1625']}
-                  start={{ x: 0.1, y: 0 }}
-                  end={{ x: 0.9, y: 1 }}
+                  colors={['#1A2F4D', '#0E1A2B']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
                   style={s.heroCard}
                 >
+                  {/* Diagonal light curve overlay */}
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.08)', 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                  />
                   {data?.matchday ? (
                     <>
                       <View style={s.heroTop}>
@@ -335,19 +342,30 @@ export default function HomeScreen() {
                         <Text style={s.heroSub}>{matchdayMsg}</Text>
                       )}
 
-                      {/* CTA Button — orange gradient + dark icon circle */}
+                      {/* CTA Button — premium with highlight */}
                       {ctaConfig && (
-                        <LinearGradient
-                          colors={['#F5A623', '#F59E0B']}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          style={s.ctaBtn}
-                        >
-                          <Text style={s.ctaText}>{ctaConfig.label}</Text>
-                          <View style={s.ctaIconCircle}>
-                            <Ionicons name={ctaConfig.icon} size={18} color="#FFFFFF" />
-                          </View>
-                        </LinearGradient>
+                        <View style={s.ctaBtnWrap}>
+                          <LinearGradient
+                            colors={['#F7A21B', '#E88E00']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={s.ctaBtn}
+                          >
+                            {/* Highlight diagonal overlay */}
+                            <LinearGradient
+                              colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.05)', 'transparent']}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 1 }}
+                              style={[StyleSheet.absoluteFill, { borderRadius: 22 }]}
+                            />
+                            {/* Top light line */}
+                            <View style={s.ctaTopLine} />
+                            <Text style={s.ctaText}>{ctaConfig.label}</Text>
+                            <View style={s.ctaIconCircle}>
+                              <Ionicons name={ctaConfig.icon} size={18} color="#FFFFFF" />
+                            </View>
+                          </LinearGradient>
+                        </View>
                       )}
                     </>
                   ) : (
@@ -398,14 +416,14 @@ export default function HomeScreen() {
               {/* Position */}
               <View style={s.perfCardOuter}>
                 <LinearGradient
-                  colors={['#1E3553', '#13263F']}
+                  colors={['#1B3050', '#142640']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.perfCardGrad}
                 >
                   {/* Inset highlight */}
                   <LinearGradient
-                    colors={['rgba(255,255,255,0.08)', 'transparent']}
+                    colors={['rgba(255,255,255,0.07)', 'transparent']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={s.perfInset}
@@ -420,13 +438,13 @@ export default function HomeScreen() {
               {/* Total Points */}
               <View style={s.perfCardOuter}>
                 <LinearGradient
-                  colors={['#1E3553', '#13263F']}
+                  colors={['#1B3050', '#142640']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.perfCardGrad}
                 >
                   <LinearGradient
-                    colors={['rgba(255,255,255,0.08)', 'transparent']}
+                    colors={['rgba(255,255,255,0.07)', 'transparent']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={s.perfInset}
@@ -441,13 +459,13 @@ export default function HomeScreen() {
               {/* Avg Last 5 */}
               <View style={s.perfCardOuter}>
                 <LinearGradient
-                  colors={['#1E3553', '#13263F']}
+                  colors={['#1B3050', '#142640']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.perfCardGrad}
                 >
                   <LinearGradient
-                    colors={['rgba(255,255,255,0.08)', 'transparent']}
+                    colors={['rgba(255,255,255,0.07)', 'transparent']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={s.perfInset}
