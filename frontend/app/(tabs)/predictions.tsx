@@ -954,7 +954,7 @@ const styles = StyleSheet.create({
   },
   competition: { 
     ...typography.metaSmall,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.45)',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -999,7 +999,7 @@ const styles = StyleSheet.create({
   },
   teamName: { 
     ...typography.bodyM,
-    color: colors.textPrimary,
+    color: '#FFFFFF',
     fontWeight: '700',
     flex: 1, 
     textAlign: 'center',
@@ -1014,7 +1014,7 @@ const styles = StyleSheet.create({
   },
   vs: { 
     ...typography.metaSmall,
-    color: colors.textMuted,
+    color: 'rgba(255,255,255,0.4)',
   },
   
   lockedArea: { 
@@ -1045,7 +1045,7 @@ const styles = StyleSheet.create({
   },
   lockedEmpty: { 
     ...typography.bodyS,
-    color: colors.textMuted,
+    color: 'rgba(255,255,255,0.35)',
   },
   
   marketRow: { 
@@ -1096,6 +1096,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: '700',
   },
+  // Note: marketLabel has dark text because the pill itself has a light background
   marketLabelActive: {
     color: colors.textInverse,
   },
@@ -1160,7 +1161,7 @@ const styles = StyleSheet.create({
   exactDash: { 
     fontSize: 28, 
     fontWeight: '300',
-    color: colors.textMuted,
+    color: 'rgba(255,255,255,0.4)',
   },
   
   // Footer
