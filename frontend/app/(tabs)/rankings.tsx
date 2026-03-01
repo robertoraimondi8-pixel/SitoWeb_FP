@@ -211,6 +211,12 @@ export default function RankingsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <LinearGradient
+        colors={['#F5F6F8', '#ECEFF3']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('rankings.title')}</Text>

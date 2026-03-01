@@ -161,6 +161,12 @@ export default function StatisticsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <LinearGradient
+        colors={['#F5F6F8', '#ECEFF3']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       {/* HEADER */}
       <View style={styles.header}>
         <Ionicons name="stats-chart" size={22} color={colors.primary} />
