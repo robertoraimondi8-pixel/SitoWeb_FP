@@ -213,6 +213,15 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={s.container} edges={['top']}>
+      {/* ═══ GRADIENT BACKGROUND (premium ambient) ═══ */}
+      <LinearGradient
+        colors={['#F5F6F8', '#ECEFF3']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      {/* Ambient light overlay */}
+      <View style={s.ambientOverlay} />
       {/* ═══ HEADER (light premium) ═══ */}
       <View style={s.header}>
         <TouchableOpacity style={s.headerIcon} onPress={() => setMenuOpen(true)} testID="hamburger-menu-btn">
