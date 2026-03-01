@@ -611,6 +611,8 @@ const styles = StyleSheet.create({
   listCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
+    borderWidth: 1.5,
+    borderColor: colors.accent,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
