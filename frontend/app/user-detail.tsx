@@ -155,14 +155,14 @@ export default function UserDetailScreen() {
         {/* Stats Grid — Dark Navy */}
         <View style={s.statsGrid}>
           <View style={s.statOuter}>
-            <LinearGradient colors={['#2C5FA8', '#1F4C8F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.statCard}>
+            <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.statCard}>
               <Ionicons name="calendar" size={24} color={colors.info} />
               <Text style={s.statValue}>{data.matchdays_played}</Text>
               <Text style={s.statLabel}>Giornate</Text>
             </LinearGradient>
           </View>
           <View style={s.statOuter}>
-            <LinearGradient colors={['#2C5FA8', '#1F4C8F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.statCard}>
+            <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.statCard}>
               <Ionicons name="trophy" size={24} color={colors.accent} />
               <Text style={s.statValue}>{data.total_base_points.toFixed(1)}</Text>
               <Text style={s.statLabel}>Punti Base</Text>

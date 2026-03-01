@@ -431,7 +431,7 @@ export default function HomeScreen() {
               {/* Position */}
               <View style={s.perfCardOuter}>
                 <LinearGradient
-                  colors={['#2C5FA8', '#1F4C8F']}
+                  colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.perfCardGrad}
@@ -467,7 +467,7 @@ export default function HomeScreen() {
               {/* Total Points */}
               <View style={s.perfCardOuter}>
                 <LinearGradient
-                  colors={['#2C5FA8', '#1F4C8F']}
+                  colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.perfCardGrad}
@@ -500,7 +500,7 @@ export default function HomeScreen() {
               {/* Avg Last 5 */}
               <View style={s.perfCardOuter}>
                 <LinearGradient
-                  colors={['#2C5FA8', '#1F4C8F']}
+                  colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.perfCardGrad}
@@ -539,7 +539,7 @@ export default function HomeScreen() {
           <Animated.View style={{ opacity: fadeTrend, transform: [{ translateY: slideTrend }] }}>
             <View style={s.perfCardOuter}>
                 <LinearGradient
-                  colors={['#2C5FA8', '#1F4C8F']}
+                  colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.trendCardGrad}
