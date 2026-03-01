@@ -154,20 +154,20 @@ export const borderRadius = {
   pill: 9999,
 };
 
-// React Native compatible shadows (no boxShadow)
+// React Native compatible shadows — natural and diffuse
 export const shadows = {
   card: {
     shadowColor: '#000' as string,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 3,
   },
   cardMd: {
     shadowColor: '#000' as string,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
-    shadowRadius: 12,
+    shadowRadius: 20,
     elevation: 4,
   },
   cardLg: {
@@ -175,27 +175,27 @@ export const shadows = {
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
     shadowRadius: 24,
-    elevation: 8,
+    elevation: 6,
   },
   button: {
-    shadowColor: '#F59E0B' as string,
-    shadowOffset: { width: 0, height: 3 },
+    shadowColor: '#F5A623' as string,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
-    shadowRadius: 6,
+    shadowRadius: 12,
     elevation: 4,
   },
   glow: {
-    shadowColor: '#F59E0B' as string,
+    shadowColor: '#F5A623' as string,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowRadius: 12,
     elevation: 5,
   },
   tabBar: {
     shadowColor: '#000' as string,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.04,
-    shadowRadius: 8,
+    shadowRadius: 12,
     elevation: 4,
   },
 };
