@@ -777,6 +777,22 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.xs,
   },
+  lockedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.statusLockedBg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  lockedBannerText: {
+    ...typography.bodyS,
+    color: colors.statusLocked,
+    fontWeight: '600',
+    flex: 1,
+  },
   
   // Jolly
   jollyContainer: { 
