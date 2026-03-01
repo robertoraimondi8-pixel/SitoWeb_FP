@@ -130,6 +130,7 @@ export default function ProfileScreen() {
               <Text style={styles.statLabel}>{t('profile.role')}</Text>
             </View>
           </View>
+          </LinearGradient>
         </View>
 
         {/* Settings Section */}
