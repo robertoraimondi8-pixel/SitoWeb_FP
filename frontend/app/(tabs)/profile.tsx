@@ -91,7 +91,7 @@ export default function ProfileScreen() {
         {/* User Card — Premium Dark */}
         <View style={styles.userCardOuter}>
           <LinearGradient
-            colors={['#2C5FA8', '#162F5C']}
+            colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.userCard}

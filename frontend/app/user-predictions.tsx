@@ -131,7 +131,7 @@ export default function UserPredictionsScreen() {
 
       {/* Summary Card — Dark Navy */}
       <View style={s.summaryOuter}>
-        <LinearGradient colors={['#2C5FA8', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.summaryCard}>
+        <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.summaryCard}>
           <AnimatedSweep />
           <View style={s.summaryRow}>
             <View style={s.summaryItem}>

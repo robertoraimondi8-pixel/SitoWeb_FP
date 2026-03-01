@@ -180,7 +180,7 @@ export default function LiveScreen() {
       {/* Points Summary — Dark Navy */}
       <View style={s.pointsOuter}>
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <LinearGradient colors={['#2C5FA8', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.pointsCard}>
+          <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.pointsCard}>
             <AnimatedSweep />
             <View style={s.pointsRow}>
               <View style={s.pointsItem}>

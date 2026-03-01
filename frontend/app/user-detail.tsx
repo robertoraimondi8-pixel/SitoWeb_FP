@@ -140,7 +140,7 @@ export default function UserDetailScreen() {
       <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Rank Card — Dark Navy */}
         <View style={s.rankOuter}>
-          <LinearGradient colors={['#2C5FA8', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.rankCard}>
+          <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.rankCard}>
             <AnimatedSweep />
             <View style={[s.rankBadge, { backgroundColor: data.rank <= 3 ? colors.accent : 'rgba(255,255,255,0.1)' }]}>
               <Text style={s.rankNum}>#{data.rank}</Text>
