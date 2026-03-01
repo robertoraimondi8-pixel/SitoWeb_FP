@@ -64,7 +64,7 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.lg, backgroundColor: '#F3F4F6' },
   headerTitle: { ...typography.titleM, color: colors.textPrimary },
   content: { padding: spacing.lg },
-  card: { backgroundColor: colors.card, borderRadius: borderRadius.lg, padding: spacing.lg, ...shadows.card },
+  card: { backgroundColor: colors.card, borderRadius: borderRadius.xl, padding: spacing.lg, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 4 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
   desc: { fontSize: 13, color: colors.textSecondary, marginBottom: 14 },
   input: { backgroundColor: colors.background, borderRadius: borderRadius.md, padding: 14, fontSize: 16, color: colors.textPrimary, borderWidth: 1, borderColor: colors.border, letterSpacing: 2, fontWeight: '700', textAlign: 'center' },
