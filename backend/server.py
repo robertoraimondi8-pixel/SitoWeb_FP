@@ -3172,7 +3172,7 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
         "matchday_id": matchday_id,
         "matchday_number": matchday["number"],
         "matchday_label": matchday.get("label", f"Giornata {matchday['number']}"),
-        "matchday_status": matchday["status"],
+        "matchday_status": await compute_matchday_status(matchday, matchday.get("league_id", "")),
         "matches": live_matches,
         "jolly_active": joker_active,
         "base_points": totals["base_points"],
