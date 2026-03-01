@@ -483,24 +483,19 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   
-  // Logout
+  // Logout - tono secondario
   logoutBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     justifyContent: 'center', 
     gap: spacing.sm, 
-    paddingVertical: spacing.lg, 
+    paddingVertical: spacing.md, 
     marginHorizontal: spacing.lg,
     marginTop: spacing.xl,
-    borderRadius: borderRadius.lg, 
-    borderWidth: 1,
-    borderColor: colors.error,
-    backgroundColor: colors.errorLight,
   },
   logoutText: { 
-    ...typography.bodyM,
-    color: colors.error,
-    fontWeight: '600',
+    ...typography.bodyS,
+    color: colors.textMuted,
   },
   
   // Version
