@@ -370,7 +370,7 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* ─── CLASSIFICA LIVE ─── */}
+        {/* ─── CLASSIFICA LIVE (Premium) ─── */}
         {data?.matchday?.status?.toUpperCase() === 'LIVE' && (
           <Animated.View style={{ opacity: fadeCard1, transform: [{ translateY: slideAnim1 }] }}>
           <TouchableOpacity
@@ -384,58 +384,70 @@ export default function HomeScreen() {
               } as any);
             }}
           >
-            <View style={styles.liveBoxHeader}>
+            <View style={styles.liveBoxLeft}>
               <View style={styles.liveBoxBadge}>
                 <View style={styles.liveBoxDot} />
                 <Text style={styles.liveBoxBadgeText}>LIVE</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.success} />
+              <Text style={styles.liveBoxTitle}>Classifica</Text>
             </View>
-            <Text style={styles.liveBoxTitle}>Classifica LIVE</Text>
-            <Text style={styles.liveBoxRank}>
-              {data.live?.live_rank ? `${data.live.live_rank}°` : '-'} {'\u2022'} {formatPoints(data.live?.live_points ?? 0)} pts
-            </Text>
+            <View style={styles.liveBoxRight}>
+              <Text style={styles.liveBoxRankBig}>
+                {data.live?.live_rank ? `${data.live.live_rank}°` : '-'}
+              </Text>
+              <Text style={styles.liveBoxPoints}>{formatPoints(data.live?.live_points ?? 0)} pts</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.success} style={{ marginLeft: 4 }} />
           </TouchableOpacity>
           </Animated.View>
         )}
 
-        {/* ─── 2. PERFORMANCE CARD ─── */}
+        {/* ─── 2. PERFORMANCE CARD (Premium Grid) ─── */}
         {data?.user_summary && (
           <Animated.View style={{ opacity: fadeCard2, transform: [{ translateY: slideAnim2 }] }}>
           <View style={styles.perfCard} data-testid="performance-card">
             <Text style={styles.sectionLabel}>{t('home.performance')}</Text>
 
-            {/* Position – hero element */}
-            <View style={styles.perfPositionRow}>
-              <Text style={styles.perfPositionValue}>
-                {data.user_summary.rank ? `${data.user_summary.rank}°` : '-'}
-              </Text>
-              <Text style={styles.perfPositionLabel}>{t('home.current_position')}</Text>
-            </View>
-
-            <View style={styles.perfDivider} />
-
-            {/* Stats row */}
-            <View style={styles.perfStatsRow}>
-              <View style={styles.perfStatItem}>
-                <Text style={styles.perfStatValue}>{formatPoints(data.user_summary.total_points)}</Text>
-                <Text style={styles.perfStatLabel}>{t('home.total_points')}</Text>
+            {/* Stat grid: 2x2 */}
+            <View style={styles.perfGrid}>
+              <View style={[styles.perfGridItem, styles.perfGridItemHighlight]}>
+                <View style={[styles.perfGridIcon, { backgroundColor: colors.accent + '20' }]}>
+                  <Ionicons name="trophy" size={18} color={colors.accent} />
+                </View>
+                <Text style={styles.perfGridValue}>
+                  {data.user_summary.rank ? `${data.user_summary.rank}°` : '-'}
+                </Text>
+                <Text style={styles.perfGridLabel}>{t('home.current_position')}</Text>
               </View>
-              <View style={styles.perfStatSep} />
-              <View style={styles.perfStatItem}>
-                <Text style={styles.perfStatValue}>
+
+              <View style={styles.perfGridItem}>
+                <View style={[styles.perfGridIcon, { backgroundColor: colors.primary + '15' }]}>
+                  <Ionicons name="star" size={18} color={colors.primary} />
+                </View>
+                <Text style={styles.perfGridValue}>{formatPoints(data.user_summary.total_points)}</Text>
+                <Text style={styles.perfGridLabel}>{t('home.total_points')}</Text>
+              </View>
+
+              <View style={styles.perfGridItem}>
+                <View style={[styles.perfGridIcon, { backgroundColor: colors.success + '15' }]}>
+                  <Ionicons name="football" size={18} color={colors.success} />
+                </View>
+                <Text style={styles.perfGridValue}>
                   {formatPoints(
                     (data.matchday?.my_predictions_count || 0) > 0
                       ? (data.matchday?.my_points ?? data.live?.total_provisional ?? 0)
                       : 0
                   )}
                 </Text>
-                <Text style={styles.perfStatLabel}>{t('home.matchday_points')}</Text>
+                <Text style={styles.perfGridLabel}>{t('home.matchday_points')}</Text>
               </View>
-              <View style={styles.perfStatSep} />
-              <View style={styles.perfStatItem}>
-                <Text style={styles.perfStatValue}>{avg5 ?? '-'}</Text>
-                <Text style={styles.perfStatLabel}>{t('home.avg_last_5')}</Text>
+
+              <View style={styles.perfGridItem}>
+                <View style={[styles.perfGridIcon, { backgroundColor: colors.info + '15' }]}>
+                  <Ionicons name="trending-up" size={18} color={colors.info} />
+                </View>
+                <Text style={styles.perfGridValue}>{avg5 ?? '-'}</Text>
+                <Text style={styles.perfGridLabel}>{t('home.avg_last_5')}</Text>
               </View>
             </View>
           </View>
