@@ -513,6 +513,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md, 
     borderRadius: borderRadius.xl, 
     backgroundColor: colors.card,
+    borderWidth: 1.5,
+    borderColor: colors.accent,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
