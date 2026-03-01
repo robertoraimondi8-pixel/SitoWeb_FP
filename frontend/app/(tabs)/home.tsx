@@ -291,71 +291,82 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* ─── 1. MATCHDAY CARD ─── */}
+        {/* ─── 1. MATCHDAY HERO CARD (Gradient Dark Blue) ─── */}
         {data?.league && (
           <Animated.View style={{ opacity: fadeCard1, transform: [{ translateY: slideAnim1 }] }}>
-          <View style={styles.matchdayCard} data-testid="matchday-card">
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => {
+              if (!data?.matchday) return;
+              goToPredictionsHub(router, data.matchday.status, data.matchday.id, data.league?.id);
+            }}
+            disabled={!data?.matchday}
+            testID="matchday-card"
+          >
+          <LinearGradient
+            colors={['#1E3A7D', '#0F2352']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroCard}
+          >
             {data?.matchday ? (
               <>
-                <View style={styles.matchdayHeader}>
-                  <Text style={styles.sectionLabel}>{t('home.matchday_label')}</Text>
+                <View style={styles.heroHeader}>
+                  <View style={styles.heroLabelRow}>
+                    <Ionicons name="football" size={14} color="rgba(255,255,255,0.5)" />
+                    <Text style={styles.heroLabel}>{t('home.matchday_label')}</Text>
+                  </View>
                   <StatusBadge status={data.matchday.status} label={getStatusLabel(data.matchday.status)} />
                 </View>
 
-                <Text style={styles.matchdayTitle}>
+                <Text style={styles.heroTitle}>
                   {data.matchday.label || `Giornata ${data.matchday.number}`}
                 </Text>
 
-                {/* Match count */}
+                {/* Match count + progress for OPEN */}
                 {data.matchday.status?.toUpperCase() === 'OPEN' && (
-                  <Text style={styles.matchdaySubInfo}>
-                    {data.matchday.my_predictions_count}/{Math.min(data.matchday.total_matches || 0, 10)} partite
-                  </Text>
-                )}
-
-                {/* COUNTDOWN TIMER — prominent orange HH:MM:SS */}
-                {data.matchday.status?.toUpperCase() === 'OPEN' && countdown > 0 && (
-                  <View style={styles.countdownWrap} data-testid="countdown-timer">
-                    <Text style={styles.countdownLabel}>Chiude tra</Text>
-                    <View style={styles.countdownRow}>
-                      <Ionicons name="time-outline" size={28} color={colors.accent} style={{ marginRight: 8 }} />
-                      <Text style={styles.countdownDigits}>{formatCountdown(countdown)}</Text>
+                  <View style={styles.heroProgressWrap}>
+                    <Text style={styles.heroSubInfo}>
+                      {data.matchday.my_predictions_count}/{Math.min(data.matchday.total_matches || 0, 10)} pronostici inseriti
+                    </Text>
+                    <View style={styles.heroProgressBar}>
+                      <View style={[styles.heroProgressFill, { 
+                        width: `${Math.min(100, ((data.matchday.my_predictions_count || 0) / Math.max(1, Math.min(data.matchday.total_matches || 10, 10))) * 100)}%`
+                      }]} />
                     </View>
                   </View>
                 )}
 
-                {/* Dynamic micro-message (for non-OPEN states) */}
-                {data.matchday.status?.toUpperCase() !== 'OPEN' && matchdayMsg !== '' && (
-                  <Text style={[
-                    styles.matchdayMessage,
-                    data.matchday.status?.toUpperCase() === 'COMPLETED' && styles.matchdayMessageHighlight,
-                  ]}>
-                    {matchdayMsg}
-                  </Text>
+                {/* COUNTDOWN TIMER */}
+                {data.matchday.status?.toUpperCase() === 'OPEN' && countdown > 0 && (
+                  <View style={styles.heroCountdown} data-testid="countdown-timer">
+                    <Ionicons name="time-outline" size={20} color={colors.accent} />
+                    <Text style={styles.heroCountdownText}>{formatCountdown(countdown)}</Text>
+                  </View>
                 )}
+
+                {/* Dynamic micro-message */}
+                {data.matchday.status?.toUpperCase() !== 'OPEN' && matchdayMsg !== '' && (
+                  <Text style={styles.heroMessage}>{matchdayMsg}</Text>
+                )}
+
+                {/* CTA row */}
+                <View style={styles.heroCta}>
+                  <Text style={styles.heroCtaText}>{ctaConfig?.label ?? t('home.insert_predictions')}</Text>
+                  <View style={styles.heroCtaArrow}>
+                    <Ionicons name={(ctaConfig?.icon ?? 'create-outline') as any} size={18} color={colors.primary} />
+                  </View>
+                </View>
               </>
             ) : (
               <View style={styles.emptyMatchdayState}>
-                <Ionicons name="football-outline" size={40} color={colors.textMuted} />
+                <Ionicons name="football-outline" size={40} color="rgba(255,255,255,0.4)" />
                 <Text style={styles.emptyMatchdayTitle}>{t('home.no_matchday')}</Text>
                 <Text style={styles.emptyMatchdaySubtitle}>Nessuna giornata in programma per ora</Text>
               </View>
             )}
-
-            {data?.matchday && (
-              <PrimaryButton
-                testID="matchday-cta-btn"
-                title={ctaConfig?.label ?? t('home.insert_predictions')}
-                icon={(ctaConfig?.icon ?? 'create-outline') as React.ComponentProps<typeof Ionicons>['name']}
-                onPress={() => {
-                  if (!data?.matchday) return;
-                  goToPredictionsHub(router, data.matchday.status, data.matchday.id, data.league?.id);
-                }}
-                disabled={!data?.matchday}
-                style={styles.ctaButton}
-              />
-            )}
-          </View>
+          </LinearGradient>
+          </TouchableOpacity>
           </Animated.View>
         )}
 
