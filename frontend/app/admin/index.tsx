@@ -12,13 +12,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { useTheme } from '../../src/contexts/ThemeContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ImportFixtures from './ImportFixtures';
 import WebDateTimePicker from './WebDateTimePicker';
+import { colors } from '../../src/theme/designSystem';
 
 const isWeb = Platform.OS === 'web';
 
@@ -36,7 +36,6 @@ const TRANSITION_BTN: Record<string, { label: string; target: string; icon: stri
 };
 
 export default function AdminConsoleV3() {
-  const { colors } = useTheme();
   const { user, token, handleAuthError } = useAuth();
   const { activeLeague } = useLeague();
   const router = useRouter();
