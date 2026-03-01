@@ -115,7 +115,7 @@ index ecebe1e..e69de29 100644
 ------+import json
 ------+from datetime import datetime
 ------+
-------+BASE_URL = "https://premium-mobile-app-1.preview.emergentagent.com/api"
+------+BASE_URL = "https://home-screen-final.preview.emergentagent.com/api"
 ------+TEST_USER = {"email": "marco@test.com", "password": "password123"}
 ------+
 ------+def detailed_verification():
@@ -251,7 +251,7 @@ index ecebe1e..e69de29 100644
 -------+from datetime import datetime, timezone, timedelta
 -------+
 -------+# Get backend URL from frontend env
--------+BACKEND_URL = "https://premium-mobile-app-1.preview.emergentagent.com/api"
+-------+BACKEND_URL = "https://home-screen-final.preview.emergentagent.com/api"
 -------+
 -------+class ExtendedJollyTester:
 -------+    def __init__(self):
@@ -664,7 +664,7 @@ index ecebe1e..e69de29 100644
 ------+from datetime import datetime
 ------+
 ------+# API Configuration
-------+BASE_URL = "https://premium-mobile-app-1.preview.emergentagent.com/api"
+------+BASE_URL = "https://home-screen-final.preview.emergentagent.com/api"
 ------+TEST_USER = {
 ------+    "email": "marco@test.com", 
 ------+    "password": "password123"

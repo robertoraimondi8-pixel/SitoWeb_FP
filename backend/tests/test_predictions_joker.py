@@ -13,7 +13,7 @@ import pytest
 import requests
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://premium-mobile-app-1.preview.emergentagent.com"
+BASE_URL = "https://home-screen-final.preview.emergentagent.com"
 
 
 @pytest.fixture
