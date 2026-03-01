@@ -75,6 +75,12 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <LinearGradient
+        colors={['#F5F6F8', '#ECEFF3']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
@@ -82,8 +88,20 @@ export default function ProfileScreen() {
           <View style={styles.accentLine} />
         </View>
 
-        {/* User Card */}
-        <View style={styles.userCard}>
+        {/* User Card — Premium Dark */}
+        <View style={styles.userCardOuter}>
+          <LinearGradient
+            colors={['#1A2F4D', '#0E1A2B']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.userCard}
+          >
+            <LinearGradient
+              colors={['rgba(255,255,255,0.08)', 'transparent']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
