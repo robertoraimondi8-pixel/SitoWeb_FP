@@ -422,9 +422,7 @@ const styles = StyleSheet.create({
   header: { 
     paddingHorizontal: spacing.xl, 
     paddingVertical: spacing.lg,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    backgroundColor: '#F3F4F6',
   },
   headerTitle: { 
     ...typography.titleL,
@@ -445,9 +443,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    backgroundColor: '#F3F4F6',
   },
   singleLeagueText: {
     ...typography.bodyM,
@@ -459,7 +455,7 @@ const styles = StyleSheet.create({
   tabContainer: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.card,
+    backgroundColor: '#F3F4F6',
   },
   tabRow: { 
     flexDirection: 'row', 
@@ -511,9 +507,13 @@ const styles = StyleSheet.create({
     marginTop: spacing.md, 
     paddingHorizontal: spacing.lg, 
     paddingVertical: spacing.md, 
-    borderRadius: borderRadius.lg, 
+    borderRadius: borderRadius.xl, 
     backgroundColor: colors.card,
-    ...shadows.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 4,
     gap: spacing.sm,
   },
   matchdaySelectorLive: {
@@ -574,11 +574,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
     paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
     height: 44,
-    ...shadows.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 3,
   },
   searchIcon: {
     marginRight: spacing.sm,
@@ -603,7 +607,11 @@ const styles = StyleSheet.create({
   listCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
-    ...shadows.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 5,
     overflow: 'hidden',
   },
   
