@@ -430,16 +430,19 @@ export default function HomeScreen() {
               </View>
             </View>
           </View>
+          </Animated.View>
         )}
 
         {/* ─── 3. LAST 5 TREND (BAR CHART) ─── */}
         {Array.isArray(data?.last_5_performance) && data.last_5_performance.length > 0 && (
+          <Animated.View style={{ opacity: fadeCard3, transform: [{ translateY: slideAnim3 }] }}>
           <SectionCard title={t('home.trend')}>
             <LastFiveIndicator
               data={data.last_5_performance}
               label={t('home.points_per_matchday')}
             />
           </SectionCard>
+          </Animated.View>
         )}
 
       </Animated.ScrollView>
