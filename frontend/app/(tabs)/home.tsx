@@ -30,6 +30,12 @@ export default function HomeScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const fadeAnim = useState(new Animated.Value(0))[0];
+  const slideAnim1 = useState(new Animated.Value(30))[0];
+  const slideAnim2 = useState(new Animated.Value(30))[0];
+  const slideAnim3 = useState(new Animated.Value(30))[0];
+  const fadeCard1 = useState(new Animated.Value(0))[0];
+  const fadeCard2 = useState(new Animated.Value(0))[0];
+  const fadeCard3 = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
     if (token) refreshLeagues(token);
