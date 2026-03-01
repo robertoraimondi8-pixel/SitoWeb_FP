@@ -38,12 +38,17 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, label, size = 
   const isSmall = size === 'small';
   
   return (
-    <View style={[styles.badge, isSmall && styles.badgeSmall, { backgroundColor }]}>
+    <Animated.View style={[
+      styles.badge,
+      isSmall && styles.badgeSmall,
+      { backgroundColor },
+      isLive && { transform: [{ scale: scaleAnim }] },
+    ]}>
       {isLive && (
         <Animated.View style={[styles.liveDot, { backgroundColor: textColor, opacity: pulseAnim }]} />
       )}
       <Text style={[styles.text, isSmall && styles.textSmall, { color: textColor }]}>{displayLabel}</Text>
-    </View>
+    </Animated.View>
   );
 };
 
