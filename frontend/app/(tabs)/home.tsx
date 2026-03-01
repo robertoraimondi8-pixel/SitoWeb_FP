@@ -484,10 +484,23 @@ export default function HomeScreen() {
         {/* ─── 4. TREND ─── */}
         {Array.isArray(data?.last_5_performance) && data.last_5_performance.length > 0 && (
           <Animated.View style={{ opacity: fadeTrend, transform: [{ translateY: slideTrend }] }}>
-            <View style={s.trendCard}>
-              <Text style={s.sectionLabelInCard}>{t('home.trend')}</Text>
-              <LastFiveIndicator data={data.last_5_performance} label={t('home.points_per_matchday')} />
-            </View>
+            <View style={s.perfCardOuter}>
+                <LinearGradient
+                  colors={['#1B3050', '#142640']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={s.trendCardGrad}
+                >
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.07)', 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={s.perfInset}
+                  />
+                  <Text style={s.sectionLabelInCard}>{t('home.trend')}</Text>
+                  <LastFiveIndicator data={data.last_5_performance} label={t('home.points_per_matchday')} dark />
+                </LinearGradient>
+              </View>
           </Animated.View>
         )}
       </Animated.ScrollView>
@@ -517,9 +530,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 8,
-    backgroundColor: LIGHT.headerBg,
-    borderBottomWidth: 1,
-    borderBottomColor: LIGHT.border,
+    backgroundColor: '#F3F4F6',
   },
   headerIcon: {
     width: 40,
@@ -547,7 +558,7 @@ const s = StyleSheet.create({
   leagueWrap: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: LIGHT.headerBg,
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
   },
   leagueBtn: {
