@@ -180,20 +180,17 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* HEADER */}
+      {/* HEADER - Premium minimal */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.hamburgerBtn}
           onPress={() => setMenuOpen(true)}
           testID="hamburger-menu-btn"
         >
-          <Ionicons name="menu" size={26} color={colors.textPrimary} />
+          <Ionicons name="menu" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <View style={styles.headerLeft}>
-          <Text style={styles.greeting}>{t('home.greeting', { name: user?.username })}</Text>
-          <View style={styles.logoSpacing}>
-            <BrandLogo variant="wordmark" size="lg" />
-          </View>
+        <View style={styles.headerCenter}>
+          <BrandLogo variant="wordmark" size="lg" />
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity
@@ -201,7 +198,7 @@ export default function HomeScreen() {
             onPress={() => router.push('/menu/notifications')}
             testID="notification-bell-btn"
           >
-            <Ionicons name="notifications-outline" size={22} color={colors.primary} />
+            <Ionicons name="notifications-outline" size={21} color={colors.primary} />
             {unreadCount > 0 && (
               <View style={styles.bellBadge} testID="notification-badge">
                 <Text style={styles.bellBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
@@ -212,7 +209,7 @@ export default function HomeScreen() {
             style={styles.headerButton}
             onPress={() => router.push('/league/list')}
           >
-            <Ionicons name="people-outline" size={22} color={colors.primary} />
+            <Ionicons name="people-outline" size={21} color={colors.primary} />
           </TouchableOpacity>
         </View>
       </View>
