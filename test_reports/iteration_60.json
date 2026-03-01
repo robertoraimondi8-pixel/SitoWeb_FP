@@ -1,0 +1,77 @@
+{
+  "summary": "Backend API Regression Testing - All 17 tests PASSED. Verified all critical API endpoints remain functional after the premium dark theme UI redesign. No backend changes were made; frontend-only visual changes confirmed isolated.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "TestAuthEndpoints": {
+      "test_admin_login_success": "PASS - admin@fantapronostic.com / admin123 works",
+      "test_user_login_success": "PASS - ilio@raimondi.it / password123 works",
+      "test_login_invalid_credentials": "PASS - Returns 401 for invalid credentials"
+    },
+    "TestHomeEndpoint": {
+      "test_home_returns_matchday_data": "PASS - Returns league, matchday, user_leagues, rankings_preview, user_summary, last_5_performance, live",
+      "test_home_matchday_structure": "PASS - Matchday has id, number, status (LIVE), first_kickoff, total_matches",
+      "test_home_league_structure": "PASS - League has id, name, league_type, my_role",
+      "test_home_with_league_id_param": "PASS - Accepts league_id param and returns correct league"
+    },
+    "TestStandingsEndpoints": {
+      "test_standings_total_returns_ranked_entries": "PASS - Returns ranked entries with user_id, username, total_points, rank",
+      "test_standings_matchdays_returns_available_matchdays": "PASS - Returns list of matchdays with valid status",
+      "test_standings_without_league_id_uses_default": "PASS - Uses user's current league when league_id not provided"
+    },
+    "TestAdminPanel": {
+      "test_admin_ui_accessible": "PASS - /api/admin-ui returns 200 with HTML content",
+      "test_admin_ui_has_login_form": "PASS - Admin panel contains login form elements"
+    },
+    "TestProfileEndpoint": {
+      "test_profile_returns_admin_data": "PASS - Returns user object with id, email, username, role=admin",
+      "test_profile_returns_regular_user_data": "PASS - Returns user object with role=user",
+      "test_profile_requires_authentication": "PASS - Returns 401 without auth token"
+    },
+    "TestLiveMatchdayStatus": {
+      "test_live_matchday_status_in_home": "PASS - Matchday status is LIVE with live data",
+      "test_live_status_in_matchdays_list": "PASS - Matchdays list returns proper structure"
+    }
+  },
+  "verified_features": [
+    "Backend API /api/auth/login works with admin@fantapronostic.com / admin123",
+    "Backend API /api/home returns complete data (league, matchday, user_summary, live, last_5_performance)",
+    "Backend API /api/standings/total returns ranked entries",
+    "Admin panel at /api/admin-ui loads correctly",
+    "Backend API /api/profile returns user data correctly"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_ui_overhaul_apis.py",
+    "/app/test_reports/pytest/ui_overhaul_apis_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend APIs unchanged and fully functional",
+    "All tested endpoints return correct data structures",
+    "Frontend React Native changes were isolated and did not affect backend"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (17/17 tests passed)",
+    "frontend": "N/A (React Native - backend-only testing requested)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123",
+    "user": "ilio@raimondi.it / password123"
+  },
+  "seed_data_creation": "None - used existing data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend APIs fully tested and working. All 17 tests pass consistently. Frontend is React Native/Expo app requiring mobile device for testing. National league ID: f1373417-43aa-4043-b6a2-125873181c95.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
