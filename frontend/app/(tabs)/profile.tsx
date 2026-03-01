@@ -189,38 +189,43 @@ export default function ProfileScreen() {
 
         {/* Admin Console - per admin globale */}
         {user?.role === 'admin' && (
-          <View style={styles.adminCard}>
-            <Text style={styles.adminTitle}>{t('profile.admin_console_title')}</Text>
-            <Text style={styles.adminSubtitle}>{t('profile.admin_console_desc')}</Text>
-            
-            <PrimaryButton
-              title={t('profile.admin_console_btn')}
-              icon="shield-checkmark"
-              variant="secondary"
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>{t('profile.admin_console_title')}</Text>
+            <TouchableOpacity
+              testID="admin-console-btn"
+              style={styles.settingRow}
               onPress={() => router.push('/admin')}
-              style={styles.adminButton}
-            />
+            >
+              <View style={[styles.settingIcon, { backgroundColor: 'rgba(31,58,138,0.1)' }]}>
+                <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
+              </View>
+              <Text style={styles.settingLabel}>{t('profile.admin_console_btn', { defaultValue: 'Apri Console Admin' })}</Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </TouchableOpacity>
           </View>
         )}
 
         {/* Creator Console - per owner di leghe manuali */}
         {ownedLeagues.some(l => l.match_source_type === 'manual' || l.match_source_type === 'custom') && user?.role !== 'admin' && (
-          <View style={styles.creatorCard}>
-            <Text style={styles.creatorTitle}>{t('profile.creator_console_title')}</Text>
-            <Text style={styles.creatorSubtitle}>{t('profile.creator_console_desc')}</Text>
-            <PrimaryButton
-              title={t('profile.creator_console_btn')}
-              icon="settings"
-              variant="secondary"
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>{t('profile.creator_console_title')}</Text>
+            <TouchableOpacity
+              testID="creator-console-btn"
+              style={styles.settingRow}
               onPress={() => router.push('/admin')}
-              style={styles.adminButton}
-            />
+            >
+              <View style={[styles.settingIcon, { backgroundColor: colors.accentLight }]}>
+                <Ionicons name="settings" size={18} color={colors.accent} />
+              </View>
+              <Text style={styles.settingLabel}>{t('profile.creator_console_btn', { defaultValue: 'Gestisci le tue leghe' })}</Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </TouchableOpacity>
           </View>
         )}
 
-        {/* Logout */}
+        {/* Logout - tono secondario, non prominente */}
         <TouchableOpacity testID="logout-btn" style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color={colors.error} />
+          <Ionicons name="log-out-outline" size={18} color={colors.textMuted} />
           <Text style={styles.logoutText}>{t('profile.logout')}</Text>
         </TouchableOpacity>
 
