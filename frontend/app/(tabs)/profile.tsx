@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.md,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center' as const,
   },
   langOptionActive: {
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   },
   langOptionText: {
     ...typography.bodyM,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.6)',
     fontWeight: '600' as const,
   },
   langOptionTextActive: {
