@@ -860,7 +860,9 @@ const styles = StyleSheet.create({
     ...shadows.card,
   },
   matchCardLocked: {
-    opacity: 0.75,
+    opacity: 0.65,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   matchCardSpecial: {
     borderWidth: 2,
