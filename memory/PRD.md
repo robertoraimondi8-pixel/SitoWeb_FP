@@ -270,6 +270,15 @@ Complete visual transformation to premium dark sport theme matching user's mocku
 - **New dependency**: expo-linear-gradient for hero card and CTA gradients
 - Files: home.tsx (complete rewrite), designSystem.ts (v4 palette), LastFiveIndicator.tsx (dark prop), StatusBadge.tsx (consistent 8px radius)
 
+### Fine Tuning Premium (Mar 1, 2026) - COMPLETED
+6 micro-refinements for 9.5/10 premium perception:
+1. **Unified background**: Hero gradient darkened (#10223A → #0B1625) to be 5-8% darker than header (#0E1A2B), creating seamless visual flow
+2. **CTA icon integration**: Removed external circle wrapper, icon now inline with text, centered layout with gap 10, cleaner alignment
+3. **Classifica card contrast**: Changed from #FFFFFF to #EEF1F5 soft gray, blends with dark theme without breaking mood
+4. **Performance card hierarchy**: First card (Position) has brighter bg (#182D48) with warm accent border, others standard dark, creating visual guide for the eye
+5. **Natural shadows**: All shadows softened - blur 16-24px, opacity 0.08-0.15, spread diffuse. CTA gets orange-tinted shadow. No sharp/digital edges
+6. **Micro-interactions**: Already present: Press scale 0.97 (spring), fade-in 150-200ms stagger, LIVE badge pulse. Confirmed working
+
 ## Prioritized Backlog
 
 ### P0
