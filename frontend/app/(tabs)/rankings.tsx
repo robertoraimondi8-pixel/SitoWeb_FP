@@ -313,7 +313,7 @@ export default function RankingsScreen() {
                 <Ionicons name="person-outline" size={32} color={colors.textMuted} />
                 <Text style={styles.emptySearchText}>Nessun utente trovato</Text>
               </View>
-            )}}
+            )}
           </View>
 
           {standings?.my_position && !standings.entries?.find((e: StandingEntry) => e.is_current_user) && (
