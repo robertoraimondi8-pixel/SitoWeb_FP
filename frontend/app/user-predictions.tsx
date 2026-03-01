@@ -186,7 +186,7 @@ export default function UserPredictionsScreen() {
             {/* Teams & Score */}
             <View style={s.teamsRow}>
               <View style={s.teamCol}>
-                <Text style={[s.teamName, { color: colors.text }]}>{pred.home_team}</Text>
+                <Text style={[s.teamName, { color: colors.text }]} numberOfLines={1}>{pred.home_team}</Text>
               </View>
               <View style={s.scoreCol}>
                 {pred.home_score !== null ? (
@@ -198,7 +198,7 @@ export default function UserPredictionsScreen() {
                 )}
               </View>
               <View style={s.teamCol}>
-                <Text style={[s.teamName, { color: colors.text }, { textAlign: 'right' }]}>
+                <Text style={[s.teamName, { color: colors.text }, { textAlign: 'right' }]} numberOfLines={1}>
                   {pred.away_team}
                 </Text>
               </View>
@@ -286,7 +286,7 @@ const s = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 100 },
   
   // Prediction card
-  predCard: { borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1 },
+  predCard: { borderRadius: 22, padding: 14, marginBottom: 10, borderWidth: 1.5, borderColor: '#F5A623' },
   matchHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   matchNum: { fontSize: 11, fontWeight: '700', width: 20, textAlign: 'center' },
   competition: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', flex: 1 },
@@ -297,7 +297,7 @@ const s = StyleSheet.create({
   teamsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   teamCol: { flex: 1 },
   teamName: { fontSize: 14, fontWeight: '600' },
-  scoreCol: { paddingHorizontal: 12 },
+  scoreCol: { paddingHorizontal: 12, minWidth: 70, alignItems: 'center' },
   score: { fontSize: 18, fontWeight: '800' },
   vs: { fontSize: 12 },
   
