@@ -528,11 +528,16 @@ const s = StyleSheet.create({
     gap: 16,
   },
 
-  // ── 1. Hero Card ──
+  // ── 1. Hero Card (seamless with header, slightly darker) ──
   heroCard: {
     borderRadius: 16,
     padding: 24,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 6,
   },
   heroTop: {
     flexDirection: 'row',
