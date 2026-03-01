@@ -712,7 +712,7 @@ const s = StyleSheet.create({
   liveRank: { fontSize: 30, fontWeight: '800', color: LIGHT.green, lineHeight: 34 },
   livePoints: { fontSize: 13, fontWeight: '600', color: LIGHT.textSec, marginTop: 2 },
 
-  // ── 3. Performance (dark navy cards on light bg) ──
+  // ── 3. Performance (gradient cards + inset + sospensione) ──
   sectionLabel: {
     fontSize: 13,
     fontWeight: '700',
@@ -724,28 +724,40 @@ const s = StyleSheet.create({
   },
   perfRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
   },
-  perfCard: {
+  perfCardOuter: {
     flex: 1,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.12,
+    shadowRadius: 30,
+    elevation: 10,
+  },
+  perfCardGrad: {
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 8,
-    backgroundColor: DARK.navy,
-    borderRadius: 16,
-    shadowColor: '#0E1A2B',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 4,
+    overflow: 'hidden',
   },
-  perfCardWarm: {
-    backgroundColor: '#182D48',
+  perfInset: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 40,
   },
-  perfIcon: {
+  perfIconWrap: {
     width: 40,
     height: 40,
     borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
