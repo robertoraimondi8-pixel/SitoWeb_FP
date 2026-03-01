@@ -597,19 +597,19 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 80,
-    gap: 16,
+    gap: 24,
   },
 
   // ── 1. Hero Card (dark navy gradient) ──
   heroCard: {
-    borderRadius: 16,
+    borderRadius: 22,
     padding: 24,
     overflow: 'hidden',
     shadowColor: '#0E1A2B',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.2,
-    shadowRadius: 24,
-    elevation: 6,
+    shadowRadius: 30,
+    elevation: 10,
   },
   heroTop: {
     flexDirection: 'row',
