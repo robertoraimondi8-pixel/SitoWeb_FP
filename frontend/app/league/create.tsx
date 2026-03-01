@@ -107,35 +107,35 @@ export default function CreateLeagueScreen() {
   // ── SUCCESS STATE ───────────────────────────────────────────────────────────
   if (created) {
     return (
-      <SafeAreaView style={[s.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <SafeAreaView style={[s.container, { backgroundColor: '#F5F6F8' }]} edges={['top']}>
         <View style={s.successContent}>
           <View style={[s.successIcon, { backgroundColor: 'rgba(16,185,129,0.15)' }]}>
             <Ionicons name="checkmark-circle" size={56} color={colors.success} />
           </View>
-          <Text style={[s.successTitle, { color: colors.text }]}>Lega Creata!</Text>
+          <Text style={[s.successTitle, { color: colors.textPrimary }]}>Lega Creata!</Text>
           <Text style={[s.successDesc, { color: colors.textSecondary }]}>
             Condividi il codice con i tuoi amici per invitarli.
           </Text>
 
-          <View style={[s.codeCard, { backgroundColor: colors.card, borderColor: colors.accent }]}>
-            <Text style={[s.codeLabel, { color: colors.textSecondary }]}>CODICE INVITO</Text>
+          <View style={[s.codeCard, { backgroundColor: '#14263D', borderColor: colors.accent }]}>
+            <Text style={[s.codeLabel, { color: 'rgba(255,255,255,0.5)' }]}>CODICE INVITO</Text>
             <Text style={[s.codeValue, { color: colors.accent }]}>{created.invite_code}</Text>
           </View>
 
-          <View style={[s.rulesCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[s.rulesTitle, { color: colors.text }]}>Regole configurate</Text>
-            <Text style={[s.rulesRow, { color: colors.textSecondary }]}>📅 Giornate: {created.start_matchday} → {created.end_matchday}</Text>
-            <Text style={[s.rulesRow, { color: colors.textSecondary }]}>⏱ Termine giocata: {created.bet_deadline_minutes} min prima</Text>
-            <Text style={[s.rulesRow, { color: colors.textSecondary }]}>Partite: {created.match_source_type === 'national' ? 'Lega Nazionale' : 'Personalizzate'}</Text>
+          <View style={[s.rulesCard, { backgroundColor: '#14263D', borderColor: 'rgba(255,255,255,0.08)' }]}>
+            <Text style={[s.rulesTitle, { color: '#FFFFFF' }]}>Regole configurate</Text>
+            <Text style={[s.rulesRow, { color: 'rgba(255,255,255,0.5)' }]}>Giornate: {created.start_matchday} → {created.end_matchday}</Text>
+            <Text style={[s.rulesRow, { color: 'rgba(255,255,255,0.5)' }]}>Termine giocata: {created.bet_deadline_minutes} min prima</Text>
+            <Text style={[s.rulesRow, { color: 'rgba(255,255,255,0.5)' }]}>Partite: {created.match_source_type === 'national' ? 'Lega Nazionale' : 'Personalizzate'}</Text>
           </View>
 
           <TouchableOpacity style={[s.shareBtn, { backgroundColor: colors.accent }]} onPress={handleShare}>
-            <Ionicons name="share-outline" size={20} color={colors.background} />
-            <Text style={[s.shareBtnText, { color: colors.background }]}>Condividi codice</Text>
+            <Ionicons name="share-outline" size={20} color="#FFFFFF" />
+            <Text style={[s.shareBtnText, { color: '#FFFFFF' }]}>Condividi codice</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.homeBtn, { borderColor: colors.border }]} onPress={() => router.replace('/(tabs)/home')}>
-            <Text style={[s.homeBtnText, { color: colors.text }]}>Vai alla Home</Text>
+            <Text style={[s.homeBtnText, { color: colors.textPrimary }]}>Vai alla Home</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
