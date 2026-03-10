@@ -103,6 +103,15 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - **Flusso completo**: Navigazione, iscrizione, conferma, lista tornei personali
 - **Testing**: 100% frontend flows + 29/29 backend tests
 
+### Tournaments Module - Phase 3 Admin Panel COMPLETED 2026-03-10
+- **Admin Tournaments Page**: `/admin/tournaments` - lista tutti i tornei (inclusi bozze), crea, apri iscrizioni, avvia, round, knockout
+- **Creazione**: Form con nome, preset rapido (8/16/32), gironi, giocatori per girone, passano, giornate
+- **Gestione**: Vista dettaglio con griglia info, bottoni azione basati sullo stato, gestione round
+- **Classifica Gironi**: Tabella con posizione, giocate, V/P/S, punti, evidenzia chi passa
+- **Backend**: `include_drafts` query param su GET /api/tournaments per admin
+- **Files**: `admin/tournaments.tsx`, `admin/_layout.tsx`, `admin/index.tsx` (link)
+- **Testing**: 13/13 backend + 100% frontend (list, create, detail, actions)
+
 ### Match Detail Sheet Feature - COMPLETED 2026-03-10
 - **Backend**: New endpoint `GET /api/stats/fixture-detail/{fixture_id}` fetching events, statistics, lineups from API-Football
 - **Frontend**: New `MatchDetailSheet` bottom sheet component with 3 tabs (Eventi, Statistiche, Formazioni)
@@ -147,10 +156,9 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - **Testing**: 100% frontend flows verified + 29/29 backend tests passed
 
 ## Future Tasks
-- **(P0) Tournaments Phase 3**: Admin UI per gestione tornei nel pannello admin
-- **(P1) Tournaments Phase 4**: Generazione gironi e tabellone automatica
-- **(P2) Tournaments Phase 5**: Logica 1v1 matchup e calcolo vincitori
-- **(P3) Tournaments Phase 6**: Vista live 1v1 nell'app
+- **(P0) Tournaments Phase 4**: Generazione gironi e tabellone automatica (backend logic per auto-sort gruppi e bracket eliminazione)
+- **(P1) Tournaments Phase 5**: Logica 1v1 matchup e calcolo vincitori basato su punteggi pronostici
+- **(P2) Tournaments Phase 6**: Vista live 1v1 nell'app (schermata live con pronostici di entrambi gli utenti)
 - Design "Achievements/Badges" system
 - Implement "Championship Winner Predictions"
 - Integrate Stripe for National League and Tournaments
