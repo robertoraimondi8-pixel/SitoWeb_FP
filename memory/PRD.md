@@ -88,6 +88,11 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Push notification infrastructure (disabled pending config)
 - Scoring engine with jolly/joker system
 
+### Storico Giornate Bug Fix - COMPLETED 2026-03-10
+- **Root cause**: `matchday_breakdown` query in `/standings/user/{id}` filtered only by `season_id` but matchdays are league-specific (have `league_id`)
+- **Fix**: Added `league_id` filter to both `matchdays_list` and `current_matchday` queries in `routes/standings.py`
+- Verified: 7/7 matchdays now returned correctly for Lega Nazionale
+
 ## Pending Issues
 
 ### P1 - Team Name Overlap Bug

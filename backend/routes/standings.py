@@ -243,7 +243,7 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
     last_matchday_id = None
     if season:
         current_matchday = await matchdays_col.find_one(
-            {"season_id": season["id"], "status": {"$in": ["OPEN", "LOCKED", "LIVE", "COMPLETED"]}}, {"_id": 0}, sort=[("number", -1)]
+            {"season_id": season["id"], "league_id": league_id, "status": {"$in": ["OPEN", "LOCKED", "LIVE", "COMPLETED"]}}, {"_id": 0}, sort=[("number", -1)]
         )
         if current_matchday:
             last_matchday_id = current_matchday["id"]
@@ -273,7 +273,7 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
     matchday_breakdown = []
     if season:
         user_scores = await score_summaries_col.find({"user_id": target_user_id, "league_id": league_id}, {"_id": 0}).to_list(100)
-        matchdays_list = await matchdays_col.find({"season_id": season["id"]}, {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}).sort("number", 1).to_list(50)
+        matchdays_list = await matchdays_col.find({"season_id": season["id"], "league_id": league_id}, {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}).sort("number", 1).to_list(50)
         matchdays_dict = {m["id"]: m for m in matchdays_list}
         for score in user_scores:
             md = matchdays_dict.get(score.get("matchday_id"))
