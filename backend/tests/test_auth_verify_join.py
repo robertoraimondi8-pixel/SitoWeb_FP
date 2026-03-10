@@ -14,7 +14,7 @@ import os
 import uuid
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://brand-system-preview.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://modular-routes-13.preview.emergentagent.com')
 
 class TestUserRegistrationWithUsername:
     """Test registration flow with custom username"""

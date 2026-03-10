@@ -1,19 +1,68 @@
 """Shared utility and domain service functions."""
+import os
 import random
 import string
 import logging
+import time
+import asyncio
 from datetime import datetime, timezone
 from typing import Optional
 
+import httpx
+
 from database import (
-    matchdays_col, matches_col, predictions_col,
-    score_summaries_col, standings_cache_col, audit_logs_col
+    db, matchdays_col, matches_col, predictions_col,
+    score_summaries_col, standings_cache_col, audit_logs_col,
+    notifications_col, push_tokens_col, memberships_col,
+    leagues_col, users_col, roles_col, seasons_col
 )
 from models import new_id, now_utc
-from scoring import calculate_match_points
+from scoring import calculate_match_points, calculate_matchday_total
 
 logger = logging.getLogger(__name__)
 
+# ============================================================
+# CONSTANTS (shared across routes)
+# ============================================================
+NATIONAL_LEAGUE_ID = "f1373417-43aa-4043-b6a2-125873181c95"
+MATCHES_PER_MATCHDAY = 11
+MAX_MATCHES_PER_MATCHDAY = 10
+NATIONAL_LEAGUE_PRICE = 20.00  # EUR
+
+DEFAULT_SCORING_CONFIG = {
+    "1x2": {"enabled": True, "points": 1.0},
+    "over_under": {"enabled": True, "points": 0.5},
+    "goal_no_goal": {"enabled": True, "points": 0.5},
+    "exact_score": {"enabled": True, "points": 4.0},
+}
+
+VALID_TRANSITIONS = {
+    "DRAFT": ["OPEN"],
+    "OPEN": [],
+    "LIVE": [],
+    "COMPLETED": [],
+}
+STATUS_ORDER = ["DRAFT", "OPEN", "LIVE", "COMPLETED"]
+
+# Push Notification Config
+EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
+PUSH_ENABLED = os.environ.get("PUSH_NOTIFICATIONS_ENABLED", "false").lower() == "true"
+
+# Live Fixtures Config
+LIVE_SYNC_ENABLED = os.environ.get("APIFOOTBALL_LIVE_SYNC_ENABLED", "false").lower() == "true"
+LIVE_REFRESH_INTERVAL = int(os.environ.get("APIFOOTBALL_LIVE_INTERVAL", "180"))
+
+# Circuit breaker state
+_circuit_open_until: float = 0
+CIRCUIT_BREAKER_COOLDOWN = 3600
+
+# Reminder Config
+REMINDER_CHECK_INTERVAL = 300
+
+
+# ============================================================
+# UTILITY FUNCTIONS
+# ============================================================
 
 def generate_invite_code(length=8):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
@@ -45,6 +94,10 @@ def server_now() -> datetime:
 def _match_source_query(matchday_id: str, source_league_id: str) -> dict:
     return {"matchday_id": matchday_id, "league_id": source_league_id}
 
+
+# ============================================================
+# MATCHDAY STATUS & KICKOFF
+# ============================================================
 
 async def compute_matchday_status(matchday: dict, league_id: str) -> str:
     override = matchday.get("status_override")
@@ -117,6 +170,10 @@ async def recompute_matchday_kickoff(matchday_id: str, league_id: str):
         first = min(times).isoformat()
         await matchdays_col.update_one({"id": matchday_id}, {"$set": {"first_kickoff": first}})
 
+
+# ============================================================
+# SCORING FUNCTIONS
+# ============================================================
 
 async def compute_matchday_points(user_id: str, matchday_id: str, league_id: str = None) -> dict:
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
@@ -268,3 +325,209 @@ async def recalculate_user_total_standings(user_id: str, league_id: str):
         upsert=True
     )
     logger.info(f"[STANDINGS] Updated total for user {user_id} in league {league_id}: {total_points} pts")
+
+
+async def calculate_matchday_scores_full(matchday_id: str, admin: dict):
+    """Calculate and store scores for all users with predictions (used by admin confirm/complete)."""
+    matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0, "league_id": 1})
+    md_league_id = matchday.get("league_id") if matchday else NATIONAL_LEAGUE_ID
+    matches = await matches_col.find(_match_source_query(matchday_id, md_league_id), {"_id": 0}).to_list(20)
+    matches_dict = {m["id"]: m for m in matches}
+
+    all_preds = await predictions_col.find({"matchday_id": matchday_id}, {"_id": 0}).to_list(10000)
+
+    user_league_preds = {}
+    for p in all_preds:
+        key = (p["user_id"], p.get("league_id", md_league_id))
+        user_league_preds.setdefault(key, []).append(p)
+
+    await score_summaries_col.delete_many({"matchday_id": matchday_id})
+
+    for (uid, pred_league_id), preds in user_league_preds.items():
+        joker_active = False
+        match_pts = []
+        special_bonus = 0.0
+        for p in preds:
+            m = matches_dict.get(p["match_id"])
+            if not m:
+                continue
+            pred_market = p.get("market_type", m.get("market_type", "1X2"))
+            pts, is_correct = calculate_match_points(
+                p["prediction_value"], pred_market,
+                m.get("home_score"), m.get("away_score"), m["status"],
+                m.get("multiplier", 1.0)
+            )
+            match_pts.append((m["id"], pts, is_correct))
+            multiplier = m.get("multiplier", 1.0)
+            if is_correct and multiplier > 1.0:
+                special_bonus += pts - (pts / multiplier)
+            await predictions_col.update_one(
+                {"id": p["id"]},
+                {"$set": {"points": pts, "is_correct": is_correct}}
+            )
+
+        totals = calculate_matchday_total(match_pts, joker_active, matches_dict)
+
+        await score_summaries_col.insert_one({
+            "id": new_id(),
+            "user_id": uid,
+            "matchday_id": matchday_id,
+            "league_id": pred_league_id,
+            "base_points": totals["base_points"],
+            "joker_bonus": totals["joker_bonus"],
+            "special_bonus": special_bonus,
+            "total_points": totals["total_points"],
+            "valid_matches": totals["valid_matches"],
+            "void_matches": totals["void_matches"],
+            "joker_active": joker_active,
+            "created_at": now_utc(),
+        })
+
+    logger.info(f"[ADMIN] Scores calculated for {len(user_league_preds)} user+league combos in matchday {matchday_id}")
+    return len(user_league_preds)
+
+
+# ============================================================
+# PUSH NOTIFICATIONS
+# ============================================================
+
+async def send_expo_push(user_id: str, title: str, body: str, data: dict = None):
+    """Send a push notification via Expo Push API to all devices of a user."""
+    if not PUSH_ENABLED:
+        return
+    tokens = await push_tokens_col.find(
+        {"user_id": user_id}, {"_id": 0, "token": 1}
+    ).to_list(10)
+    if not tokens:
+        return
+    messages = [
+        {
+            "to": t["token"],
+            "sound": "default",
+            "title": title,
+            "body": body,
+            "data": data or {},
+        }
+        for t in tokens
+    ]
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(
+                EXPO_PUSH_URL,
+                json=messages,
+                headers={"Content-Type": "application/json"},
+            )
+            if resp.status_code != 200:
+                logger.warning(f"[PUSH] Expo API returned {resp.status_code}: {resp.text[:200]}")
+    except Exception as e:
+        logger.warning(f"[PUSH] Failed to send push to user {user_id[:8]}: {e}")
+
+
+async def create_notification(user_id: str, notif_type: str, title: str, message: str, link: str = ""):
+    """Create an internal notification for a user."""
+    doc = {
+        "id": new_id(),
+        "user_id": user_id,
+        "type": notif_type,
+        "title": title,
+        "message": message,
+        "link": link,
+        "read": False,
+        "created_at": now_utc(),
+    }
+    await notifications_col.insert_one(doc)
+    await send_expo_push(user_id, title, message, {"type": notif_type, "link": link})
+
+
+async def create_notification_for_league(league_id: str, notif_type: str, title: str, message: str, link: str = ""):
+    """Create notification for all active members of a league."""
+    members = await memberships_col.find(
+        {"league_id": league_id, "status": "active"}, {"user_id": 1, "_id": 0}
+    ).to_list(500)
+    for m in members:
+        await create_notification(m["user_id"], notif_type, title, message, link)
+
+
+# ============================================================
+# VALIDATION HELPERS
+# ============================================================
+
+def validate_prediction(value: str, market_type: str) -> bool:
+    v = value.upper()
+    if market_type == "1X2":
+        return v in ("1", "X", "2")
+    elif market_type == "GOAL_NOGOL":
+        return v in ("GOAL", "NOGOL")
+    elif market_type == "OVER_UNDER_25":
+        return v in ("OVER", "UNDER")
+    elif market_type == "EXACT_SCORE":
+        parts = v.split("-")
+        if len(parts) == 2:
+            try:
+                int(parts[0])
+                int(parts[1])
+                return True
+            except ValueError:
+                return False
+    return False
+
+
+def require_league_admin(league: dict, user: dict):
+    from fastapi import HTTPException
+    if league.get("owner_id") != user["id"]:
+        raise HTTPException(403, "Solo il creatore della lega può gestire le partite")
+    if league.get("match_source_type") not in ("manual", "custom", "api"):
+        raise HTTPException(400, "Questa lega usa le partite della Lega Nazionale")
+
+
+# ============================================================
+# API-FOOTBALL CLIENT
+# ============================================================
+
+_apifootball_client = None
+
+def get_apifootball():
+    from apifootball import APIFootballClient
+    from fastapi import HTTPException
+    global _apifootball_client
+    if _apifootball_client is None:
+        key = os.environ.get("APIFOOTBALL_API_KEY", "")
+        if not key:
+            raise HTTPException(503, "API-Football key not configured")
+        _apifootball_client = APIFootballClient(key)
+    return _apifootball_client
+
+
+# ============================================================
+# RBAC BOOTSTRAP
+# ============================================================
+
+async def bootstrap_rbac():
+    """Bootstrap RBAC system: create default roles and mark initial admin as super_admin."""
+    from permissions import DEFAULT_ROLES
+    for key, tmpl in DEFAULT_ROLES.items():
+        existing = await roles_col.find_one({"name": tmpl["name"]})
+        if not existing:
+            role_doc = {
+                "id": new_id(),
+                "name": tmpl["name"],
+                "description": tmpl["description"],
+                "permissions": tmpl["permissions"],
+                "is_system": True,
+                "created_at": now_utc(),
+            }
+            await roles_col.insert_one(role_doc)
+            logger.info(f"[RBAC] Created default role: {tmpl['name']}")
+
+    super_admin_email = os.environ.get("SUPER_ADMIN_EMAIL", "admin@fantapronostic.com")
+    admin_user = await users_col.find_one({"email": super_admin_email})
+    if admin_user and not admin_user.get("is_super_admin"):
+        sa_role = await roles_col.find_one({"name": "Super Admin"}, {"_id": 0, "id": 1})
+        role_ids = admin_user.get("role_ids", [])
+        if sa_role and sa_role["id"] not in role_ids:
+            role_ids.append(sa_role["id"])
+        await users_col.update_one(
+            {"email": super_admin_email},
+            {"$set": {"is_super_admin": True, "role_ids": role_ids}}
+        )
+        logger.info(f"[RBAC] Bootstrapped {super_admin_email} as SUPER_ADMIN")

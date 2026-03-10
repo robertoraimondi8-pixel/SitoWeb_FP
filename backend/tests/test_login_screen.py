@@ -9,7 +9,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://brand-system-preview.preview.emergentagent.com"
+BASE_URL = "https://modular-routes-13.preview.emergentagent.com"
 
 
 class TestLoginEmailPassword:
