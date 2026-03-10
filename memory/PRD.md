@@ -57,6 +57,29 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Made links clickable in: login footer, register checkboxes, complete-profile checkboxes
 - Added "LEGALE" section in SideMenu with Terms and Privacy links
 
+### Push Notifications - COMPLETED 2026-03-10
+- Activated `PUSH_NOTIFICATIONS_ENABLED=true` in backend .env
+- Added admin broadcast endpoint: `POST /api/admin/push/broadcast` (all users or specific league)
+- Added admin single-user push: `POST /api/admin/push/user/{user_id}`
+- Added "Push Notifiche" page in admin panel with broadcast and single-user forms
+- Test: 15/15 passed
+
+### Google Login Complete Profile - COMPLETED 2026-03-10
+- Added username field (optional) to complete-profile page
+- Fixed endpoint mismatch: added dual endpoint `POST /api/users/me/complete-profile` alongside `PATCH /api/profile/complete`
+- Redesigned page with brand colors, BrandLogo wordmark (no white bg), gradient accent button
+- Username validation: 3-20 chars, regex, duplicate check
+
+### National League Free - COMPLETED 2026-03-10
+- Removed payment requirement for joining national league
+- Users can now join directly without Stripe payment
+
+### SendGrid Email Integration - COMPLETED 2026-03-10
+- Created `email_service.py` with SendGrid integration for password reset emails
+- Integrated into RBAC reset-password-link generation
+- Graceful fallback when API key is empty (logs warning, doesn't fail)
+- **NOTE**: SENDGRID_API_KEY must be configured for emails to actually send
+
 ### Previous Work
 - Brand Color System v5 applied across entire frontend
 - Comprehensive developer documentation (docs/ directory)
