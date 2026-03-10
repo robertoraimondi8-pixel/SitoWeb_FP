@@ -96,6 +96,13 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - **File**: `routes/tournaments.py`, `database.py` (collections + indici), `server.py` (router)
 - **Testing**: 29/29 test passati, 0 regressioni su leghe/auth
 
+### Tournaments Module - Phase 2 Frontend COMPLETED 2026-03-10
+- **Schermate**: browse-tournaments.tsx, my-tournaments.tsx, tournament/[id].tsx (3 tab: Info/Gironi/Tabellone)
+- **Home Banner**: Sezione "TORNEI DISPONIBILI" con card tornei aperti e CTA iscrizione
+- **Side Menu**: Sezione "TORNEI" con "I miei tornei" e "Iscriviti a nuovi tornei"
+- **Flusso completo**: Navigazione, iscrizione, conferma, lista tornei personali
+- **Testing**: 100% frontend flows + 29/29 backend tests
+
 ### Match Detail Sheet Feature - COMPLETED 2026-03-10
 - **Backend**: New endpoint `GET /api/stats/fixture-detail/{fixture_id}` fetching events, statistics, lineups from API-Football
 - **Frontend**: New `MatchDetailSheet` bottom sheet component with 3 tabs (Eventi, Statistiche, Formazioni)
@@ -131,15 +138,22 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Backend jolly/joker logic intentionally preserved (active feature)
 - Zero frontend "jolly" references remaining (verified via grep)
 
-## Future Tasks (P2)
-- **Tournaments Phase 2**: Frontend sezione Tornei (lista, iscrizione, gironi, tabellone)
-- **Tournaments Phase 3**: Admin UI per gestione tornei nel pannello admin
-- **Tournaments Phase 4**: Vista live 1v1 nell'app
-- Add test dependencies (`requests`, `pytest`) to requirements.txt
-- Improve error handling (specific exceptions, structured logging)
+### Tournaments Module - Phase 2 Frontend COMPLETED 2026-03-10
+- **Browse Tournaments**: `/menu/browse-tournaments` - lista tornei con status, posti, iscrizione diretta
+- **My Tournaments**: `/menu/my-tournaments` - tornei dell'utente con stato, navigazione a dettaglio
+- **Tournament Detail**: `/tournament/[id]` - 3 tab (Info/Gironi/Tabellone), iscrizione, classifica gironi, bracket eliminazione
+- **Home Banner**: Sezione "TORNEI DISPONIBILI" nella home con card tornei aperti e CTA iscrizione
+- **Side Menu**: Sezione "TORNEI" con link a "I miei tornei" e "Iscriviti a nuovi tornei"
+- **Testing**: 100% frontend flows verified + 29/29 backend tests passed
+
+## Future Tasks
+- **(P0) Tournaments Phase 3**: Admin UI per gestione tornei nel pannello admin
+- **(P1) Tournaments Phase 4**: Generazione gironi e tabellone automatica
+- **(P2) Tournaments Phase 5**: Logica 1v1 matchup e calcolo vincitori
+- **(P3) Tournaments Phase 6**: Vista live 1v1 nell'app
 - Design "Achievements/Badges" system
 - Implement "Championship Winner Predictions"
-- Integrate Stripe for National League
+- Integrate Stripe for National League and Tournaments
 
 ## 3rd Party Integrations
 - API-Football (API-Sports) - for live match data
