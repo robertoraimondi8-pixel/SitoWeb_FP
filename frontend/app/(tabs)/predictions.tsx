@@ -526,6 +526,9 @@ export default function PredictionsScreen() {
                     <Text style={styles.teamName} numberOfLines={1}>{m.away_team}</Text>
                     {m.away_logo && <Image source={{ uri: m.away_logo }} style={styles.teamLogo} />}
                   </View>
+                  {m.external_fixture_id && (
+                    <Ionicons name="chevron-forward" size={16} color={colors.textMuted} style={{ marginLeft: 4 }} />
+                  )}
                 </TouchableOpacity>
                 {m.external_fixture_id && (
                   <TouchableOpacity

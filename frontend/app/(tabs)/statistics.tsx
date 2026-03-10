@@ -404,6 +404,7 @@ function FixturesWithRoundPicker({
             <Text style={styles.fixtureDate}>{formatDate(f.date)}</Text>
             {!showScore && <Text style={styles.fixtureTime}>{formatTime(f.date)}</Text>}
           </View>
+          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </TouchableOpacity>
       ))}
 

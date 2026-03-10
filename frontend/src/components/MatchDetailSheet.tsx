@@ -180,7 +180,7 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
               {/* Tab Selector */}
               <View style={s.tabBar}>
                 {(['events', 'stats', 'lineups'] as Tab[]).map(tab => {
-                  const labels: Record<Tab, string> = { events: 'Eventi', stats: 'Statistiche', lineups: 'Formazioni' };
+                  const labels: Record<Tab, string> = { events: 'Riassunto', stats: 'Statistiche', lineups: 'Formazioni' };
                   const icons: Record<Tab, string> = { events: 'football-outline', stats: 'bar-chart-outline', lineups: 'people-outline' };
                   const isActive = activeTab === tab;
                   return (
@@ -198,7 +198,7 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
               </View>
 
               {/* Tab Content */}
-              {activeTab === 'events' && <EventsList events={data.events} homeTeam={fx.home_team} />}
+              {activeTab === 'events' && <EventsList events={data.events} homeTeam={fx.home_team} halftime={fx.halftime} />}
               {activeTab === 'stats' && <StatsComparison stats={data.statistics} />}
               {activeTab === 'lineups' && <LineupsView lineups={data.lineups} />}
             </ScrollView>
@@ -209,69 +209,120 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
   );
 }
 
-/* ── Events List ── */
-function EventsList({ events, homeTeam }: { events: FixtureEvent[]; homeTeam: string }) {
+/* ── Events List (stile Diretta) ── */
+function EventsList({ events, homeTeam, halftime }: { events: FixtureEvent[]; homeTeam: string; halftime: { home: number | null; away: number | null } }) {
   if (events.length === 0) {
     return <Text style={s.emptyText}>Nessun evento disponibile</Text>;
   }
 
-  const getIcon = (type: string, detail: string) => {
-    if (type === 'Goal') {
-      if (detail === 'Own Goal') return { name: 'football-outline', color: '#ef4444' };
-      if (detail === 'Penalty') return { name: 'football', color: '#22c55e' };
-      return { name: 'football', color: '#22c55e' };
+  // Compute running score for each event
+  let homeScore = 0;
+  let awayScore = 0;
+  const enriched = events.map(ev => {
+    const isHome = ev.team_name === homeTeam;
+    const isGoal = ev.type === 'Goal' && ev.detail !== 'Missed Penalty';
+    if (isGoal) {
+      if (ev.detail === 'Own Goal') { if (isHome) awayScore++; else homeScore++; }
+      else { if (isHome) homeScore++; else awayScore++; }
     }
-    if (type === 'Card') {
-      if (detail === 'Red Card') return { name: 'card', color: '#ef4444' };
-      if (detail === 'Second Yellow card') return { name: 'card', color: '#ef4444' };
-      return { name: 'card', color: '#f59e0b' };
-    }
-    if (type === 'subst') return { name: 'swap-horizontal', color: '#60a5fa' };
-    if (type === 'Var') return { name: 'tv', color: '#a78bfa' };
-    return { name: 'ellipse', color: colors.textMuted };
-  };
+    return { ...ev, runningHome: homeScore, runningAway: awayScore };
+  });
+
+  const fh = enriched.filter(e => (e.time_elapsed || 0) <= 45);
+  const sh = enriched.filter(e => (e.time_elapsed || 0) > 45);
+  const htHome = halftime?.home ?? '-';
+  const htAway = halftime?.away ?? '-';
+  const htEndScore = fh.length > 0 ? `${fh[fh.length - 1].runningHome} - ${fh[fh.length - 1].runningAway}` : '0 - 0';
 
   return (
     <View style={s.eventsContainer}>
-      {events.map((ev, i) => {
-        const icon = getIcon(ev.type, ev.detail);
-        const isHome = ev.team_name === homeTeam;
-        const timeStr = ev.time_elapsed ? `${ev.time_elapsed}'${ev.time_extra ? `+${ev.time_extra}` : ''}` : '';
+      <View style={s.halfHeader}>
+        <Text style={s.halfHeaderText}>1° TEMPO</Text>
+        <Text style={s.halfHeaderScore}>{htHome} - {htAway}</Text>
+      </View>
+      {fh.length === 0 ? (
+        <Text style={s.noEventsHalf}>Nessun evento</Text>
+      ) : fh.map((ev, i) => <EventRow key={`fh-${i}`} ev={ev} homeTeam={homeTeam} />)}
 
-        return (
-          <View key={i} style={[s.eventRow, isHome ? s.eventRowHome : s.eventRowAway]}>
-            {isHome && <EventContent ev={ev} icon={icon} timeStr={timeStr} />}
-            <View style={s.eventTimeline}>
-              <View style={[s.eventDot, { backgroundColor: icon.color }]}>
-                <Ionicons name={icon.name as any} size={12} color="#fff" />
-              </View>
-              <Text style={s.eventTime}>{timeStr}</Text>
-            </View>
-            {!isHome && <EventContent ev={ev} icon={icon} timeStr={timeStr} />}
+      {sh.length > 0 && (
+        <>
+          <View style={s.halfHeader}>
+            <Text style={s.halfHeaderText}>2° TEMPO</Text>
+            <Text style={s.halfHeaderScore}>{htEndScore}</Text>
           </View>
-        );
-      })}
+          {sh.map((ev, i) => <EventRow key={`sh-${i}`} ev={ev} homeTeam={homeTeam} />)}
+        </>
+      )}
     </View>
   );
 }
 
-function EventContent({ ev, icon, timeStr }: { ev: FixtureEvent; icon: { name: string; color: string }; timeStr: string }) {
+function EventRow({ ev, homeTeam }: { ev: FixtureEvent & { runningHome: number; runningAway: number }; homeTeam: string }) {
+  const isHome = ev.team_name === homeTeam;
   const isGoal = ev.type === 'Goal';
   const isSub = ev.type === 'subst';
+  const isCard = ev.type === 'Card';
+  const isVar = ev.type === 'Var';
+  const timeStr = ev.time_elapsed ? `${ev.time_elapsed}'${ev.time_extra ? `+${ev.time_extra}` : ''}` : '';
+
+  const getDetailText = (detail: string) => {
+    if (!detail || detail === 'Normal Goal' || detail === 'Yellow Card') return '';
+    if (detail === 'Own Goal') return 'Autogol';
+    if (detail === 'Penalty') return 'Rigore';
+    if (detail === 'Missed Penalty') return 'Rigore sbagliato';
+    if (detail === 'Red Card') return 'Rosso';
+    if (detail === 'Second Yellow card') return 'Doppio giallo';
+    if (detail.includes('cancelled')) return 'Gol annullato';
+    if (detail.startsWith('Substitution')) return '';
+    return detail;
+  };
+
+  const renderIcon = () => {
+    if (isGoal) {
+      const bg = (ev.detail === 'Own Goal' || ev.detail === 'Missed Penalty') ? '#ef4444' : '#22c55e';
+      return <View style={[s.evIcon, { backgroundColor: bg }]}><Ionicons name="football" size={11} color="#fff" /></View>;
+    }
+    if (isCard) {
+      const bg = (ev.detail === 'Red Card' || ev.detail === 'Second Yellow card') ? '#ef4444' : '#f59e0b';
+      return <View style={[s.evCardIcon, { backgroundColor: bg }]} />;
+    }
+    if (isSub) return <View style={[s.evIcon, { backgroundColor: '#60a5fa' }]}><Ionicons name="swap-horizontal" size={11} color="#fff" /></View>;
+    if (isVar) return <View style={s.evVarBadge}><Text style={s.evVarText}>VAR</Text></View>;
+    return <View style={[s.evIcon, { backgroundColor: colors.textMuted }]}><Ionicons name="ellipse" size={6} color="#fff" /></View>;
+  };
+
+  const detailText = getDetailText(ev.detail);
+  const showScore = isGoal && ev.detail !== 'Missed Penalty';
+
+  if (isHome) {
+    return (
+      <View style={s.evRow}>
+        <Text style={s.evTime}>{timeStr}</Text>
+        {renderIcon()}
+        {showScore && <Text style={s.evScore}>{ev.runningHome} - {ev.runningAway}</Text>}
+        <View style={s.evPlayerArea}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+            <Text style={[s.evPlayerName, isGoal && s.evPlayerGoal]}>{ev.player || '?'}</Text>
+            {ev.assist && <Text style={s.evAssist}>({ev.assist})</Text>}
+          </View>
+          {detailText ? <Text style={[s.evDetailTag, (ev.detail?.includes('Red') || ev.detail === 'Own Goal') && { color: '#ef4444' }]}>{detailText}</Text> : null}
+        </View>
+      </View>
+    );
+  }
+
   return (
-    <View style={s.eventContent}>
-      <Text style={[s.eventPlayer, isGoal && { fontWeight: '800', color: colors.textPrimary }]}>
-        {ev.player || 'Sconosciuto'}
-      </Text>
-      {isGoal && ev.assist && (
-        <Text style={s.eventAssist}>Assist: {ev.assist}</Text>
-      )}
-      {isSub && ev.assist && (
-        <Text style={s.eventAssist}>Esce: {ev.assist}</Text>
-      )}
-      {ev.detail && ev.detail !== 'Normal Goal' && (
-        <Text style={[s.eventDetail, ev.detail.includes('Red') && { color: '#ef4444' }]}>{ev.detail}</Text>
-      )}
+    <View style={[s.evRow, s.evRowAway]}>
+      <View style={[s.evPlayerArea, { alignItems: 'flex-end' }]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {ev.assist && <Text style={s.evAssist}>({ev.assist})</Text>}
+          <Text style={[s.evPlayerName, isGoal && s.evPlayerGoal]}>{ev.player || '?'}</Text>
+        </View>
+        {detailText ? <Text style={[s.evDetailTag, (ev.detail?.includes('Red') || ev.detail === 'Own Goal') && { color: '#ef4444' }]}>{detailText}</Text> : null}
+      </View>
+      {showScore && <Text style={s.evScore}>{ev.runningHome} - {ev.runningAway}</Text>}
+      {renderIcon()}
+      <Text style={s.evTime}>{timeStr}</Text>
     </View>
   );
 }
@@ -435,18 +486,25 @@ const s = StyleSheet.create({
   tabText: { fontSize: 12, fontWeight: '600', color: colors.textMuted },
   tabTextActive: { color: colors.accent, fontWeight: '700' },
 
-  // Events
-  eventsContainer: { gap: 2 },
-  eventRow: { flexDirection: 'row', alignItems: 'center', minHeight: 44 },
-  eventRowHome: { flexDirection: 'row' },
-  eventRowAway: { flexDirection: 'row-reverse' },
-  eventTimeline: { alignItems: 'center', width: 48 },
-  eventDot: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  eventTime: { fontSize: 10, fontWeight: '700', color: colors.textMuted, marginTop: 2 },
-  eventContent: { flex: 1, paddingVertical: 6, paddingHorizontal: 8 },
-  eventPlayer: { fontSize: 13, fontWeight: '600', color: colors.textPrimary },
-  eventAssist: { fontSize: 11, color: colors.textSecondary },
-  eventDetail: { fontSize: 11, fontWeight: '600', color: colors.textMuted },
+  // Events (stile Diretta)
+  eventsContainer: { gap: 0 },
+  halfHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.background, borderRadius: borderRadius.sm, paddingHorizontal: 14, paddingVertical: 8, marginBottom: 4, marginTop: 8 },
+  halfHeaderText: { fontSize: 12, fontWeight: '800', color: colors.textSecondary, letterSpacing: 0.5 },
+  halfHeaderScore: { fontSize: 13, fontWeight: '800', color: colors.textPrimary },
+  noEventsHalf: { fontSize: 12, color: colors.textMuted, fontStyle: 'italic', textAlign: 'center', paddingVertical: 10 },
+  evRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 4, gap: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.05)' },
+  evRowAway: { justifyContent: 'flex-end' },
+  evTime: { fontSize: 12, fontWeight: '800', color: colors.textMuted, width: 36, textAlign: 'center' },
+  evIcon: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  evCardIcon: { width: 14, height: 18, borderRadius: 2, marginHorizontal: 4 },
+  evVarBadge: { backgroundColor: '#a78bfa', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
+  evVarText: { fontSize: 9, fontWeight: '900', color: '#fff' },
+  evScore: { fontSize: 14, fontWeight: '900', color: colors.textPrimary, marginHorizontal: 4 },
+  evPlayerArea: { flex: 1 },
+  evPlayerName: { fontSize: 13, fontWeight: '600', color: colors.textPrimary },
+  evPlayerGoal: { fontWeight: '800' },
+  evAssist: { fontSize: 11, color: colors.textMuted },
+  evDetailTag: { fontSize: 10, fontWeight: '700', color: colors.textMuted, marginTop: 1 },
 
   // Stats
   statsContainer: { gap: 10 },
