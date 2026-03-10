@@ -14,7 +14,7 @@ import pytest
 import requests
 import random
 
-BASE_URL = "https://modular-routes-13.preview.emergentagent.com"
+BASE_URL = "https://dead-code-sweep.preview.emergentagent.com"
 
 
 @pytest.fixture

@@ -105,11 +105,16 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Activate Push Notifications (`PUSH_NOTIFICATIONS_ENABLED=True`)
 - Integrate email service for password resets
 
+### Jolly Dead Code Removal (Frontend) - COMPLETED 2026-03-10
+- Removed all unused "jolly" references from frontend TypeScript code
+- Files cleaned: `user-detail.tsx` (removed `jolly_used` from interface), `src/types/api.ts` (removed `jolly_used`, `jolly_active` from StandingEntry)
+- Backend jolly/joker logic intentionally preserved (active feature)
+- Zero frontend "jolly" references remaining (verified via grep)
+
 ## Future Tasks (P2)
 - Add test dependencies (`requests`, `pytest`) to requirements.txt
 - Improve error handling (specific exceptions, structured logging)
 - Design "Achievements/Badges" system
-- Remove dead code ("jolly" feature)
 - Implement "Championship Winner Predictions"
 - Integrate Stripe for National League
 

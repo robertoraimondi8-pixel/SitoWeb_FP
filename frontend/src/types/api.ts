@@ -205,10 +205,8 @@ export interface StandingEntry {
   matchday_points?: number;
   current_week_points?: number;
   matchdays_played?: number;
-  jolly_used?: number;
   total_correct?: number;
   '1x2_correct'?: number;
-  jolly_active?: boolean;
   is_current_user: boolean;
 }
 

@@ -13,7 +13,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://modular-routes-13.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://dead-code-sweep.preview.emergentagent.com')
 
 # Test credentials from review request
 OWNER_EMAIL = "email@email.com"

@@ -13,7 +13,7 @@ import pytest
 import requests
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://modular-routes-13.preview.emergentagent.com"
+BASE_URL = "https://dead-code-sweep.preview.emergentagent.com"
 
 
 @pytest.fixture

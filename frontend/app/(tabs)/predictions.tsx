@@ -342,31 +342,7 @@ export default function PredictionsScreen() {
     finally { setSaving(false); }
   };
 
-  const handleJollyToggle = async () => {
-    if (!data?.matchday) return;
-    if (joker.is_locked) {
-      Alert.alert(t('error'), t('predictions.match_locked'));
-      return;
-    }
-    if (joker.used_other_matchday) {
-      Alert.alert(t('error'), `t('predictions.joker_already_used') (${joker.half === 1 ? 'Andata' : 'Ritorno'})`);
-      return;
-    }
-
-    setJokerLoading(true);
-    try {
-      if (joker.is_active) {
-        await apiCall(`/predictions/${data.matchday.id}/joker`, { method: 'DELETE', token });
-        setJoker(prev => ({ ...prev, is_active: false }));
-      } else {
-        await apiCall(`/predictions/${data.matchday.id}/joker`, { method: 'POST', token });
-        setJoker(prev => ({ ...prev, is_active: true }));
-      }
-    } catch (e: unknown) { 
-      Alert.alert(t('error'), e.message); 
-    }
-    finally { setJokerLoading(false); }
-  };
+  // Joker state is managed via the joker API endpoints directly
 
   if (loading) {
     return (
@@ -444,15 +420,6 @@ export default function PredictionsScreen() {
       return null;
     }
   };
-
-  const jollyDisabled = joker.is_locked || joker.used_other_matchday || isCompleted;
-  const jollyStatusText = joker.is_locked 
-    ? 'BLOCCATO' 
-    : joker.used_other_matchday 
-      ? `USATO (${joker.half === 1 ? 'And.' : 'Rit.'})` 
-      : joker.is_active 
-        ? 'ATTIVO x2' 
-        : t('predictions.set_joker');
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -796,85 +763,6 @@ const styles = StyleSheet.create({
     color: colors.statusLocked,
     fontWeight: '600',
     flex: 1,
-  },
-  
-  // Jolly
-  jollyContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between',
-    marginHorizontal: spacing.lg, 
-    marginTop: spacing.lg,
-    padding: spacing.lg, 
-    borderRadius: borderRadius.lg, 
-    backgroundColor: colors.card,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  jollyContainerActive: {
-    backgroundColor: colors.accentLight,
-    borderWidth: 1,
-    borderColor: colors.accent,
-  },
-  jollyInfo: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: spacing.md, 
-    flex: 1,
-  },
-  jollyIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.accentLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  jollyIconActive: {
-    backgroundColor: colors.accent,
-  },
-  jollyTextContainer: { flex: 1 },
-  jollyTitle: { 
-    ...typography.meta,
-    color: colors.textPrimary,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  jollyTitleActive: {
-    color: colors.accent,
-  },
-  jollySubtitle: { 
-    ...typography.metaSmall,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  jollyToggleBtn: { 
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg, 
-    paddingVertical: spacing.md, 
-    borderRadius: borderRadius.md, 
-    backgroundColor: colors.background,
-  },
-  jollyToggleBtnActive: {
-    backgroundColor: colors.accent,
-  },
-  jollyToggleBtnDisabled: {
-    backgroundColor: colors.border,
-  },
-  jollyToggleText: { 
-    ...typography.meta,
-    color: colors.textPrimary,
-    fontWeight: '700',
-  },
-  jollyToggleTextActive: {
-    color: colors.textInverse,
-  },
-  jollyToggleTextDisabled: {
-    color: colors.textMuted,
   },
   
   // Scroll

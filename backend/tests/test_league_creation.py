@@ -13,7 +13,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://modular-routes-13.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://dead-code-sweep.preview.emergentagent.com')
 
 # Test credentials
 USER1_EMAIL = "email@email.com"

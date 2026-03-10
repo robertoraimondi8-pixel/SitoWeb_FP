@@ -30,11 +30,9 @@ interface StandingEntry {
   matchday_points?: number;
   current_week_points?: number;
   matchdays_played?: number;
-  jolly_used?: number;
   exact_correct?: number;
   total_correct?: number;
   '1x2_correct'?: number;
-  jolly_active?: boolean;
   is_current_user: boolean;
 }
 
@@ -713,22 +711,6 @@ const styles = StyleSheet.create({
     ...typography.metaSmall,
     color: colors.success,
     marginTop: spacing.xs,
-  },
-  
-  jollyBadge: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 2, 
-    paddingHorizontal: spacing.sm, 
-    paddingVertical: 2, 
-    borderRadius: borderRadius.sm, 
-    backgroundColor: colors.accentLight,
-    marginTop: spacing.xs,
-  },
-  jollyText: { 
-    ...typography.metaSmall,
-    color: colors.accent,
-    fontWeight: '700',
   },
   
   // My position

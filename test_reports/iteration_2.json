@@ -231,9 +231,9 @@
   ],
   "rca_of_issue": {
     "issue": "Admin dashboard at /admin shows Expo Router 404 'Unmatched Route'",
-    "root_cause": "Expo Router's file-based routing intercepts the /admin route before the backend can serve the HTML admin dashboard. The backend has a valid GET /admin endpoint (server.py lines 1249-1252) that returns HTML, but when accessed through the frontend URL (https://modular-routes-13.preview.emergentagent.com/admin), Expo Router looks for app/admin.tsx or app/admin/index.tsx and returns 404 'Unmatched Route' instead of proxying to backend.",
+    "root_cause": "Expo Router's file-based routing intercepts the /admin route before the backend can serve the HTML admin dashboard. The backend has a valid GET /admin endpoint (server.py lines 1249-1252) that returns HTML, but when accessed through the frontend URL (https://dead-code-sweep.preview.emergentagent.com/admin), Expo Router looks for app/admin.tsx or app/admin/index.tsx and returns 404 'Unmatched Route' instead of proxying to backend.",
     "reproduction_steps": [
-      "1. Navigate to https://modular-routes-13.preview.emergentagent.com/admin",
+      "1. Navigate to https://dead-code-sweep.preview.emergentagent.com/admin",
       "2. Expo Router processes the route and looks for app/admin.tsx",
       "3. File not found, Expo Router returns 404 'Unmatched Route' error screen",
       "4. Backend GET /admin endpoint never reached"

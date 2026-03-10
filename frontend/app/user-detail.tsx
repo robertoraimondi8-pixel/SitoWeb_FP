@@ -37,7 +37,6 @@ interface UserProfile {
   current_week_points: number;
   current_matchday: number | null;
   last_matchday_id: string | null;
-  jolly_used: number;
   is_current_user: boolean;
   matchday_breakdown: MatchdayBreakdown[];
 }

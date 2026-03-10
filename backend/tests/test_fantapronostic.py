@@ -12,7 +12,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://modular-routes-13.preview.emergentagent.com"
+BASE_URL = "https://dead-code-sweep.preview.emergentagent.com"
 
 class TestHealth:
     """API health check"""

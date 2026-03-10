@@ -21,7 +21,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://modular-routes-13.preview.emergentagent.com").rstrip('/')
+BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://dead-code-sweep.preview.emergentagent.com").rstrip('/')
 
 # Test credentials
 ADMIN_EMAIL = "admin@fantapronostic.com"
