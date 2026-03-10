@@ -112,6 +112,23 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - **Files**: `admin/tournaments.tsx`, `admin/_layout.tsx`, `admin/index.tsx` (link)
 - **Testing**: 13/13 backend + 100% frontend (list, create, detail, actions)
 
+### Tournaments Module - Phases 4/5/6 COMPLETED 2026-03-10
+**Phase 4 - Generazione Gironi/Tabellone**: Backend already complete in Phase 1
+- `start_tournament`: Shuffles users → assigns to groups → generates round-robin matchups
+- `generate_knockout`: Calculates group standings → creates knockout bracket (1v2 cross-group)
+
+**Phase 5 - Logica 1v1 Matchup**: Backend already complete in Phase 1
+- `complete_round`: Calculates prediction scores per user → determines matchup winners (W=3, D=1, L=0)
+- `my-matchups` endpoint: NEW - returns user's matchups sorted by round_number
+
+**Phase 6 - Live 1v1 Matchup Screen**: Frontend NEW
+- `/tournament/matchup.tsx`: Live 1v1 screen with score banner (avatars, names, total scores), "LIVE" badge, match-by-match prediction comparison (A vs B with points), auto-refresh every 30s
+- `/tournament/[id].tsx`: Added "Le mie sfide" tab showing user's matchups with result badges (VITTORIA/SCONFITTA/PAREGGIO), clickable to navigate to live view
+- Bracket matchups now clickable → navigate to live matchup screen
+- Backend fix: live matchup endpoint gracefully handles missing rounds
+
+**Testing**: 12/13 backend tests passed (fix applied for edge case), frontend compiles and loads correctly
+
 ### Match Detail Sheet Feature - COMPLETED 2026-03-10
 - **Backend**: New endpoint `GET /api/stats/fixture-detail/{fixture_id}` fetching events, statistics, lineups from API-Football
 - **Frontend**: New `MatchDetailSheet` bottom sheet component with 3 tabs (Eventi, Statistiche, Formazioni)
@@ -156,12 +173,9 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - **Testing**: 100% frontend flows verified + 29/29 backend tests passed
 
 ## Future Tasks
-- **(P0) Tournaments Phase 4**: Generazione gironi e tabellone automatica (backend logic per auto-sort gruppi e bracket eliminazione)
-- **(P1) Tournaments Phase 5**: Logica 1v1 matchup e calcolo vincitori basato su punteggi pronostici
-- **(P2) Tournaments Phase 6**: Vista live 1v1 nell'app (schermata live con pronostici di entrambi gli utenti)
-- Design "Achievements/Badges" system
-- Implement "Championship Winner Predictions"
-- Integrate Stripe for National League and Tournaments
+- Pronostici Vincitore Campionato
+- Sistema Achievement/Badge
+- Integrazione Stripe per Tornei e Lega Nazionale
 
 ## 3rd Party Integrations
 - API-Football (API-Sports) - for live match data

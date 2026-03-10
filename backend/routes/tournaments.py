@@ -791,7 +791,14 @@ async def get_matchup_live(tournament_id: str, matchup_id: str, user=Depends(get
         {"_id": 0}
     )
     if not rnd:
-        raise HTTPException(404, "Round non trovato")
+        # Round not yet created — return matchup info only
+        return {
+            "matchup": mu,
+            "round": {"label": f"Round {mu['round_number']}", "status": "PENDING"},
+            "user_a_total": mu.get("user_a_points", 0.0),
+            "user_b_total": mu.get("user_b_points", 0.0),
+            "matches": [],
+        }
 
     # Get matches
     round_matches = await matches_col.find(
