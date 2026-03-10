@@ -15,7 +15,7 @@ import os
 
 BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "").rstrip("/")
 if not BASE_URL:
-    BASE_URL = "https://dead-code-sweep.preview.emergentagent.com"
+    BASE_URL = "https://matchup-arena-4.preview.emergentagent.com"
 
 # Test credentials
 ADMIN_EMAIL = "admin@fantapronostic.com"

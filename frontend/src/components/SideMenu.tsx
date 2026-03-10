@@ -99,6 +99,11 @@ export function SideMenu({ visible, onClose }: Props) {
     { icon: 'mail-outline', label: 'I miei inviti', route: '/menu/invites', testId: 'menu-invites' },
   ];
 
+  const tournamentItems: MenuItem[] = [
+    { icon: 'trophy-outline', label: 'I miei tornei', route: '/menu/my-tournaments', testId: 'menu-my-tournaments' },
+    { icon: 'add-circle-outline', label: 'Iscriviti a nuovi tornei', route: '/menu/browse-tournaments', testId: 'menu-browse-tournaments' },
+  ];
+
   const commsItems: MenuItem[] = [
     { icon: 'newspaper-outline', label: 'News', route: '/menu/news', testId: 'menu-news' },
     { icon: 'notifications-outline', label: 'Notifiche', route: '/menu/notifications', testId: 'menu-notifications' },
@@ -164,6 +169,7 @@ export function SideMenu({ visible, onClose }: Props) {
 
             {renderSection('ACCOUNT', 'person-circle-outline', accountItems)}
             {renderSection('LEGA', 'trophy-outline', leagueItems)}
+            {renderSection('TORNEI', 'podium-outline', tournamentItems)}
             {renderSection('COMUNICAZIONI', 'megaphone-outline', commsItems)}
             {renderSection('LEGALE', 'shield-outline', legalItems)}
 

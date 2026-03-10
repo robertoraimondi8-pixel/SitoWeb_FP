@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # API Configuration
-BASE_URL = "https://dead-code-sweep.preview.emergentagent.com/api"
+BASE_URL = "https://matchup-arena-4.preview.emergentagent.com/api"
 TEST_USER = {
     "email": "marco@test.com", 
     "password": "password123"

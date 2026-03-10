@@ -16,7 +16,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://dead-code-sweep.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://matchup-arena-4.preview.emergentagent.com')
 
 
 class TestEmailVerifiedFieldInLogin:

@@ -12,7 +12,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://dead-code-sweep.preview.emergentagent.com"
+BASE_URL = "https://matchup-arena-4.preview.emergentagent.com"
 
 class TestHealth:
     """API health check"""

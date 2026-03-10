@@ -51,6 +51,7 @@ export default function HomeScreen() {
   const [showLeagueSwitcher, setShowLeagueSwitcher] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [openTournaments, setOpenTournaments] = useState<any[]>([]);
 
   // Animations
   const fadeScreen = useRef(new Animated.Value(0)).current;
@@ -113,6 +114,10 @@ export default function HomeScreen() {
       try {
         const nc = await apiCall<{ count: number }>('/notifications/unread-count', { token: authToken });
         setUnreadCount(nc.count);
+      } catch {}
+      try {
+        const tournaments = await apiCall<any[]>('/tournaments', { token: authToken });
+        setOpenTournaments(tournaments.filter((t: any) => t.status === 'registration' && !t.is_registered));
       } catch {}
     } catch (e: unknown) {
       if (isAuthError(e)) {
@@ -567,6 +572,36 @@ export default function HomeScreen() {
                 </LinearGradient>
               </View>
           </Animated.View>
+        )}
+
+        {/* ─── 5. TORNEI APERTI ─── */}
+        {openTournaments.length > 0 && (
+          <View>
+            <Text style={s.sectionLabel}>TORNEI DISPONIBILI</Text>
+            {openTournaments.slice(0, 2).map((t: any) => (
+              <TouchableOpacity
+                key={t.id}
+                style={s.tournamentCard}
+                activeOpacity={0.8}
+                onPress={() => router.push(`/tournament/${t.id}` as any)}
+                data-testid={`home-tournament-${t.id}`}
+              >
+                <View style={s.tournamentLeft}>
+                  <Ionicons name="trophy" size={22} color={DARK.accent} />
+                </View>
+                <View style={s.tournamentCenter}>
+                  <Text style={s.tournamentName} numberOfLines={1}>{t.name}</Text>
+                  <Text style={s.tournamentMeta}>
+                    {t.registered_count}/{t.max_participants} iscritti  {t.spots_left} posti rimasti
+                  </Text>
+                </View>
+                <View style={s.tournamentRight}>
+                  <Text style={s.tournamentCta}>Iscriviti</Text>
+                  <Ionicons name="chevron-forward" size={16} color={DARK.accent} />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         )}
       </Animated.ScrollView>
 

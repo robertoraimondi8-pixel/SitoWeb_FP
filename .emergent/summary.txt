@@ -1,75 +1,89 @@
 <analysis>**original_problem_statement**:
-The user's initial goal was to build an admin panel and a React Native mobile app. This has evolved through several stages: a major UI/UX overhaul for a premium feel, implementing a brand color system, creating developer documentation, a complete backend refactoring from a monolith to a modular structure, and most recently, a blitz of feature implementations and fixes.
+The user has requested a major new feature: a Tornei (Tournaments) module. This module must exist separately from the current Leghe (Leagues) system but should reuse the existing prediction and scoring engine.
 
-The current set of tasks revolves around cleaning up the codebase by removing dead code, with a strong emphasis from the user on not breaking existing functionality.
+PRODUCT REQUIREMENTS for Tornei:
+-   **Creation**: Tournaments are created only by a Super Admin via the admin panel.
+-   **Configuration**: Admin can set the number of participants (8, 16, 32), duration in matchdays, and structure (e.g., 4 groups of 4, top 2 advance).
+-   **Structure**: The system must support a group stage followed by a single-elimination knockout bracket.
+-   **Enrollment**: Users can see and join available tournaments from a new Tornei section in the app. Enrollment is initially free but should be designed to support future payment integration.
+-   **Automation**: The system should automatically generate groups when the tournament starts and create the knockout bracket based on group stage results and admin-defined rules (e.g., 1st vs 2nd).
+-   **Gameplay**:
+    -   Matchups are 1v1. The winner of a matchup is the user with the higher total prediction score for that matchday.
+    -   Group stage points: Win = 3, Draw = 1, Loss = 0.
+    -   The admin selects a different set of matches for each tournament matchday.
+    -   Prediction submission window is the same as for leagues (closes 1 minute before the first match).
+-   **Live View**: A critical feature is a live matchup screen showing the two competing users, their predictions, and the score updating in real time.
+-   **UI**: A new Tornei section should be added to the app, separate from Leghe. It should have sub-sections for I miei tornei (My Tournaments) and Iscriviti a nuovi tornei (Join New Tournaments). The home screen should also feature a banner for available tournaments.
 
 **User's preferred language**: Italiano
 
 **what currently exists?**
-The application is a full-stack solution with a modular FastAPI backend and a React Native (Expo) frontend.
--   **Backend**: Fully refactored from a monolithic  into a modular structure under . It includes a sophisticated admin panel () built with Jinja2, which features an advanced push notification system (user/league targeting, image support, scheduling status, and history). SendGrid is integrated and configured for sending password reset emails. CORS has been hardened to use an explicit allowlist from environment variables.
--   **Frontend**: A dark-themed Expo app using a global design system. It includes authentication (JWT and Google), onboarding, legal pages (Terms & Privacy), and core app functionality like predictions and rankings. The Google Sign-In onboarding flow and National League entry process have been fixed per user requests.
--   **Features**: Push notifications are active, the National League is free to join, and password resets via email are functional (pending sender verification by the user on SendGrid).
+The application is a full-stack solution with a modular FastAPI backend and a React Native (Expo) frontend. The core Leagues functionality is stable. In this session, several items were completed before starting the new Tournaments feature:
+-   Unused jolly feature code was removed from the frontend.
+-   A backend bug was fixed where the Matchday History in standings was empty.
+-   A new Match Details feature was implemented, allowing users to click on a match to see a bottom sheet with stats, lineups, and a live-ticker-style event summary. The UI for this was polished based on user feedback.
+-   Champions League and Europa League were added as importable competitions.
+-   **Phase 1 (Backend Foundation)** of the Tournaments feature is **COMPLETE**. This includes the database models (, , ) and all necessary API endpoints for creating, listing, joining, and viewing tournaments. All backend tests passed.
 
 **Last working item**:
--   **Last item agent was working**: Carefully removing jolly feature dead code from the **frontend only**. The agent correctly identified that while the backend uses fields like  for an active joker feature, the corresponding code in the frontend (styles, state variables, functions, and TypeScript types) was completely unused and could be safely removed to reduce technical debt. The agent has identified all target code snippets and is in the middle of executing the removal.
+-   **Last item agent was working**: Implementing **Phase 2 (Frontend Integration)** of the Tournaments feature. The agent created the file structure for the new UI screens and was in the process of integrating them.
 -   **Status**: IN PROGRESS
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: . Since this is a minor frontend-only cleanup, taking screenshots of the affected pages (, ) is sufficient to verify that no visual regressions have been introduced.
+-   **Which testing method agent to use?**: . This is a large multi-screen feature that requires thorough end-to-end UI testing. Screenshots can be used for quick verification of individual components.
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: (P0) Complete jolly dead code removal**
-    -   **Description**: The agent is removing unused code related to a jolly feature from the frontend. This was requested by the user to clean up the codebase.
-    -   **Attempted fixes**: The agent has successfully identified all occurrences of dead code across several frontend files and is currently executing  commands to remove them.
+-   **Issue 1: (P0) Complete Frontend for Tournaments (Phase 2)**
+    -   **Description**: The file structure for the tournament UI has been created, but the components and pages are currently empty placeholders. They need to be implemented to fetch data from the backend and render the user interface.
     -   **Next debug checklist**:
-        1.  Execute the final  operations on , , and the TypeScript type definition files.
-        2.  Restart the Expo development server to ensure all changes are loaded.
-        3.  Take screenshots of the  and  pages to visually confirm that the UI is unchanged and that no new bugs were introduced.
-    -   **Why fix this issue and what will be achieved with the fix?**: Fulfills a direct user request to reduce technical debt and improve code clarity without affecting active features.
+        1.  Implement  to fetch from  and display a list of joinable tournaments with participant counts.
+        2.  Implement  to fetch from  and display the user's current and past tournaments.
+        3.  Implement  to show the details of a specific tournament, including its groups, standings, and schedule.
+        4.  Finalize the integration of  into the  screen to display open tournaments.
+        5.  Implement the Join Tournament button functionality.
+        6.  Ensure the navigation from the Side Menu, home banner, and between tournament screens works correctly.
+    -   **Why fix this issue and what will be achieved with the fix?**: This will complete the user-facing part of the tournament feature, allowing users to discover and join tournaments.
     -   **Status**: IN PROGRESS
     -   **Is recurring issue?**: N
     -   **Should Test frontend/backend/both after fix?**: Frontend
     -   **Blocked on other issue**: None.
 
 -   **Issue 2: (P1) Team Name Overlap Bug**
-    -   **Description**: A recurring UI bug where long team names in prediction lists overlap with the match result. A flexbox fix was previously implemented but requires user confirmation.
+    -   **Description**: A recurring UI bug where long team names in prediction lists overlap with the match result. A flexbox fix was previously implemented but is awaiting final confirmation from the user.
     -   **Status**: USER VERIFICATION PENDING
     -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: Frontend.
+    -   **Should Test frontend/backend/both after fix?**: Frontend
 
 **In progress Task List**:
--   **Task 1: Remove jolly dead code from frontend**
-    -   **Where to resume**: The agent has already removed unused styles and variables from . The next step is to remove the unused  function,  variable, associated styles from  and , and unused  properties from TypeScript interfaces.
-    -   **What will be achieved with this?**: The frontend codebase will be cleaner and easier to maintain.
+-   **Task 1: Implement Phase 2 of Tournaments Feature (Frontend)**
+    -   **Where to resume**: The agent just created all the necessary files (, ,  for pages;  for navigation;  for the home screen) and added the link to the . The next logical step is to start implementing the UI and data fetching logic within  (the Join New Tournaments screen).
+    -   **What will be achieved with this?**: A functional user interface for browsing and joining tournaments.
     -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: Frontend.
+    -   **Should Test frontend/backend/both after fix?**: Frontend
     -   **Blocked on something**: None.
 
 **Upcoming and Future Tasks**
--   **Future Tasks**:
+-   **Upcoming Tasks (Tournaments Feature Phases):**
+    -   **(P0) Phase 3 - Admin Panel for Tournaments**: Build the UI in the admin panel for creating and managing tournaments.
+    -   **(P1) Phase 4 - Group & Bracket Generation**: Implement backend logic for automatic group and knockout bracket generation.
+    -   **(P2) Phase 5 - 1v1 Matchup Logic**: Implement backend logic to process 1v1 matchups and determine winners based on prediction scores.
+    -   **(P3) Phase 6 - Live Matchup Screen**: Create the live view for a 1v1 tournament match, showing both users' predictions and scores in real-time.
+
+-   **Future Tasks (General Backlog):**
     -   (P1) Implement Championship Winner Predictions feature.
     -   (P2) Design and implement an Achievements/Badges system.
-    -   (P2) Integrate Stripe for joining the National League (re-enabling payment after the free period).
+    -   (P2) Integrate Stripe for paid entry to the National League and Tournaments.
 
 **Completed work in this session**
--   **Backend Refactor**: Migrated the entire monolithic  into a clean, modular structure in .  was reduced by 97%.
--   **CORS Hardening**: Replaced  with a secure configuration loaded from environment variables.
--   **Legal Pages**: Created and integrated full-text Terms of Service and Privacy Policy pages, making them accessible from auth screens and a new side-menu section.
--   **Push Notifications & Admin UI**:
-    -   Enabled push notifications system-wide.
-    -   Built an advanced admin UI for sending notifications with features: user dropdown, image URL support, automated reminder status display, and a full history log.
--   **Email Integration**: Integrated SendGrid for password reset emails, including a branded email template and environment setup for API keys.
--   **UX/UI Fixes**:
-    -   Redesigned the Google Sign-In  page to match the app's brand identity, fixing the logo and layout.
-    -   Made the Lega Nazionale free to join by modifying backend logic and updating the UI in .
--   **Testing**: Performed comprehensive backend testing via  after major refactoring and feature additions, confirming 100% pass rates.
-
-**Earlier issues found/mentioned but not fixed**
--   None. The jolly dead code issue is currently being addressed.
+-   **Jolly Dead Code Removal**: Removed all frontend code related to the obsolete jolly feature.
+-   **Storico Giornate Bug Fix**: Corrected a backend query in  to ensure matchday history is correctly displayed in user standings.
+-   **Match Details Feature**: Implemented a clickable match card that opens a bottom sheet with detailed Statistics, Lineups, and a new Diretta-style live Events summary.
+-   **UI/UX Polish**: Added chevron icons to all clickable match cards and redesigned the Events tab in Italian per user feedback.
+-   **Championship Expansion**: Added Champions League and Europa League to the list of available competitions in .
+-   **Tournaments - Phase 1 (Backend)**: Designed, built, and tested the entire backend foundation for the Tournaments feature, including DB models and API endpoints for creation, listing, and joining.
 
 **Known issue recurrence from previous fork**
--   **Team Name Overlap Bug**: A UI issue that had a fix implemented but is pending final user verification due to its recurring nature.
+-   **Team Name Overlap Bug**: A UI issue that had a fix implemented but is pending final user verification.
 
 **Code Architecture**
 
@@ -78,49 +92,60 @@ The application is a full-stack solution with a modular FastAPI backend and a Re
 -   **React Native (Expo)**: Frontend framework.
 -   **FastAPI**: Backend framework.
 -   **MongoDB**: NoSQL database.
--   **Jinja2**: Templating engine for the HTML admin panel.
--   **SendGrid**: Third-party email delivery service.
--   **Backend Modularization**: Monolithic  broken into a service layer and feature-based routers.
+-   **Tournament Module**: A new, separate module designed to coexist with the existing Leagues system, reusing the prediction engine but with a different competition structure (groups -> knockout).
+-   **React Navigation**: Used for the new stack navigator for the tournament section.
+-   **Bottom Sheet**: Implemented for the match details feature.
 
 **key DB schema**
--   No changes. A complete schema documentation exists at .
-
-**changes in tech stack**
--    library added to .
+-   **tournaments**: 
+-   **tournament_groups**: 
+-   **tournament_matchups**: 
 
 **All files of reference**
--    (File being modified for dead code removal)
--    (File being modified for dead code removal)
--    (File being modified for dead code removal)
--    (File being modified for dead code removal)
--    (Recently enhanced for push notifications)
--    (Recently enhanced for push notifications)
+-   **New Files**:
+    -   
+    -   
+    -   
+    -   
+    -   
+    -   
+    -   
+-   **Key Modified Files**:
+    -    (registered tournament router)
+    -    (bug fix)
+    -    (new methods and leagues)
+    -    (SideMenu update)
+    -    (for banner integration)
+    -    (match details integration)
+    -    (match details integration)
+    -    (match details integration)
 
 **Critical Info for New Agent**
--   Your immediate task is to complete the removal of jolly dead code from the **frontend only**. Be careful not to remove any  related fields or logic from the backend, as they are part of an active feature.
--   After removing the code, perform a quick visual verification using the  on the  and  pages to ensure no UI elements were broken.
--   The user is highly focused on stability. Do not introduce any unrelated changes. Test any modification carefully.
+-   Your main priority is the **Tornei (Tournaments) feature**.
+-   A detailed PRD from the user exists and the work is phased. Phase 1 (Backend) is complete. You are in the middle of **Phase 2 (Frontend)**.
+-   The file structure for the frontend is in place, but the pages/components are just placeholders. Your immediate task is to build out the UI and data-fetching logic for these new frontend files.
+-   The user is very clear that this new feature **must not** break the existing Leagues functionality.
+-   Pay close attention to user's UI/UX preferences (e.g., chevrons for clickability, specific layouts for data).
 
 **documents and test reports created in this job**
--    (Backend refactor test report)
--    (Feature batch test report)
--    (Continuously updated with completed tasks and backlog)
+-    (Tournament backend feature tests)
+-    (Updated with tournament feature requirements and progress)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **LATEST**: User requested the removal of jolly dead code, emphasizing caution. (IN PROGRESS)
-2.  User provided a Gmail address to use as the temporary sender for SendGrid. (COMPLETED)
-3.  User provided the SendGrid API key. (COMPLETED)
-4.  User asked if the password reset email feature was active. (COMPLETED)
-5.  User approved the plan to enhance the admin push notification panel. (COMPLETED)
-6.  User requested major enhancements to the admin push panel: user dropdown, image support, status display, and history log. (COMPLETED)
-7.  User asked to restart the Expo bundle. (COMPLETED)
-8.  User reported that the Google Sign-In UI was still incorrect and the National League fee was still showing, providing a screenshot. (COMPLETED)
-9.  User asked to restart the Expo bundle. (COMPLETED)
-10. User asked for the admin panel URL. (COMPLETED)
+1.  **LATEST**: User provides detailed requirements for the new Tournaments feature, broken down into 11 points covering creation, structure, enrollment, gameplay, and UI. Stresses it must not interfere with the existing leagues system.
+2.  User asks to add Champions League and Europa League as importable championships.
+3.  User confirms they can now see the clickable indicator (chevron) on the live results screen after a bundle restart.
+4.  User requests a bundle restart because the clickable indicator isn't visible.
+5.  User points out that the live/results screen card also needs a visual indicator to show it's clickable.
+6.  User requests a bundle restart.
+7.  User provides feedback on the new match details feature: 1) add a visual indicator (like a chevron) to show cards are clickable, and 2) redesign the Events tab to be like a live ticker (home/away alignment, running score, all in Italian).
+8.  User requests a bundle restart.
+9.  User confirms the plan to add match details, specifies they want a complete feature, suggests a bottom sheet modal, and lists the three screens where it should be active (, , ).
+10. User reports a bug in the Classifiche (Rankings) screen: the Storico Giornate (Matchday History) section is empty even when there are past matchdays.
 
 **Project Health Check:**
 -   **Broken**: None.
--   **Mocked**: None. The email service is fully integrated but relies on the user verifying the sender address in their SendGrid account.
+-   **Mocked**: None.
 
 **3rd Party Integrations**
 -   **API-Football (API-Sports)**: Core data provider.
@@ -130,9 +155,9 @@ The application is a full-stack solution with a modular FastAPI backend and a Re
 -   **Emergent-managed Google Auth**: For social login.
 
 **Testing status**
--   Testing agent used after significant changes: YES. Comprehensive backend tests were run and passed after the refactor and feature implementation phases.
+-   Testing agent used after significant changes: YES. The backend for the Tournaments feature (Phase 1) was thoroughly tested, with 29/29 tests passing.
 -   Troubleshoot agent used after agent stuck in loop: NO.
--   Test files created: None by the agent, but the testing agent generated and ran pytest files.
+-   Test files created:  (generated and run by the testing agent).
 -   Known regressions: None.
 
 **Credentials to test flow:**
@@ -141,4 +166,4 @@ The application is a full-stack solution with a modular FastAPI backend and a Re
 -   **League Owner**:  / 
 
 **What agent forgot to execute**
--   The agent has been methodical and has not forgotten any user-approved tasks. All work is proceeding as planned.</analysis>
+-   Nothing was forgotten. The agent is proceeding methodically through the user's phased plan for the new feature.</analysis>

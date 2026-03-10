@@ -13,7 +13,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://dead-code-sweep.preview.emergentagent.com"
+BACKEND_URL = "https://matchup-arena-4.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test credentials
