@@ -88,6 +88,14 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Push notification infrastructure (disabled pending config)
 - Scoring engine with jolly/joker system
 
+### Tournaments Module - Phase 1 Backend COMPLETED 2026-03-10
+- **5 nuove collections**: `tournaments`, `tournament_registrations`, `tournament_groups`, `tournament_rounds`, `tournament_matchups`
+- **Architecture**: Riutilizza `matches`, `predictions`, `score_summaries` con `league_id = tournament_id`
+- **Admin endpoints**: Crea torneo, apri iscrizioni, avvia (genera gironi), crea round, importa partite, completa round, genera tabellone knockout
+- **User endpoints**: Lista tornei, dettaglio, iscrizione/disiscrizione, classifica gironi, tabellone, vista live 1v1, pronostici
+- **File**: `routes/tournaments.py`, `database.py` (collections + indici), `server.py` (router)
+- **Testing**: 29/29 test passati, 0 regressioni su leghe/auth
+
 ### Match Detail Sheet Feature - COMPLETED 2026-03-10
 - **Backend**: New endpoint `GET /api/stats/fixture-detail/{fixture_id}` fetching events, statistics, lineups from API-Football
 - **Frontend**: New `MatchDetailSheet` bottom sheet component with 3 tabs (Eventi, Statistiche, Formazioni)
@@ -124,6 +132,9 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Zero frontend "jolly" references remaining (verified via grep)
 
 ## Future Tasks (P2)
+- **Tournaments Phase 2**: Frontend sezione Tornei (lista, iscrizione, gironi, tabellone)
+- **Tournaments Phase 3**: Admin UI per gestione tornei nel pannello admin
+- **Tournaments Phase 4**: Vista live 1v1 nell'app
 - Add test dependencies (`requests`, `pytest`) to requirements.txt
 - Improve error handling (specific exceptions, structured logging)
 - Design "Achievements/Badges" system
