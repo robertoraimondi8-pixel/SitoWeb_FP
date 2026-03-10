@@ -35,6 +35,13 @@ push_tokens_col = db.push_tokens
 roles_col = db.roles
 password_resets_col = db.password_resets
 
+# Tournament collections
+tournaments_col = db.tournaments
+tournament_registrations_col = db.tournament_registrations
+tournament_groups_col = db.tournament_groups
+tournament_rounds_col = db.tournament_rounds
+tournament_matchups_col = db.tournament_matchups
+
 
 async def create_indexes():
     """Create all required indexes for the database."""
@@ -117,6 +124,19 @@ async def create_indexes():
         # Roles (RBAC)
         await roles_col.create_index("id", unique=True)
         await roles_col.create_index("name", unique=True)
+
+        # Tournaments
+        await tournaments_col.create_index("id", unique=True)
+        await tournament_registrations_col.create_index("id", unique=True)
+        await tournament_registrations_col.create_index(
+            [("tournament_id", 1), ("user_id", 1)], unique=True
+        )
+        await tournament_groups_col.create_index("id", unique=True)
+        await tournament_groups_col.create_index("tournament_id")
+        await tournament_rounds_col.create_index("id", unique=True)
+        await tournament_rounds_col.create_index("tournament_id")
+        await tournament_matchups_col.create_index("id", unique=True)
+        await tournament_matchups_col.create_index("tournament_id")
 
         logger.info("All database indexes created successfully")
     except Exception as e:
