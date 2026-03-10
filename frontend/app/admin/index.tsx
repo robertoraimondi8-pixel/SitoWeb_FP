@@ -490,6 +490,25 @@ export default function AdminConsoleV3() {
           </View>
         ) : null}
 
+        {/* TORNEI Link — solo super admin */}
+        {isSuperAdmin && (
+          <TouchableOpacity
+            data-testid="admin-tournaments-link"
+            style={[s.section, { backgroundColor: colors.card, flexDirection: 'row', alignItems: 'center', gap: 12 }]}
+            onPress={() => router.push('/admin/tournaments' as any)}
+            activeOpacity={0.7}
+          >
+            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.accent + '15', alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="trophy" size={20} color={colors.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>Gestione Tornei</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary }}>Crea, gestisci e avvia tornei</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+        )}
+
         {/* GIORNATE Section */}
         <View style={[s.section, { backgroundColor: colors.card }]}>
           <View style={s.sectionHeader}>

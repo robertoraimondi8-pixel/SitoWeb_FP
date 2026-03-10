@@ -529,9 +529,10 @@ async def generate_knockout(tournament_id: str, req: AdvanceKnockoutReq, user=De
 # ── List tournaments ──
 
 @tournament_router.get("")
-async def list_tournaments(user=Depends(get_current_user)):
+async def list_tournaments(user=Depends(get_current_user), include_drafts: bool = False):
+    query = {} if (include_drafts and user.get("role") in ("admin", "superadmin")) else {"status": {"$ne": "draft"}}
     tournaments = await tournaments_col.find(
-        {"status": {"$ne": "draft"}}, {"_id": 0}
+        query, {"_id": 0}
     ).sort("created_at", -1).to_list(50)
 
     # Enrich with registration counts
