@@ -247,6 +247,9 @@ export default function LiveScreen() {
                   {match.status === 'live' ? 'LIVE' : match.status === 'finished' ? 'FT' : match.status === 'scheduled' ? 'SCH' : match.status.toUpperCase()}
                 </Text>
               </View>
+              {match.external_fixture_id && (
+                <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.4)" style={{ marginLeft: 'auto' }} />
+              )}
             </View>
 
             {/* Teams & Score — FIXED OVERLAP */}
