@@ -15,13 +15,15 @@ CACHE_TTL_STANDINGS = 600     # 10 min
 CACHE_TTL_PREVIEW = 1800      # 30 min (match preview / H2H)
 CACHE_TTL_LIVE = 0            # never cache live (caller decides refresh interval)
 
-# Top 5 leagues with their API-Football IDs
+# Top 5 leagues + European competitions with their API-Football IDs
 TOP_LEAGUES = [
     {"id": 135, "name": "Serie A", "country": "Italy"},
     {"id": 39, "name": "Premier League", "country": "England"},
     {"id": 140, "name": "La Liga", "country": "Spain"},
     {"id": 78, "name": "Bundesliga", "country": "Germany"},
     {"id": 61, "name": "Ligue 1", "country": "France"},
+    {"id": 2, "name": "Champions League", "country": "Europe"},
+    {"id": 3, "name": "Europa League", "country": "Europe"},
 ]
 
 
