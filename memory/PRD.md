@@ -61,8 +61,13 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Long team names in prediction lists may overlap with match result
 - A flexbox fix was implemented, needs user verification
 
+## Completed - CORS Hardening (P1) - 2026-03-10
+- CORS now reads allowed origins from `CORS_ORIGINS` env var in backend/.env
+- Explicit allowlist: preview domain + fantapronostic.com
+- Falls back to `["*"]` only if env var is empty (dev convenience)
+- Verified: unauthorized origins are blocked
+
 ## Upcoming Tasks (P1)
-- Harden CORS configuration (replace `*` with explicit domains)
 - Activate Push Notifications (`PUSH_NOTIFICATIONS_ENABLED=True`)
 - Integrate email service for password resets
 
