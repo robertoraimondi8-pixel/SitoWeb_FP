@@ -16,7 +16,7 @@ import requests
 import os
 
 # Use the public URL from frontend environment
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://dark-theme-overhaul-2.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://brand-system-preview.preview.emergentagent.com')
 
 # Test credentials
 TEST_USERS = {

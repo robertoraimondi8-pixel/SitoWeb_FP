@@ -13,7 +13,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://dark-theme-overhaul-2.preview.emergentagent.com"
+BACKEND_URL = "https://brand-system-preview.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test credentials
