@@ -25,7 +25,7 @@ import services as _svc
 
 logger = logging.getLogger(__name__)
 
-fixtures_router = APIRouter(prefix="/api/fixtures", tags=["Fixtures"])
+fixtures_router = APIRouter(prefix="/api/admin/real-fixtures", tags=["Real Fixtures"])
 
 
 class ImportFixturesRequest(PydanticBaseModel):
