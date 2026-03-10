@@ -391,7 +391,7 @@ async def calculate_matchday_scores_full(matchday_id: str, admin: dict):
 # PUSH NOTIFICATIONS
 # ============================================================
 
-async def send_expo_push(user_id: str, title: str, body: str, data: dict = None):
+async def send_expo_push(user_id: str, title: str, body: str, data: dict = None, image: str = None):
     """Send a push notification via Expo Push API to all devices of a user."""
     if not PUSH_ENABLED:
         return
@@ -400,16 +400,18 @@ async def send_expo_push(user_id: str, title: str, body: str, data: dict = None)
     ).to_list(10)
     if not tokens:
         return
-    messages = [
-        {
+    messages = []
+    for t in tokens:
+        msg = {
             "to": t["token"],
             "sound": "default",
             "title": title,
             "body": body,
             "data": data or {},
         }
-        for t in tokens
-    ]
+        if image:
+            msg["image"] = image
+        messages.append(msg)
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.post(
@@ -423,7 +425,7 @@ async def send_expo_push(user_id: str, title: str, body: str, data: dict = None)
         logger.warning(f"[PUSH] Failed to send push to user {user_id[:8]}: {e}")
 
 
-async def create_notification(user_id: str, notif_type: str, title: str, message: str, link: str = ""):
+async def create_notification(user_id: str, notif_type: str, title: str, message: str, link: str = "", image: str = ""):
     """Create an internal notification for a user."""
     doc = {
         "id": new_id(),
@@ -435,8 +437,10 @@ async def create_notification(user_id: str, notif_type: str, title: str, message
         "read": False,
         "created_at": now_utc(),
     }
+    if image:
+        doc["image"] = image
     await notifications_col.insert_one(doc)
-    await send_expo_push(user_id, title, message, {"type": notif_type, "link": link})
+    await send_expo_push(user_id, title, message, {"type": notif_type, "link": link}, image=image or None)
 
 
 async def create_notification_for_league(league_id: str, notif_type: str, title: str, message: str, link: str = ""):

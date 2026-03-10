@@ -436,12 +436,12 @@ async def admin_score_summaries(matchday_id: str, admin=Depends(require_permissi
 @admin_router.post("/push/broadcast")
 async def admin_push_broadcast(request_body: dict, admin=Depends(require_permission("admin.dashboard.view"))):
     """Send a push notification to all users or a specific league."""
-    from database import push_tokens_col
-    from services import send_expo_push, create_notification, create_notification_for_league, PUSH_ENABLED
+    from services import create_notification, create_notification_for_league, PUSH_ENABLED
 
     title = request_body.get("title", "").strip()
     body = request_body.get("body", "").strip()
-    target = request_body.get("target", "all")  # "all" or league_id
+    target = request_body.get("target", "all")
+    image_url = request_body.get("image_url", "").strip()
     if not title or not body:
         raise HTTPException(400, "Titolo e messaggio sono obbligatori")
 
@@ -455,19 +455,22 @@ async def admin_push_broadcast(request_body: dict, admin=Depends(require_permiss
             {"_id": 0, "id": 1}
         ).to_list(10000)
         for u in all_users:
-            await create_notification(u["id"], "admin_broadcast", title, body)
+            await create_notification(u["id"], "admin_broadcast", title, body, image=image_url)
             sent_count += 1
     else:
         league = await leagues_col.find_one({"id": target}, {"_id": 0})
         if not league:
             raise HTTPException(404, "Lega non trovata")
-        await create_notification_for_league(target, "admin_broadcast", title, body)
-        members = await memberships_col.count_documents({"league_id": target, "status": "active"})
-        sent_count = members
+        members = await memberships_col.find(
+            {"league_id": target, "status": "active"}, {"user_id": 1, "_id": 0}
+        ).to_list(500)
+        for m in members:
+            await create_notification(m["user_id"], "admin_broadcast", title, body, image=image_url)
+        sent_count = len(members)
 
     await log_audit(
         admin["id"], admin["username"], "PUSH_BROADCAST", "notification", "",
-        {"title": title, "target": target, "sent_count": sent_count},
+        {"title": title, "target": target, "sent_count": sent_count, "image_url": image_url or None},
     )
     return {"sent_count": sent_count, "target": target}
 
@@ -479,6 +482,7 @@ async def admin_push_to_user(user_id: str, request_body: dict, admin=Depends(req
 
     title = request_body.get("title", "").strip()
     body = request_body.get("body", "").strip()
+    image_url = request_body.get("image_url", "").strip()
     if not title or not body:
         raise HTTPException(400, "Titolo e messaggio sono obbligatori")
 
@@ -489,10 +493,68 @@ async def admin_push_to_user(user_id: str, request_body: dict, admin=Depends(req
     if not target_user:
         raise HTTPException(404, "Utente non trovato")
 
-    await create_notification(user_id, "admin_message", title, body)
+    await create_notification(user_id, "admin_message", title, body, image=image_url)
 
     await log_audit(
         admin["id"], admin["username"], "PUSH_USER", "notification", user_id,
-        {"title": title, "target_username": target_user["username"]},
+        {"title": title, "target_username": target_user["username"], "image_url": image_url or None},
     )
     return {"sent": True, "user_id": user_id}
+
+
+@admin_router.get("/push/history")
+async def admin_push_history(limit: int = 50, admin=Depends(require_permission("admin.dashboard.view"))):
+    """Get recent admin-sent notifications history."""
+    from database import notifications_col
+    notifs = await notifications_col.find(
+        {"type": {"$in": ["admin_broadcast", "admin_message"]}},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(limit)
+
+    user_ids = list(set(n.get("user_id", "") for n in notifs))
+    users_map = {}
+    if user_ids:
+        users_list = await users_col.find(
+            {"id": {"$in": user_ids}}, {"_id": 0, "id": 1, "username": 1, "email": 1}
+        ).to_list(len(user_ids))
+        users_map = {u["id"]: u for u in users_list}
+
+    result = []
+    for n in notifs:
+        u = users_map.get(n.get("user_id", ""))
+        result.append({
+            "id": n.get("id"),
+            "type": n.get("type"),
+            "title": n.get("title"),
+            "message": n.get("message"),
+            "image": n.get("image", ""),
+            "user_id": n.get("user_id"),
+            "username": u["username"] if u else "?",
+            "email": u["email"] if u else "",
+            "read": n.get("read", False),
+            "created_at": n.get("created_at"),
+        })
+    return result
+
+
+@admin_router.get("/push/reminders-status")
+async def admin_reminders_status(admin=Depends(require_permission("admin.dashboard.view"))):
+    """Get the status of automatic reminder notifications."""
+    from services import PUSH_ENABLED, REMINDER_CHECK_INTERVAL
+    from database import notifications_col
+
+    recent_reminders = await notifications_col.find(
+        {"type": {"$regex": "^reminder_"}},
+        {"_id": 0, "id": 1, "type": 1, "title": 1, "message": 1, "created_at": 1}
+    ).sort("created_at", -1).to_list(10)
+
+    return {
+        "push_enabled": PUSH_ENABLED,
+        "check_interval_seconds": REMINDER_CHECK_INTERVAL,
+        "reminder_types": [
+            {"type": "reminder_24h", "label": "24 ore prima della chiusura", "description": "Inviata a tutti i membri della lega quando mancano 24 ore"},
+            {"type": "reminder_2h", "label": "2 ore prima della chiusura", "description": "Inviata solo a chi NON ha ancora inserito i pronostici"},
+        ],
+        "recent_reminders": recent_reminders,
+    }
+

@@ -2498,90 +2498,200 @@ function renderPaymentsTable(payments) {
 // ========================================
 // PUSH NOTIFICATIONS
 // ========================================
+let _pushUsers = [];
+let _pushUsersFiltered = [];
+
 async function render_push() {
   if (!hasPerm('admin.dashboard.view')) { render_forbidden(); return; }
 
   let leagues = [];
   try { leagues = await apiCall('/rbac/leagues'); } catch(e) {}
+  try { _pushUsers = await apiCall('/rbac/users'); } catch(e) { _pushUsers = []; }
+  _pushUsersFiltered = [..._pushUsers];
 
   let leagueOptions = '<option value="all">Tutti gli utenti</option>';
   leagues.forEach(l => {
     leagueOptions += `<option value="${l.id}">${l.name} (${l.member_count} membri)</option>`;
   });
 
+  // Load reminders status
+  let reminders = {};
+  try { reminders = await apiCall('/admin/push/reminders-status'); } catch(e) {}
+
+  // Load history
+  let history = [];
+  try { history = await apiCall('/admin/push/history?limit=50'); } catch(e) {}
+
   let html = `<h2>Push Notifiche</h2>
-  <div class="card" style="max-width:600px">
+
+  <!-- AUTO REMINDERS STATUS -->
+  <div class="card" style="max-width:700px;margin-bottom:24px">
+    <h3 style="margin-top:0;margin-bottom:16px;color:#8B5CF6">Notifiche Automatiche Pre-Partita</h3>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${reminders.push_enabled ? '#10B981' : '#EF4444'}"></span>
+      <span style="font-weight:600;color:${reminders.push_enabled ? '#10B981' : '#EF4444'}">${reminders.push_enabled ? 'ATTIVE' : 'DISATTIVATE'}</span>
+      <span style="color:#94A3B8;font-size:13px">(Controllo ogni ${Math.round((reminders.check_interval_seconds||300)/60)} min)</span>
+    </div>
+    <table style="width:100%;border-collapse:collapse">
+      <tr style="background:#F8FAFC"><th style="text-align:left;padding:8px 12px;border-bottom:1px solid #E2E8F0">Tipo</th><th style="text-align:left;padding:8px 12px;border-bottom:1px solid #E2E8F0">Quando</th><th style="text-align:left;padding:8px 12px;border-bottom:1px solid #E2E8F0">Descrizione</th></tr>`;
+  (reminders.reminder_types || []).forEach(rt => {
+    html += `<tr><td style="padding:8px 12px;border-bottom:1px solid #F1F5F9;font-weight:600">${rt.label}</td><td style="padding:8px 12px;border-bottom:1px solid #F1F5F9"><code>${rt.type}</code></td><td style="padding:8px 12px;border-bottom:1px solid #F1F5F9;color:#64748B;font-size:13px">${rt.description}</td></tr>`;
+  });
+  html += `</table>`;
+  if ((reminders.recent_reminders || []).length > 0) {
+    html += `<p style="margin-top:12px;font-size:13px;color:#64748B">Ultimi reminder inviati:</p><ul style="font-size:13px;color:#475569;margin:4px 0 0 0;padding-left:16px">`;
+    reminders.recent_reminders.forEach(r => {
+      html += `<li><strong>${r.type}</strong>: ${r.title} <span style="color:#94A3B8">(${new Date(r.created_at).toLocaleString('it-IT')})</span></li>`;
+    });
+    html += `</ul>`;
+  }
+  html += `</div>
+
+  <!-- BROADCAST -->
+  <div class="card" style="max-width:700px;margin-bottom:24px">
     <h3 style="margin-top:0;margin-bottom:16px;color:#F59E0B">Invia notifica broadcast</h3>
     <div class="form-row">
       <label>Destinatario</label>
-      <select id="push-target" data-testid="push-target-select">${leagueOptions}</select>
+      <select id="push-target">${leagueOptions}</select>
     </div>
     <div class="form-row">
       <label>Titolo *</label>
-      <input type="text" id="push-title" placeholder="es. Nuova giornata disponibile!" data-testid="push-title-input" />
+      <input type="text" id="push-title" placeholder="es. Nuova giornata disponibile!" />
     </div>
     <div class="form-row">
       <label>Messaggio *</label>
-      <textarea id="push-body" rows="3" placeholder="Scrivi il messaggio della notifica..." style="width:100%;padding:10px;border:1px solid #E2E8F0;border-radius:8px;font-family:inherit;font-size:14px;resize:vertical" data-testid="push-body-input"></textarea>
+      <textarea id="push-body" rows="3" placeholder="Scrivi il messaggio..." style="width:100%;padding:10px;border:1px solid #E2E8F0;border-radius:8px;font-family:inherit;font-size:14px;resize:vertical"></textarea>
+    </div>
+    <div class="form-row">
+      <label>URL Immagine (opzionale)</label>
+      <input type="text" id="push-image" placeholder="https://esempio.com/immagine.png" />
     </div>
     <div style="display:flex;gap:12px;align-items:center;margin-top:16px">
-      <button onclick="sendBroadcastPush()" class="btn-primary" data-testid="push-send-btn" style="background:#F59E0B;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px">Invia Notifica</button>
+      <button onclick="sendBroadcastPush()" style="background:#F59E0B;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px">Invia Notifica</button>
       <span id="push-result" style="font-size:13px"></span>
     </div>
   </div>
 
-  <div class="card" style="max-width:600px;margin-top:24px">
+  <!-- SINGLE USER -->
+  <div class="card" style="max-width:700px;margin-bottom:24px">
     <h3 style="margin-top:0;margin-bottom:16px;color:#3B82F6">Invia a singolo utente</h3>
     <div class="form-row">
-      <label>ID Utente *</label>
-      <input type="text" id="push-user-id" placeholder="ID utente (es. e0ada290-7c43...)" data-testid="push-user-id-input" />
+      <label>Utente *</label>
+      <div style="position:relative">
+        <input type="text" id="push-user-search" placeholder="Cerca per username o email..." oninput="filterPushUsers()" onfocus="document.getElementById('push-user-dropdown').style.display='block'" autocomplete="off" />
+        <div id="push-user-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:200px;overflow-y:auto;background:#fff;border:1px solid #E2E8F0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:100"></div>
+        <input type="hidden" id="push-user-id" />
+      </div>
     </div>
     <div class="form-row">
       <label>Titolo *</label>
-      <input type="text" id="push-user-title" placeholder="Titolo notifica" data-testid="push-user-title-input" />
+      <input type="text" id="push-user-title" placeholder="Titolo notifica" />
     </div>
     <div class="form-row">
       <label>Messaggio *</label>
-      <textarea id="push-user-body" rows="3" placeholder="Messaggio..." style="width:100%;padding:10px;border:1px solid #E2E8F0;border-radius:8px;font-family:inherit;font-size:14px;resize:vertical" data-testid="push-user-body-input"></textarea>
+      <textarea id="push-user-body" rows="3" placeholder="Messaggio..." style="width:100%;padding:10px;border:1px solid #E2E8F0;border-radius:8px;font-family:inherit;font-size:14px;resize:vertical"></textarea>
+    </div>
+    <div class="form-row">
+      <label>URL Immagine (opzionale)</label>
+      <input type="text" id="push-user-image" placeholder="https://esempio.com/immagine.png" />
     </div>
     <div style="display:flex;gap:12px;align-items:center;margin-top:16px">
-      <button onclick="sendUserPush()" style="background:#3B82F6;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px" data-testid="push-user-send-btn">Invia a Utente</button>
+      <button onclick="sendUserPush()" style="background:#3B82F6;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px">Invia a Utente</button>
       <span id="push-user-result" style="font-size:13px"></span>
     </div>
-  </div>`;
+  </div>
+
+  <!-- HISTORY -->
+  <div class="card" style="max-width:900px">
+    <h3 style="margin-top:0;margin-bottom:16px;color:#64748B">Storico Notifiche Admin</h3>`;
+  if (history.length === 0) {
+    html += `<p style="color:#94A3B8;font-size:14px">Nessuna notifica admin inviata.</p>`;
+  } else {
+    html += `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+      <tr style="background:#F8FAFC"><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Data</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Tipo</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Titolo</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Messaggio</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Destinatario</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Img</th></tr>`;
+    history.forEach(h => {
+      const date = new Date(h.created_at).toLocaleString('it-IT', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const typeBadge = h.type === 'admin_broadcast' ? '<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">BROADCAST</span>' : '<span style="background:#DBEAFE;color:#1E40AF;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">DIRETTO</span>';
+      const imgIcon = h.image ? '<span title="'+h.image+'">&#128247;</span>' : '-';
+      html += `<tr style="border-bottom:1px solid #F1F5F9"><td style="padding:8px 10px;white-space:nowrap">${date}</td><td style="padding:8px 10px">${typeBadge}</td><td style="padding:8px 10px;font-weight:600">${h.title}</td><td style="padding:8px 10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.message}</td><td style="padding:8px 10px">${h.username}</td><td style="padding:8px 10px;text-align:center">${imgIcon}</td></tr>`;
+    });
+    html += `</table></div>`;
+  }
+  html += `</div>`;
 
   document.getElementById('content').innerHTML = html;
+
+  // Close dropdown on click outside
+  document.addEventListener('click', function(e) {
+    const dd = document.getElementById('push-user-dropdown');
+    const input = document.getElementById('push-user-search');
+    if (dd && input && !dd.contains(e.target) && e.target !== input) {
+      dd.style.display = 'none';
+    }
+  });
+}
+
+function filterPushUsers() {
+  const query = (document.getElementById('push-user-search').value || '').toLowerCase();
+  const dd = document.getElementById('push-user-dropdown');
+  _pushUsersFiltered = _pushUsers.filter(u => 
+    (u.username||'').toLowerCase().includes(query) || (u.email||'').toLowerCase().includes(query)
+  ).slice(0, 20);
+  let items = '';
+  _pushUsersFiltered.forEach(u => {
+    items += `<div onclick="selectPushUser('${u.id}','${u.username}','${u.email}')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'"><span style="font-weight:600">${u.username}</span><span style="color:#94A3B8;font-size:12px">${u.email}</span></div>`;
+  });
+  if (_pushUsersFiltered.length === 0) items = '<div style="padding:10px 14px;color:#94A3B8">Nessun utente trovato</div>';
+  dd.innerHTML = items;
+  dd.style.display = 'block';
+}
+
+function selectPushUser(id, username, email) {
+  document.getElementById('push-user-id').value = id;
+  document.getElementById('push-user-search').value = username + ' (' + email + ')';
+  document.getElementById('push-user-dropdown').style.display = 'none';
 }
 
 async function sendBroadcastPush() {
   const target = document.getElementById('push-target').value;
   const title = document.getElementById('push-title').value.trim();
   const body = document.getElementById('push-body').value.trim();
+  const image_url = (document.getElementById('push-image').value || '').trim();
   const resultEl = document.getElementById('push-result');
   if (!title || !body) { resultEl.innerHTML = '<span style="color:#EF4444">Compila titolo e messaggio</span>'; return; }
   resultEl.innerHTML = '<span style="color:#94A3B8">Invio in corso...</span>';
   try {
-    const res = await apiCall('/admin/push/broadcast', 'POST', {title, body, target});
+    const payload = {title, body, target};
+    if (image_url) payload.image_url = image_url;
+    const res = await apiCall('/admin/push/broadcast', 'POST', payload);
     resultEl.innerHTML = `<span style="color:#10B981">Inviata a ${res.sent_count} utenti</span>`;
     document.getElementById('push-title').value = '';
     document.getElementById('push-body').value = '';
+    document.getElementById('push-image').value = '';
   } catch(e) {
     resultEl.innerHTML = `<span style="color:#EF4444">${e.message}</span>`;
   }
 }
 
 async function sendUserPush() {
-  const userId = document.getElementById('push-user-id').value.trim();
+  const userId = document.getElementById('push-user-id').value;
   const title = document.getElementById('push-user-title').value.trim();
   const body = document.getElementById('push-user-body').value.trim();
+  const image_url = (document.getElementById('push-user-image').value || '').trim();
   const resultEl = document.getElementById('push-user-result');
-  if (!userId || !title || !body) { resultEl.innerHTML = '<span style="color:#EF4444">Compila tutti i campi</span>'; return; }
+  if (!userId) { resultEl.innerHTML = '<span style="color:#EF4444">Seleziona un utente dal menu</span>'; return; }
+  if (!title || !body) { resultEl.innerHTML = '<span style="color:#EF4444">Compila titolo e messaggio</span>'; return; }
   resultEl.innerHTML = '<span style="color:#94A3B8">Invio in corso...</span>';
   try {
-    const res = await apiCall('/admin/push/user/'+userId, 'POST', {title, body});
+    const payload = {title, body};
+    if (image_url) payload.image_url = image_url;
+    const res = await apiCall('/admin/push/user/'+userId, 'POST', payload);
     resultEl.innerHTML = `<span style="color:#10B981">Notifica inviata!</span>`;
     document.getElementById('push-user-title').value = '';
     document.getElementById('push-user-body').value = '';
+    document.getElementById('push-user-image').value = '';
+    document.getElementById('push-user-search').value = '';
+    document.getElementById('push-user-id').value = '';
   } catch(e) {
     resultEl.innerHTML = `<span style="color:#EF4444">${e.message}</span>`;
   }
