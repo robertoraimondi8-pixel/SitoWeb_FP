@@ -957,4 +957,54 @@ const s = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 12,
   },
+
+  // ── 5. Tournament cards ──
+  tournamentCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: LIGHT.card,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: LIGHT.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  tournamentLeft: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: DARK.accent + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  tournamentCenter: {
+    flex: 1,
+    gap: 3,
+  },
+  tournamentName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: LIGHT.text,
+  },
+  tournamentMeta: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: LIGHT.textSec,
+  },
+  tournamentRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  tournamentCta: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: DARK.accent,
+  },
 });
