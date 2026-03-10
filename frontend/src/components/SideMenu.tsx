@@ -104,6 +104,11 @@ export function SideMenu({ visible, onClose }: Props) {
     { icon: 'notifications-outline', label: 'Notifiche', route: '/menu/notifications', testId: 'menu-notifications' },
   ];
 
+  const legalItems: MenuItem[] = [
+    { icon: 'document-text-outline', label: 'Termini di Servizio', route: '/menu/terms', testId: 'menu-terms' },
+    { icon: 'shield-checkmark-outline', label: 'Privacy Policy', route: '/menu/privacy', testId: 'menu-privacy' },
+  ];
+
   const renderSection = (title: string, icon: keyof typeof Ionicons.glyphMap, items: MenuItem[]) => (
     <View style={s.section}>
       <View style={s.sectionHeader}>
@@ -160,6 +165,7 @@ export function SideMenu({ visible, onClose }: Props) {
             {renderSection('ACCOUNT', 'person-circle-outline', accountItems)}
             {renderSection('LEGA', 'trophy-outline', leagueItems)}
             {renderSection('COMUNICAZIONI', 'megaphone-outline', commsItems)}
+            {renderSection('LEGALE', 'shield-outline', legalItems)}
 
             {/* Logout — in fondo a tutto */}
             <View style={s.logoutWrap}>

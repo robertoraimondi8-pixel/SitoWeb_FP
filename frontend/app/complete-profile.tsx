@@ -271,7 +271,7 @@ export default function CompleteProfileScreen() {
             <View style={[s.checkbox, acceptedPrivacy && s.checkboxChecked]}>
               {acceptedPrivacy && <Ionicons name="checkmark" size={14} color="#fff" />}
             </View>
-            <Text style={s.checkboxLabel}>Accetto la <Text style={s.checkboxLink}>Privacy Policy</Text></Text>
+            <Text style={s.checkboxLabel}>Accetto la <Text style={s.checkboxLink} onPress={() => router.push('/menu/privacy')}>Privacy Policy</Text></Text>
           </TouchableOpacity>
           {errors.privacy ? <Text style={s.fieldError}>{errors.privacy}</Text> : null}
 
@@ -279,7 +279,7 @@ export default function CompleteProfileScreen() {
             <View style={[s.checkbox, acceptedTerms && s.checkboxChecked]}>
               {acceptedTerms && <Ionicons name="checkmark" size={14} color="#fff" />}
             </View>
-            <Text style={s.checkboxLabel}>Accetto i <Text style={s.checkboxLink}>Termini e Condizioni</Text></Text>
+            <Text style={s.checkboxLabel}>Accetto i <Text style={s.checkboxLink} onPress={() => router.push('/menu/terms')}>Termini e Condizioni</Text></Text>
           </TouchableOpacity>
           {errors.terms ? <Text style={s.fieldError}>{errors.terms}</Text> : null}
 

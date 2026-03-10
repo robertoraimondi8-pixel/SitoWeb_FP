@@ -46,6 +46,17 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Full regression test: 29 pytest tests + 15 curl verifications = 100% pass rate
 - No bugs introduced during refactoring
 
+### CORS Hardening (P1) - COMPLETED 2026-03-10
+- CORS reads allowed origins from `CORS_ORIGINS` env var
+- Explicit allowlist: preview domain + fantapronostic.com
+- Unauthorized origins blocked
+
+### Terms & Privacy Pages - COMPLETED 2026-03-10
+- Created `/menu/terms` screen with full Termini di Servizio text (9 sections)
+- Created `/menu/privacy` screen with full Privacy Policy text (9 sections)
+- Made links clickable in: login footer, register checkboxes, complete-profile checkboxes
+- Added "LEGALE" section in SideMenu with Terms and Privacy links
+
 ### Previous Work
 - Brand Color System v5 applied across entire frontend
 - Comprehensive developer documentation (docs/ directory)

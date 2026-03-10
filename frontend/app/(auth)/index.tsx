@@ -198,9 +198,9 @@ export default function AuthLanding() {
         {/* Footer */}
         <Text style={s.footer}>
           {t('auth.footer_text')}{' '}
-          <Text style={s.footerLink}>{t('auth.footer_terms')}</Text>
+          <Text style={s.footerLink} onPress={() => router.push('/menu/terms')}>{t('auth.footer_terms')}</Text>
           {' '}{t('auth.footer_and')}{' '}
-          <Text style={s.footerLink}>{t('auth.footer_privacy')}</Text>
+          <Text style={s.footerLink} onPress={() => router.push('/menu/privacy')}>{t('auth.footer_privacy')}</Text>
         </Text>
       </ScrollView>
     </SafeAreaView>
