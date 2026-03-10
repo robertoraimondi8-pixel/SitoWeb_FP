@@ -88,6 +88,13 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Push notification infrastructure (disabled pending config)
 - Scoring engine with jolly/joker system
 
+### Match Detail Sheet Feature - COMPLETED 2026-03-10
+- **Backend**: New endpoint `GET /api/stats/fixture-detail/{fixture_id}` fetching events, statistics, lineups from API-Football
+- **Frontend**: New `MatchDetailSheet` bottom sheet component with 3 tabs (Eventi, Statistiche, Formazioni)
+- **Integration**: Clickable match cards in Predictions (live/results), Live view, and Statistics pages
+- **Backend method**: `get_fixture_detail()` in `apifootball.py` with caching (2min live, 10min finished)
+- **Files**: `MatchDetailSheet.tsx`, `predictions.tsx`, `statistics.tsx`, `live/[id].tsx`, `routes/stats.py`, `apifootball.py`
+
 ### Storico Giornate Bug Fix - COMPLETED 2026-03-10
 - **Root cause**: `matchday_breakdown` query in `/standings/user/{id}` filtered only by `season_id` but matchdays are league-specific (have `league_id`)
 - **Fix**: Added `league_id` filter to both `matchdays_list` and `current_matchday` queries in `routes/standings.py`
