@@ -12,6 +12,7 @@ import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, borderRadius } from '../../src/theme/designSystem';
 import { AnimatedSweep } from '../../src/components/ui';
+import { MatchDetailSheet } from '../../src/components/MatchDetailSheet';
 
 const POLLING_INTERVAL = 60000;
 
@@ -27,6 +28,7 @@ interface LiveMatch {
   away_score: number | null;
   elapsed: number | null;
   status: string;
+  external_fixture_id: number | null;
   my_prediction: string | null;
   my_market: string | null;
   points: number;
@@ -44,6 +46,7 @@ export default function LiveScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [countdown, setCountdown] = useState(60);
+  const [detailFixtureId, setDetailFixtureId] = useState<number | null>(null);
   
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const prevScoresRef = useRef<Record<string, string>>({});
@@ -205,7 +208,7 @@ export default function LiveScreen() {
         }
       >
         {data?.matches?.map((match: LiveMatch, idx: number) => (
-          <View 
+          <TouchableOpacity
             key={match.match_id} 
             style={[
               s.matchCard,
@@ -213,6 +216,8 @@ export default function LiveScreen() {
               match.is_special && s.matchCardSpecial,
             ]}
             data-testid={`live-match-${idx}`}
+            activeOpacity={match.external_fixture_id ? 0.7 : 1}
+            onPress={() => match.external_fixture_id && setDetailFixtureId(match.external_fixture_id)}
           >
             <AnimatedSweep />
             {/* Match Header */}
@@ -307,7 +312,7 @@ export default function LiveScreen() {
                 )}
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         ))}
 
         {/* Summary Footer */}
@@ -320,6 +325,14 @@ export default function LiveScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Match Detail Sheet */}
+      <MatchDetailSheet
+        fixtureId={detailFixtureId}
+        token={token || ''}
+        visible={!!detailFixtureId}
+        onClose={() => setDetailFixtureId(null)}
+      />
     </SafeAreaView>
   );
 }

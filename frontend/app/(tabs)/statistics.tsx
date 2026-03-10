@@ -11,6 +11,7 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
 import { AnimatedSweep } from '../../src/components/ui';
+import { MatchDetailSheet } from '../../src/components/MatchDetailSheet';
 
 type StatsLeague = {
   league_id: number;
@@ -81,6 +82,7 @@ export default function StatisticsScreen() {
   const [tabLoading, setTabLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedRound, setSelectedRound] = useState<string | null>(null);
+  const [detailFixtureId, setDetailFixtureId] = useState<number | null>(null);
 
   const fetchLeagues = useCallback(async () => {
     if (!token) return;
@@ -246,9 +248,18 @@ export default function StatisticsScreen() {
             formatTime={formatTime}
             selectedRound={selectedRound}
             onSelectRound={setSelectedRound}
+            onFixturePress={(fixtureId) => setDetailFixtureId(fixtureId)}
           />
         )}
       </ScrollView>
+
+      {/* Match Detail Sheet */}
+      <MatchDetailSheet
+        fixtureId={detailFixtureId}
+        token={token || ''}
+        visible={!!detailFixtureId}
+        onClose={() => setDetailFixtureId(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -304,6 +315,7 @@ function FixturesWithRoundPicker({
   formatTime,
   selectedRound,
   onSelectRound,
+  onFixturePress,
 }: {
   fixtures: FixtureEntry[];
   showScore?: boolean;
@@ -311,6 +323,7 @@ function FixturesWithRoundPicker({
   formatTime: (iso: string) => string;
   selectedRound: string | null;
   onSelectRound: (round: string | null) => void;
+  onFixturePress?: (fixtureId: number) => void;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -364,7 +377,13 @@ function FixturesWithRoundPicker({
 
       {/* Filtered fixtures */}
       {filtered.map((f) => (
-        <View key={f.fixture_id} style={styles.fixtureCard} data-testid={`fixture-${f.fixture_id}`}>
+        <TouchableOpacity
+          key={f.fixture_id}
+          style={styles.fixtureCard}
+          data-testid={`fixture-${f.fixture_id}`}
+          activeOpacity={0.7}
+          onPress={() => onFixturePress?.(f.fixture_id)}
+        >
           <View style={styles.fixtureTeams}>
             <View style={styles.fixtureTeamRow}>
               {f.home_logo && <Image source={{ uri: f.home_logo }} style={styles.fixtureTeamLogo} />}
@@ -385,7 +404,7 @@ function FixturesWithRoundPicker({
             <Text style={styles.fixtureDate}>{formatDate(f.date)}</Text>
             {!showScore && <Text style={styles.fixtureTime}>{formatTime(f.date)}</Text>}
           </View>
-        </View>
+        </TouchableOpacity>
       ))}
 
       {/* Round Picker Modal */}

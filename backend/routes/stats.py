@@ -100,6 +100,17 @@ def _extract_team_id_from_logo(logo_url: str) -> Optional[int]:
     return int(m.group(1)) if m else None
 
 
+@stats_router.get("/fixture-detail/{fixture_id}")
+async def stats_fixture_detail(fixture_id: int, user=Depends(get_current_user)):
+    """Get full fixture detail: events, statistics, lineups from API-Football."""
+    try:
+        client = get_apifootball()
+        detail = await client.get_fixture_detail(fixture_id)
+        return detail
+    except Exception as e:
+        raise HTTPException(502, f"Dettagli partita non disponibili: {e}")
+
+
 @stats_router.get("/match-preview/{match_id}")
 async def stats_match_preview(match_id: str, user=Depends(get_current_user)):
     """Get match preview stats: team form, H2H, standings position."""

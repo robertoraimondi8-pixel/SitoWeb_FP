@@ -349,6 +349,116 @@ class APIFootballClient:
                 results.append(fx)
         return results
 
+    # ------------------------------------------------------------------
+    async def get_fixture_detail(self, fixture_id: int) -> Dict[str, Any]:
+        """Fetch full fixture detail: events, statistics, lineups."""
+        cache_key = f"fixture_detail:{fixture_id}"
+        cached = _cache_get(cache_key)
+        if cached is not None:
+            return cached
+
+        # Fetch events, statistics, lineups in parallel-ish (sequential for simplicity)
+        events_data = await self._get("/fixtures/events", {"fixture": fixture_id})
+        stats_data = await self._get("/fixtures/statistics", {"fixture": fixture_id})
+        lineups_data = await self._get("/fixtures/lineups", {"fixture": fixture_id})
+        fixture_data = await self._get("/fixtures", {"id": fixture_id})
+
+        # Parse fixture info
+        fixture_info = {}
+        fx_resp = fixture_data.get("response", [])
+        if fx_resp:
+            f = fx_resp[0]
+            fix = f.get("fixture", {})
+            teams = f.get("teams", {})
+            goals = f.get("goals", {})
+            score = f.get("score", {})
+            fixture_info = {
+                "fixture_id": fix.get("id"),
+                "date": fix.get("date"),
+                "referee": fix.get("referee"),
+                "venue": fix.get("venue", {}).get("name"),
+                "city": fix.get("venue", {}).get("city"),
+                "status_short": fix.get("status", {}).get("short"),
+                "status_long": fix.get("status", {}).get("long"),
+                "elapsed": fix.get("status", {}).get("elapsed"),
+                "home_team": teams.get("home", {}).get("name"),
+                "home_logo": teams.get("home", {}).get("logo"),
+                "home_id": teams.get("home", {}).get("id"),
+                "away_team": teams.get("away", {}).get("name"),
+                "away_logo": teams.get("away", {}).get("logo"),
+                "away_id": teams.get("away", {}).get("id"),
+                "home_goals": goals.get("home"),
+                "away_goals": goals.get("away"),
+                "halftime": score.get("halftime", {}),
+                "fulltime": score.get("fulltime", {}),
+            }
+
+        # Parse events
+        events = []
+        for ev in events_data.get("response", []):
+            events.append({
+                "time_elapsed": ev.get("time", {}).get("elapsed"),
+                "time_extra": ev.get("time", {}).get("extra"),
+                "team_name": ev.get("team", {}).get("name"),
+                "team_logo": ev.get("team", {}).get("logo"),
+                "player": ev.get("player", {}).get("name"),
+                "assist": ev.get("assist", {}).get("name"),
+                "type": ev.get("type"),
+                "detail": ev.get("detail"),
+            })
+
+        # Parse statistics
+        team_stats = []
+        for team_stat in stats_data.get("response", []):
+            team_name = team_stat.get("team", {}).get("name")
+            team_logo = team_stat.get("team", {}).get("logo")
+            stats_list = {}
+            for stat in team_stat.get("statistics", []):
+                stats_list[stat.get("type", "")] = stat.get("value")
+            team_stats.append({
+                "team_name": team_name,
+                "team_logo": team_logo,
+                "stats": stats_list,
+            })
+
+        # Parse lineups
+        lineups = []
+        for lineup in lineups_data.get("response", []):
+            team_name = lineup.get("team", {}).get("name")
+            team_logo = lineup.get("team", {}).get("logo")
+            formation = lineup.get("formation")
+            starters = [
+                {"name": p.get("player", {}).get("name"), "number": p.get("player", {}).get("number"), "pos": p.get("player", {}).get("pos")}
+                for p in lineup.get("startXI", [])
+            ]
+            subs = [
+                {"name": p.get("player", {}).get("name"), "number": p.get("player", {}).get("number"), "pos": p.get("player", {}).get("pos")}
+                for p in lineup.get("substitutes", [])
+            ]
+            coach = lineup.get("coach", {}).get("name")
+            lineups.append({
+                "team_name": team_name,
+                "team_logo": team_logo,
+                "formation": formation,
+                "starters": starters,
+                "substitutes": subs,
+                "coach": coach,
+            })
+
+        result = {
+            "fixture": fixture_info,
+            "events": events,
+            "statistics": team_stats,
+            "lineups": lineups,
+        }
+
+        # Cache for 2 min if live, 10 min if finished
+        status = fixture_info.get("status_short", "")
+        ttl = 120 if status in STATUS_MAP_LIVE else 600
+        _cache_set(cache_key, result, ttl)
+        return result
+
+
 
 # API-Football status mapping → our internal status
 # See https://www.api-football.com/documentation-v3#tag/Fixtures/operation/get-fixtures

@@ -67,6 +67,7 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
             "competition": m.get("competition", ""), "start_time": m["start_time"],
             "home_score": m.get("home_score"), "away_score": m.get("away_score"),
             "elapsed": m.get("elapsed"), "status": m["status"],
+            "external_fixture_id": m.get("external_fixture_id"),
             "my_prediction": pred.get("prediction_value") if pred else None,
             "my_market": pred.get("market_type") if pred else None,
             "points": pts, "outcome": outcome if pred else "no_prediction",

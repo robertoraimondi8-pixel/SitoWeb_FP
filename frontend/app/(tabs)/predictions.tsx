@@ -14,6 +14,7 @@ import { PredictionsData, Matchday, PredictionEntry, MatchItem, getErrorMessage 
 import type { Href } from 'expo-router';
 import { goToPredictionsHub } from '../../src/utils/navigation';
 import { MatchPreviewSheet } from '../../src/components/MatchPreviewSheet';
+import { MatchDetailSheet } from '../../src/components/MatchDetailSheet';
 
 // Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
@@ -66,6 +67,7 @@ export default function PredictionsScreen() {
   // Info lega attiva per empty state
   const [leagueInfo, setLeagueInfo] = useState<{ id: string; isManual: boolean; isOwner: boolean } | null>(null);
   const [previewMatchId, setPreviewMatchId] = useState<string | null>(null);
+  const [detailFixtureId, setDetailFixtureId] = useState<number | null>(null);
 
   const formatPts = (pts: number) => {
     const val = pts % 1 === 0 ? pts.toString() : pts.toFixed(1).replace('.', ',');
@@ -505,8 +507,14 @@ export default function PredictionsScreen() {
                   </View>
                 )}
 
-                {/* Teams */}
-                <View style={styles.teamsRow}>
+                {/* Teams - clickable if has external fixture */}
+                <TouchableOpacity
+                  style={styles.teamsRow}
+                  activeOpacity={m.external_fixture_id ? 0.7 : 1}
+                  onPress={() => m.external_fixture_id && setDetailFixtureId(m.external_fixture_id)}
+                  disabled={!m.external_fixture_id}
+                  data-testid={`match-teams-${idx}`}
+                >
                   <View style={styles.teamWithLogo}>
                     {m.home_logo && <Image source={{ uri: m.home_logo }} style={styles.teamLogo} />}
                     <Text style={styles.teamName} numberOfLines={1}>{m.home_team}</Text>
@@ -518,13 +526,11 @@ export default function PredictionsScreen() {
                     <Text style={styles.teamName} numberOfLines={1}>{m.away_team}</Text>
                     {m.away_logo && <Image source={{ uri: m.away_logo }} style={styles.teamLogo} />}
                   </View>
-                </View>
-
-                {/* Statistiche Button — only for API matches */}
+                </TouchableOpacity>
                 {m.external_fixture_id && (
                   <TouchableOpacity
                     style={styles.statsBtn}
-                    onPress={() => setPreviewMatchId(m.id)}
+                    onPress={() => setDetailFixtureId(m.external_fixture_id)}
                     data-testid={`stats-btn-${m.id}`}
                   >
                     <Ionicons name="stats-chart" size={14} color={colors.primary} />
@@ -709,6 +715,14 @@ export default function PredictionsScreen() {
         token={token || ''}
         visible={!!previewMatchId}
         onClose={() => setPreviewMatchId(null)}
+      />
+
+      {/* Match Detail Sheet */}
+      <MatchDetailSheet
+        fixtureId={detailFixtureId}
+        token={token || ''}
+        visible={!!detailFixtureId}
+        onClose={() => setDetailFixtureId(null)}
       />
     </SafeAreaView>
   );
