@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="12" skipped="0" tests="20" time="4.641" timestamp="2026-03-10T21:26:04.984702+00:00" hostname="agent-env-52dbf2d9-2efe-4c61-9920-2630b945aaf3"><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase1CreateAndRegisterUsers" name="test_01_create_tournament" time="0.634" /><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase1CreateAndRegisterUsers" name="test_02_open_registration" time="0.156" /><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase1CreateAndRegisterUsers" name="test_03_register_8_users" time="1.964"><failure message="AssertionError: Only registered 1 users, need 8&#10;assert 1 &gt;= 8&#10; +  where 1 = len([{'email': 'admin@fantapronostic.com', 'password': 'admin123', 'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMGEwMWJiMS00YjBjLTRmNmYtOWM4ZS1hN2IzM2I0NDU2NTEiLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzczMTgxNTY1LCJpYXQiOjE3NzMxNzc5NjV9.OAygZlGs5Ktf24C3KStVmFYuBFS8mb-ON3_55cxbyJo', 'username': 'admin'}])">backend/tests/test_tournament_lifecycle_phase456.py:149: in test_03_register_8_users
+    assert len(users_registered) &gt;= 8, f"Only registered {len(users_registered)} users, need 8"
+E   AssertionError: Only registered 1 users, need 8
+E   assert 1 &gt;= 8
+E    +  where 1 = len([{'email': 'admin@fantapronostic.com', 'password': 'admin123', 'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMGEwMWJiMS00YjBjLTRmNmYtOWM4ZS1hN2IzM2I0NDU2NTEiLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzczMTgxNTY1LCJpYXQiOjE3NzMxNzc5NjV9.OAygZlGs5Ktf24C3KStVmFYuBFS8mb-ON3_55cxbyJo', 'username': 'admin'}])</failure></testcase><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase1CreateAndRegisterUsers" name="test_04_verify_tournament_has_8_registrations" time="0.116"><failure message="AssertionError: Only 1 registrations, need 8&#10;assert 1 &gt;= 8">backend/tests/test_tournament_lifecycle_phase456.py:158: in test_04_verify_tournament_has_8_registrations
+    assert data["registered_count"] &gt;= 8, f"Only {data['registered_count']} registrations, need 8"
+E   AssertionError: Only 1 registrations, need 8
+E   assert 1 &gt;= 8</failure></testcase><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase2StartTournament" name="test_05_start_tournament" time="0.123"><failure message="AssertionError: Start tournament failed: {&quot;detail&quot;:&quot;Servono 8 iscritti, ce ne sono 1&quot;}&#10;assert 400 == 200&#10; +  where 400 = &lt;Response [400]&gt;.status_code">backend/tests/test_tournament_lifecycle_phase456.py:171: in test_05_start_tournament
+    assert resp.status_code == 200, f"Start tournament failed: {resp.text}"
+E   AssertionError: Start tournament failed: {"detail":"Servono 8 iscritti, ce ne sono 1"}
+E   assert 400 == 200
+E    +  where 400 = &lt;Response [400]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase2StartTournament" name="test_06_verify_groups_created" time="0.194"><failure message="AssertionError: Expected 2 groups, got 0&#10;assert 0 == 2&#10; +  where 0 = len([])">backend/tests/test_tournament_lifecycle_phase456.py:190: in test_06_verify_groups_created
+    assert len(data) == 2, f"Expected 2 groups, got {len(data)}"
+E   AssertionError: Expected 2 groups, got 0
+E   assert 0 == 2
+E    +  where 0 = len([])</failure></testcase><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase3MyMatchups" name="test_07_get_my_matchups_for_registered_user" time="0.110"><failure message="AssertionError: No matchups returned for registered user&#10;assert 0 &gt; 0&#10; +  where 0 = len([])">backend/tests/test_tournament_lifecycle_phase456.py:211: in test_07_get_my_matchups_for_registered_user
+    assert len(data) &gt; 0, "No matchups returned for registered user"
+E   AssertionError: No matchups returned for registered user
+E   assert 0 &gt; 0
+E    +  where 0 = len([])</failure></testcase><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase3MyMatchups" name="test_08_matchups_sorted_by_round" time="0.128" /><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase4CreateAndOpenRound" name="test_09_create_round" time="0.110"><failure message="AssertionError: Create round failed: {&quot;detail&quot;:&quot;Torneo in stato registration, non si possono creare round&quot;}&#10;assert 400 == 200&#10; +  where 400 = &lt;Response [400]&gt;.status_code">backend/tests/test_tournament_lifecycle_phase456.py:255: in test_09_create_round
+    assert resp.status_code == 200, f"Create round failed: {resp.text}"
+E   AssertionError: Create round failed: {"detail":"Torneo in stato registration, non si possono creare round"}
+E   assert 400 == 200
+E    +  where 400 = &lt;Response [400]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase4CreateAndOpenRound" name="test_10_open_round" time="0.000"><failure message="AssertionError: No round created&#10;assert None">backend/tests/test_tournament_lifecycle_phase456.py:269: in test_10_open_round
+    assert rid, "No round created"
+E   AssertionError: No round created
+E   assert None</failure></testcase><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase5LiveMatchup" name="test_11_get_matchup_live" time="0.000"><failure message="AssertionError: No matchup ID stored&#10;assert None">backend/tests/test_tournament_lifecycle_phase456.py:285: in test_11_get_matchup_live
+    assert mid, "No matchup ID stored"
+E   AssertionError: No matchup ID stored
+E   assert None</failure></testcase><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase5LiveMatchup" name="test_12_get_matchup_live_404_invalid_id" time="0.113" /><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase6CompleteRoundAndKnockout" name="test_13_complete_round" time="0.000"><failure message="AssertionError: No round created&#10;assert None">backend/tests/test_tournament_lifecycle_phase456.py:322: in test_13_complete_round
+    assert rid, "No round created"
+E   AssertionError: No round created
+E   assert None</failure></testcase><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase6CompleteRoundAndKnockout" name="test_14_verify_matchups_updated" time="0.129" /><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase6CompleteRoundAndKnockout" name="test_15_generate_knockout_bracket" time="0.128"><failure message="AssertionError: Generate knockout failed: {&quot;detail&quot;:&quot;Il torneo deve essere in fase gironi&quot;}&#10;assert 400 == 200&#10; +  where 400 = &lt;Response [400]&gt;.status_code">backend/tests/test_tournament_lifecycle_phase456.py:355: in test_15_generate_knockout_bracket
+    assert resp.status_code == 200, f"Generate knockout failed: {resp.text}"
+E   AssertionError: Generate knockout failed: {"detail":"Il torneo deve essere in fase gironi"}
+E   assert 400 == 200
+E    +  where 400 = &lt;Response [400]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase6CompleteRoundAndKnockout" name="test_16_get_bracket" time="0.140" /><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase7TournamentDetailTabs" name="test_17_tournament_detail_has_groups" time="0.135"><failure message="AssertionError: Expected knockout status, got registration&#10;assert 'registration' == 'knockout'&#10;  &#10;  - knockout&#10;  + registration">backend/tests/test_tournament_lifecycle_phase456.py:393: in test_17_tournament_detail_has_groups
+    assert data["status"] == "knockout", f"Expected knockout status, got {data['status']}"
+E   AssertionError: Expected knockout status, got registration
+E   assert 'registration' == 'knockout'
+E     
+E     - knockout
+E     + registration</failure></testcase><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPhase7TournamentDetailTabs" name="test_18_tournament_detail_has_rounds" time="0.115"><failure message="assert 0 &gt;= 1&#10; +  where 0 = len([])">backend/tests/test_tournament_lifecycle_phase456.py:406: in test_18_tournament_detail_has_rounds
+    assert len(data["rounds"]) &gt;= 1
+E   assert 0 &gt;= 1
+E    +  where 0 = len([])</failure></testcase><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestPredictEndpoint" name="test_19_predict_requires_open_round" time="0.111" /><testcase classname="backend.tests.test_tournament_lifecycle_phase456.TestCleanupInfo" name="test_20_test_data_summary" time="0.000" /></testsuite></testsuites>

@@ -27,6 +27,9 @@ type GroupData = {
 type Matchup = {
   id: string;
   round_type: string;
+  round_number: number;
+  user_a_id: string;
+  user_b_id: string;
   user_a_username: string;
   user_b_username: string;
   user_a_points: number;
@@ -63,7 +66,7 @@ type TournamentDetail = {
   rounds?: RoundInfo[];
 };
 
-type Tab = 'info' | 'groups' | 'bracket';
+type Tab = 'info' | 'groups' | 'sfide' | 'bracket';
 
 export default function TournamentDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -72,6 +75,7 @@ export default function TournamentDetail() {
   const [tournament, setTournament] = useState<TournamentDetail | null>(null);
   const [groupStandings, setGroupStandings] = useState<GroupData[]>([]);
   const [bracket, setBracket] = useState<Record<string, Matchup[]>>({});
+  const [myMatchups, setMyMatchups] = useState<Matchup[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('info');
@@ -80,16 +84,18 @@ export default function TournamentDetail() {
   const fetchAll = useCallback(async () => {
     if (!token || !id) return;
     try {
-      const [detail, groups, bracketData] = await Promise.all([
+      const [detail, groups, bracketData, matchups] = await Promise.all([
         apiCall<TournamentDetail>(`/tournaments/${id}`, { token }),
         apiCall<GroupData[]>(`/tournaments/${id}/groups`, { token }).catch(() => []),
         apiCall<{ bracket: Record<string, Matchup[]> }>(`/tournaments/${id}/bracket`, { token }).catch(() => ({ bracket: {} })),
+        apiCall<Matchup[]>(`/tournaments/${id}/my-matchups`, { token }).catch(() => []),
       ]);
       setTournament(detail);
       setGroupStandings(groups);
       setBracket(bracketData.bracket || {});
+      setMyMatchups(matchups);
       if (detail.status === 'groups' || detail.status === 'knockout') {
-        setActiveTab('groups');
+        setActiveTab('sfide');
       }
     } catch (e) {
       console.error(e);
@@ -135,8 +141,8 @@ export default function TournamentDetail() {
       {/* Tab selector */}
       {hasGroups && (
         <View style={s.tabBar}>
-          {(['info', 'groups', 'bracket'] as Tab[]).map(tab => {
-            const labels: Record<Tab, string> = { info: 'Info', groups: 'Gironi', bracket: 'Tabellone' };
+          {(['info', 'sfide', 'groups', 'bracket'] as Tab[]).map(tab => {
+            const labels: Record<Tab, string> = { info: 'Info', sfide: 'Le mie sfide', groups: 'Gironi', bracket: 'Tabellone' };
             const isActive = activeTab === tab;
             const disabled = tab === 'bracket' && t.status === 'groups';
             return (
@@ -229,6 +235,65 @@ export default function TournamentDetail() {
           </>
         )}
 
+        {/* LE MIE SFIDE TAB */}
+        {activeTab === 'sfide' && hasGroups && (
+          <>
+            {myMatchups.length === 0 ? (
+              <View style={s.emptyBracket}>
+                <Ionicons name="flash-outline" size={40} color={colors.textMuted} />
+                <Text style={s.emptyText}>Nessuna sfida ancora</Text>
+              </View>
+            ) : (
+              myMatchups.map(mu => {
+                const isA = mu.user_a_id === user?.id;
+                const opponent = isA ? mu.user_b_username : mu.user_a_username;
+                const myPts = isA ? mu.user_a_points : mu.user_b_points;
+                const oppPts = isA ? mu.user_b_points : mu.user_a_points;
+                const won = mu.result === (isA ? 'user_a_win' : 'user_b_win');
+                const lost = mu.result === (isA ? 'user_b_win' : 'user_a_win');
+                const isDone = mu.status === 'completed';
+                const roundLabels: Record<string, string> = { group: 'Girone', quarterfinal: 'Quarti', semifinal: 'Semi', final: 'Finale' };
+                return (
+                  <TouchableOpacity
+                    key={mu.id} style={s.matchupCard}
+                    onPress={() => router.push({ pathname: '/tournament/matchup', params: { tournamentId: id, matchupId: mu.id } } as any)}
+                    data-testid={`matchup-${mu.id}`}
+                  >
+                    <View style={s.matchupTop}>
+                      <Text style={s.matchupRound}>{roundLabels[mu.round_type] || mu.round_type} - Round {mu.round_number}</Text>
+                      {isDone && won && <View style={[s.resultBadge, { backgroundColor: '#22c55e20' }]}><Text style={[s.resultBadgeText, { color: '#22c55e' }]}>VITTORIA</Text></View>}
+                      {isDone && lost && <View style={[s.resultBadge, { backgroundColor: '#ef444420' }]}><Text style={[s.resultBadgeText, { color: '#ef4444' }]}>SCONFITTA</Text></View>}
+                      {isDone && mu.result === 'draw' && <View style={[s.resultBadge, { backgroundColor: '#f59e0b20' }]}><Text style={[s.resultBadgeText, { color: '#f59e0b' }]}>PAREGGIO</Text></View>}
+                      {!isDone && <View style={[s.resultBadge, { backgroundColor: colors.accent + '20' }]}><Text style={[s.resultBadgeText, { color: colors.accent }]}>IN CORSO</Text></View>}
+                    </View>
+                    <View style={s.matchupBody}>
+                      <View style={s.matchupPlayer}>
+                        <View style={[s.matchupAvatar, { backgroundColor: colors.accent + '20' }]}>
+                          <Text style={[s.matchupAvatarText, { color: colors.accent }]}>{user?.username?.charAt(0)?.toUpperCase() || 'T'}</Text>
+                        </View>
+                        <Text style={[s.matchupName, { color: colors.accent }]} numberOfLines={1}>Tu</Text>
+                        <Text style={[s.matchupPts, won && { color: '#22c55e', fontWeight: '900' }]}>{myPts.toFixed(1)}</Text>
+                      </View>
+                      <View style={s.matchupVs}><Text style={s.matchupVsText}>VS</Text></View>
+                      <View style={s.matchupPlayer}>
+                        <View style={[s.matchupAvatar, { backgroundColor: '#ef444420' }]}>
+                          <Text style={[s.matchupAvatarText, { color: '#ef4444' }]}>{opponent.charAt(0).toUpperCase()}</Text>
+                        </View>
+                        <Text style={s.matchupName} numberOfLines={1}>{opponent}</Text>
+                        <Text style={[s.matchupPts, lost && { color: '#22c55e', fontWeight: '900' }]}>{oppPts.toFixed(1)}</Text>
+                      </View>
+                    </View>
+                    <View style={s.matchupFooter}>
+                      <Text style={s.matchupCta}>Vedi dettagli</Text>
+                      <Ionicons name="chevron-forward" size={16} color={colors.accent} />
+                    </View>
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </>
+        )}
+
         {/* GROUPS TAB */}
         {activeTab === 'groups' && hasGroups && (
           <>
@@ -294,7 +359,11 @@ export default function TournamentDetail() {
                       const aWon = mu.result === 'user_a_win';
                       const bWon = mu.result === 'user_b_win';
                       return (
-                        <View key={mu.id} style={s.bracketMatch}>
+                        <TouchableOpacity
+                          key={mu.id} style={s.bracketMatch}
+                          onPress={() => router.push({ pathname: '/tournament/matchup', params: { tournamentId: id, matchupId: mu.id } } as any)}
+                          data-testid={`bracket-match-${mu.id}`}
+                        >
                           <View style={[s.bracketPlayer, aWon && s.bracketPlayerWin]}>
                             <Text style={[s.bracketName, aWon && s.bracketNameWin]}>{mu.user_a_username}</Text>
                             <Text style={[s.bracketPts, aWon && s.bracketPtsWin]}>{mu.user_a_points.toFixed(1)}</Text>
@@ -306,7 +375,7 @@ export default function TournamentDetail() {
                             <Text style={[s.bracketName, bWon && s.bracketNameWin]}>{mu.user_b_username}</Text>
                             <Text style={[s.bracketPts, bWon && s.bracketPtsWin]}>{mu.user_b_points.toFixed(1)}</Text>
                           </View>
-                        </View>
+                        </TouchableOpacity>
                       );
                     })}
                   </View>
@@ -376,4 +445,21 @@ const s = StyleSheet.create({
   bracketPtsWin: { color: '#22c55e' },
   bracketVs: { alignItems: 'center', paddingVertical: 2, backgroundColor: colors.background },
   bracketVsText: { fontSize: 10, fontWeight: '800', color: colors.textMuted },
+
+  // Matchup cards (Le mie sfide)
+  matchupCard: { backgroundColor: colors.card, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: colors.border },
+  matchupTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 },
+  matchupRound: { fontSize: 11, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
+  resultBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  resultBadgeText: { fontSize: 10, fontWeight: '800' },
+  matchupBody: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, gap: 0 },
+  matchupPlayer: { flex: 1, alignItems: 'center', gap: 4 },
+  matchupAvatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  matchupAvatarText: { fontSize: 16, fontWeight: '800' },
+  matchupName: { fontSize: 13, fontWeight: '700', color: colors.textPrimary },
+  matchupPts: { fontSize: 18, fontWeight: '800', color: colors.textSecondary },
+  matchupVs: { width: 36, alignItems: 'center', justifyContent: 'center' },
+  matchupVsText: { fontSize: 10, fontWeight: '800', color: colors.textMuted },
+  matchupFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 10, backgroundColor: colors.background, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  matchupCta: { fontSize: 12, fontWeight: '700', color: colors.accent },
 });

@@ -642,6 +642,24 @@ async def unregister_tournament(tournament_id: str, user=Depends(get_current_use
     return {"ok": True}
 
 
+# ── User's matchups in tournament ──
+
+@tournament_router.get("/{tournament_id}/my-matchups")
+async def get_my_matchups(tournament_id: str, user=Depends(get_current_user)):
+    t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+    if not t:
+        raise HTTPException(404, "Torneo non trovato")
+    matchups = await tournament_matchups_col.find(
+        {"tournament_id": tournament_id,
+         "$or": [{"user_a_id": user["id"]}, {"user_b_id": user["id"]}]},
+        {"_id": 0}
+    ).to_list(50)
+    # Sort by round_number
+    matchups.sort(key=lambda x: (x.get("round_number", 0), x.get("round_type", "")))
+    return matchups
+
+
+
 # ── Group standings ──
 
 @tournament_router.get("/{tournament_id}/groups")
