@@ -12,7 +12,8 @@ import { useLeague } from '../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, spacing, borderRadius } from '../src/theme/designSystem';
+import { colors, spacing, borderRadius, brandGradients } from '../src/theme/designSystem';
+import { BrandLogo } from '../src/components/BrandLogo';
 
 export default function OnboardingScreen() {
   const { t, i18n } = useTranslation();
@@ -109,11 +110,7 @@ export default function OnboardingScreen() {
 
         {/* Header */}
         <View style={s.headerSection}>
-          <Image
-            source={require('../assets/logo.png')}
-            style={s.logo}
-            resizeMode="contain"
-          />
+          <BrandLogo variant="wordmark" size="lg" />
           <Text style={[s.welcome, { color: colors.textPrimary }]}>
             {t('onboarding.welcome')}, {user?.username}!
           </Text>
@@ -167,9 +164,8 @@ export default function OnboardingScreen() {
             <View style={s.pathContent}>
               <Text style={[s.pathTitle, { color: '#FFFFFF' }]}>{t('onboarding.national_title')}</Text>
               <Text style={[s.pathDesc, { color: 'rgba(255,255,255,0.5)' }]}>{t('onboarding.national_desc')}</Text>
-              <View style={s.priceRow}>
-                <Text style={[s.price, { color: colors.accent }]}>€20.00</Text>
-                <Text style={[s.pricePer, { color: colors.textSecondary }]}>/ {t('onboarding.season')}</Text>
+              <View style={[s.freeBadge, { backgroundColor: 'rgba(16,185,129,0.12)', marginTop: 6 }]}>
+                <Text style={[s.freeText, { color: colors.success }]}>{t('onboarding.free')}</Text>
               </View>
             </View>
             {payLoading ? (
