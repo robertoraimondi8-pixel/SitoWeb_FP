@@ -1,0 +1,103 @@
+{
+  "summary": "New Features Testing Complete - 100% backend tests passed (15/15), Admin UI Push page working. All 4 features verified: Push notifications, Complete-profile with username, National league free join, Admin panel push UI",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Frontend console", "issues": ["'shadow*' style props are deprecated warning - minor cosmetic, use 'boxShadow' instead"]}
+    ]
+  },
+  "test_results": {
+    "TestPushNotificationEndpoints": {
+      "test_push_broadcast_all_users": "PASS - Sent to 77 users",
+      "test_push_broadcast_specific_league": "PASS - Sent to national league members",
+      "test_push_to_specific_user": "PASS - Sent to user e0ada290-7c43...",
+      "test_push_broadcast_missing_title": "PASS - Returns 400",
+      "test_push_to_nonexistent_user": "PASS - Returns 404"
+    },
+    "TestCompleteProfileEndpoint": {
+      "test_complete_profile_post_with_username": "PASS - POST /api/users/me/complete-profile works",
+      "test_complete_profile_patch_with_username": "PASS - PATCH /api/profile/complete (dual endpoint) works",
+      "test_complete_profile_without_username": "PASS - Username is optional",
+      "test_complete_profile_duplicate_username": "PASS - Returns 409 for duplicate",
+      "test_complete_profile_invalid_username": "PASS - Returns 400 for invalid format"
+    },
+    "TestNationalLeagueFreeJoin": {
+      "test_get_national_leagues": "PASS - Returns 1 national league",
+      "test_join_national_league_direct_free": "PASS - Join works without payment"
+    },
+    "TestAdminUI": {
+      "test_admin_ui_returns_html": "PASS - Returns HTML page",
+      "test_reset_password_page_returns_html": "PASS - Returns HTML page"
+    },
+    "TestSendGridEmailService": {
+      "test_admin_generate_reset_link_triggers_email": "PASS - Email service called (MOCKED - logs warning)"
+    },
+    "AdminUI_Playwright": {
+      "admin_login": "PASS - Login with 'Accedi' button works",
+      "push_notifiche_nav": "PASS - Nav item 'Push Notifiche' present",
+      "push_broadcast_form": "PASS - Target, title, body, send button present",
+      "push_single_user_form": "PASS - User ID, title, body, send button present",
+      "push_send_notification": "PASS - Sent to 77 utenti"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_new_features.py",
+    "/app/test_reports/pytest/new_features_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "SendGrid email service gracefully handles empty API key (MOCKED - logs warning instead of failing)",
+    "Complete-profile dual endpoint (PATCH and POST) is well implemented",
+    "National league join-direct correctly skips payment for national leagues",
+    "Push notification endpoints properly create notifications in database"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_new_features.py"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 tests passed)",
+    "frontend": "100% (Admin UI Push page fully functional)"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123 - WORKING",
+    "standard_user": "ilio@raimondi.it / password123 - WORKING"
+  },
+  "seed_data_creation": "None - used existing data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 4 new features implemented and verified: 1) Push notifications with admin endpoints (/api/admin/push/broadcast, /api/admin/push/user/{id}) 2) Complete-profile with username field (dual endpoint POST/PATCH) 3) National league free join (no payment required) 4) Admin UI Push Notifiche page with broadcast and single-user forms. SendGrid email service is MOCKED (API key empty) - logs warning but doesn't fail.",
+  "mocked_api": {
+    "has_mocked_apis": true,
+    "mocked_apis_list": [
+      "SendGrid email service - SENDGRID_API_KEY is empty, so emails log a warning but don't fail"
+    ]
+  },
+  "features_verified": {
+    "push_notifications": {
+      "broadcast_all": "Working - POST /api/admin/push/broadcast with target=all",
+      "broadcast_league": "Working - POST /api/admin/push/broadcast with target=league_id",
+      "single_user": "Working - POST /api/admin/push/user/{user_id}",
+      "admin_ui": "Working - Admin panel 'Push Notifiche' page with both forms"
+    },
+    "complete_profile_username": {
+      "post_endpoint": "Working - POST /api/users/me/complete-profile",
+      "patch_endpoint": "Working - PATCH /api/profile/complete (dual)",
+      "username_validation": "Working - Regex validation 3-20 chars",
+      "duplicate_check": "Working - Returns 409 conflict",
+      "optional_field": "Working - Username is optional"
+    },
+    "national_league_free": {
+      "get_leagues": "Working - GET /api/leagues/national",
+      "join_direct": "Working - POST /api/leagues/{id}/join-direct (no payment)"
+    },
+    "sendgrid_email": {
+      "status": "MOCKED - API key empty",
+      "behavior": "Logs warning, doesn't fail, reset link generated"
+    }
+  }
+}

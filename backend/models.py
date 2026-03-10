@@ -33,6 +33,7 @@ class RegisterRequest(BaseModel):
 class CompleteProfileRequest(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    username: Optional[str] = None
     date_of_birth: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None

@@ -399,13 +399,23 @@ async def delete_account(user=Depends(get_current_user)):
 
 
 @user_router.patch("/profile/complete")
+@user_router.post("/users/me/complete-profile")
 async def complete_profile(req: CompleteProfileRequest, user=Depends(get_current_user)):
+    import re as _re
     from datetime import date as _date
     updates: dict = {}
     if req.first_name is not None:
         updates["first_name"] = req.first_name
     if req.last_name is not None:
         updates["last_name"] = req.last_name
+    if req.username is not None:
+        uname = req.username.strip()
+        if not _re.match(r'^[a-zA-Z0-9_]{3,20}$', uname):
+            raise HTTPException(400, "Username non valido (3-20 caratteri: lettere, numeri, underscore)")
+        existing = await users_col.find_one({"username": uname, "id": {"$ne": user["id"]}})
+        if existing:
+            raise HTTPException(409, "Username già in uso")
+        updates["username"] = uname
     if req.date_of_birth is not None:
         try:
             dob = datetime.strptime(req.date_of_birth, "%Y-%m-%d").date()

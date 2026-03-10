@@ -300,6 +300,7 @@ const MENU_ITEMS = [
   {id:'roles', label:'Ruoli & Permessi', perm:'admin.roles.manage'},
   {id:'users', label:'Utenti', perm:'admin.users.manage'},
   {section: 'MONITORAGGIO'},
+  {id:'push', label:'Push Notifiche', perm:'admin.dashboard.view'},
   {id:'payments', label:'Pagamenti', perm:'admin.payments.view'},
   {id:'audit', label:'Audit Log', perm:'admin.audit.view'},
 ];
@@ -2492,6 +2493,98 @@ function renderPaymentsTable(payments) {
   });
   html += '</table>';
   document.getElementById('payments-table').innerHTML = html;
+}
+
+// ========================================
+// PUSH NOTIFICATIONS
+// ========================================
+async function render_push() {
+  if (!hasPerm('admin.dashboard.view')) { render_forbidden(); return; }
+
+  let leagues = [];
+  try { leagues = await apiCall('/rbac/leagues'); } catch(e) {}
+
+  let leagueOptions = '<option value="all">Tutti gli utenti</option>';
+  leagues.forEach(l => {
+    leagueOptions += `<option value="${l.id}">${l.name} (${l.member_count} membri)</option>`;
+  });
+
+  let html = `<h2>Push Notifiche</h2>
+  <div class="card" style="max-width:600px">
+    <h3 style="margin-top:0;margin-bottom:16px;color:#F59E0B">Invia notifica broadcast</h3>
+    <div class="form-row">
+      <label>Destinatario</label>
+      <select id="push-target" data-testid="push-target-select">${leagueOptions}</select>
+    </div>
+    <div class="form-row">
+      <label>Titolo *</label>
+      <input type="text" id="push-title" placeholder="es. Nuova giornata disponibile!" data-testid="push-title-input" />
+    </div>
+    <div class="form-row">
+      <label>Messaggio *</label>
+      <textarea id="push-body" rows="3" placeholder="Scrivi il messaggio della notifica..." style="width:100%;padding:10px;border:1px solid #E2E8F0;border-radius:8px;font-family:inherit;font-size:14px;resize:vertical" data-testid="push-body-input"></textarea>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;margin-top:16px">
+      <button onclick="sendBroadcastPush()" class="btn-primary" data-testid="push-send-btn" style="background:#F59E0B;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px">Invia Notifica</button>
+      <span id="push-result" style="font-size:13px"></span>
+    </div>
+  </div>
+
+  <div class="card" style="max-width:600px;margin-top:24px">
+    <h3 style="margin-top:0;margin-bottom:16px;color:#3B82F6">Invia a singolo utente</h3>
+    <div class="form-row">
+      <label>ID Utente *</label>
+      <input type="text" id="push-user-id" placeholder="ID utente (es. e0ada290-7c43...)" data-testid="push-user-id-input" />
+    </div>
+    <div class="form-row">
+      <label>Titolo *</label>
+      <input type="text" id="push-user-title" placeholder="Titolo notifica" data-testid="push-user-title-input" />
+    </div>
+    <div class="form-row">
+      <label>Messaggio *</label>
+      <textarea id="push-user-body" rows="3" placeholder="Messaggio..." style="width:100%;padding:10px;border:1px solid #E2E8F0;border-radius:8px;font-family:inherit;font-size:14px;resize:vertical" data-testid="push-user-body-input"></textarea>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;margin-top:16px">
+      <button onclick="sendUserPush()" style="background:#3B82F6;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px" data-testid="push-user-send-btn">Invia a Utente</button>
+      <span id="push-user-result" style="font-size:13px"></span>
+    </div>
+  </div>`;
+
+  document.getElementById('content').innerHTML = html;
+}
+
+async function sendBroadcastPush() {
+  const target = document.getElementById('push-target').value;
+  const title = document.getElementById('push-title').value.trim();
+  const body = document.getElementById('push-body').value.trim();
+  const resultEl = document.getElementById('push-result');
+  if (!title || !body) { resultEl.innerHTML = '<span style="color:#EF4444">Compila titolo e messaggio</span>'; return; }
+  resultEl.innerHTML = '<span style="color:#94A3B8">Invio in corso...</span>';
+  try {
+    const res = await apiCall('/admin/push/broadcast', 'POST', {title, body, target});
+    resultEl.innerHTML = `<span style="color:#10B981">Inviata a ${res.sent_count} utenti</span>`;
+    document.getElementById('push-title').value = '';
+    document.getElementById('push-body').value = '';
+  } catch(e) {
+    resultEl.innerHTML = `<span style="color:#EF4444">${e.message}</span>`;
+  }
+}
+
+async function sendUserPush() {
+  const userId = document.getElementById('push-user-id').value.trim();
+  const title = document.getElementById('push-user-title').value.trim();
+  const body = document.getElementById('push-user-body').value.trim();
+  const resultEl = document.getElementById('push-user-result');
+  if (!userId || !title || !body) { resultEl.innerHTML = '<span style="color:#EF4444">Compila tutti i campi</span>'; return; }
+  resultEl.innerHTML = '<span style="color:#94A3B8">Invio in corso...</span>';
+  try {
+    const res = await apiCall('/admin/push/user/'+userId, 'POST', {title, body});
+    resultEl.innerHTML = `<span style="color:#10B981">Notifica inviata!</span>`;
+    document.getElementById('push-user-title').value = '';
+    document.getElementById('push-user-body').value = '';
+  } catch(e) {
+    resultEl.innerHTML = `<span style="color:#EF4444">${e.message}</span>`;
+  }
 }
 
 // ========================================

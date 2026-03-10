@@ -1,104 +1,88 @@
 /**
- * CompleteProfileScreen — obbligatoria post-Google OAuth
- * Mostra i campi mancanti e i consensi
+ * Complete Profile Screen - After Google OAuth or initial registration
+ * Redesigned to match the FantaPronostic brand: dark theme with gradient
  */
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
-  Image, Dimensions, Modal, FlatList,
+  View, Text, TextInput, TouchableOpacity, ScrollView,
+  StyleSheet, ActivityIndicator, Platform, Modal, FlatList,
+  KeyboardAvoidingView, Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../src/contexts/AuthContext';
 import { apiCall } from '../src/api/client';
-import { colors, spacing, borderRadius, shadows, typography } from '../src/theme/designSystem';
+import { colors, typography, spacing, borderRadius, brandGradients, shadows } from '../src/theme/designSystem';
+import { BrandLogo } from '../src/components/BrandLogo';
 
 const { width } = Dimensions.get('window');
+const COUNTRIES = ['Italia', 'Svizzera', 'Germania', 'Francia', 'Spagna', 'Regno Unito', 'Altro'];
 
-const COUNTRIES = [
-  'Italia', 'Francia', 'Spagna', 'Germania', 'Portogallo',
-  'Inghilterra', 'Belgio', 'Olanda', 'Svizzera', 'Austria',
-  'Argentina', 'Brasile', 'Stati Uniti', 'Canada', 'Australia', 'Altro',
-];
+type FormState = {
+  firstName: string; lastName: string; username: string;
+  address: string; city: string; country: string; postalCode: string;
+};
 
 export default function CompleteProfileScreen() {
   const router = useRouter();
-  const { token, updateUser } = useAuth();
+  const { refreshUser } = useAuth();
 
-  const [form, setForm] = useState({
-    firstName: '', lastName: '', address: '', city: '', country: '', postalCode: '',
+  const [form, setForm] = useState<FormState>({
+    firstName: '', lastName: '', username: '',
+    address: '', city: '', country: 'Italia', postalCode: '',
   });
+  const set = (key: keyof FormState) => (val: string) => setForm(p => ({ ...p, [key]: val }));
+
   const [dob, setDob] = useState<Date | null>(null);
   const [showDobPicker, setShowDobPicker] = useState(false);
-  const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ [k: string]: string }>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState('');
 
-  const set = (key: string) => (val: string) => setForm(p => ({ ...p, [key]: val }));
-
-  const dobIso = (d: Date | null) => {
-    if (!d) return '';
-    const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  };
-
-  const formatDob = (d: Date | null) => {
-    if (!d) return '';
-    return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
-
-  const validate = () => {
-    const e: { [k: string]: string } = {};
-    if (!form.firstName.trim()) e.firstName = 'Nome obbligatorio';
-    if (!form.lastName.trim()) e.lastName = 'Cognome obbligatorio';
-    if (!dob) {
-      e.dob = 'Data di nascita obbligatoria';
-    } else {
-      const today = new Date();
-      const age = today.getFullYear() - dob.getFullYear() - ((today.getMonth() * 100 + today.getDate()) < (dob.getMonth() * 100 + dob.getDate()) ? 1 : 0);
-      if (age < 18) e.dob = 'Devi avere almeno 18 anni';
-    }
-    if (!form.address.trim()) e.address = 'Indirizzo obbligatorio';
-    if (!form.city.trim()) e.city = 'Città obbligatoria';
-    if (!form.country) e.country = 'Paese obbligatorio';
-    if (!form.postalCode.trim()) e.postalCode = 'CAP obbligatorio';
-    if (!acceptedPrivacy) e.privacy = 'Accetta la Privacy Policy';
-    if (!acceptedTerms) e.terms = 'Accetta i Termini e Condizioni';
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
+  const formatDob = (d: Date) => `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+    const e: Record<string, string> = {};
+    if (!form.firstName.trim()) e.firstName = 'Inserisci il nome';
+    if (!form.lastName.trim()) e.lastName = 'Inserisci il cognome';
+    if (form.username.trim() && !/^[a-zA-Z0-9_]{3,20}$/.test(form.username.trim())) e.username = '3-20 caratteri: lettere, numeri, _';
+    if (!dob) e.dob = 'Seleziona la data di nascita';
+    if (!form.address.trim()) e.address = 'Inserisci l\'indirizzo';
+    if (!form.city.trim()) e.city = 'Inserisci la città';
+    if (!form.postalCode.trim()) e.postalCode = 'Inserisci il CAP';
+    if (!form.country) e.country = 'Seleziona il paese';
+    if (!acceptedPrivacy) e.privacy = 'Devi accettare la Privacy Policy';
+    if (!acceptedTerms) e.terms = 'Devi accettare i Termini e Condizioni';
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
+
     setLoading(true);
     setSubmitError('');
     try {
-      const res = await apiCall('/users/me/complete-profile', {
-        method: 'POST',
-        token,
-        body: {
-          first_name: form.firstName.trim(),
-          last_name: form.lastName.trim(),
-          date_of_birth: dobIso(dob),
-          address: form.address.trim(),
-          city: form.city.trim(),
-          country: form.country,
-          postal_code: form.postalCode.trim(),
-          accepted_privacy: true,
-          accepted_terms: true,
-        },
-      });
-      if (updateUser) updateUser({ ...res.user, profile_completed: true });
-      // Navigate to league gate
-      router.replace('/');
+      const payload: any = {
+        first_name: form.firstName.trim(),
+        last_name: form.lastName.trim(),
+        date_of_birth: dob ? `${dob.getFullYear()}-${(dob.getMonth() + 1).toString().padStart(2, '0')}-${dob.getDate().toString().padStart(2, '0')}` : null,
+        address: form.address.trim(),
+        city: form.city.trim(),
+        country: form.country,
+        postal_code: form.postalCode.trim(),
+        accepted_privacy: true,
+        accepted_terms: true,
+      };
+      if (form.username.trim()) payload.username = form.username.trim();
+      const res = await apiCall('/users/me/complete-profile', { method: 'POST', body: payload });
+      await refreshUser();
+      router.replace('/(tabs)/home');
     } catch (e: unknown) {
-      setSubmitError(e.message || 'Errore nel salvataggio. Riprova.');
+      const err = e as any;
+      setSubmitError(err?.message || 'Errore nel salvataggio. Riprova.');
     } finally {
       setLoading(false);
     }
@@ -109,12 +93,13 @@ export default function CompleteProfileScreen() {
 
   return (
     <SafeAreaView style={s.container} edges={['top', 'bottom']}>
+      <LinearGradient colors={brandGradients.background} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
           {/* Header */}
           <View style={s.headerSection}>
-            <Image source={require('../assets/logo-full.png')} style={s.logo} resizeMode="contain" />
+            <BrandLogo variant="wordmark" size="lg" />
             <View style={s.badge}>
               <Ionicons name="shield-checkmark" size={16} color={colors.accent} />
               <Text style={s.badgeText}>Profilo incompleto</Text>
@@ -124,7 +109,6 @@ export default function CompleteProfileScreen() {
           <Text style={s.pageTitle}>Completa il tuo profilo</Text>
           <Text style={s.pageSubtitle}>
             Per accedere all'app è necessario completare il profilo con i dati richiesti.
-            Questo passaggio è obbligatorio.
           </Text>
 
           {submitError ? (
@@ -134,140 +118,159 @@ export default function CompleteProfileScreen() {
             </View>
           ) : null}
 
-          {/* Dati personali */}
-          <Text style={s.sectionLabel}>Dati personali</Text>
+          {/* Card con form */}
+          <View style={s.formCard}>
 
-          <View style={s.row2}>
-            <View style={{ flex: 1 }}>
-              <Text style={s.label}>Nome *</Text>
-              <View style={[s.inputRow, errors.firstName && { borderColor: colors.error }]}>
-                <Ionicons name="person-outline" size={18} color={colors.textSecondary} />
-                <TextInput
-                  style={s.input}
-                  placeholder="Mario"
-                  placeholderTextColor={colors.textMuted}
-                  value={form.firstName}
-                  onChangeText={v => { set('firstName')(v); setErrors(p => ({ ...p, firstName: '' })); }}
-                />
+            {/* Username */}
+            <Text style={s.sectionLabel}>Il tuo username</Text>
+            <Text style={s.label}>Username</Text>
+            <View style={[s.inputRow, errors.username && { borderColor: colors.error }]}>
+              <Ionicons name="at-outline" size={18} color={colors.textSecondary} />
+              <TextInput
+                style={s.input}
+                placeholder="es. mario_rossi"
+                placeholderTextColor={colors.textMuted}
+                value={form.username}
+                onChangeText={v => { set('username')(v); setErrors(p => ({ ...p, username: '' })); }}
+                autoCapitalize="none"
+                data-testid="username-input"
+              />
+            </View>
+            {errors.username ? <Text style={s.fieldError}>{errors.username}</Text> : null}
+            <Text style={s.hint}>Sarà visibile agli altri utenti nelle classifiche</Text>
+
+            {/* Dati personali */}
+            <Text style={s.sectionLabel}>Dati personali</Text>
+
+            <View style={s.row2}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.label}>Nome *</Text>
+                <View style={[s.inputRow, errors.firstName && { borderColor: colors.error }]}>
+                  <TextInput
+                    style={s.input}
+                    placeholder="Mario"
+                    placeholderTextColor={colors.textMuted}
+                    value={form.firstName}
+                    onChangeText={v => { set('firstName')(v); setErrors(p => ({ ...p, firstName: '' })); }}
+                  />
+                </View>
+                {errors.firstName ? <Text style={s.fieldError}>{errors.firstName}</Text> : null}
               </View>
-              {errors.firstName ? <Text style={s.fieldError}>{errors.firstName}</Text> : null}
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={s.label}>Cognome *</Text>
-              <View style={[s.inputRow, errors.lastName && { borderColor: colors.error }]}>
-                <Ionicons name="person" size={18} color={colors.textSecondary} />
-                <TextInput
-                  style={s.input}
-                  placeholder="Bianchi"
-                  placeholderTextColor={colors.textMuted}
-                  value={form.lastName}
-                  onChangeText={v => { set('lastName')(v); setErrors(p => ({ ...p, lastName: '' })); }}
-                />
+              <View style={{ flex: 1 }}>
+                <Text style={s.label}>Cognome *</Text>
+                <View style={[s.inputRow, errors.lastName && { borderColor: colors.error }]}>
+                  <TextInput
+                    style={s.input}
+                    placeholder="Bianchi"
+                    placeholderTextColor={colors.textMuted}
+                    value={form.lastName}
+                    onChangeText={v => { set('lastName')(v); setErrors(p => ({ ...p, lastName: '' })); }}
+                  />
+                </View>
+                {errors.lastName ? <Text style={s.fieldError}>{errors.lastName}</Text> : null}
               </View>
-              {errors.lastName ? <Text style={s.fieldError}>{errors.lastName}</Text> : null}
             </View>
-          </View>
 
-          <Text style={s.label}>Data di nascita *</Text>
-          <TouchableOpacity
-            style={[s.inputRow, { justifyContent: 'space-between' }, errors.dob && { borderColor: colors.error }]}
-            onPress={() => setShowDobPicker(true)}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
-              <Text style={{ color: dob ? colors.textPrimary : colors.textMuted, fontSize: 15 }}>
-                {dob ? formatDob(dob) : 'GG/MM/AAAA'}
-              </Text>
-            </View>
-            <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
-          </TouchableOpacity>
-          {errors.dob ? <Text style={s.fieldError}>{errors.dob}</Text> : null}
-
-          {showDobPicker && (
-            <DateTimePicker
-              value={dob || maxDob}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
-              maximumDate={maxDob}
-              minimumDate={new Date(1920, 0, 1)}
-              onChange={(_, d) => {
-                setShowDobPicker(Platform.OS === 'ios');
-                if (d) { setDob(d); setErrors(p => ({ ...p, dob: '' })); }
-              }}
-            />
-          )}
-          {Platform.OS === 'ios' && showDobPicker && (
-            <TouchableOpacity style={s.confirmDobBtn} onPress={() => setShowDobPicker(false)}>
-              <Text style={s.confirmDobText}>Conferma</Text>
+            <Text style={s.label}>Data di nascita *</Text>
+            <TouchableOpacity
+              style={[s.inputRow, { justifyContent: 'space-between' }, errors.dob && { borderColor: colors.error }]}
+              onPress={() => setShowDobPicker(true)}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
+                <Text style={{ color: dob ? colors.textPrimary : colors.textMuted, fontSize: 15 }}>
+                  {dob ? formatDob(dob) : 'GG/MM/AAAA'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
             </TouchableOpacity>
-          )}
+            {errors.dob ? <Text style={s.fieldError}>{errors.dob}</Text> : null}
 
-          {/* Indirizzo */}
-          <Text style={s.sectionLabel}>Indirizzo</Text>
+            {showDobPicker && (
+              <DateTimePicker
+                value={dob || maxDob}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                maximumDate={maxDob}
+                minimumDate={new Date(1920, 0, 1)}
+                onChange={(_, d) => {
+                  setShowDobPicker(Platform.OS === 'ios');
+                  if (d) { setDob(d); setErrors(p => ({ ...p, dob: '' })); }
+                }}
+              />
+            )}
+            {Platform.OS === 'ios' && showDobPicker && (
+              <TouchableOpacity style={s.confirmDobBtn} onPress={() => setShowDobPicker(false)}>
+                <Text style={s.confirmDobText}>Conferma</Text>
+              </TouchableOpacity>
+            )}
 
-          <Text style={s.label}>Via / Indirizzo *</Text>
-          <View style={[s.inputRow, errors.address && { borderColor: colors.error }]}>
-            <Ionicons name="home-outline" size={18} color={colors.textSecondary} />
-            <TextInput
-              style={s.input}
-              placeholder="Via Roma 1"
-              placeholderTextColor={colors.textMuted}
-              value={form.address}
-              onChangeText={v => { set('address')(v); setErrors(p => ({ ...p, address: '' })); }}
-            />
-          </View>
-          {errors.address ? <Text style={s.fieldError}>{errors.address}</Text> : null}
+            {/* Indirizzo */}
+            <Text style={s.sectionLabel}>Indirizzo</Text>
 
-          <View style={s.row2}>
-            <View style={{ flex: 1 }}>
-              <Text style={s.label}>Città *</Text>
-              <View style={[s.inputRow, errors.city && { borderColor: colors.error }]}>
-                <Ionicons name="location-outline" size={18} color={colors.textSecondary} />
-                <TextInput
-                  style={s.input}
-                  placeholder="Milano"
-                  placeholderTextColor={colors.textMuted}
-                  value={form.city}
-                  onChangeText={v => { set('city')(v); setErrors(p => ({ ...p, city: '' })); }}
-                />
+            <Text style={s.label}>Via / Indirizzo *</Text>
+            <View style={[s.inputRow, errors.address && { borderColor: colors.error }]}>
+              <Ionicons name="home-outline" size={18} color={colors.textSecondary} />
+              <TextInput
+                style={s.input}
+                placeholder="Via Roma 1"
+                placeholderTextColor={colors.textMuted}
+                value={form.address}
+                onChangeText={v => { set('address')(v); setErrors(p => ({ ...p, address: '' })); }}
+              />
+            </View>
+            {errors.address ? <Text style={s.fieldError}>{errors.address}</Text> : null}
+
+            <View style={s.row2}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.label}>Città *</Text>
+                <View style={[s.inputRow, errors.city && { borderColor: colors.error }]}>
+                  <TextInput
+                    style={s.input}
+                    placeholder="Milano"
+                    placeholderTextColor={colors.textMuted}
+                    value={form.city}
+                    onChangeText={v => { set('city')(v); setErrors(p => ({ ...p, city: '' })); }}
+                  />
+                </View>
+                {errors.city ? <Text style={s.fieldError}>{errors.city}</Text> : null}
               </View>
-              {errors.city ? <Text style={s.fieldError}>{errors.city}</Text> : null}
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={s.label}>CAP *</Text>
-              <View style={[s.inputRow, errors.postalCode && { borderColor: colors.error }]}>
-                <Ionicons name="mail" size={18} color={colors.textSecondary} />
-                <TextInput
-                  style={s.input}
-                  placeholder="20121"
-                  placeholderTextColor={colors.textMuted}
-                  value={form.postalCode}
-                  onChangeText={v => { set('postalCode')(v); setErrors(p => ({ ...p, postalCode: '' })); }}
-                />
+              <View style={{ flex: 1 }}>
+                <Text style={s.label}>CAP *</Text>
+                <View style={[s.inputRow, errors.postalCode && { borderColor: colors.error }]}>
+                  <TextInput
+                    style={s.input}
+                    placeholder="20121"
+                    placeholderTextColor={colors.textMuted}
+                    value={form.postalCode}
+                    onChangeText={v => { set('postalCode')(v); setErrors(p => ({ ...p, postalCode: '' })); }}
+                  />
+                </View>
+                {errors.postalCode ? <Text style={s.fieldError}>{errors.postalCode}</Text> : null}
               </View>
-              {errors.postalCode ? <Text style={s.fieldError}>{errors.postalCode}</Text> : null}
             </View>
-          </View>
 
-          <Text style={s.label}>Paese *</Text>
-          <TouchableOpacity
-            style={[s.inputRow, { justifyContent: 'space-between' }, errors.country && { borderColor: colors.error }]}
-            onPress={() => setShowCountryPicker(true)}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <Ionicons name="globe-outline" size={18} color={colors.textSecondary} />
-              <Text style={{ color: form.country ? colors.textPrimary : colors.textMuted, fontSize: 15 }}>
-                {form.country || 'Seleziona paese'}
-              </Text>
-            </View>
-            <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
-          </TouchableOpacity>
-          {errors.country ? <Text style={s.fieldError}>{errors.country}</Text> : null}
+            <Text style={s.label}>Paese *</Text>
+            <TouchableOpacity
+              style={[s.inputRow, { justifyContent: 'space-between' }, errors.country && { borderColor: colors.error }]}
+              onPress={() => setShowCountryPicker(true)}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                <Ionicons name="globe-outline" size={18} color={colors.textSecondary} />
+                <Text style={{ color: form.country ? colors.textPrimary : colors.textMuted, fontSize: 15 }}>
+                  {form.country || 'Seleziona paese'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
+            </TouchableOpacity>
+            {errors.country ? <Text style={s.fieldError}>{errors.country}</Text> : null}
+
+          </View>
 
           {/* Consensi */}
-          <Text style={s.sectionLabel}>Consensi obbligatori</Text>
+          <Text style={[s.sectionLabel, { marginTop: spacing.xl }]}>Consensi obbligatori</Text>
 
-          <TouchableOpacity style={s.checkboxRow} onPress={() => setAcceptedPrivacy(v => !v)}>
+          <TouchableOpacity style={s.checkboxRow} onPress={() => setAcceptedPrivacy(v => !v)} data-testid="privacy-checkbox">
             <View style={[s.checkbox, acceptedPrivacy && s.checkboxChecked]}>
               {acceptedPrivacy && <Ionicons name="checkmark" size={14} color="#fff" />}
             </View>
@@ -275,7 +278,7 @@ export default function CompleteProfileScreen() {
           </TouchableOpacity>
           {errors.privacy ? <Text style={s.fieldError}>{errors.privacy}</Text> : null}
 
-          <TouchableOpacity style={s.checkboxRow} onPress={() => setAcceptedTerms(v => !v)}>
+          <TouchableOpacity style={s.checkboxRow} onPress={() => setAcceptedTerms(v => !v)} data-testid="terms-checkbox">
             <View style={[s.checkbox, acceptedTerms && s.checkboxChecked]}>
               {acceptedTerms && <Ionicons name="checkmark" size={14} color="#fff" />}
             </View>
@@ -288,8 +291,16 @@ export default function CompleteProfileScreen() {
             onPress={handleSubmit}
             disabled={loading}
             activeOpacity={0.85}
+            data-testid="complete-profile-submit"
           >
-            {loading ? <ActivityIndicator color={colors.textInverse} /> : <Text style={s.submitBtnText}>SALVA E CONTINUA</Text>}
+            <LinearGradient
+              colors={brandGradients.accent}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={s.submitGradient}
+            >
+              {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.submitBtnText}>SALVA E CONTINUA</Text>}
+            </LinearGradient>
           </TouchableOpacity>
 
         </ScrollView>
@@ -324,18 +335,19 @@ export default function CompleteProfileScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxxl },
-  headerSection: { alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
-  logo: { width: width * 0.45, height: 100 },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, backgroundColor: `${colors.accent}15`, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: borderRadius.pill },
+  headerSection: { alignItems: 'center', marginBottom: spacing.lg, marginTop: spacing.md, gap: spacing.md },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, backgroundColor: `${colors.accent}20`, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: borderRadius.pill },
   badgeText: { ...typography.meta, color: colors.accent, fontWeight: '700' },
-  pageTitle: { ...typography.titleL, color: colors.textPrimary, marginBottom: spacing.xs },
-  pageSubtitle: { ...typography.bodyS, color: colors.textSecondary, lineHeight: 20, marginBottom: spacing.lg },
+  pageTitle: { ...typography.titleL, color: colors.textPrimary, marginBottom: spacing.xs, textAlign: 'center' },
+  pageSubtitle: { ...typography.bodyS, color: colors.textSecondary, lineHeight: 20, marginBottom: spacing.lg, textAlign: 'center' },
   errorBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.errorLight, borderRadius: borderRadius.md, padding: spacing.md, marginBottom: spacing.lg },
   errorBannerText: { flex: 1, ...typography.bodyS, color: colors.error },
-  sectionLabel: { ...typography.meta, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1, marginTop: spacing.xl, marginBottom: spacing.md, fontWeight: '700' },
-  row2: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md },
+  formCard: { backgroundColor: colors.card, borderRadius: borderRadius.xl, padding: spacing.lg, borderWidth: 1, borderColor: colors.border },
+  sectionLabel: { ...typography.meta, color: colors.accent, textTransform: 'uppercase', letterSpacing: 1.2, marginTop: spacing.lg, marginBottom: spacing.sm, fontWeight: '700' },
+  row2: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.xs },
   label: { ...typography.bodyS, color: colors.textSecondary, marginBottom: spacing.xs, fontWeight: '600', marginTop: spacing.sm },
-  inputRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: colors.border, borderRadius: borderRadius.lg, height: 52, paddingHorizontal: spacing.md, gap: spacing.sm, backgroundColor: colors.background, marginBottom: 2 },
+  hint: { ...typography.meta, color: colors.textMuted, marginTop: 2, marginBottom: spacing.sm },
+  inputRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: colors.border, borderRadius: borderRadius.lg, height: 50, paddingHorizontal: spacing.md, gap: spacing.sm, backgroundColor: colors.background, marginBottom: 2 },
   input: { flex: 1, fontSize: 15, color: colors.textPrimary, height: '100%' },
   fieldError: { ...typography.meta, color: colors.error, marginTop: 2, marginBottom: spacing.xs },
   confirmDobBtn: { alignSelf: 'flex-end', marginBottom: spacing.md, backgroundColor: colors.accent, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm, borderRadius: borderRadius.md },
@@ -345,8 +357,9 @@ const s = StyleSheet.create({
   checkboxChecked: { backgroundColor: colors.accent, borderColor: colors.accent },
   checkboxLabel: { flex: 1, ...typography.bodyS, color: colors.textPrimary, lineHeight: 20 },
   checkboxLink: { color: colors.accent, fontWeight: '700' },
-  submitBtn: { height: 56, borderRadius: borderRadius.lg, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginTop: spacing.xl, ...shadows.button },
-  submitBtnText: { fontSize: 16, fontWeight: '800', color: colors.textInverse, letterSpacing: 1 },
+  submitBtn: { height: 56, borderRadius: borderRadius.lg, overflow: 'hidden', marginTop: spacing.xl },
+  submitGradient: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  submitBtnText: { fontSize: 16, fontWeight: '800', color: '#fff', letterSpacing: 1 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   modalSheet: { borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%', padding: spacing.lg },
   modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, alignSelf: 'center', marginBottom: spacing.md },

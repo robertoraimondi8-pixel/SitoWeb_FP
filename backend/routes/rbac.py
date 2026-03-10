@@ -927,6 +927,10 @@ async def generate_reset_password_link(user_id: str, request: Request, user=Depe
     host = request.headers.get("host", "localhost")
     reset_url = f"{proto}://{host}/api/reset-password?token={raw_token}"
 
+    # Send email via SendGrid (non-blocking)
+    from email_service import send_password_reset_email
+    await send_password_reset_email(target["email"], reset_url, target.get("username", ""))
+
     ip = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
     await log_audit(
         user["id"], user["username"], "GENERATE_RESET_LINK", "user", user_id,

@@ -411,10 +411,7 @@ async def join_league_direct(league_id: str, user=Depends(get_current_user)):
     if existing:
         return {"message": "Sei già membro di questa lega", "already_member": True}
     if league.get("league_type") == "national":
-        from database import payments_col
-        paid_payment = await payments_col.find_one({"user_id": user["id"], "league_id": league_id, "payment_status": "paid"})
-        if not paid_payment:
-            logger.info(f"[JoinDirect] National join without paid record – fallback for user {user['id'][:8]}")
+        logger.info(f"[JoinDirect] National league join (free) for user {user['id'][:8]}")
     await memberships_col.insert_one({"id": new_id(), "user_id": user["id"], "league_id": league_id, "status": "active", "joined_at": now_utc(), "payment_id": None})
     logger.info(f"[JoinDirect] User {user['id'][:8]} joined league {league_id[:8]}")
     return {"message": "Iscrizione alla lega completata", "already_member": False}

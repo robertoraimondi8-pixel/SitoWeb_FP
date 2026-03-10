@@ -428,3 +428,71 @@ async def admin_score_summaries(matchday_id: str, admin=Depends(require_permissi
         u = await users_col.find_one({"id": s["user_id"]}, {"_id": 0, "password": 0})
         s["username"] = u["username"] if u else "Unknown"
     return summaries
+
+
+# ========================================
+# PUSH NOTIFICATIONS (ADMIN)
+# ========================================
+@admin_router.post("/push/broadcast")
+async def admin_push_broadcast(request_body: dict, admin=Depends(require_permission("admin.dashboard.view"))):
+    """Send a push notification to all users or a specific league."""
+    from database import push_tokens_col
+    from services import send_expo_push, create_notification, create_notification_for_league, PUSH_ENABLED
+
+    title = request_body.get("title", "").strip()
+    body = request_body.get("body", "").strip()
+    target = request_body.get("target", "all")  # "all" or league_id
+    if not title or not body:
+        raise HTTPException(400, "Titolo e messaggio sono obbligatori")
+
+    if not PUSH_ENABLED:
+        raise HTTPException(503, "Push notifications non attive. Imposta PUSH_NOTIFICATIONS_ENABLED=true nel .env")
+
+    sent_count = 0
+    if target == "all":
+        all_users = await users_col.find(
+            {"is_deleted": {"$ne": True}, "is_disabled": {"$ne": True}},
+            {"_id": 0, "id": 1}
+        ).to_list(10000)
+        for u in all_users:
+            await create_notification(u["id"], "admin_broadcast", title, body)
+            sent_count += 1
+    else:
+        league = await leagues_col.find_one({"id": target}, {"_id": 0})
+        if not league:
+            raise HTTPException(404, "Lega non trovata")
+        await create_notification_for_league(target, "admin_broadcast", title, body)
+        members = await memberships_col.count_documents({"league_id": target, "status": "active"})
+        sent_count = members
+
+    await log_audit(
+        admin["id"], admin["username"], "PUSH_BROADCAST", "notification", "",
+        {"title": title, "target": target, "sent_count": sent_count},
+    )
+    return {"sent_count": sent_count, "target": target}
+
+
+@admin_router.post("/push/user/{user_id}")
+async def admin_push_to_user(user_id: str, request_body: dict, admin=Depends(require_permission("admin.users.manage"))):
+    """Send a push notification to a specific user."""
+    from services import create_notification, PUSH_ENABLED
+
+    title = request_body.get("title", "").strip()
+    body = request_body.get("body", "").strip()
+    if not title or not body:
+        raise HTTPException(400, "Titolo e messaggio sono obbligatori")
+
+    if not PUSH_ENABLED:
+        raise HTTPException(503, "Push notifications non attive")
+
+    target_user = await users_col.find_one({"id": user_id}, {"_id": 0, "id": 1, "username": 1})
+    if not target_user:
+        raise HTTPException(404, "Utente non trovato")
+
+    await create_notification(user_id, "admin_message", title, body)
+
+    await log_audit(
+        admin["id"], admin["username"], "PUSH_USER", "notification", user_id,
+        {"title": title, "target_username": target_user["username"]},
+    )
+    return {"sent": True, "user_id": user_id}
