@@ -793,6 +793,45 @@ async def get_my_matchups(tournament_id: str, user=Depends(get_current_user)):
 
 
 
+# ── All tournament matchups (for Classifiche > Partite tab) ──
+
+@tournament_router.get("/{tournament_id}/all-matchups")
+async def get_all_matchups(tournament_id: str, user=Depends(get_current_user)):
+    """Returns ALL matchups for a tournament, grouped by round_type + round_number."""
+    t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+    if not t:
+        raise HTTPException(404, "Torneo non trovato")
+
+    matchups = await tournament_matchups_col.find(
+        {"tournament_id": tournament_id}, {"_id": 0}
+    ).to_list(200)
+
+    matchups.sort(key=lambda x: (
+        0 if x.get("round_type") == "group" else 1,
+        x.get("round_number", 0),
+        x.get("group_id", "")
+    ))
+
+    # Group by round_type + round_number
+    from collections import OrderedDict
+    rounds: dict = OrderedDict()
+    type_labels = {"group": "Girone", "quarterfinal": "Quarti di Finale", "semifinal": "Semifinale", "final": "Finale"}
+    for mu in matchups:
+        rt = mu.get("round_type", "group")
+        rn = mu.get("round_number", 0)
+        key = f"{rt}_{rn}"
+        if key not in rounds:
+            label = type_labels.get(rt, rt.title())
+            if rt == "group":
+                label = f"Girone - Round {rn}"
+            rounds[key] = {"label": label, "round_type": rt, "round_number": rn, "matchups": []}
+        rounds[key]["matchups"].append(mu)
+
+    return list(rounds.values())
+
+
+
+
 # ── Group standings ──
 
 @tournament_router.get("/{tournament_id}/groups")

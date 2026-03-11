@@ -210,11 +210,12 @@ export default function RankingsScreen() {
   };
 
   // ══ TOURNAMENT RANKINGS ══
-  const [trkTab, setTrkTab] = useState<'gironi' | 'tabellone'>('gironi');
+  const [trkTab, setTrkTab] = useState<'gironi' | 'tabellone' | 'partite'>('gironi');
   const [trkGroups, setTrkGroups] = useState<any[]>([]);
   const [trkBracket, setTrkBracket] = useState<any[]>([]);
   const [trkLoading, setTrkLoading] = useState(true);
   const [trkTournament, setTrkTournament] = useState<any>(null);
+  const [trkAllMatchups, setTrkAllMatchups] = useState<any[]>([]);
 
   useEffect(() => {
     if (competitionMode !== 'tournament' || !tournamentId || !token) return;
@@ -223,9 +224,11 @@ export default function RankingsScreen() {
       apiCall(`/tournaments/${tournamentId}`, { token }),
       apiCall(`/tournaments/${tournamentId}/groups`, { token }).catch(() => []),
       apiCall(`/tournaments/${tournamentId}/bracket`, { token }).catch(() => ({})),
-    ]).then(([detail, groups, bracketRes]) => {
+      apiCall(`/tournaments/${tournamentId}/all-matchups`, { token }).catch(() => []),
+    ]).then(([detail, groups, bracketRes, allMatchups]) => {
       setTrkTournament(detail);
       setTrkGroups(groups || []);
+      setTrkAllMatchups(allMatchups || []);
       // bracket API returns { bracket: { semifinal: [...], final: [...] } }
       const raw = bracketRes?.bracket || {};
       const rounds = Object.entries(raw).map(([roundType, matchups]) => ({
@@ -255,7 +258,7 @@ export default function RankingsScreen() {
           <Ionicons name="flash" size={16} color="#22c55e" />
           <Text style={styles.singleLeagueText}>{tournamentName}</Text>
         </View>
-        {/* Tabs: Gironi | Tabellone */}
+        {/* Tabs: Gironi | Tabellone | Partite */}
         <View style={styles.tabContainer}>
           <View style={styles.tabRow}>
             <TouchableOpacity onPress={() => setTrkTab('gironi')} style={[styles.tabBtn, trkTab === 'gironi' && styles.tabBtnActive]} data-testid="trk-tab-gironi">
@@ -263,6 +266,9 @@ export default function RankingsScreen() {
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setTrkTab('tabellone')} style={[styles.tabBtn, trkTab === 'tabellone' && styles.tabBtnActive]} data-testid="trk-tab-tabellone">
               <Text style={[styles.tabText, trkTab === 'tabellone' && styles.tabTextActive]}>Tabellone</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setTrkTab('partite')} style={[styles.tabBtn, trkTab === 'partite' && styles.tabBtnActive]} data-testid="trk-tab-partite">
+              <Text style={[styles.tabText, trkTab === 'partite' && styles.tabTextActive]}>Partite</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -341,6 +347,47 @@ export default function RankingsScreen() {
                         </View>
                         <Text style={{ fontSize: 14, fontWeight: m.user_b_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{m.user_b_username || 'TBD'}</Text>
                       </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
+          </ScrollView>
+        )}
+
+        {/* PARTITE TAB */}
+        {!trkLoading && trkTab === 'partite' && (
+          <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
+            {trkAllMatchups.length === 0 ? (
+              <View style={{ padding: 32, alignItems: 'center' }}>
+                <Ionicons name="football-outline" size={40} color={colors.textMuted} />
+                <Text style={{ marginTop: 12, fontSize: 14, color: colors.textMuted, textAlign: 'center' }}>Nessuna partita ancora disponibile</Text>
+              </View>
+            ) : trkAllMatchups.map((round: any) => (
+              <View key={`${round.round_type}_${round.round_number}`} style={{ marginBottom: 20 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <View style={{ width: 4, height: 20, backgroundColor: round.round_type === 'group' ? '#22c55e' : colors.primary, borderRadius: 2 }} />
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.8 }}>{round.label}</Text>
+                  <View style={{ backgroundColor: round.round_type === 'group' ? 'rgba(34,197,94,0.1)' : 'rgba(31,76,143,0.1)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: round.round_type === 'group' ? '#22c55e' : colors.primary }}>{(round.matchups || []).length} sfide</Text>
+                  </View>
+                </View>
+                {(round.matchups || []).map((m: any) => {
+                  const isMyMatch = m.user_a_id === user?.id || m.user_b_id === user?.id;
+                  const isDone = m.status === 'completed';
+                  const statusColor = isDone ? colors.primary : m.status === 'pending' ? '#9ca3af' : '#22c55e';
+                  const statusLabel = isDone ? 'Completata' : m.status === 'pending' ? 'Da giocare' : 'In corso';
+                  return (
+                    <View key={m.id} style={{ backgroundColor: isMyMatch ? 'rgba(245,166,35,0.06)' : '#fff', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: isMyMatch ? 1.5 : 1, borderColor: isMyMatch ? colors.accent : '#e8e8e8' }}>
+                      {isMyMatch && <Text style={{ fontSize: 9, fontWeight: '800', color: colors.accent, letterSpacing: 1, marginBottom: 6 }}>LA TUA SFIDA</Text>}
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 14, fontWeight: m.user_a_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1 }} numberOfLines={1}>{m.user_a_username || 'TBD'}</Text>
+                        <View style={{ backgroundColor: statusColor, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginHorizontal: 8 }}>
+                          <Text style={{ fontSize: 12, fontWeight: '800', color: '#fff' }}>{isDone ? `${m.user_a_points?.toFixed(1)} : ${m.user_b_points?.toFixed(1)}` : statusLabel}</Text>
+                        </View>
+                        <Text style={{ fontSize: 14, fontWeight: m.user_b_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{m.user_b_username || 'TBD'}</Text>
+                      </View>
+                      {m.group_name && <Text style={{ fontSize: 10, color: colors.textMuted, marginTop: 6 }}>Girone {m.group_name}</Text>}
                     </View>
                   );
                 })}

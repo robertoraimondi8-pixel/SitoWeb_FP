@@ -18,8 +18,6 @@ import { MatchDetailSheet } from './MatchDetailSheet';
 
 const DARK = { accent: '#F5A623', textMuted: 'rgba(255,255,255,0.45)' };
 
-type Tab = 'sfide' | 'groups' | 'bracket';
-
 interface Props {
   tournamentId: string;
 }
@@ -28,12 +26,9 @@ export function TournamentView({ tournamentId }: Props) {
   const { token, user } = useAuth();
   const router = useRouter();
   const [tournament, setTournament] = useState<any>(null);
-  const [groupStandings, setGroupStandings] = useState<any[]>([]);
-  const [bracket, setBracket] = useState<Record<string, any[]>>({});
   const [myMatchups, setMyMatchups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>('sfide');
   const [joining, setJoining] = useState(false);
 
   // Matchup live state — renders INLINE, not in a separate page
@@ -46,15 +41,11 @@ export function TournamentView({ tournamentId }: Props) {
   const fetchData = useCallback(async () => {
     if (!token || !tournamentId) return;
     try {
-      const [detail, groups, bracketData, matchups] = await Promise.all([
+      const [detail, matchups] = await Promise.all([
         apiCall<any>(`/tournaments/${tournamentId}`, { token }),
-        apiCall<any[]>(`/tournaments/${tournamentId}/groups`, { token }).catch(() => []),
-        apiCall<any>(`/tournaments/${tournamentId}/bracket`, { token }).catch(() => ({ bracket: {} })),
         apiCall<any[]>(`/tournaments/${tournamentId}/my-matchups`, { token }).catch(() => []),
       ]);
       setTournament(detail);
-      setGroupStandings(groups);
-      setBracket(bracketData.bracket || {});
       setMyMatchups(matchups);
     } catch (e) { console.error(e); }
     finally { setLoading(false); setRefreshing(false); }
@@ -340,104 +331,89 @@ export function TournamentView({ tournamentId }: Props) {
         </LinearGradient>
       )}
 
-      {/* Tab bar */}
-      {hasGroups && (
-        <View style={s.tabBar}>
-          {(['sfide', 'groups', 'bracket'] as Tab[]).map(tab => {
-            const labels: Record<Tab, string> = { sfide: 'Le mie sfide', groups: 'Gironi', bracket: 'Tabellone' };
-            const icons: Record<Tab, string> = { sfide: 'flash', groups: 'grid', bracket: 'git-network' };
-            const isActive = activeTab === tab;
-            const disabled = tab === 'bracket' && t.status === 'groups';
-            return (
-              <TouchableOpacity key={tab} style={[s.tabItem, isActive && s.tabItemActive]} onPress={() => !disabled && setActiveTab(tab)} disabled={disabled} data-testid={`tab-${tab}`}>
-                <Ionicons name={icons[tab] as any} size={16} color={isActive ? colors.accent : disabled ? 'rgba(0,0,0,0.2)' : colors.textSecondary} />
-                <Text style={[s.tabLabel, isActive && s.tabLabelActive, disabled && { color: 'rgba(0,0,0,0.2)' }]}>{labels[tab]}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      )}
-
-      {/* LE MIE SFIDE */}
-      {activeTab === 'sfide' && hasGroups && myMatchups.map(mu => {
-        const isA = mu.user_a_id === user?.id;
-        const opp = isA ? mu.user_b_username : mu.user_a_username;
-        const myPts = isA ? mu.user_a_points : mu.user_b_points;
-        const oppPts = isA ? mu.user_b_points : mu.user_a_points;
-        const won = mu.result === (isA ? 'user_a_win' : 'user_b_win');
-        const lost = mu.result === (isA ? 'user_b_win' : 'user_a_win');
-        const isDone = mu.status === 'completed';
-        const rl: Record<string, string> = { group: 'Girone', quarterfinal: 'Quarti', semifinal: 'Semi', final: 'Finale' };
+      {/* ═══ PERFORMANCE ═══ mirrors league home */}
+      {hasGroups && myMatchups.length > 0 && (() => {
+        const completed = myMatchups.filter((m: any) => m.status === 'completed');
+        const isA = (m: any) => m.user_a_id === user?.id;
+        const wins = completed.filter((m: any) => m.result === (isA(m) ? 'user_a_win' : 'user_b_win')).length;
+        const draws = completed.filter((m: any) => m.result === 'draw').length;
+        const losses = completed.filter((m: any) => m.result === (isA(m) ? 'user_b_win' : 'user_a_win')).length;
+        const totalPts = completed.reduce((s: number, m: any) => s + (isA(m) ? m.user_a_points : m.user_b_points), 0);
+        const last5 = myMatchups.slice(-5).map((m: any) => ({
+          points: isA(m) ? m.user_a_points : m.user_b_points,
+          label: m.round_type === 'group' ? `G${m.round_number}` : m.round_type.charAt(0).toUpperCase(),
+        }));
         return (
-          <TouchableOpacity key={mu.id} onPress={() => openMatchupLive(mu)} data-testid={`matchup-${mu.id}`}>
-            <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.matchupCard}>
-              <AnimatedSweep />
-              <View style={s.matchupHeader}><Text style={s.matchupRound}>{rl[mu.round_type] || mu.round_type} - Round {mu.round_number}</Text>
-                {isDone && won && <View style={[s.badge, { backgroundColor: 'rgba(34,197,94,0.2)' }]}><Text style={[s.badgeText, { color: colors.success }]}>VITTORIA</Text></View>}
-                {isDone && lost && <View style={[s.badge, { backgroundColor: 'rgba(239,68,68,0.2)' }]}><Text style={[s.badgeText, { color: colors.error }]}>SCONFITTA</Text></View>}
-                {isDone && mu.result === 'draw' && <View style={[s.badge, { backgroundColor: 'rgba(245,166,35,0.2)' }]}><Text style={[s.badgeText, { color: colors.accent }]}>PAREGGIO</Text></View>}
-                {!isDone && <View style={[s.badge, { backgroundColor: 'rgba(34,197,94,0.2)' }]}><Text style={[s.badgeText, { color: colors.success }]}>IN CORSO</Text></View>}
-              </View>
-              <View style={s.muScoreRow}>
-                <View style={s.muPlayer}><View style={[s.muAvatar, s.muAvatarMe]}><Text style={s.muAvatarText}>{user?.username?.charAt(0)?.toUpperCase() || 'T'}</Text></View><Text style={[s.muName, { color: colors.accent }]}>Tu</Text><Text style={s.muPtsSmall}>{myPts.toFixed(1)}</Text></View>
-                <View style={s.muCenter}><Text style={s.muVs}>VS</Text></View>
-                <View style={s.muPlayer}><View style={s.muAvatar}><Text style={s.muAvatarText}>{opp.charAt(0).toUpperCase()}</Text></View><Text style={s.muName}>{opp}</Text><Text style={s.muPtsSmall}>{oppPts.toFixed(1)}</Text></View>
-              </View>
-              <View style={s.matchupFooter}><Text style={s.matchupCta}>Vedi sfida</Text><Ionicons name="chevron-forward" size={16} color={colors.accent} /></View>
-            </LinearGradient>
-          </TouchableOpacity>
-        );
-      })}
-      {activeTab === 'sfide' && hasGroups && myMatchups.length === 0 && (
-        <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.emptyCard}>
-          <AnimatedSweep /><Ionicons name="flash-outline" size={40} color={DARK.textMuted} /><Text style={s.emptyTitle}>Nessuna sfida ancora</Text>
-        </LinearGradient>
-      )}
-
-      {/* GIRONI */}
-      {activeTab === 'groups' && hasGroups && groupStandings.map(g => (
-        <LinearGradient key={g.group_id} colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.groupCard}>
-          <AnimatedSweep />
-          <Text style={s.groupTitle}>Girone {g.group_name}</Text>
-          <View style={s.tblHeader}><Text style={[s.tblCell, { flex: 2.5, textAlign: 'left' }]}>#</Text><Text style={s.tblCell}>G</Text><Text style={s.tblCell}>V</Text><Text style={s.tblCell}>P</Text><Text style={s.tblCell}>S</Text><Text style={[s.tblCell, { fontWeight: '800' }]}>PT</Text></View>
-          {g.standings.map((st: any, idx: number) => {
-            const q = idx < tournament.advance_count;
-            const me = st.user_id === user?.id;
-            return (
-              <View key={st.user_id} style={[s.tblRow, q && { borderLeftWidth: 3, borderLeftColor: colors.success, paddingLeft: 6 }, me && { backgroundColor: 'rgba(245,166,35,0.1)' }]}>
-                <View style={[s.tblCell, { flex: 2.5, flexDirection: 'row', alignItems: 'center', gap: 6 }]}><Text style={s.posNum}>{idx + 1}</Text><Text style={[s.userName, me && { color: colors.accent }]} numberOfLines={1}>{st.username}</Text></View>
-                <Text style={s.tblCell}>{st.played}</Text><Text style={[s.tblCell, { color: colors.success }]}>{st.wins}</Text><Text style={s.tblCell}>{st.draws}</Text><Text style={[s.tblCell, { color: colors.error }]}>{st.losses}</Text><Text style={[s.tblCell, { fontWeight: '800', color: '#fff' }]}>{st.group_points}</Text>
-              </View>
-            );
-          })}
-        </LinearGradient>
-      ))}
-      {activeTab === 'groups' && hasGroups && groupStandings.length === 0 && (
-        <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.emptyCard}><AnimatedSweep /><Ionicons name="grid-outline" size={40} color={DARK.textMuted} /><Text style={s.emptyTitle}>Gironi non ancora generati</Text></LinearGradient>
-      )}
-
-      {/* TABELLONE */}
-      {activeTab === 'bracket' && hasGroups && Object.entries(bracket).map(([phase, matchups]) => (
-        <View key={phase}>
-          <Text style={s.sectionLabel}>{phase.toUpperCase()}</Text>
-          {matchups.map((mu: any) => {
-            const aW = mu.result === 'user_a_win'; const bW = mu.result === 'user_b_win';
-            return (
-              <TouchableOpacity key={mu.id} onPress={() => openMatchupLive(mu)} data-testid={`bracket-${mu.id}`}>
-                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.bracketCard}>
+          <>
+            <Text style={s.sectionLabel}>PERFORMANCE</Text>
+            <View style={s.perfRow}>
+              <View style={s.perfCardOuter}>
+                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCard}>
                   <AnimatedSweep />
-                  <View style={[s.bracketRow, aW && { borderLeftWidth: 3, borderLeftColor: colors.success }]}><Text style={[s.bracketName, aW && { color: '#fff', fontWeight: '800' }]}>{mu.user_a_username}</Text><Text style={[s.bracketScore, aW && { color: colors.success }]}>{mu.user_a_points.toFixed(1)}</Text></View>
-                  <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
-                  <View style={[s.bracketRow, bW && { borderLeftWidth: 3, borderLeftColor: colors.success }]}><Text style={[s.bracketName, bW && { color: '#fff', fontWeight: '800' }]}>{mu.user_b_username}</Text><Text style={[s.bracketScore, bW && { color: colors.success }]}>{mu.user_b_points.toFixed(1)}</Text></View>
+                  <View style={s.perfIconWrap}><Ionicons name="trophy" size={20} color={colors.accent} /></View>
+                  <Text style={s.perfValue}>{wins}</Text>
+                  <Text style={s.perfLabel}>{'VITTORIE'}</Text>
                 </LinearGradient>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      ))}
-      {activeTab === 'bracket' && hasGroups && Object.keys(bracket).length === 0 && (
-        <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.emptyCard}><AnimatedSweep /><Ionicons name="git-network-outline" size={40} color={DARK.textMuted} /><Text style={s.emptyTitle}>Tabellone non ancora generato</Text></LinearGradient>
-      )}
+              </View>
+              <View style={s.perfCardOuter}>
+                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCard}>
+                  <AnimatedSweep />
+                  <View style={s.perfIconWrap}><Ionicons name="star" size={20} color="#fff" /></View>
+                  <Text style={s.perfValue}>{totalPts.toFixed(1)}</Text>
+                  <Text style={s.perfLabel}>{'PUNTI\nTOTALI'}</Text>
+                </LinearGradient>
+              </View>
+              <View style={s.perfCardOuter}>
+                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCard}>
+                  <AnimatedSweep />
+                  <View style={s.perfIconWrap}><Ionicons name="football" size={20} color="#22c55e" /></View>
+                  <Text style={s.perfValue}>{completed.length > 0 ? (totalPts / completed.length).toFixed(1) : '-'}</Text>
+                  <Text style={s.perfLabel}>{'MEDIA\nPUNTI'}</Text>
+                </LinearGradient>
+              </View>
+            </View>
+
+            {/* Record V/P/S */}
+            <View style={s.perfCardOuter}>
+              <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.recordCard}>
+                <AnimatedSweep />
+                <Text style={s.recordTitle}>RECORD SFIDE</Text>
+                <View style={s.recordRow}>
+                  <View style={s.recordItem}><Text style={[s.recordNum, { color: '#22c55e' }]}>{wins}</Text><Text style={s.recordLabel}>V</Text></View>
+                  <View style={s.recordDivider} />
+                  <View style={s.recordItem}><Text style={[s.recordNum, { color: colors.accent }]}>{draws}</Text><Text style={s.recordLabel}>P</Text></View>
+                  <View style={s.recordDivider} />
+                  <View style={s.recordItem}><Text style={[s.recordNum, { color: '#ef4444' }]}>{losses}</Text><Text style={s.recordLabel}>S</Text></View>
+                </View>
+              </LinearGradient>
+            </View>
+
+            {/* Trend — last matchups */}
+            {last5.length > 0 && (
+              <View style={s.perfCardOuter}>
+                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.trendCard}>
+                  <AnimatedSweep />
+                  <Text style={s.recordTitle}>TREND ULTIME SFIDE</Text>
+                  <View style={s.trendBars}>
+                    {last5.map((item: any, i: number) => {
+                      const maxPts = Math.max(...last5.map((x: any) => x.points), 1);
+                      const h = Math.max((item.points / maxPts) * 60, 8);
+                      return (
+                        <View key={i} style={s.trendBarCol}>
+                          <Text style={s.trendPts}>{item.points.toFixed(1)}</Text>
+                          <View style={[s.trendBar, { height: h, backgroundColor: item.points > 0 ? colors.accent : 'rgba(255,255,255,0.15)' }]} />
+                          <Text style={s.trendLabel}>{item.label}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </LinearGradient>
+              </View>
+            )}
+          </>
+        );
+      })()}
+
     </ScrollView>
   );
 }
@@ -477,12 +453,27 @@ const s = StyleSheet.create({
   predProgressBarFill: { height: '100%', backgroundColor: colors.accent, borderRadius: 3 },
   predProgressText: { fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: '600' },
 
-  // Tabs
-  tabBar: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: borderRadius.lg, padding: 3, marginBottom: spacing.md, borderWidth: 1, borderColor: '#E5E7EB' },
-  tabItem: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 10, borderRadius: borderRadius.md },
-  tabItemActive: { backgroundColor: colors.accent + '15' },
-  tabLabel: { fontSize: 11, fontWeight: '600', color: colors.textSecondary },
-  tabLabelActive: { color: colors.accent, fontWeight: '700' },
+  // Performance
+  sectionLabel: { fontSize: 12, fontWeight: '800', color: colors.textMuted, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.md },
+  perfRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  perfCardOuter: { flex: 1, marginBottom: spacing.sm },
+  perfCard: { borderRadius: borderRadius.lg, padding: spacing.md, alignItems: 'center', overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(245,166,35,0.15)' },
+  perfIconWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  perfValue: { fontSize: 22, fontWeight: '900', color: '#fff' },
+  perfLabel: { fontSize: 9, fontWeight: '700', color: 'rgba(255,255,255,0.45)', letterSpacing: 1, textTransform: 'uppercase', textAlign: 'center', marginTop: 2 },
+  recordCard: { borderRadius: borderRadius.lg, padding: spacing.lg, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(245,166,35,0.15)' },
+  recordTitle: { fontSize: 11, fontWeight: '800', color: 'rgba(255,255,255,0.45)', letterSpacing: 1.5, marginBottom: spacing.md },
+  recordRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
+  recordItem: { alignItems: 'center' },
+  recordNum: { fontSize: 28, fontWeight: '900' },
+  recordLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.5)', marginTop: 2 },
+  recordDivider: { width: 1, height: 30, backgroundColor: 'rgba(255,255,255,0.1)' },
+  trendCard: { borderRadius: borderRadius.lg, padding: spacing.lg, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(245,166,35,0.15)' },
+  trendBars: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-end', gap: 8, marginTop: spacing.sm },
+  trendBarCol: { alignItems: 'center', flex: 1 },
+  trendPts: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.6)', marginBottom: 4 },
+  trendBar: { width: '80%', borderRadius: 4 },
+  trendLabel: { fontSize: 10, fontWeight: '600', color: 'rgba(255,255,255,0.4)', marginTop: 4 },
   sectionLabel: { fontSize: 12, fontWeight: '800', color: colors.accent, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 4 },
 
   // Matchup cards
