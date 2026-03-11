@@ -51,7 +51,7 @@ export default function HomeScreen() {
   const [showLeagueSwitcher, setShowLeagueSwitcher] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [openTournaments, setOpenTournaments] = useState<any[]>([]);
+  const [myTournaments, setMyTournaments] = useState<any[]>([]);
 
   // Animations
   const fadeScreen = useRef(new Animated.Value(0)).current;
@@ -117,7 +117,7 @@ export default function HomeScreen() {
       } catch {}
       try {
         const tournaments = await apiCall<any[]>('/tournaments', { token: authToken });
-        setOpenTournaments(tournaments.filter((t: any) => t.status === 'registration' && !t.is_registered));
+        setMyTournaments(tournaments.filter((t: any) => t.is_registered));
       } catch {}
     } catch (e: unknown) {
       if (isAuthError(e)) {
@@ -255,21 +255,22 @@ export default function HomeScreen() {
         <View style={s.leagueWrap}>
           <TouchableOpacity
             style={s.leagueBtn}
-            onPress={() => leagues.length > 1 ? setShowLeagueSwitcher(true) : null}
-            activeOpacity={leagues.length > 1 ? 0.7 : 1}
+            onPress={() => (leagues.length > 1 || myTournaments.length > 0) ? setShowLeagueSwitcher(true) : null}
+            activeOpacity={(leagues.length > 1 || myTournaments.length > 0) ? 0.7 : 1}
           >
             <Ionicons name="trophy-outline" size={15} color={DARK.accent} />
             <Text style={s.leagueText} numberOfLines={1}>{data.league.name}</Text>
-            {leagues.length > 1 && <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />}
+            {(leagues.length > 1 || myTournaments.length > 0) && <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />}
           </TouchableOpacity>
         </View>
       )}
 
-      {/* League Switcher Dropdown */}
-      {showLeagueSwitcher && leagues.length > 0 && (
+      {/* League + Tournaments Switcher Dropdown */}
+      {showLeagueSwitcher && (
         <TouchableOpacity style={s.switcherOverlay} activeOpacity={1} onPress={() => setShowLeagueSwitcher(false)}>
           <View style={s.switcherDropdown}>
-            <Text style={s.switcherTitle}>{t('home.switch_league', { defaultValue: 'Cambia Lega' })}</Text>
+            {/* LEGHE section */}
+            <Text style={s.switcherSectionLabel}>LEGHE</Text>
             {leagues.map((lg: League) => (
               <TouchableOpacity
                 key={lg.id}
@@ -290,6 +291,36 @@ export default function HomeScreen() {
                 {lg.id === activeLeague?.id && <Ionicons name="checkmark" size={16} color={DARK.accent} />}
               </TouchableOpacity>
             ))}
+
+            {/* TORNEI section */}
+            {myTournaments.length > 0 && (
+              <>
+                <View style={s.switcherDivider} />
+                <Text style={[s.switcherSectionLabel, { color: '#22c55e' }]}>TORNEI</Text>
+                {myTournaments.map((t: any) => {
+                  const statusLabels: Record<string, string> = { registration: 'Iscrizioni', groups: 'Gironi', knockout: 'Knockout', completed: 'Concluso' };
+                  return (
+                    <TouchableOpacity
+                      key={t.id}
+                      style={s.switcherItem}
+                      onPress={() => {
+                        setShowLeagueSwitcher(false);
+                        router.push(`/tournament/${t.id}` as any);
+                      }}
+                    >
+                      <View style={s.switcherTourneyIcon}>
+                        <Ionicons name="flash" size={14} color="#22c55e" />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={s.switcherItemText}>{t.name}</Text>
+                        <Text style={[s.switcherItemSub, { color: '#22c55e' }]}>{statusLabels[t.status] || t.status}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
+                    </TouchableOpacity>
+                  );
+                })}
+              </>
+            )}
           </View>
         </TouchableOpacity>
       )}
@@ -574,35 +605,6 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* ─── 5. TORNEI APERTI ─── */}
-        {openTournaments.length > 0 && (
-          <View>
-            <Text style={s.sectionLabel}>TORNEI DISPONIBILI</Text>
-            {openTournaments.slice(0, 2).map((t: any) => (
-              <TouchableOpacity
-                key={t.id}
-                style={s.tournamentCard}
-                activeOpacity={0.8}
-                onPress={() => router.push(`/tournament/${t.id}` as any)}
-                data-testid={`home-tournament-${t.id}`}
-              >
-                <View style={s.tournamentLeft}>
-                  <Ionicons name="trophy" size={22} color={DARK.accent} />
-                </View>
-                <View style={s.tournamentCenter}>
-                  <Text style={s.tournamentName} numberOfLines={1}>{t.name}</Text>
-                  <Text style={s.tournamentMeta}>
-                    {t.registered_count}/{t.max_participants} iscritti  {t.spots_left} posti rimasti
-                  </Text>
-                </View>
-                <View style={s.tournamentRight}>
-                  <Text style={s.tournamentCta}>Iscriviti</Text>
-                  <Ionicons name="chevron-forward" size={16} color={DARK.accent} />
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
       </Animated.ScrollView>
 
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
@@ -720,6 +722,30 @@ const s = StyleSheet.create({
   switcherItemActive: { backgroundColor: DARK.accent + '12' },
   switcherItemText: { fontSize: 14, fontWeight: '600', color: LIGHT.text },
   switcherItemSub: { fontSize: 11, color: LIGHT.textSec, marginTop: 2 },
+  switcherSectionLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: DARK.accent,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 4,
+  },
+  switcherDivider: {
+    height: 1,
+    backgroundColor: LIGHT.border,
+    marginHorizontal: 12,
+    marginVertical: 6,
+  },
+  switcherTourneyIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#22c55e15',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   // ── Scroll ──
   scrollContent: {
@@ -958,53 +984,4 @@ const s = StyleSheet.create({
     marginBottom: 12,
   },
 
-  // ── 5. Tournament cards ──
-  tournamentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: LIGHT.card,
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: LIGHT.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  tournamentLeft: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: DARK.accent + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  tournamentCenter: {
-    flex: 1,
-    gap: 3,
-  },
-  tournamentName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: LIGHT.text,
-  },
-  tournamentMeta: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: LIGHT.textSec,
-  },
-  tournamentRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  tournamentCta: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: DARK.accent,
-  },
 });
