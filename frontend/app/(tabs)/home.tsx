@@ -296,6 +296,7 @@ export default function HomeScreen() {
                     setLeagueMode();
                     setData(null); setCountdown(0); setLoading(true);
                     setActiveLeague(lg);
+                    fetchHome(lg.id);
                     const authToken = token || await AsyncStorage.getItem('access_token');
                     if (authToken) apiCall(`/profile/current-league?league_id=${lg.id}`, { method: 'PATCH', token: authToken }).catch(() => {});
                   }}
