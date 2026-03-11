@@ -148,6 +148,15 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Long team names in prediction lists may overlap with match result
 - A flexbox fix was implemented, needs user verification
 
+## Completed - Classifiche + Pronostici Torneo (P0) - 2026-03-11
+- **Classifiche**: In modalità torneo, tab Classifiche mostra Gironi + Tabellone invece della classifica lega
+  - Gironi: classifica giocatori con colonne G/V/P/S/Pts
+  - Tabellone: bracket eliminazione diretta (o messaggio "Disponibile dopo la fase a gironi")
+- **Pronostici**: In modalità torneo, tab Pronostici carica i round del torneo tramite `/tournaments/{id}/fixtures`
+- **CompetitionContext**: Context condiviso per passare stato competizione (lega/torneo) a tutti i tab
+- **Backend**: Nuovo endpoint `/api/tournaments/{id}/fixtures` per compatibilità con schermata pronostici
+- **Testing**: Backend 92% (12/13), Frontend verificato via code review
+
 ## Completed - Dynamic Tournament Hero Card (P0) - 2026-03-11
 - **What**: Hero card nella prima tab del torneo ora è DINAMICA, identica alla card Giornata della Lega
 - **Backend**: Aggiunto `current_round_info` nell'endpoint `GET /api/tournaments/{id}` con status effettivo (OPEN/LIVE/COMPLETED), avversario, punti, pronostici
