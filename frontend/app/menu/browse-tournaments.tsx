@@ -102,7 +102,7 @@ export default function BrowseTournaments() {
                 key={t.id}
                 style={s.card}
                 activeOpacity={0.8}
-                onPress={() => router.push({ pathname: '/(tabs)/tournament-detail', params: { id: t.id } } as any)}
+                onPress={() => router.push({ pathname: '/(tabs)/home', params: { tournament_id: t.id, tournament_name: t.name } } as any)}
                 data-testid={`tournament-card-${t.id}`}
               >
                 {/* Header */}

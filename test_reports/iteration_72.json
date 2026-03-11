@@ -1,0 +1,61 @@
+{
+  "summary": "Tested tournament inline rendering feature. Backend APIs: 8/8 tests passed (100%). Frontend: Had to clear Metro cache to fix ENOENT error for deleted tournament-detail.tsx. After cache clear, home screen loads correctly with header, bottom tab bar, matchday card, performance stats. Competition switcher shows 'liga2' dropdown.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Metro cache stale reference",
+        "issue": "ENOENT error for '/app/frontend/app/(tabs)/tournament-detail.tsx' was caused by stale Metro cache referencing deleted files. FIXED by deleting .expo and .metro-cache directories",
+        "affected_selectors": [],
+        "resolution": "Cleared cache with: rm -rf /app/frontend/.metro-cache /app/frontend/.expo"
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_tournament_inline_home.py",
+    "/app/test_reports/pytest/tournament_inline_home_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: TournamentView imported in home.tsx at line 15",
+    "VERIFIED: Conditional rendering at lines 352-356 - renders TournamentView when competitionMode === 'tournament'",
+    "VERIFIED: No references to deleted files (tournament-detail.tsx, tournament-matchup.tsx, tournament/[id].tsx)",
+    "VERIFIED: Tab layout (_layout.tsx) has no tournament tab entries",
+    "VERIFIED: my-tournaments.tsx and browse-tournaments.tsx navigate to home with tournament_id params",
+    "VERIFIED: Backend tournament APIs all return correct structure with is_registered field"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_tournament_inline_home.py"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8 tests passed)",
+    "frontend": "95% - App loads correctly after cache clear, competition switcher visible"
+  },
+  "test_credentials": {
+    "user": "ilio@raimondi.it / password123",
+    "admin": "admin@fantapronostic.com / admin123"
+  },
+  "seed_data_creation": "No new seed data created",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Tournaments now render INSIDE home.tsx via TournamentView component. The separate tournament pages have been deleted. Metro cache may need clearing if ENOENT errors occur for old file paths. Competition switcher shows leagues in 'LEGHE' section and tournaments in 'TORNEI' section (only visible if user has active tournament registrations). Backend tournament APIs are working: GET /api/tournaments, GET /api/tournaments/{id}, GET /api/tournaments/{id}/groups, GET /api/tournaments/{id}/my-matchups, GET /api/tournaments/{id}/bracket.",
+  "verified_features": {
+    "backend_login": "PASS - POST /api/auth/login returns access_token",
+    "backend_list_tournaments": "PASS - Returns list with is_registered field",
+    "backend_tournament_detail": "PASS - Returns full tournament info",
+    "backend_tournament_groups": "PASS - Returns group standings",
+    "backend_tournament_matchups": "PASS - Returns user's matchups",
+    "frontend_login": "PASS - Login flow works",
+    "frontend_home_loads": "PASS - Home screen loads with matchday card",
+    "frontend_header_persistent": "PASS - Logo, hamburger menu, notifications visible",
+    "frontend_tab_bar_visible": "PASS - Home, Statistics, Predictions, Rankings, Profile tabs",
+    "frontend_competition_switcher": "PASS - liga2 dropdown visible",
+    "frontend_deleted_files": "PASS - No references to tournament-detail.tsx, tournament-matchup.tsx"
+  },
+  "cache_fix_applied": "Deleted /app/frontend/.expo and /app/frontend/.metro-cache to resolve ENOENT error"
+}

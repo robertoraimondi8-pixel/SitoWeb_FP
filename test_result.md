@@ -97,7 +97,7 @@
         SCHERMATA verify-email: banner beta + campo token + updateUser dopo verifica
         
         CREDENZIALI: admin@fantapronostic.com/admin123, marco@test.com/password123
-        API: https://matchup-arena-4.preview.emergentagent.com/api
+        API: https://unified-competitions.preview.emergentagent.com/api
         
         TEST CASES CRITICI:
         A. Registra nuovo utente → deve andare a /verify-email
@@ -222,7 +222,7 @@
         6. onboarding.tsx: handleNational chiama join-direct (fix Lega Nazionale persistente)
         
         Credenziali test: admin@fantapronostic.com / admin123 | marco@test.com / password123
-        API base: https://matchup-arena-4.preview.emergentagent.com/api
+        API base: https://unified-competitions.preview.emergentagent.com/api
         
         Testare:
         a) Flusso registrazione completo con username custom (poi verify-email screen)
@@ -481,7 +481,7 @@ agent_communication:
 
 user_problem_statement: |
   Google Login Web Fix Testing:
-  Test Google login flow on web at https://matchup-arena-4.preview.emergentagent.com
+  Test Google login flow on web at https://unified-competitions.preview.emergentagent.com
   The fix adds Platform.OS === 'web' branch that redirects to https://auth.emergentagent.com/?redirect=[origin]
   Verify: 1) Console logs appear (GOOGLE: start, GOOGLE: web branch), 2) Redirect to auth.emergentagent.com works
 
@@ -503,7 +503,7 @@ frontend:
           
           CONSOLE LOGS CAPTURED (verbatim):
           - "GOOGLE: start" ✅
-          - "GOOGLE: web branch — redirect to auth, origin: https://matchup-arena-4.preview.emergentagent.com" ✅
+          - "GOOGLE: web branch — redirect to auth, origin: https://unified-competitions.preview.emergentagent.com" ✅
           
           NAVIGATION VERIFIED:
           - Successfully redirected to: https://auth.emergentagent.com/?redirect=https%3A%2F%2Flogin-bounce.preview.emergentagent.com ✅
@@ -587,7 +587,7 @@ agent_communication:
     message: |
       ✅ GOOGLE LOGIN WEB FIX TESTING COMPLETED - FULLY WORKING
       
-      TASK: Test Google login flow on web at https://matchup-arena-4.preview.emergentagent.com
+      TASK: Test Google login flow on web at https://unified-competitions.preview.emergentagent.com
       
       === CRITICAL FINDING: FIX IS WORKING AFTER EXPO RESTART ===
       
@@ -606,7 +606,7 @@ agent_communication:
       **CONSOLE OUTPUT CAPTURED (VERBATIM):**
       ```
       [log] GOOGLE: start
-      [log] GOOGLE: web branch — redirect to auth, origin: https://matchup-arena-4.preview.emergentagent.com
+      [log] GOOGLE: web branch — redirect to auth, origin: https://unified-competitions.preview.emergentagent.com
       ```
       
       **VERIFICATION CHECKLIST:**

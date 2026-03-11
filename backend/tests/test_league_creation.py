@@ -13,7 +13,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://matchup-arena-4.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://unified-competitions.preview.emergentagent.com')
 
 # Test credentials
 USER1_EMAIL = "email@email.com"

@@ -9,7 +9,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://matchup-arena-4.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://unified-competitions.preview.emergentagent.com')
 
 # Test credentials
 NATIONAL_LEAGUE_USER = {"email": "desiree@raimondi.it", "password": "Roberto95"}  # Desylega - national

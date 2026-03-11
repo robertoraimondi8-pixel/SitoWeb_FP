@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, RefreshControl, ActivityIndic
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../src/contexts/AuthContext';
@@ -12,6 +12,7 @@ import { apiCall, isAuthError } from '../../src/api/client';
 import { HomeData, League } from '../../src/types/api';
 import { goToPredictionsHub } from '../../src/utils/navigation';
 import { SideMenu } from '../../src/components/SideMenu';
+import { TournamentView } from '../../src/components/TournamentView';
 
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
 import { StatusBadge, LastFiveIndicator, AnimatedSweep } from '../../src/components/ui';
@@ -44,6 +45,7 @@ export default function HomeScreen() {
   const { token, user, handleAuthError } = useAuth();
   const { leagues, activeLeague, setActiveLeague, refreshLeagues } = useLeague();
   const router = useRouter();
+  const params = useLocalSearchParams<{ tournament_id?: string; tournament_name?: string }>();
   const [data, setData] = useState<HomeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -52,6 +54,11 @@ export default function HomeScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [myTournaments, setMyTournaments] = useState<any[]>([]);
+
+  // Competition mode: league or tournament
+  const [competitionMode, setCompetitionMode] = useState<'league' | 'tournament'>('league');
+  const [activeTournamentId, setActiveTournamentId] = useState<string | null>(null);
+  const [activeTournamentName, setActiveTournamentName] = useState<string>('');
 
   // Animations
   const fadeScreen = useRef(new Animated.Value(0)).current;
@@ -69,6 +76,15 @@ export default function HomeScreen() {
   useEffect(() => {
     if (token) refreshLeagues(token);
   }, [token]);
+
+  // Handle incoming tournament params from navigation (e.g. from menu)
+  useEffect(() => {
+    if (params.tournament_id) {
+      setCompetitionMode('tournament');
+      setActiveTournamentId(params.tournament_id);
+      setActiveTournamentName(params.tournament_name || '');
+    }
+  }, [params.tournament_id]);
 
   const runEntryAnimation = () => {
     // Reset
@@ -204,7 +220,7 @@ export default function HomeScreen() {
   const onCtaPressIn = () => { Animated.spring(ctaScale, { toValue: 0.97, useNativeDriver: true, speed: 50, bounciness: 4 }).start(); };
   const onCtaPressOut = () => { Animated.spring(ctaScale, { toValue: 1, useNativeDriver: true, speed: 50, bounciness: 4 }).start(); };
 
-  if (loading) {
+  if (loading && competitionMode === 'league') {
     return (
       <View style={s.loadingContainer}>
         <ActivityIndicator size="large" color={DARK.accent} />
@@ -250,76 +266,95 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* ═══ LEAGUE SWITCHER (white pill on dark) ═══ */}
-      {data?.league && (
+      {/* ═══ COMPETITION SWITCHER (white pill) ═══ */}
+      {(data?.league || competitionMode === 'tournament') && (
         <View style={s.leagueWrap}>
           <TouchableOpacity
             style={s.leagueBtn}
             onPress={() => (leagues.length > 1 || myTournaments.length > 0) ? setShowLeagueSwitcher(true) : null}
             activeOpacity={(leagues.length > 1 || myTournaments.length > 0) ? 0.7 : 1}
+            data-testid="competition-switcher-btn"
           >
-            <Ionicons name="trophy-outline" size={15} color={DARK.accent} />
-            <Text style={s.leagueText} numberOfLines={1}>{data.league.name}</Text>
+            <Ionicons name={competitionMode === 'tournament' ? 'flash' : 'trophy-outline'} size={15} color={competitionMode === 'tournament' ? '#22c55e' : DARK.accent} />
+            <Text style={s.leagueText} numberOfLines={1}>{competitionMode === 'tournament' ? activeTournamentName : data?.league?.name}</Text>
             {(leagues.length > 1 || myTournaments.length > 0) && <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />}
           </TouchableOpacity>
         </View>
       )}
 
-      {/* League + Tournaments Switcher Dropdown */}
+      {/* Competition Switcher Dropdown */}
       {showLeagueSwitcher && (
         <TouchableOpacity style={s.switcherOverlay} activeOpacity={1} onPress={() => setShowLeagueSwitcher(false)}>
           <ScrollView style={s.switcherDropdown} contentContainerStyle={s.switcherDropdownContent} bounces={false} showsVerticalScrollIndicator={true}>
             {/* LEGHE section */}
             <Text style={s.switcherSectionLabel}>LEGHE</Text>
-            {leagues.map((lg: League) => (
-              <TouchableOpacity
-                key={lg.id}
-                style={[s.switcherItem, lg.id === activeLeague?.id && s.switcherItemActive]}
-                onPress={async () => {
-                  setShowLeagueSwitcher(false);
-                  setData(null); setCountdown(0); setLoading(true);
-                  setActiveLeague(lg);
-                  const authToken = token || await AsyncStorage.getItem('access_token');
-                  if (authToken) apiCall(`/profile/current-league?league_id=${lg.id}`, { method: 'PATCH', token: authToken }).catch(() => {});
-                }}
-              >
-                <Ionicons name={lg.id === activeLeague?.id ? 'trophy' : 'trophy-outline'} size={18} color={lg.id === activeLeague?.id ? DARK.accent : colors.textSecondary} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[s.switcherItemText, lg.id === activeLeague?.id && { color: DARK.accent }]}>{lg.name}</Text>
-                  <Text style={s.switcherItemSub}>{lg.league_type === 'national' ? 'Lega Nazionale' : `${lg.member_count ?? ''} membri`}</Text>
-                </View>
-                {lg.id === activeLeague?.id && <Ionicons name="checkmark" size={16} color={DARK.accent} />}
-              </TouchableOpacity>
-            ))}
+            {leagues.map((lg: League) => {
+              const isActive = competitionMode === 'league' && lg.id === activeLeague?.id;
+              return (
+                <TouchableOpacity
+                  key={lg.id}
+                  style={[s.switcherItem, isActive && s.switcherItemActive]}
+                  onPress={async () => {
+                    setShowLeagueSwitcher(false);
+                    setCompetitionMode('league');
+                    setActiveTournamentId(null);
+                    setActiveTournamentName('');
+                    setData(null); setCountdown(0); setLoading(true);
+                    setActiveLeague(lg);
+                    const authToken = token || await AsyncStorage.getItem('access_token');
+                    if (authToken) apiCall(`/profile/current-league?league_id=${lg.id}`, { method: 'PATCH', token: authToken }).catch(() => {});
+                  }}
+                >
+                  <Ionicons name={isActive ? 'trophy' : 'trophy-outline'} size={18} color={isActive ? DARK.accent : colors.textSecondary} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.switcherItemText, isActive && { color: DARK.accent }]}>{lg.name}</Text>
+                    <Text style={s.switcherItemSub}>{lg.league_type === 'national' ? 'Lega Nazionale' : `${lg.member_count ?? ''} membri`}</Text>
+                  </View>
+                  {isActive && <Ionicons name="checkmark" size={16} color={DARK.accent} />}
+                </TouchableOpacity>
+              );
+            })}
 
             {/* TORNEI section */}
             {myTournaments.length > 0 && (
               <>
                 <View style={s.switcherDivider} />
                 <Text style={[s.switcherSectionLabel, { color: '#22c55e' }]}>TORNEI</Text>
-                {myTournaments.map((t: any) => (
+                {myTournaments.map((t: any) => {
+                  const isActive = competitionMode === 'tournament' && activeTournamentId === t.id;
+                  return (
                     <TouchableOpacity
                       key={t.id}
-                      style={s.switcherItem}
+                      style={[s.switcherItem, isActive && s.switcherItemActive]}
                       onPress={() => {
                         setShowLeagueSwitcher(false);
-                        router.push({ pathname: '/(tabs)/tournament-detail', params: { id: t.id } } as any);
+                        setCompetitionMode('tournament');
+                        setActiveTournamentId(t.id);
+                        setActiveTournamentName(t.name);
                       }}
+                      data-testid={`switch-tournament-${t.id}`}
                     >
                       <View style={s.switcherTourneyIcon}>
                         <Ionicons name="flash" size={14} color="#22c55e" />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={s.switcherItemText}>{t.name}</Text>
+                        <Text style={[s.switcherItemText, isActive && { color: '#22c55e' }]}>{t.name}</Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
+                      {isActive ? <Ionicons name="checkmark" size={16} color="#22c55e" /> : <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />}
                     </TouchableOpacity>
-                ))}
+                  );
+                })}
               </>
             )}
           </ScrollView>
         </TouchableOpacity>
       )}
+      {/* ═══ CONTENT AREA: Tournament or League ═══ */}
+      {competitionMode === 'tournament' && activeTournamentId ? (
+        <View style={{ flex: 1 }}>
+          <TournamentView tournamentId={activeTournamentId} />
+        </View>
+      ) : (
       <Animated.ScrollView
         style={{ opacity: fadeScreen }}
         contentContainerStyle={s.scrollContent}
@@ -600,6 +635,7 @@ export default function HomeScreen() {
         )}
 
       </Animated.ScrollView>
+      )}
 
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
     </SafeAreaView>

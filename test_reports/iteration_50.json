@@ -67,7 +67,7 @@
   },
   "test_credentials": {
     "super_admin": "admin@fantapronostic.com / admin123",
-    "admin_ui_url": "https://matchup-arena-4.preview.emergentagent.com/api/admin-ui"
+    "admin_ui_url": "https://unified-competitions.preview.emergentagent.com/api/admin-ui"
   },
   "seed_data_creation": "No new seed data created - used existing data",
   "retest_needed": false,

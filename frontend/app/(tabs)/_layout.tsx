@@ -32,8 +32,6 @@ export default function TabLayout() {
       <Tabs.Screen name="predictions" options={{ title: t('tabs.predictions'), tabBarIcon: ({ color, size }) => <Ionicons name="football" size={size} color={color} /> }} />
       <Tabs.Screen name="rankings" options={{ title: t('tabs.rankings'), tabBarIcon: ({ color, size }) => <Ionicons name="trophy" size={size} color={color} /> }} />
       <Tabs.Screen name="profile" options={{ title: t('tabs.profile'), tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} /> }} />
-      <Tabs.Screen name="tournament-detail" options={{ href: null }} />
-      <Tabs.Screen name="tournament-matchup" options={{ href: null }} />
     </Tabs>
   );
 }
