@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, borderRadius } from '../../src/theme/designSystem';
 import { AnimatedSweep } from '../../src/components/ui';
 import { MatchDetailSheet } from '../../src/components/MatchDetailSheet';
-import SideMenu from '../../src/components/SideMenu';
+import { SideMenu } from '../../src/components/SideMenu';
 
 const POLLING_INTERVAL = 30000;
 

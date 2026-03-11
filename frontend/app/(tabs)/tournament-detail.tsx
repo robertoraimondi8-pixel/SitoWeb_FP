@@ -15,7 +15,7 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
 import { colors, typography, spacing, borderRadius } from '../../src/theme/designSystem';
 import { AnimatedSweep, StatusBadge } from '../../src/components/ui';
-import SideMenu from '../../src/components/SideMenu';
+import { SideMenu } from '../../src/components/SideMenu';
 
 const DARK = { accent: '#F5A623', textMuted: 'rgba(255,255,255,0.45)' };
 
