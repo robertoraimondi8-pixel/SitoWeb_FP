@@ -29,7 +29,7 @@ export const LastFiveIndicator: React.FC<LastFiveIndicatorProps> = ({ data, labe
           const barH = Math.max(4, (item.points / maxPts) * BAR_MAX_HEIGHT);
           const isLatest = idx === lastIdx;
           return (
-            <View key={item.matchday_number} style={styles.barGroup}>
+            <View key={idx} style={styles.barGroup}>
               <Text style={[styles.barValue, { color: isLatest ? colors.accent : mutedColor }]}>
                 {item.points.toFixed(1)}
               </Text>

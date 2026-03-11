@@ -318,7 +318,7 @@ export default function RankingsScreen() {
               </View>
             ))}
           </ScrollView>
-        ) : (
+        ) : trkTab === 'tabellone' ? (
           <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
             {!bracketReady ? (
               <View style={{ padding: 32, alignItems: 'center' }}>

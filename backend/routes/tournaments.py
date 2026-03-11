@@ -812,12 +812,15 @@ async def get_all_matchups(tournament_id: str, user=Depends(get_current_user)):
         x.get("group_id", "")
     ))
 
-    # Group by round_type + round_number
+    # Group by round_type + round_number, exclude pending knockout matchups
     from collections import OrderedDict
     rounds: dict = OrderedDict()
     type_labels = {"group": "Girone", "quarterfinal": "Quarti di Finale", "semifinal": "Semifinale", "final": "Finale"}
     for mu in matchups:
         rt = mu.get("round_type", "group")
+        # Skip pending knockout matchups (not yet determined)
+        if rt != "group" and mu.get("status") == "pending":
+            continue
         rn = mu.get("round_number", 0)
         key = f"{rt}_{rn}"
         if key not in rounds:
