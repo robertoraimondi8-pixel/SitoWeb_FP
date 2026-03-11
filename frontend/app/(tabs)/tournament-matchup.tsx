@@ -15,7 +15,7 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, borderRadius } from '../../src/theme/designSystem';
-import { AnimatedSweep, BrandLogo } from '../../src/components/ui';
+import { AnimatedSweep } from '../../src/components/ui';
 import { MatchDetailSheet } from '../../src/components/MatchDetailSheet';
 import SideMenu from '../../src/components/SideMenu';
 

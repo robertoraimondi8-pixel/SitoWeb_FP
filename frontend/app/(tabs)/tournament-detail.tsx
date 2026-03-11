@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
 import { colors, typography, spacing, borderRadius } from '../../src/theme/designSystem';
-import { AnimatedSweep, StatusBadge, BrandLogo } from '../../src/components/ui';
+import { AnimatedSweep, StatusBadge } from '../../src/components/ui';
 import SideMenu from '../../src/components/SideMenu';
 
 const DARK = { accent: '#F5A623', textMuted: 'rgba(255,255,255,0.45)' };
@@ -127,7 +127,7 @@ export default function TournamentDetailScreen() {
           <Ionicons name="menu" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={s.headerCenter}>
-          <BrandLogo variant="wordmark" size="lg" />
+          <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>FantaPronostic</Text>
         </View>
         <TouchableOpacity style={s.headerIcon} onPress={() => router.back()} data-testid="tournament-back-btn">
           <Ionicons name="close" size={24} color={colors.textPrimary} />
