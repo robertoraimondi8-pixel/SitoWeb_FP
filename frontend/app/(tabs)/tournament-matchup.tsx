@@ -18,6 +18,9 @@ import { colors, typography, spacing, borderRadius } from '../../src/theme/desig
 import { AnimatedSweep } from '../../src/components/ui';
 import { MatchDetailSheet } from '../../src/components/MatchDetailSheet';
 import { SideMenu } from '../../src/components/SideMenu';
+import { BrandLogo } from '../../src/components/BrandLogo';
+
+const LIGHT = { text: '#1A2233' };
 
 const POLLING_INTERVAL = 30000;
 
@@ -125,10 +128,10 @@ export default function TournamentMatchupScreen() {
     <SafeAreaView style={s.container} edges={['top']}>
       <LinearGradient colors={['#F5F6F8', '#ECEFF3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
 
-      {/* Header — same as league home */}
+      {/* Header — identico alla home lega */}
       <View style={s.header}>
         <TouchableOpacity style={s.headerIcon} onPress={() => setMenuOpen(true)} testID="hamburger-menu-btn">
-          <Ionicons name="menu" size={24} color={colors.textPrimary} />
+          <Ionicons name="menu" size={24} color={LIGHT.text} />
         </TouchableOpacity>
         <View style={s.headerInfo}>
           <Text style={s.headerTitle}>Torneo – Sfida 1 vs 1</Text>
@@ -142,7 +145,7 @@ export default function TournamentMatchupScreen() {
           </View>
         </View>
         <TouchableOpacity style={s.headerIcon} onPress={() => router.back()} data-testid="matchup-back-btn">
-          <Ionicons name="close" size={24} color={colors.textPrimary} />
+          <Ionicons name="arrow-back" size={22} color={LIGHT.text} />
         </TouchableOpacity>
       </View>
 
@@ -368,13 +371,13 @@ const s = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
   loadingText: { ...typography.bodyS, color: colors.textSecondary },
 
-  // Header — same as league home
+  // Header — identico alla home lega
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md,
+    paddingHorizontal: 16, paddingVertical: 8, gap: spacing.md,
     backgroundColor: '#F3F4F6',
   },
-  headerIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center', justifyContent: 'center' },
+  headerIcon: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerInfo: { flex: 1 },
   headerTitle: { ...typography.titleM, color: colors.textPrimary },
   headerMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },

@@ -2,7 +2,7 @@
  * Tournament Detail — FantaPronostic
  * Stessa struttura visiva della home lega: card navy, gradienti, accent borders.
  */
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
   ActivityIndicator, RefreshControl,
@@ -16,7 +16,9 @@ import { apiCall } from '../../src/api/client';
 import { colors, typography, spacing, borderRadius } from '../../src/theme/designSystem';
 import { AnimatedSweep, StatusBadge } from '../../src/components/ui';
 import { SideMenu } from '../../src/components/SideMenu';
+import { BrandLogo } from '../../src/components/BrandLogo';
 
+const LIGHT = { text: '#1A2233', textSec: '#6B7B90', card: '#FFFFFF', border: '#E2E6ED' };
 const DARK = { accent: '#F5A623', textMuted: 'rgba(255,255,255,0.45)' };
 
 type Tab = 'info' | 'sfide' | 'groups' | 'bracket';
@@ -121,17 +123,28 @@ export default function TournamentDetailScreen() {
     <SafeAreaView style={s.container} edges={['top']}>
       <LinearGradient colors={['#F5F6F8', '#ECEFF3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
 
-      {/* Header — same as league home */}
+      {/* Ambient light overlay */}
+      <View style={s.ambientOverlay} />
+
+      {/* ═══ HEADER — identico alla home lega ═══ */}
       <View style={s.header}>
         <TouchableOpacity style={s.headerIcon} onPress={() => setMenuOpen(true)} testID="hamburger-menu-btn">
-          <Ionicons name="menu" size={24} color={colors.textPrimary} />
+          <Ionicons name="menu" size={24} color={LIGHT.text} />
         </TouchableOpacity>
         <View style={s.headerCenter}>
-          <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>FantaPronostic</Text>
+          <BrandLogo variant="wordmark" size="lg" />
         </View>
         <TouchableOpacity style={s.headerIcon} onPress={() => router.back()} data-testid="tournament-back-btn">
-          <Ionicons name="close" size={24} color={colors.textPrimary} />
+          <Ionicons name="arrow-back" size={22} color={LIGHT.text} />
         </TouchableOpacity>
+      </View>
+
+      {/* Tournament name pill — same style as league switcher */}
+      <View style={s.leagueWrap}>
+        <View style={s.leagueBtn}>
+          <Ionicons name="trophy" size={15} color={DARK.accent} />
+          <Text style={s.leagueText} numberOfLines={1}>{t.name}</Text>
+        </View>
       </View>
 
       <ScrollView
@@ -407,11 +420,20 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F6F8' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scrollContent: { padding: spacing.lg, paddingBottom: 100 },
+  ambientOverlay: { position: 'absolute', top: 0, left: '10%', width: '80%', height: 120, borderBottomLeftRadius: 200, borderBottomRightRadius: 200, backgroundColor: 'rgba(245,166,35,0.04)' },
 
-  // Header — same as league home
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, backgroundColor: '#F3F4F6' },
-  headerIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center', justifyContent: 'center' },
+  // Header — copiato 1:1 dalla home lega
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#F3F4F6', zIndex: 2,
+  },
+  headerIcon: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerCenter: { flex: 1, alignItems: 'center' },
+
+  // League/Tournament name pill — copiato 1:1 dalla home lega
+  leagueWrap: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#F3F4F6', alignItems: 'center' },
+  leagueBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 24, backgroundColor: LIGHT.card, borderWidth: 1, borderColor: LIGHT.border, maxWidth: 320 },
+  leagueText: { fontSize: 14, fontWeight: '600', color: LIGHT.text, flexShrink: 1 },
 
   // Hero Card (same as league matchday card)
   heroCard: {
