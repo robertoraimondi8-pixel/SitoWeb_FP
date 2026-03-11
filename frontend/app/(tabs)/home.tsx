@@ -13,6 +13,7 @@ import { HomeData, League } from '../../src/types/api';
 import { goToPredictionsHub } from '../../src/utils/navigation';
 import { SideMenu } from '../../src/components/SideMenu';
 import { TournamentView } from '../../src/components/TournamentView';
+import { useCompetition } from '../../src/contexts/CompetitionContext';
 
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
 import { StatusBadge, LastFiveIndicator, AnimatedSweep } from '../../src/components/ui';
@@ -55,10 +56,8 @@ export default function HomeScreen() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [myTournaments, setMyTournaments] = useState<any[]>([]);
 
-  // Competition mode: league or tournament
-  const [competitionMode, setCompetitionMode] = useState<'league' | 'tournament'>('league');
-  const [activeTournamentId, setActiveTournamentId] = useState<string | null>(null);
-  const [activeTournamentName, setActiveTournamentName] = useState<string>('');
+  // Competition mode from shared context (used by all tabs)
+  const { mode: competitionMode, tournamentId: activeTournamentId, tournamentName: activeTournamentName, setLeagueMode, setTournamentMode, setCurrentRoundInfo } = useCompetition();
 
   // Animations
   const fadeScreen = useRef(new Animated.Value(0)).current;
@@ -80,9 +79,7 @@ export default function HomeScreen() {
   // Handle incoming tournament params from navigation (e.g. from menu)
   useEffect(() => {
     if (params.tournament_id) {
-      setCompetitionMode('tournament');
-      setActiveTournamentId(params.tournament_id);
-      setActiveTournamentName(params.tournament_name || '');
+      setTournamentMode(params.tournament_id, params.tournament_name || '');
     }
   }, [params.tournament_id]);
 
@@ -296,9 +293,7 @@ export default function HomeScreen() {
                   style={[s.switcherItem, isActive && s.switcherItemActive]}
                   onPress={async () => {
                     setShowLeagueSwitcher(false);
-                    setCompetitionMode('league');
-                    setActiveTournamentId(null);
-                    setActiveTournamentName('');
+                    setLeagueMode();
                     setData(null); setCountdown(0); setLoading(true);
                     setActiveLeague(lg);
                     const authToken = token || await AsyncStorage.getItem('access_token');
@@ -328,9 +323,7 @@ export default function HomeScreen() {
                       style={[s.switcherItem, isActive && s.switcherItemActive]}
                       onPress={() => {
                         setShowLeagueSwitcher(false);
-                        setCompetitionMode('tournament');
-                        setActiveTournamentId(t.id);
-                        setActiveTournamentName(t.name);
+                        setTournamentMode(t.id, t.name);
                       }}
                       data-testid={`switch-tournament-${t.id}`}
                     >

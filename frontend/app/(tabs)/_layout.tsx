@@ -1,11 +1,13 @@
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { CompetitionProvider } from '../../src/contexts/CompetitionContext';
 
 export default function TabLayout() {
   const { t } = useTranslation();
 
   return (
+    <CompetitionProvider>
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -33,5 +35,6 @@ export default function TabLayout() {
       <Tabs.Screen name="rankings" options={{ title: t('tabs.rankings'), tabBarIcon: ({ color, size }) => <Ionicons name="trophy" size={size} color={color} /> }} />
       <Tabs.Screen name="profile" options={{ title: t('tabs.profile'), tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} /> }} />
     </Tabs>
+    </CompetitionProvider>
   );
 }

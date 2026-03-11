@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
+import { useCompetition } from '../../src/contexts/CompetitionContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -52,6 +53,7 @@ export default function PredictionsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { token, handleAuthError } = useAuth();
+  const { mode: competitionMode, tournamentId, tournamentName } = useCompetition();
   const { league_id: paramLeagueId, matchday_id: paramMatchdayId } = useLocalSearchParams<{ league_id?: string; matchday_id?: string }>();
   const [data, setData] = useState<PredictionsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,54 +86,71 @@ export default function PredictionsScreen() {
 
   const fetchData = useCallback(async () => {
     try {
-      const home = await apiCall('/home', { token });
+      // Tournament mode: use tournament fixtures endpoint
+      const isTournament = competitionMode === 'tournament' && tournamentId;
+      let leagueId: string;
+
+      if (isTournament) {
+        leagueId = tournamentId;
+        setCompetitionName(tournamentName || 'Torneo');
+        setLeagueInfo({ id: tournamentId, isManual: false, isOwner: false });
+
+        // Try to load tournament scoring config
+        try {
+          const tDetail = await apiCall(`/tournaments/${tournamentId}`, { token });
+          if (tDetail?.scoring_config) setScoringConfig(tDetail.scoring_config);
+        } catch (_) {}
+      } else {
+        const home = await apiCall('/home', { token });
       
-      // === DIAGNOSTIC LOG 3: Frontend Predictions ===
-      console.log('='.repeat(60));
-      console.log('[DIAG-3] PREDICTIONS SCREEN');
-      console.log('  home.league =', home.league);
-      console.log('  home.league.id =', home.league?.id);
-      console.log('  home.league.match_source_type =', home.league?.match_source_type);
-      console.log('  home.league.is_owner =', home.league?.is_owner);
-      console.log('  home.league.my_role =', home.league?.my_role);
+        // === DIAGNOSTIC LOG 3: Frontend Predictions ===
+        console.log('='.repeat(60));
+        console.log('[DIAG-3] PREDICTIONS SCREEN');
+        console.log('  home.league =', home.league);
+        console.log('  home.league.id =', home.league?.id);
+        console.log('  home.league.match_source_type =', home.league?.match_source_type);
+        console.log('  home.league.is_owner =', home.league?.is_owner);
+        console.log('  home.league.my_role =', home.league?.my_role);
       
-      // Salva info lega per empty state
-      const isManualLeague = home.league?.match_source_type === 'manual' || home.league?.match_source_type === 'custom';
-      const isOwnerOrAdmin = home.league?.is_owner || ['owner', 'admin'].includes(home.league?.my_role);
-      setLeagueInfo({
-        id: home.league?.id || '',
-        isManual: isManualLeague,
-        isOwner: isOwnerOrAdmin,
-      });
+        // Salva info lega per empty state
+        const isManualLeague = home.league?.match_source_type === 'manual' || home.league?.match_source_type === 'custom';
+        const isOwnerOrAdmin = home.league?.is_owner || ['owner', 'admin'].includes(home.league?.my_role);
+        setLeagueInfo({
+          id: home.league?.id || '',
+          isManual: isManualLeague,
+          isOwner: isOwnerOrAdmin,
+        });
       
-      if (!home.league?.id) { 
-        console.log('  ERROR: No league.id, exiting');
-        setLoading(false); 
-        return; 
+        if (!home.league?.id) { 
+          console.log('  ERROR: No league.id, exiting');
+          setLoading(false); 
+          return; 
+        }
+
+        leagueId = home.league.id;
+        console.log('  Using leagueId =', leagueId);
+        console.log('  paramMatchdayId =', paramMatchdayId);
+
+        // Carica scoring_config dalla lega attiva
+        try {
+          const leagueDetail = await apiCall(`/leagues/${leagueId}`, { token });
+          if (leagueDetail?.scoring_config) {
+            setScoringConfig(leagueDetail.scoring_config);
+          }
+          if (leagueDetail?.competition_name) {
+            setCompetitionName(leagueDetail.competition_name);
+          } else {
+            setCompetitionName(leagueDetail?.name || '');
+          }
+        } catch (_) { /* usa default se non disponibile */ }
       }
 
-      const leagueId = home.league.id;
-      console.log('  Using leagueId =', leagueId);
-      console.log('  paramMatchdayId =', paramMatchdayId);
-
-      // Carica scoring_config dalla lega attiva
-      try {
-        const leagueDetail = await apiCall(`/leagues/${leagueId}`, { token });
-        if (leagueDetail?.scoring_config) {
-          setScoringConfig(leagueDetail.scoring_config);
-        }
-        if (leagueDetail?.competition_name) {
-          setCompetitionName(leagueDetail.competition_name);
-        } else {
-          setCompetitionName(leagueDetail?.name || '');
-        }
-      } catch (_) { /* usa default se non disponibile */ }
-
-      // PUNTO UNICO DI VERITÀ: usa /api/leagues/{league_id}/fixtures
-      console.log('  Calling: /api/leagues/' + leagueId + '/fixtures');
-      const fixturesRes = await apiCall(`/leagues/${leagueId}/fixtures`, { token });
+      // PUNTO UNICO DI VERITÀ: usa fixtures endpoint
+      const fixturesEndpoint = isTournament
+        ? `/tournaments/${tournamentId}/fixtures`
+        : `/leagues/${leagueId}/fixtures`;
+      const fixturesRes = await apiCall(fixturesEndpoint, { token });
       console.log('  fixturesRes.matchdays count =', fixturesRes.matchdays?.length);
-      
       const matchdays = fixturesRes.matchdays || [];
       let activeMatchday = null;
 
@@ -238,7 +257,7 @@ export default function PredictionsScreen() {
       console.error(e); 
     }
     finally { setLoading(false); }
-  }, [token, handleAuthError, router, paramMatchdayId]);
+  }, [token, handleAuthError, router, paramMatchdayId, competitionMode, tournamentId]);
 
   // Redirect ref: impedisce redirect loop quando lo screen è montato come tab
   const redirectedRef = useRef(false);

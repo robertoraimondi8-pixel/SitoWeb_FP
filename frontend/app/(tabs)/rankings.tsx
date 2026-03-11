@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
+import { useCompetition } from '../../src/contexts/CompetitionContext';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -40,6 +41,7 @@ export default function RankingsScreen() {
   const { t } = useTranslation();
   const { token, user, handleAuthError } = useAuth();
   const { activeLeague } = useLeague();
+  const { mode: competitionMode, tournamentId, tournamentName } = useCompetition();
   const params = useLocalSearchParams<{ tab?: string; matchdayId?: string; leagueId?: string }>();
   const [tab, setTab] = useState<'total' | 'weekly'>('total');
   const [standings, setStandings] = useState<StandingsData | null>(null);
@@ -206,6 +208,133 @@ export default function RankingsScreen() {
       </TouchableOpacity>
     );
   };
+
+  // ══ TOURNAMENT RANKINGS ══
+  const [trkTab, setTrkTab] = useState<'gironi' | 'tabellone'>('gironi');
+  const [trkGroups, setTrkGroups] = useState<any[]>([]);
+  const [trkBracket, setTrkBracket] = useState<any[]>([]);
+  const [trkLoading, setTrkLoading] = useState(true);
+  const [trkTournament, setTrkTournament] = useState<any>(null);
+
+  useEffect(() => {
+    if (competitionMode !== 'tournament' || !tournamentId || !token) return;
+    setTrkLoading(true);
+    Promise.all([
+      apiCall(`/tournaments/${tournamentId}`, { token }),
+      apiCall(`/tournaments/${tournamentId}/groups`, { token }).catch(() => []),
+      apiCall(`/tournaments/${tournamentId}/bracket`, { token }).catch(() => []),
+    ]).then(([detail, groups, bracket]) => {
+      setTrkTournament(detail);
+      setTrkGroups(groups || []);
+      setTrkBracket(bracket || []);
+    }).catch(console.error).finally(() => setTrkLoading(false));
+  }, [competitionMode, tournamentId, token]);
+
+  if (competitionMode === 'tournament' && tournamentId) {
+    const hasGroups = trkTournament && ['groups', 'knockout', 'completed'].includes(trkTournament.status);
+    const bracketReady = trkTournament && ['knockout', 'completed'].includes(trkTournament.status);
+
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <LinearGradient colors={['#F5F6F8', '#ECEFF3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Classifiche Torneo</Text>
+          <View style={styles.accentLine} />
+        </View>
+        <View style={styles.singleLeagueHeader}>
+          <Ionicons name="flash" size={16} color="#22c55e" />
+          <Text style={styles.singleLeagueText}>{tournamentName}</Text>
+        </View>
+        {/* Tabs: Gironi | Tabellone */}
+        <View style={styles.tabContainer}>
+          <View style={styles.tabRow}>
+            <TouchableOpacity onPress={() => setTrkTab('gironi')} style={[styles.tabBtn, trkTab === 'gironi' && styles.tabBtnActive]} data-testid="trk-tab-gironi">
+              <Text style={[styles.tabText, trkTab === 'gironi' && styles.tabTextActive]}>Gironi</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setTrkTab('tabellone')} style={[styles.tabBtn, trkTab === 'tabellone' && styles.tabBtnActive]} data-testid="trk-tab-tabellone">
+              <Text style={[styles.tabText, trkTab === 'tabellone' && styles.tabTextActive]}>Tabellone</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {trkLoading ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : trkTab === 'gironi' ? (
+          <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
+            {!hasGroups ? (
+              <View style={{ padding: 32, alignItems: 'center' }}>
+                <Ionicons name="time-outline" size={40} color={colors.textMuted} />
+                <Text style={{ marginTop: 12, fontSize: 14, color: colors.textMuted, textAlign: 'center' }}>I gironi saranno disponibili dopo la fase di iscrizione</Text>
+              </View>
+            ) : trkGroups.map((g: any) => (
+              <View key={g.group_name} style={{ marginBottom: 20, backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}>
+                <LinearGradient colors={['#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingHorizontal: 16, paddingVertical: 10 }}>
+                  <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14, letterSpacing: 1 }}>GIRONE {g.group_name}</Text>
+                </LinearGradient>
+                {/* Table header */}
+                <View style={{ flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
+                  <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted }}>#</Text>
+                  <Text style={{ flex: 4, fontSize: 11, fontWeight: '700', color: colors.textMuted }}>Giocatore</Text>
+                  <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>G</Text>
+                  <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>V</Text>
+                  <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>P</Text>
+                  <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>S</Text>
+                  <Text style={{ flex: 1.5, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'right' }}>Pts</Text>
+                </View>
+                {(g.standings || []).map((s: any, i: number) => {
+                  const isMe = s.user_id === user?.id;
+                  return (
+                    <View key={s.user_id} style={{ flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f8f8f8', backgroundColor: isMe ? 'rgba(245,166,35,0.06)' : (i < (g.qualifies || 2) ? 'rgba(34,197,94,0.04)' : 'transparent') }}>
+                      <Text style={{ flex: 1, fontSize: 13, fontWeight: isMe ? '800' : '600', color: i < (g.qualifies || 2) ? '#22c55e' : colors.textSecondary }}>{i + 1}</Text>
+                      <Text style={{ flex: 4, fontSize: 13, fontWeight: isMe ? '800' : '500', color: isMe ? colors.primary : colors.textPrimary }} numberOfLines={1}>{s.username}{isMe ? ' (tu)' : ''}</Text>
+                      <Text style={{ flex: 1, fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>{s.played ?? 0}</Text>
+                      <Text style={{ flex: 1, fontSize: 12, color: '#22c55e', textAlign: 'center', fontWeight: '600' }}>{s.wins ?? 0}</Text>
+                      <Text style={{ flex: 1, fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>{s.draws ?? 0}</Text>
+                      <Text style={{ flex: 1, fontSize: 12, color: '#ef4444', textAlign: 'center' }}>{s.losses ?? 0}</Text>
+                      <Text style={{ flex: 1.5, fontSize: 13, fontWeight: '800', color: colors.primary, textAlign: 'right' }}>{(s.group_points ?? s.points ?? 0).toFixed(1)}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
+            {!bracketReady ? (
+              <View style={{ padding: 32, alignItems: 'center' }}>
+                <Ionicons name="git-branch-outline" size={40} color={colors.textMuted} />
+                <Text style={{ marginTop: 12, fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>Tabellone eliminazione diretta</Text>
+                <Text style={{ marginTop: 6, fontSize: 13, color: colors.textMuted, textAlign: 'center' }}>Disponibile dopo la fase a gironi</Text>
+              </View>
+            ) : trkBracket.map((round: any) => (
+              <View key={round.round_label} style={{ marginBottom: 20 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <View style={{ width: 4, height: 20, backgroundColor: colors.primary, borderRadius: 2 }} />
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.8 }}>{round.round_label}</Text>
+                </View>
+                {(round.matchups || []).map((m: any) => {
+                  const isMyMatch = m.user_a_id === user?.id || m.user_b_id === user?.id;
+                  return (
+                    <View key={m.id} style={{ backgroundColor: isMyMatch ? 'rgba(245,166,35,0.06)' : '#fff', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: isMyMatch ? 1.5 : 1, borderColor: isMyMatch ? colors.accent : '#e8e8e8' }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 14, fontWeight: m.user_a_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1 }} numberOfLines={1}>{m.user_a_username || 'TBD'}</Text>
+                        <View style={{ backgroundColor: m.status === 'completed' ? colors.primary : '#e0e0e0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginHorizontal: 8 }}>
+                          <Text style={{ fontSize: 12, fontWeight: '800', color: m.status === 'completed' ? '#fff' : colors.textSecondary }}>{m.user_a_points?.toFixed(1) ?? '-'} : {m.user_b_points?.toFixed(1) ?? '-'}</Text>
+                        </View>
+                        <Text style={{ fontSize: 14, fontWeight: m.user_b_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{m.user_b_username || 'TBD'}</Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
+          </ScrollView>
+        )}
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

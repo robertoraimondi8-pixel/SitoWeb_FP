@@ -683,6 +683,44 @@ async def get_tournament(tournament_id: str, user=Depends(get_current_user)):
     return t
 
 
+
+# ── Tournament fixtures (same format as /leagues/{id}/fixtures for predictions compatibility) ──
+
+@tournament_router.get("/{tournament_id}/fixtures")
+async def get_tournament_fixtures(tournament_id: str, user=Depends(get_current_user)):
+    """Returns tournament rounds formatted as matchdays for compatibility with the predictions screen."""
+    t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+    if not t:
+        raise HTTPException(404, "Torneo non trovato")
+
+    rounds = await tournament_rounds_col.find(
+        {"tournament_id": tournament_id}, {"_id": 0}
+    ).sort("round_number", 1).to_list(50)
+
+    matchdays = []
+    for rnd in rounds:
+        round_matches = await matches_col.find(
+            {"matchday_id": rnd["id"], "league_id": tournament_id}, {"_id": 0}
+        ).to_list(50)
+
+        # Map round status to matchday-compatible status
+        status_map = {"PENDING": "DRAFT", "OPEN": "OPEN", "COMPLETED": "CLOSED"}
+        # Check for live matches
+        has_live = any(m.get("status") == "live" for m in round_matches)
+        effective_status = "LIVE" if has_live else status_map.get(rnd["status"], rnd["status"])
+
+        matchdays.append({
+            "id": rnd["id"],
+            "label": rnd.get("label", f"Round {rnd['round_number']}"),
+            "number": rnd["round_number"],
+            "status": effective_status,
+            "matches": round_matches,
+        })
+
+    return {"matchdays": matchdays}
+
+
+
 # ── Register for tournament ──
 
 @tournament_router.post("/{tournament_id}/register")
