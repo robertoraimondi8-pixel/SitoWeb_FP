@@ -336,77 +336,60 @@ export function TournamentView({ tournamentId }: Props) {
         const completed = myMatchups.filter((m: any) => m.status === 'completed');
         const isA = (m: any) => m.user_a_id === user?.id;
         const wins = completed.filter((m: any) => m.result === (isA(m) ? 'user_a_win' : 'user_b_win')).length;
-        const draws = completed.filter((m: any) => m.result === 'draw').length;
-        const losses = completed.filter((m: any) => m.result === (isA(m) ? 'user_b_win' : 'user_a_win')).length;
         const totalPts = completed.reduce((s: number, m: any) => s + (isA(m) ? m.user_a_points : m.user_b_points), 0);
+        const avg = completed.length > 0 ? (totalPts / completed.length).toFixed(1) : '-';
         const last5 = myMatchups.slice(-5).map((m: any) => ({
           points: isA(m) ? m.user_a_points : m.user_b_points,
-          label: m.round_type === 'group' ? `G${m.round_number}` : m.round_type.charAt(0).toUpperCase(),
+          matchday_number: m.round_number,
         }));
         return (
           <>
             <Text style={s.sectionLabel}>PERFORMANCE</Text>
             <View style={s.perfRow}>
+              {/* Vittorie */}
               <View style={s.perfCardOuter}>
-                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCard}>
-                  <AnimatedSweep />
-                  <View style={s.perfIconWrap}><Ionicons name="trophy" size={20} color={colors.accent} /></View>
+                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCardGrad}>
+                  <LinearGradient colors={['rgba(255,255,255,0.07)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.perfInset} />
+                  <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
+                  <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
+                  <View style={s.perfIconWrap}><Ionicons name="trophy" size={20} color={DARK.accent} /></View>
                   <Text style={s.perfValue}>{wins}</Text>
-                  <Text style={s.perfLabel}>{'VITTORIE'}</Text>
+                  <Text style={s.perfLabel}>{'VITTORIE\nTORNEO'}</Text>
                 </LinearGradient>
               </View>
+              {/* Punti Totali */}
               <View style={s.perfCardOuter}>
-                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCard}>
-                  <AnimatedSweep />
+                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCardGrad}>
+                  <LinearGradient colors={['rgba(255,255,255,0.07)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.perfInset} />
+                  <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
+                  <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
                   <View style={s.perfIconWrap}><Ionicons name="star" size={20} color="#fff" /></View>
                   <Text style={s.perfValue}>{totalPts.toFixed(1)}</Text>
                   <Text style={s.perfLabel}>{'PUNTI\nTOTALI'}</Text>
                 </LinearGradient>
               </View>
+              {/* Media */}
               <View style={s.perfCardOuter}>
-                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCard}>
-                  <AnimatedSweep />
+                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCardGrad}>
+                  <LinearGradient colors={['rgba(255,255,255,0.07)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.perfInset} />
+                  <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
+                  <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
                   <View style={s.perfIconWrap}><Ionicons name="football" size={20} color="#22c55e" /></View>
-                  <Text style={s.perfValue}>{completed.length > 0 ? (totalPts / completed.length).toFixed(1) : '-'}</Text>
-                  <Text style={s.perfLabel}>{'MEDIA\nPUNTI'}</Text>
+                  <Text style={s.perfValue}>{avg}</Text>
+                  <Text style={s.perfLabel}>{'MEDIA\nULTIME 5'}</Text>
                 </LinearGradient>
               </View>
             </View>
 
-            {/* Record V/P/S */}
-            <View style={s.perfCardOuter}>
-              <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.recordCard}>
-                <AnimatedSweep />
-                <Text style={s.recordTitle}>RECORD SFIDE</Text>
-                <View style={s.recordRow}>
-                  <View style={s.recordItem}><Text style={[s.recordNum, { color: '#22c55e' }]}>{wins}</Text><Text style={s.recordLabel}>V</Text></View>
-                  <View style={s.recordDivider} />
-                  <View style={s.recordItem}><Text style={[s.recordNum, { color: colors.accent }]}>{draws}</Text><Text style={s.recordLabel}>P</Text></View>
-                  <View style={s.recordDivider} />
-                  <View style={s.recordItem}><Text style={[s.recordNum, { color: '#ef4444' }]}>{losses}</Text><Text style={s.recordLabel}>S</Text></View>
-                </View>
-              </LinearGradient>
-            </View>
-
-            {/* Trend — last matchups */}
+            {/* ─── TREND ─── */}
             {last5.length > 0 && (
               <View style={s.perfCardOuter}>
-                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.trendCard}>
-                  <AnimatedSweep />
-                  <Text style={s.recordTitle}>TREND ULTIME SFIDE</Text>
-                  <View style={s.trendBars}>
-                    {last5.map((item: any, i: number) => {
-                      const maxPts = Math.max(...last5.map((x: any) => x.points), 1);
-                      const h = Math.max((item.points / maxPts) * 60, 8);
-                      return (
-                        <View key={i} style={s.trendBarCol}>
-                          <Text style={s.trendPts}>{item.points.toFixed(1)}</Text>
-                          <View style={[s.trendBar, { height: h, backgroundColor: item.points > 0 ? colors.accent : 'rgba(255,255,255,0.15)' }]} />
-                          <Text style={s.trendLabel}>{item.label}</Text>
-                        </View>
-                      );
-                    })}
-                  </View>
+                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.trendCardGrad}>
+                  <LinearGradient colors={['rgba(255,255,255,0.07)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.perfInset} />
+                  <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
+                  <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
+                  <Text style={s.sectionLabelInCard}>TREND</Text>
+                  <LastFiveIndicator data={last5} label="Punti per sfida" dark />
                 </LinearGradient>
               </View>
             )}
@@ -453,27 +436,22 @@ const s = StyleSheet.create({
   predProgressBarFill: { height: '100%', backgroundColor: colors.accent, borderRadius: 3 },
   predProgressText: { fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: '600' },
 
-  // Performance
-  sectionLabel: { fontSize: 12, fontWeight: '800', color: colors.textMuted, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.md },
-  perfRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  perfCardOuter: { flex: 1, marginBottom: spacing.sm },
-  perfCard: { borderRadius: borderRadius.lg, padding: spacing.md, alignItems: 'center', overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(245,166,35,0.15)' },
-  perfIconWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-  perfValue: { fontSize: 22, fontWeight: '900', color: '#fff' },
-  perfLabel: { fontSize: 9, fontWeight: '700', color: 'rgba(255,255,255,0.45)', letterSpacing: 1, textTransform: 'uppercase', textAlign: 'center', marginTop: 2 },
-  recordCard: { borderRadius: borderRadius.lg, padding: spacing.lg, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(245,166,35,0.15)' },
-  recordTitle: { fontSize: 11, fontWeight: '800', color: 'rgba(255,255,255,0.45)', letterSpacing: 1.5, marginBottom: spacing.md },
-  recordRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
-  recordItem: { alignItems: 'center' },
-  recordNum: { fontSize: 28, fontWeight: '900' },
-  recordLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.5)', marginTop: 2 },
-  recordDivider: { width: 1, height: 30, backgroundColor: 'rgba(255,255,255,0.1)' },
-  trendCard: { borderRadius: borderRadius.lg, padding: spacing.lg, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(245,166,35,0.15)' },
-  trendBars: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-end', gap: 8, marginTop: spacing.sm },
-  trendBarCol: { alignItems: 'center', flex: 1 },
-  trendPts: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.6)', marginBottom: 4 },
-  trendBar: { width: '80%', borderRadius: 4 },
-  trendLabel: { fontSize: 10, fontWeight: '600', color: 'rgba(255,255,255,0.4)', marginTop: 4 },
+  // Performance — identical to league home
+  sectionLabel: { fontSize: 13, fontWeight: '800', color: '#6B7280', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 8, marginLeft: 4 },
+  perfRow: { flexDirection: 'row', gap: 12 },
+  perfCardOuter: {
+    flex: 1, borderRadius: 22, borderWidth: 1.5, borderColor: DARK.accent, overflow: 'hidden',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.12, shadowRadius: 30, elevation: 10, marginBottom: spacing.sm,
+  },
+  perfCardGrad: { alignItems: 'center', paddingVertical: 16, paddingHorizontal: 8, overflow: 'hidden' },
+  perfInset: { position: 'absolute', top: 0, left: 0, right: 0, height: 40 },
+  whiteSweep: { position: 'absolute', top: -20, left: -40, width: '140%', height: '60%', transform: [{ rotate: '-12deg' }], borderRadius: 22, opacity: 0.9 },
+  topGlow: { position: 'absolute', top: 0, left: 0, right: 0, height: 28, borderTopLeftRadius: 22, borderTopRightRadius: 22 },
+  perfIconWrap: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  perfValue: { fontSize: 28, fontWeight: '800', color: '#fff', letterSpacing: -0.5, lineHeight: 32 },
+  perfLabel: { fontSize: 9, fontWeight: '600', color: 'rgba(255,255,255,0.45)', letterSpacing: 0.8, textTransform: 'uppercase', textAlign: 'center', marginTop: 4, lineHeight: 13 },
+  trendCardGrad: { padding: 16, borderRadius: 22, overflow: 'hidden' },
+  sectionLabelInCard: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.55)', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 12 },
   sectionLabel: { fontSize: 12, fontWeight: '800', color: colors.accent, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 4 },
 
   // Matchup cards
