@@ -322,7 +322,7 @@ export default function RankingsScreen() {
               <View style={{ padding: 32, alignItems: 'center' }}>
                 <Ionicons name="git-branch-outline" size={40} color={colors.textMuted} />
                 <Text style={{ marginTop: 12, fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>Tabellone eliminazione diretta</Text>
-                <Text style={{ marginTop: 6, fontSize: 13, color: colors.textMuted, textAlign: 'center' }}>In attesa che le sfide vengano giocate</Text>
+                <Text style={{ marginTop: 6, fontSize: 13, color: colors.textMuted, textAlign: 'center' }}>In attesa che terminino i gironi</Text>
               </View>
             ) : trkBracket.map((round: any) => (
               <View key={round.round_label} style={{ marginBottom: 20 }}>
