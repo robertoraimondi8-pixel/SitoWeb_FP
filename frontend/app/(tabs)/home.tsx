@@ -117,7 +117,7 @@ export default function HomeScreen() {
       } catch {}
       try {
         const tournaments = await apiCall<any[]>('/tournaments', { token: authToken });
-        setMyTournaments(tournaments.filter((t: any) => t.is_registered));
+        setMyTournaments(tournaments.filter((t: any) => t.is_registered && t.my_status === 'active'));
       } catch {}
     } catch (e: unknown) {
       if (isAuthError(e)) {
@@ -297,9 +297,7 @@ export default function HomeScreen() {
               <>
                 <View style={s.switcherDivider} />
                 <Text style={[s.switcherSectionLabel, { color: '#22c55e' }]}>TORNEI</Text>
-                {myTournaments.map((t: any) => {
-                  const statusLabels: Record<string, string> = { registration: 'Iscrizioni', groups: 'Gironi', knockout: 'Knockout', completed: 'Concluso' };
-                  return (
+                {myTournaments.map((t: any) => (
                     <TouchableOpacity
                       key={t.id}
                       style={s.switcherItem}
@@ -313,12 +311,10 @@ export default function HomeScreen() {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={s.switcherItemText}>{t.name}</Text>
-                        <Text style={[s.switcherItemSub, { color: '#22c55e' }]}>{statusLabels[t.status] || t.status}</Text>
                       </View>
                       <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
                     </TouchableOpacity>
-                  );
-                })}
+                ))}
               </>
             )}
           </View>
