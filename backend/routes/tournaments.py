@@ -585,6 +585,101 @@ async def get_tournament(tournament_id: str, user=Depends(get_current_user)):
     ).sort("round_number", 1).to_list(50)
     t["rounds"] = rounds
 
+    # ── current_round_info: mirrors league /home matchday data ──
+    # Find the active round (OPEN first, then latest non-PENDING)
+    active_round = None
+    for r in reversed(rounds):
+        if r["status"] == "OPEN":
+            active_round = r
+            break
+    if not active_round:
+        for r in reversed(rounds):
+            if r["status"] != "PENDING":
+                active_round = r
+                break
+
+    if active_round and t["is_registered"]:
+        round_id = active_round["id"]
+        # Count matches and check live status
+        round_matches = await matches_col.find(
+            {"matchday_id": round_id, "league_id": tournament_id}, {"_id": 0}
+        ).to_list(50)
+        total_matches = len(round_matches)
+        live_count = sum(1 for m in round_matches if m.get("status") == "live")
+        finished_count = sum(1 for m in round_matches if m.get("status") == "finished")
+
+        # Effective status: OPEN → LIVE (if matches running) → COMPLETED
+        if active_round["status"] == "COMPLETED":
+            effective_status = "COMPLETED"
+        elif live_count > 0:
+            effective_status = "LIVE"
+        elif active_round["status"] == "OPEN" and finished_count == total_matches and total_matches > 0:
+            effective_status = "COMPLETED"
+        else:
+            effective_status = active_round["status"]  # OPEN or PENDING
+
+        # My predictions count
+        my_preds_count = await predictions_col.count_documents(
+            {"user_id": user["id"], "matchday_id": round_id, "league_id": tournament_id}
+        )
+
+        # My matchup for this round
+        my_matchup = await tournament_matchups_col.find_one(
+            {"tournament_id": tournament_id,
+             "round_number": active_round["round_number"],
+             "round_type": active_round["round_type"],
+             "$or": [{"user_a_id": user["id"]}, {"user_b_id": user["id"]}]},
+            {"_id": 0}
+        )
+
+        opponent_name = None
+        my_points = 0.0
+        opp_points = 0.0
+        matchup_id = None
+        if my_matchup:
+            matchup_id = my_matchup["id"]
+            is_a = my_matchup["user_a_id"] == user["id"]
+            opponent_name = my_matchup["user_b_username"] if is_a else my_matchup["user_a_username"]
+            my_points = my_matchup["user_a_points"] if is_a else my_matchup["user_b_points"]
+            opp_points = my_matchup["user_b_points"] if is_a else my_matchup["user_a_points"]
+
+        # Live points if LIVE
+        live_total = None
+        if effective_status == "LIVE" and my_matchup:
+            from scoring import calculate_match_points
+            lt = 0.0
+            my_preds = await predictions_col.find(
+                {"user_id": user["id"], "matchday_id": round_id, "league_id": tournament_id}, {"_id": 0}
+            ).to_list(50)
+            preds_by_match = {p["match_id"]: p for p in my_preds}
+            for m in round_matches:
+                p = preds_by_match.get(m["id"])
+                if p and m.get("status") in ("live", "finished"):
+                    pts, _ = calculate_match_points(
+                        p["prediction_value"], p["market_type"],
+                        m.get("home_score"), m.get("away_score"),
+                        m.get("status"), p.get("multiplier", 1.0)
+                    )
+                    lt += pts
+            live_total = round(lt, 1)
+
+        t["current_round_info"] = {
+            "round_id": round_id,
+            "round_number": active_round["round_number"],
+            "round_type": active_round["round_type"],
+            "label": active_round.get("label", f"Round {active_round['round_number']}"),
+            "status": effective_status,
+            "total_matches": total_matches,
+            "my_predictions_count": my_preds_count,
+            "matchup_id": matchup_id,
+            "opponent_name": opponent_name,
+            "my_points": round(my_points, 1),
+            "opp_points": round(opp_points, 1),
+            "live_total": live_total,
+        }
+    else:
+        t["current_round_info"] = None
+
     return t
 
 

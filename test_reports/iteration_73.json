@@ -1,0 +1,64 @@
+{
+  "summary": "Tested tournament current_round_info feature for dynamic hero card. Backend: 7/7 tests passed (100%). Frontend: Competition switcher shows LEGHE and TORNEI sections correctly, TournamentView renders with fallback registration UI when no rounds exist.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_tournament_current_round_info.py",
+    "/app/test_reports/pytest/tournament_current_round_info_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: Backend GET /api/tournaments/{id} returns current_round_info field with correct structure (round_id, status, opponent_name, my_points, opp_points, total_matches, my_predictions_count, matchup_id, live_total)",
+    "VERIFIED: current_round_info is null for tournaments in registration phase (no rounds)",
+    "VERIFIED: Knockout tournament (b3e9021f) returns current_round_info with status COMPLETED",
+    "VERIFIED: Effective status logic works (OPEN/LIVE/COMPLETED based on round and match statuses)",
+    "VERIFIED: Frontend TournamentView shows registration fallback UI ('Sei iscritto — In attesa di inizio') when current_round_info is null",
+    "VERIFIED: Competition switcher dropdown shows LEGHE and TORNEI sections",
+    "VERIFIED: User's registered tournaments appear in TORNEI section with lightning bolt icons",
+    "VERIFIED: Tournament status badge shows 'ISCRIZIONI APERTE' for registration phase tournaments"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_tournament_current_round_info.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 tests passed)",
+    "frontend": "95% - TournamentView renders correctly, competition switcher works"
+  },
+  "test_credentials": {
+    "user": "ilio@raimondi.it / password123",
+    "admin": "admin@fantapronostic.com / admin123"
+  },
+  "seed_data_creation": "No new seed data created",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The current_round_info feature is working correctly. Backend returns the new field for all tournaments. For tournaments with active rounds, it contains round details, opponent info, and status (OPEN/LIVE/COMPLETED). For registration phase tournaments, it's null. The frontend TournamentView handles both cases: shows dynamic hero card when current_round_info exists, shows registration fallback when null. User ilio@raimondi.it is registered in 2 tournaments (both in registration phase). Admin user can test knockout tournament b3e9021f which has round data.",
+  "verified_features": {
+    "backend_current_round_info_structure": "PASS - Contains all required fields",
+    "backend_null_for_registration": "PASS - Returns null when no rounds",
+    "backend_status_values": "PASS - Returns OPEN/LIVE/COMPLETED as expected",
+    "backend_rounds_array": "PASS - Tournament detail includes rounds array",
+    "frontend_competition_switcher": "PASS - Shows LEGHE and TORNEI sections",
+    "frontend_tournament_fallback_ui": "PASS - Shows registration status when no rounds",
+    "frontend_tab_bar": "PASS - Home, Statistics, Predictions, Rankings, Profile visible",
+    "frontend_league_home": "PASS - Shows matchday card with GIORNATA label"
+  },
+  "api_responses_verified": {
+    "knockout_tournament_current_round_info": {
+      "round_id": "ef06bea8-c9e8-4947-91ad-50ea25d7e22c",
+      "status": "COMPLETED",
+      "opponent_name": "tb901u1",
+      "my_points": 0,
+      "opp_points": 0,
+      "total_matches": 0,
+      "matchup_id": "cc98bfdb-1448-46fb-9435-cef139156e7d"
+    },
+    "registration_tournament_current_round_info": "null (as expected)"
+  }
+}

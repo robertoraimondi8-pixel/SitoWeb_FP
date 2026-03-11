@@ -5,10 +5,11 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
-  RefreshControl, ScrollView, Image,
+  RefreshControl, ScrollView, Image, Animated, Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
 import { apiCall } from '../api/client';
 import { colors, typography, spacing, borderRadius } from '../theme/designSystem';
@@ -25,6 +26,7 @@ interface Props {
 
 export function TournamentView({ tournamentId }: Props) {
   const { token, user } = useAuth();
+  const router = useRouter();
   const [tournament, setTournament] = useState<any>(null);
   const [groupStandings, setGroupStandings] = useState<any[]>([]);
   const [bracket, setBracket] = useState<Record<string, any[]>>({});
@@ -231,29 +233,112 @@ export function TournamentView({ tournamentId }: Props) {
   // ══════════════════════════════════════
   // TOURNAMENT HOME VIEW (inline in home)
   // ══════════════════════════════════════
+  const cri = tournament.current_round_info;
+
+  // CTA press handler — mirrors league behavior
+  const handleHeroCta = () => {
+    if (!cri) return;
+    if (cri.status === 'OPEN') {
+      // Navigate to predictions screen reusing the league flow
+      router.push({ pathname: '/(tabs)/predictions', params: { league_id: tournamentId, matchday_id: cri.round_id } } as any);
+    } else if (cri.status === 'LIVE') {
+      if (cri.matchup_id) openMatchupLive({ id: cri.matchup_id });
+      else router.push({ pathname: '/live/[id]', params: { id: cri.round_id, league_id: tournamentId } } as any);
+    } else if (cri.status === 'COMPLETED') {
+      if (cri.matchup_id) openMatchupLive({ id: cri.matchup_id });
+      else router.push({ pathname: '/live/[id]', params: { id: cri.round_id, league_id: tournamentId } } as any);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={s.scrollContent} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} tintColor={colors.accent} />}>
-      {/* Hero card */}
-      <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.heroCard}>
-        <AnimatedSweep />
-        <View style={s.heroTop}>
-          <View style={s.heroLabelRow}><Ionicons name="trophy" size={13} color={DARK.textMuted} /><Text style={s.heroLabel}>TORNEO</Text></View>
-          <StatusBadge status={t.status === 'registration' ? 'OPEN' : (t.status === 'groups' || t.status === 'knockout') ? 'LIVE' : 'COMPLETED'} label={statusLabels[t.status] || t.status} />
-        </View>
-        <Text style={s.heroTitle}>{t.name}</Text>
-        <Text style={s.heroSub}>{t.registered_count}/{t.max_participants} iscritti  &bull;  {t.groups_count} gironi da {t.players_per_group}  &bull;  {t.duration_rounds} round</Text>
+      {/* ═══ HERO CARD ═══ Dynamic, mirrors league home card */}
+      {cri ? (
+        <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.heroCard}>
+          <AnimatedSweep />
+          {/* Top row: label + status badge */}
+          <View style={s.heroTop}>
+            <View style={s.heroLabelRow}>
+              <Ionicons name="flash" size={13} color={DARK.textMuted} />
+              <Text style={s.heroLabel}>SFIDA TORNEO</Text>
+            </View>
+            <StatusBadge
+              status={cri.status === 'OPEN' ? 'OPEN' : cri.status === 'LIVE' ? 'LIVE' : 'COMPLETED'}
+              label={cri.status === 'OPEN' ? 'PRONOSTICI APERTI' : cri.status === 'LIVE' ? 'LIVE' : 'COMPLETATA'}
+            />
+          </View>
 
-        {t.status === 'registration' && !t.is_registered && (
-          <TouchableOpacity onPress={joinTournament} disabled={joining} data-testid="join-tournament-btn">
-            <LinearGradient colors={['#F7A21B', '#E88E00']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.ctaGrad}>
-              {joining ? <ActivityIndicator size="small" color="#fff" /> : <><Text style={s.ctaText}>Iscriviti al Torneo</Text><View style={s.ctaIcon}><Ionicons name="arrow-forward" size={18} color="#fff" /></View></>}
+          {/* Round label */}
+          <Text style={s.heroTitle}>{cri.label}</Text>
+
+          {/* Opponent info */}
+          {cri.opponent_name ? (
+            <Text style={s.heroSub}>
+              VS {cri.opponent_name}
+              {cri.status !== 'OPEN' ? `  \u2022  ${cri.my_points} - ${cri.opp_points}` : ''}
+            </Text>
+          ) : (
+            <Text style={s.heroSub}>{t.registered_count}/{t.max_participants} partecipanti</Text>
+          )}
+
+          {/* Live points badge */}
+          {cri.status === 'LIVE' && cri.live_total !== null && (
+            <View style={s.livePointsRow}>
+              <Text style={s.livePointsLabel}>I tuoi punti live</Text>
+              <Text style={s.livePointsVal}>{cri.live_total}</Text>
+            </View>
+          )}
+
+          {/* Prediction progress */}
+          {cri.status === 'OPEN' && (
+            <View style={s.predProgressRow}>
+              <View style={s.predProgressBarBg}>
+                <View style={[s.predProgressBarFill, { width: cri.total_matches > 0 ? `${(cri.my_predictions_count / cri.total_matches) * 100}%` : '0%' }]} />
+              </View>
+              <Text style={s.predProgressText}>{cri.my_predictions_count}/{cri.total_matches} pronostici</Text>
+            </View>
+          )}
+
+          {/* CTA button — identical to league */}
+          <TouchableOpacity onPress={handleHeroCta} data-testid="tournament-hero-cta">
+            <LinearGradient
+              colors={cri.status === 'LIVE' ? ['#ef4444', '#dc2626'] : ['#F7A21B', '#E88E00']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.ctaGrad}
+            >
+              <Text style={s.ctaText}>
+                {cri.status === 'OPEN' ? (cri.my_predictions_count > 0 ? 'MODIFICA PRONOSTICI' : 'INSERISCI PRONOSTICI')
+                  : cri.status === 'LIVE' ? 'SEGUI LIVE'
+                  : 'VEDI RISULTATI'}
+              </Text>
+              <View style={s.ctaIcon}>
+                <Ionicons name={cri.status === 'LIVE' ? 'pulse' : 'arrow-forward'} size={18} color="#fff" />
+              </View>
             </LinearGradient>
           </TouchableOpacity>
-        )}
-        {t.is_registered && t.status === 'registration' && (
-          <View style={s.enrolledRow}><Ionicons name="checkmark-circle" size={16} color={colors.success} /><Text style={s.enrolledText}>Sei iscritto</Text></View>
-        )}
-      </LinearGradient>
+        </LinearGradient>
+      ) : (
+        /* Fallback: Registration / No active round */
+        <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.heroCard}>
+          <AnimatedSweep />
+          <View style={s.heroTop}>
+            <View style={s.heroLabelRow}><Ionicons name="trophy" size={13} color={DARK.textMuted} /><Text style={s.heroLabel}>TORNEO</Text></View>
+            <StatusBadge status={t.status === 'registration' ? 'OPEN' : 'COMPLETED'} label={statusLabels[t.status] || t.status} />
+          </View>
+          <Text style={s.heroTitle}>{t.name}</Text>
+          <Text style={s.heroSub}>{t.registered_count}/{t.max_participants} iscritti  &bull;  {t.groups_count} gironi da {t.players_per_group}  &bull;  {t.duration_rounds} round</Text>
+
+          {t.status === 'registration' && !t.is_registered && (
+            <TouchableOpacity onPress={joinTournament} disabled={joining} data-testid="join-tournament-btn">
+              <LinearGradient colors={['#F7A21B', '#E88E00']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.ctaGrad}>
+                {joining ? <ActivityIndicator size="small" color="#fff" /> : <><Text style={s.ctaText}>Iscriviti al Torneo</Text><View style={s.ctaIcon}><Ionicons name="arrow-forward" size={18} color="#fff" /></View></>}
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+          {t.is_registered && t.status === 'registration' && (
+            <View style={s.enrolledRow}><Ionicons name="checkmark-circle" size={16} color={colors.success} /><Text style={s.enrolledText}>Sei iscritto — In attesa di inizio</Text></View>
+          )}
+        </LinearGradient>
+      )}
 
       {/* Tab bar */}
       {hasGroups && (
@@ -380,6 +465,17 @@ const s = StyleSheet.create({
   liveBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(239,68,68,0.2)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#ef4444' },
   liveText: { fontSize: 10, fontWeight: '800', color: '#ef4444' },
+
+  // Live points row
+  livePointsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: borderRadius.md, paddingHorizontal: 14, paddingVertical: 10, marginBottom: spacing.md },
+  livePointsLabel: { fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: '600' },
+  livePointsVal: { fontSize: 20, fontWeight: '900', color: '#fff' },
+
+  // Prediction progress
+  predProgressRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: spacing.md },
+  predProgressBarBg: { flex: 1, height: 6, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 3, overflow: 'hidden' },
+  predProgressBarFill: { height: '100%', backgroundColor: colors.accent, borderRadius: 3 },
+  predProgressText: { fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: '600' },
 
   // Tabs
   tabBar: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: borderRadius.lg, padding: 3, marginBottom: spacing.md, borderWidth: 1, borderColor: '#E5E7EB' },
