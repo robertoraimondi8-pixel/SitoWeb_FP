@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
 import { apiCall } from '../api/client';
 import { colors, typography, spacing, borderRadius } from '../theme/designSystem';
-import { AnimatedSweep, StatusBadge } from './ui';
+import { AnimatedSweep, StatusBadge, LastFiveIndicator } from './ui';
 import { MatchDetailSheet } from './MatchDetailSheet';
 
 const DARK = { accent: '#F5A623', textMuted: 'rgba(255,255,255,0.45)' };
