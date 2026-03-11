@@ -94,7 +94,7 @@ export default function MyTournaments() {
                 key={t.id}
                 style={[s.card, isEliminated && s.cardEliminated]}
                 activeOpacity={0.8}
-                onPress={() => router.push(`/tournament/${t.id}` as any)}
+                onPress={() => router.push({ pathname: '/(tabs)/tournament-detail', params: { id: t.id } } as any)}
                 data-testid={`my-tournament-${t.id}`}
               >
                 <View style={s.cardTop}>

@@ -303,7 +303,7 @@ export default function HomeScreen() {
                       style={s.switcherItem}
                       onPress={() => {
                         setShowLeagueSwitcher(false);
-                        router.push(`/tournament/${t.id}` as any);
+                        router.push({ pathname: '/(tabs)/tournament-detail', params: { id: t.id } } as any);
                       }}
                     >
                       <View style={s.switcherTourneyIcon}>
