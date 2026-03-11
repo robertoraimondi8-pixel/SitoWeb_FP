@@ -148,6 +148,13 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Long team names in prediction lists may overlap with match result
 - A flexbox fix was implemented, needs user verification
 
+## Completed - Dynamic Tournament Hero Card (P0) - 2026-03-11
+- **What**: Hero card nella prima tab del torneo ora è DINAMICA, identica alla card Giornata della Lega
+- **Backend**: Aggiunto `current_round_info` nell'endpoint `GET /api/tournaments/{id}` con status effettivo (OPEN/LIVE/COMPLETED), avversario, punti, pronostici
+- **Frontend**: TournamentView mostra CTA dinamiche: INSERISCI PRONOSTICI (OPEN), SEGUI LIVE (LIVE), VEDI RISULTATI (COMPLETED)
+- **Fallback**: Se in fase iscrizioni (no rounds), mostra card statica con "Iscriviti al Torneo" o "Sei iscritto — In attesa di inizio"
+- **Testing**: Backend 7/7 (100%), Frontend 95%
+
 ## Completed - Tournament Unified Competition Context Refactor (P0) - 2026-03-11
 - **What**: Tournaments now render INSIDE the home.tsx screen via conditional rendering, NOT as separate pages
 - **Architecture**: `competitionMode` state in home.tsx switches between 'league' and 'tournament' views
