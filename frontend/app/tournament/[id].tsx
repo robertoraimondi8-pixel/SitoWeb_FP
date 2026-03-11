@@ -1,74 +1,51 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
+/**
+ * Tournament Detail — FantaPronostic
+ * Stessa struttura visiva della home lega: card navy, gradienti, accent borders.
+ */
+import React, { useState, useCallback, useEffect } from 'react';
+import {
+  View, Text, TouchableOpacity, StyleSheet, ScrollView,
+  ActivityIndicator, RefreshControl,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
-import { colors, borderRadius } from '../../src/theme/designSystem';
+import { colors, typography, spacing, borderRadius } from '../../src/theme/designSystem';
+import { AnimatedSweep, StatusBadge } from '../../src/components/ui';
 
-type GroupStanding = {
-  user_id: string;
-  username: string;
-  played: number;
-  wins: number;
-  draws: number;
-  losses: number;
-  group_points: number;
-  prediction_points: number;
-};
+const DARK = { accent: '#F5A623', textMuted: 'rgba(255,255,255,0.45)' };
 
-type GroupData = {
-  group_name: string;
-  group_id: string;
-  standings: GroupStanding[];
-};
-
-type Matchup = {
-  id: string;
-  round_type: string;
-  round_number: number;
-  user_a_id: string;
-  user_b_id: string;
-  user_a_username: string;
-  user_b_username: string;
-  user_a_points: number;
-  user_b_points: number;
-  result: string;
-  status: string;
-  winner_id: string | null;
-};
-
-type RoundInfo = {
-  id: string;
-  round_number: number;
-  round_type: string;
-  status: string;
-  label: string;
-};
+type Tab = 'info' | 'sfide' | 'groups' | 'bracket';
 
 type TournamentDetail = {
-  id: string;
-  name: string;
-  status: string;
-  max_participants: number;
-  registered_count: number;
-  spots_left: number;
-  is_registered: boolean;
-  my_status: string | null;
-  groups_count: number;
-  players_per_group: number;
-  advance_count: number;
-  duration_rounds: number;
-  current_round: number;
-  entry_fee: number;
-  groups?: Array<{ group_name: string; members: Array<{ user_id: string; username: string }> }>;
-  rounds?: RoundInfo[];
+  id: string; name: string; status: string;
+  max_participants: number; duration_rounds: number;
+  groups_count: number; players_per_group: number;
+  advance_count: number; entry_fee: number;
+  current_round: number; registered_count: number;
+  spots_left: number; is_registered: boolean;
+  rounds?: any[];
+};
+type GroupData = {
+  group_name: string; group_id: string;
+  standings: Array<{
+    user_id: string; username: string; played: number;
+    wins: number; draws: number; losses: number;
+    group_points: number; prediction_points: number;
+  }>;
+};
+type Matchup = {
+  id: string; round_type: string; round_number: number;
+  user_a_id: string; user_b_id: string;
+  user_a_username: string; user_b_username: string;
+  user_a_points: number; user_b_points: number;
+  result: string; status: string; winner_id: string | null;
 };
 
-type Tab = 'info' | 'groups' | 'sfide' | 'bracket';
-
-export default function TournamentDetail() {
+export default function TournamentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { token, user } = useAuth();
   const router = useRouter();
@@ -79,9 +56,9 @@ export default function TournamentDetail() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('info');
-  const [registering, setRegistering] = useState(false);
+  const [joining, setJoining] = useState(false);
 
-  const fetchAll = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     if (!token || !id) return;
     try {
       const [detail, groups, bracketData, matchups] = await Promise.all([
@@ -94,155 +71,182 @@ export default function TournamentDetail() {
       setGroupStandings(groups);
       setBracket(bracketData.bracket || {});
       setMyMatchups(matchups);
-      if (detail.status === 'groups' || detail.status === 'knockout') {
+      if ((detail.status === 'groups' || detail.status === 'knockout') && matchups.length > 0) {
         setActiveTab('sfide');
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); setRefreshing(false); }
   }, [token, id]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 
-  const handleRegister = async () => {
+  const joinTournament = async () => {
     if (!token || !id) return;
-    setRegistering(true);
+    setJoining(true);
     try {
       await apiCall(`/tournaments/${id}/register`, { method: 'POST', token });
-      fetchAll();
-    } catch (e: any) {
-      alert(e.message || 'Errore');
-    } finally {
-      setRegistering(false);
-    }
+      fetchData();
+    } catch (e) { console.error(e); }
+    finally { setJoining(false); }
+  };
+
+  const leaveTournament = async () => {
+    if (!token || !id) return;
+    setJoining(true);
+    try {
+      await apiCall(`/tournaments/${id}/unregister`, { method: 'POST', token });
+      fetchData();
+    } catch (e) { console.error(e); }
+    finally { setJoining(false); }
   };
 
   if (loading || !tournament) {
-    return <View style={s.center}><ActivityIndicator size="large" color={colors.accent} /></View>;
+    return (
+      <SafeAreaView style={s.container} edges={['top']}>
+        <LinearGradient colors={['#F5F6F8', '#ECEFF3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+        <View style={s.center}><ActivityIndicator size="large" color={colors.accent} /></View>
+      </SafeAreaView>
+    );
   }
 
   const t = tournament;
-  const isOpen = t.status === 'registration';
   const hasGroups = t.status !== 'draft' && t.status !== 'registration';
+  const statusLabels: Record<string, string> = {
+    draft: 'BOZZA', registration: 'ISCRIZIONI APERTE', groups: 'FASE A GIRONI', knockout: 'ELIMINAZIONE DIRETTA', completed: 'CONCLUSO'
+  };
 
   return (
     <SafeAreaView style={s.container} edges={['top']}>
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={s.headerTitle} numberOfLines={1}>{t.name}</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <LinearGradient colors={['#F5F6F8', '#ECEFF3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
 
-      {/* Tab selector */}
-      {hasGroups && (
-        <View style={s.tabBar}>
-          {(['info', 'sfide', 'groups', 'bracket'] as Tab[]).map(tab => {
-            const labels: Record<Tab, string> = { info: 'Info', sfide: 'Le mie sfide', groups: 'Gironi', bracket: 'Tabellone' };
-            const isActive = activeTab === tab;
-            const disabled = tab === 'bracket' && t.status === 'groups';
-            return (
-              <TouchableOpacity
-                key={tab}
-                style={[s.tabItem, isActive && s.tabItemActive, disabled && { opacity: 0.4 }]}
-                onPress={() => !disabled && setActiveTab(tab)}
-                data-testid={`tournament-tab-${tab}`}
-              >
-                <Text style={[s.tabText, isActive && s.tabTextActive]}>{labels[tab]}</Text>
-              </TouchableOpacity>
-            );
-          })}
+      {/* Header */}
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => router.back()} style={s.backBtn} data-testid="tournament-back-btn">
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={s.headerTitle} numberOfLines={1}>{t.name}</Text>
         </View>
-      )}
+      </View>
 
       <ScrollView
         contentContainerStyle={s.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll(); }} tintColor={colors.accent} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} tintColor={colors.accent} />}
       >
-        {/* INFO TAB */}
-        {(activeTab === 'info' || !hasGroups) && (
-          <>
-            {/* Tournament info card */}
-            <View style={s.infoCard}>
-              <View style={s.infoRow}>
-                <Ionicons name="people" size={18} color={colors.accent} />
-                <Text style={s.infoLabel}>Partecipanti</Text>
-                <Text style={s.infoValue}>{t.registered_count}/{t.max_participants}</Text>
-              </View>
-              <View style={s.infoRow}>
-                <Ionicons name="grid" size={18} color={colors.accent} />
-                <Text style={s.infoLabel}>Struttura</Text>
-                <Text style={s.infoValue}>{t.groups_count} gironi da {t.players_per_group}</Text>
-              </View>
-              <View style={s.infoRow}>
-                <Ionicons name="arrow-forward-circle" size={18} color={colors.accent} />
-                <Text style={s.infoLabel}>Passano</Text>
-                <Text style={s.infoValue}>Primi {t.advance_count} per girone</Text>
-              </View>
-              <View style={s.infoRow}>
-                <Ionicons name="calendar" size={18} color={colors.accent} />
-                <Text style={s.infoLabel}>Durata</Text>
-                <Text style={s.infoValue}>{t.duration_rounds} giornate</Text>
-              </View>
-              <View style={s.infoRow}>
-                <Ionicons name="cash" size={18} color={colors.accent} />
-                <Text style={s.infoLabel}>Iscrizione</Text>
-                <Text style={s.infoValue}>{t.entry_fee === 0 ? 'Gratuita' : `${t.entry_fee}$`}</Text>
-              </View>
-            </View>
+        {/* ─── HERO CARD (same style as league matchday card) ─── */}
+        <LinearGradient
+          colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={s.heroCard}
+        >
+          <LinearGradient colors={['rgba(255,255,255,0.08)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
+          <AnimatedSweep />
 
-            {/* Registration CTA */}
-            {isOpen && !t.is_registered && t.spots_left > 0 && (
-              <TouchableOpacity style={s.ctaBtn} onPress={handleRegister} disabled={registering} data-testid="register-tournament">
-                {registering ? <ActivityIndicator size="small" color="#fff" /> : (
+          <View style={s.heroTop}>
+            <View style={s.heroLabelRow}>
+              <Ionicons name="trophy" size={13} color={DARK.textMuted} />
+              <Text style={s.heroLabel}>TORNEO</Text>
+            </View>
+            <StatusBadge status={t.status === 'registration' ? 'OPEN' : t.status === 'groups' ? 'LIVE' : t.status === 'knockout' ? 'LIVE' : 'COMPLETED'} label={statusLabels[t.status] || t.status} />
+          </View>
+
+          <Text style={s.heroTitle}>{t.name}</Text>
+          <Text style={s.heroSub}>
+            {t.registered_count}/{t.max_participants} iscritti  &bull;  {t.groups_count} gironi da {t.players_per_group}  &bull;  {t.duration_rounds} round
+          </Text>
+
+          {/* Registration CTA */}
+          {t.status === 'registration' && !t.is_registered && (
+            <TouchableOpacity style={s.ctaBtn} onPress={joinTournament} disabled={joining} data-testid="join-tournament-btn">
+              <LinearGradient colors={['#F7A21B', '#E88E00']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.ctaGrad}>
+                {joining ? <ActivityIndicator size="small" color="#fff" /> : (
                   <>
-                    <Ionicons name="add-circle" size={20} color="#fff" />
-                    <Text style={s.ctaBtnText}>Iscriviti al torneo</Text>
+                    <Text style={s.ctaText}>Iscriviti al Torneo</Text>
+                    <View style={s.ctaIconCircle}><Ionicons name="arrow-forward" size={18} color="#fff" /></View>
                   </>
                 )}
-              </TouchableOpacity>
-            )}
-            {t.is_registered && (
-              <View style={s.registeredCard}>
-                <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
-                <Text style={s.registeredCardText}>Sei iscritto a questo torneo</Text>
-              </View>
-            )}
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
 
-            {/* Rounds list */}
-            {t.rounds && t.rounds.length > 0 && (
-              <View style={s.roundsSection}>
-                <Text style={s.sectionTitle}>Giornate</Text>
-                {t.rounds.map(r => (
-                  <View key={r.id} style={s.roundItem}>
-                    <View style={s.roundLeft}>
-                      <Text style={s.roundLabel}>{r.label}</Text>
-                      <Text style={s.roundType}>{r.round_type === 'group' ? 'Fase a gironi' : r.round_type}</Text>
-                    </View>
-                    <View style={[s.roundStatus, { backgroundColor: r.status === 'COMPLETED' ? '#22c55e20' : r.status === 'OPEN' ? '#3b82f620' : colors.background }]}>
-                      <Text style={[s.roundStatusText, { color: r.status === 'COMPLETED' ? '#22c55e' : r.status === 'OPEN' ? '#3b82f6' : colors.textMuted }]}>
-                        {r.status === 'COMPLETED' ? 'Completata' : r.status === 'OPEN' ? 'Aperta' : 'In attesa'}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            )}
-          </>
+          {t.is_registered && t.status === 'registration' && (
+            <View style={s.enrolledBanner}>
+              <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+              <Text style={s.enrolledText}>Sei iscritto a questo torneo</Text>
+              <TouchableOpacity onPress={leaveTournament} disabled={joining}>
+                <Text style={s.leaveText}>Esci</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </LinearGradient>
+
+        {/* ─── STATS ROW (same as Performance cards) ─── */}
+        {hasGroups && (
+          <View style={s.perfRow}>
+            <View style={s.perfCardOuter}>
+              <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCardGrad}>
+                <AnimatedSweep />
+                <View style={s.perfIconWrap}><Ionicons name="grid" size={20} color={DARK.accent} /></View>
+                <Text style={s.perfValue}>{t.groups_count}x{t.players_per_group}</Text>
+                <Text style={s.perfLabel}>GIRONI</Text>
+              </LinearGradient>
+            </View>
+            <View style={s.perfCardOuter}>
+              <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCardGrad}>
+                <AnimatedSweep />
+                <View style={s.perfIconWrap}><Ionicons name="people" size={20} color="#fff" /></View>
+                <Text style={s.perfValue}>{t.registered_count}</Text>
+                <Text style={s.perfLabel}>ISCRITTI</Text>
+              </LinearGradient>
+            </View>
+            <View style={s.perfCardOuter}>
+              <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCardGrad}>
+                <AnimatedSweep />
+                <View style={s.perfIconWrap}><Ionicons name="football" size={20} color={colors.success} /></View>
+                <Text style={s.perfValue}>{t.current_round}</Text>
+                <Text style={s.perfLabel}>ROUND</Text>
+              </LinearGradient>
+            </View>
+          </View>
         )}
 
-        {/* LE MIE SFIDE TAB */}
+        {/* ─── TAB BAR ─── */}
+        {hasGroups && (
+          <View style={s.tabBar}>
+            {(['sfide', 'groups', 'bracket'] as Tab[]).map(tab => {
+              const labels: Record<Tab, string> = { info: 'Info', sfide: 'Le mie sfide', groups: 'Gironi', bracket: 'Tabellone' };
+              const icons: Record<Tab, string> = { info: 'information-circle', sfide: 'flash', groups: 'grid', bracket: 'git-network' };
+              const isActive = activeTab === tab;
+              const disabled = tab === 'bracket' && t.status === 'groups';
+              return (
+                <TouchableOpacity
+                  key={tab}
+                  style={[s.tabItem, isActive && s.tabItemActive]}
+                  onPress={() => !disabled && setActiveTab(tab)}
+                  disabled={disabled}
+                  data-testid={`tab-${tab}`}
+                >
+                  <Ionicons name={icons[tab] as any} size={16} color={isActive ? colors.accent : disabled ? 'rgba(0,0,0,0.2)' : colors.textSecondary} />
+                  <Text style={[s.tabLabel, isActive && s.tabLabelActive, disabled && { color: 'rgba(0,0,0,0.2)' }]}>
+                    {labels[tab]}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
+        {/* ─── LE MIE SFIDE (matchup cards — navy style) ─── */}
         {activeTab === 'sfide' && hasGroups && (
           <>
             {myMatchups.length === 0 ? (
-              <View style={s.emptyBracket}>
-                <Ionicons name="flash-outline" size={40} color={colors.textMuted} />
-                <Text style={s.emptyText}>Nessuna sfida ancora</Text>
-              </View>
+              <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.emptyCard}>
+                <AnimatedSweep />
+                <Ionicons name="flash-outline" size={40} color={DARK.textMuted} />
+                <Text style={s.emptyTitle}>Nessuna sfida ancora</Text>
+                <Text style={s.emptySub}>Le sfide verranno generate quando il torneo inizia</Text>
+              </LinearGradient>
             ) : (
               myMatchups.map(mu => {
                 const isA = mu.user_a_id === user?.id;
@@ -255,38 +259,41 @@ export default function TournamentDetail() {
                 const roundLabels: Record<string, string> = { group: 'Girone', quarterfinal: 'Quarti', semifinal: 'Semi', final: 'Finale' };
                 return (
                   <TouchableOpacity
-                    key={mu.id} style={s.matchupCard}
+                    key={mu.id}
                     onPress={() => router.push({ pathname: '/tournament/matchup', params: { tournamentId: id, matchupId: mu.id } } as any)}
                     data-testid={`matchup-${mu.id}`}
                   >
-                    <View style={s.matchupTop}>
-                      <Text style={s.matchupRound}>{roundLabels[mu.round_type] || mu.round_type} - Round {mu.round_number}</Text>
-                      {isDone && won && <View style={[s.resultBadge, { backgroundColor: '#22c55e20' }]}><Text style={[s.resultBadgeText, { color: '#22c55e' }]}>VITTORIA</Text></View>}
-                      {isDone && lost && <View style={[s.resultBadge, { backgroundColor: '#ef444420' }]}><Text style={[s.resultBadgeText, { color: '#ef4444' }]}>SCONFITTA</Text></View>}
-                      {isDone && mu.result === 'draw' && <View style={[s.resultBadge, { backgroundColor: '#f59e0b20' }]}><Text style={[s.resultBadgeText, { color: '#f59e0b' }]}>PAREGGIO</Text></View>}
-                      {!isDone && <View style={[s.resultBadge, { backgroundColor: colors.accent + '20' }]}><Text style={[s.resultBadgeText, { color: colors.accent }]}>IN CORSO</Text></View>}
-                    </View>
-                    <View style={s.matchupBody}>
-                      <View style={s.matchupPlayer}>
-                        <View style={[s.matchupAvatar, { backgroundColor: colors.accent + '20' }]}>
-                          <Text style={[s.matchupAvatarText, { color: colors.accent }]}>{user?.username?.charAt(0)?.toUpperCase() || 'T'}</Text>
-                        </View>
-                        <Text style={[s.matchupName, { color: colors.accent }]} numberOfLines={1}>Tu</Text>
-                        <Text style={[s.matchupPts, won && { color: '#22c55e', fontWeight: '900' }]}>{myPts.toFixed(1)}</Text>
+                    <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.matchupCard}>
+                      <AnimatedSweep />
+                      <View style={s.matchupHeader}>
+                        <Text style={s.matchupRound}>{roundLabels[mu.round_type] || mu.round_type} - Round {mu.round_number}</Text>
+                        {isDone && won && <View style={[s.matchupBadge, { backgroundColor: 'rgba(34,197,94,0.2)' }]}><Text style={[s.matchupBadgeText, { color: colors.success }]}>VITTORIA</Text></View>}
+                        {isDone && lost && <View style={[s.matchupBadge, { backgroundColor: 'rgba(239,68,68,0.2)' }]}><Text style={[s.matchupBadgeText, { color: colors.error }]}>SCONFITTA</Text></View>}
+                        {isDone && mu.result === 'draw' && <View style={[s.matchupBadge, { backgroundColor: 'rgba(245,166,35,0.2)' }]}><Text style={[s.matchupBadgeText, { color: colors.accent }]}>PAREGGIO</Text></View>}
+                        {!isDone && <View style={[s.matchupBadge, { backgroundColor: 'rgba(34,197,94,0.2)' }]}><Text style={[s.matchupBadgeText, { color: colors.success }]}>IN CORSO</Text></View>}
                       </View>
-                      <View style={s.matchupVs}><Text style={s.matchupVsText}>VS</Text></View>
-                      <View style={s.matchupPlayer}>
-                        <View style={[s.matchupAvatar, { backgroundColor: '#ef444420' }]}>
-                          <Text style={[s.matchupAvatarText, { color: '#ef4444' }]}>{opponent.charAt(0).toUpperCase()}</Text>
+                      <View style={s.matchupBody}>
+                        <View style={s.matchupPlayerCol}>
+                          <View style={[s.matchupAvatar, { borderColor: colors.accent, borderWidth: 2 }]}>
+                            <Text style={s.matchupAvatarText}>{user?.username?.charAt(0)?.toUpperCase() || 'T'}</Text>
+                          </View>
+                          <Text style={[s.matchupPlayerName, { color: colors.accent }]}>Tu</Text>
+                          <Text style={s.matchupPts}>{myPts.toFixed(1)}</Text>
                         </View>
-                        <Text style={s.matchupName} numberOfLines={1}>{opponent}</Text>
-                        <Text style={[s.matchupPts, lost && { color: '#22c55e', fontWeight: '900' }]}>{oppPts.toFixed(1)}</Text>
+                        <View style={s.matchupVsCol}><Text style={s.matchupVs}>VS</Text></View>
+                        <View style={s.matchupPlayerCol}>
+                          <View style={s.matchupAvatar}>
+                            <Text style={s.matchupAvatarText}>{opponent.charAt(0).toUpperCase()}</Text>
+                          </View>
+                          <Text style={s.matchupPlayerName}>{opponent}</Text>
+                          <Text style={s.matchupPts}>{oppPts.toFixed(1)}</Text>
+                        </View>
                       </View>
-                    </View>
-                    <View style={s.matchupFooter}>
-                      <Text style={s.matchupCta}>Vedi dettagli</Text>
-                      <Ionicons name="chevron-forward" size={16} color={colors.accent} />
-                    </View>
+                      <View style={s.matchupFooter}>
+                        <Text style={s.matchupCta}>Vedi sfida</Text>
+                        <Ionicons name="chevron-forward" size={16} color={colors.accent} />
+                      </View>
+                    </LinearGradient>
                   </TouchableOpacity>
                 );
               })
@@ -294,93 +301,92 @@ export default function TournamentDetail() {
           </>
         )}
 
-        {/* GROUPS TAB */}
+        {/* ─── GIRONI ─── */}
         {activeTab === 'groups' && hasGroups && (
           <>
             {groupStandings.length === 0 ? (
-              <Text style={s.emptyText}>Gironi in preparazione</Text>
+              <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.emptyCard}>
+                <AnimatedSweep />
+                <Ionicons name="grid-outline" size={40} color={DARK.textMuted} />
+                <Text style={s.emptyTitle}>Gironi non ancora generati</Text>
+              </LinearGradient>
             ) : (
               groupStandings.map(g => (
-                <View key={g.group_id} style={s.groupCard}>
+                <LinearGradient key={g.group_id} colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.groupCard}>
+                  <AnimatedSweep />
                   <Text style={s.groupTitle}>Girone {g.group_name}</Text>
-                  {/* Table header */}
                   <View style={s.tableHeader}>
-                    <Text style={[s.tableCell, { flex: 2 }]}>Giocatore</Text>
-                    <Text style={s.tableCell}>G</Text>
-                    <Text style={s.tableCell}>V</Text>
-                    <Text style={s.tableCell}>P</Text>
-                    <Text style={s.tableCell}>S</Text>
-                    <Text style={[s.tableCell, { fontWeight: '800' }]}>Pt</Text>
-                    <Text style={s.tableCell}>Pred</Text>
+                    <Text style={[s.cell, { flex: 2.5, textAlign: 'left' }]}>#</Text>
+                    <Text style={s.cell}>G</Text>
+                    <Text style={s.cell}>V</Text>
+                    <Text style={s.cell}>P</Text>
+                    <Text style={s.cell}>S</Text>
+                    <Text style={[s.cell, { fontWeight: '800' }]}>PT</Text>
                   </View>
                   {g.standings.map((st, idx) => {
+                    const qualifies = idx < tournament.advance_count;
                     const isMe = st.user_id === user?.id;
-                    const qualifies = idx < (tournament?.advance_count || 2);
                     return (
-                      <View key={st.user_id} style={[s.tableRow, isMe && s.tableRowMe, qualifies && s.tableRowQualify]}>
-                        <View style={[s.tableCell, { flex: 2, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
-                          <Text style={s.tablePos}>{idx + 1}</Text>
-                          <Text style={[s.tableName, isMe && { fontWeight: '800', color: colors.accent }]} numberOfLines={1}>{st.username}</Text>
+                      <View key={st.user_id} style={[s.tableRow, qualifies && { borderLeftWidth: 3, borderLeftColor: colors.success, paddingLeft: 6 }, isMe && { backgroundColor: 'rgba(245,166,35,0.1)' }]}>
+                        <View style={[s.cell, { flex: 2.5, flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                          <Text style={s.posNum}>{idx + 1}</Text>
+                          <Text style={[s.userName, isMe && { color: colors.accent }]} numberOfLines={1}>{st.username}</Text>
                         </View>
-                        <Text style={s.tableCell}>{st.played}</Text>
-                        <Text style={[s.tableCell, { color: '#22c55e' }]}>{st.wins}</Text>
-                        <Text style={s.tableCell}>{st.draws}</Text>
-                        <Text style={[s.tableCell, { color: '#ef4444' }]}>{st.losses}</Text>
-                        <Text style={[s.tableCell, { fontWeight: '800', color: colors.textPrimary }]}>{st.group_points}</Text>
-                        <Text style={[s.tableCell, { fontSize: 11 }]}>{st.prediction_points}</Text>
+                        <Text style={s.cell}>{st.played}</Text>
+                        <Text style={[s.cell, { color: colors.success }]}>{st.wins}</Text>
+                        <Text style={s.cell}>{st.draws}</Text>
+                        <Text style={[s.cell, { color: colors.error }]}>{st.losses}</Text>
+                        <Text style={[s.cell, { fontWeight: '800', color: '#fff' }]}>{st.group_points}</Text>
                       </View>
                     );
                   })}
-                </View>
+                </LinearGradient>
               ))
             )}
           </>
         )}
 
-        {/* BRACKET TAB */}
-        {activeTab === 'bracket' && (
+        {/* ─── TABELLONE ─── */}
+        {activeTab === 'bracket' && hasGroups && (
           <>
             {Object.keys(bracket).length === 0 ? (
-              <View style={s.emptyBracket}>
-                <Ionicons name="git-network-outline" size={40} color={colors.textMuted} />
-                <Text style={s.emptyText}>Tabellone non ancora disponibile</Text>
-              </View>
+              <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.emptyCard}>
+                <AnimatedSweep />
+                <Ionicons name="git-network-outline" size={40} color={DARK.textMuted} />
+                <Text style={s.emptyTitle}>Tabellone non ancora generato</Text>
+                <Text style={s.emptySub}>Verrà generato al termine della fase a gironi</Text>
+              </LinearGradient>
             ) : (
-              Object.entries(bracket).map(([roundType, matchups]) => {
-                const roundLabels: Record<string, string> = {
-                  quarterfinal: 'Quarti di finale',
-                  semifinal: 'Semifinali',
-                  final: 'Finale',
-                };
-                return (
-                  <View key={roundType} style={s.bracketRound}>
-                    <Text style={s.bracketRoundTitle}>{roundLabels[roundType] || roundType}</Text>
-                    {matchups.map(mu => {
-                      const aWon = mu.result === 'user_a_win';
-                      const bWon = mu.result === 'user_b_win';
-                      return (
-                        <TouchableOpacity
-                          key={mu.id} style={s.bracketMatch}
-                          onPress={() => router.push({ pathname: '/tournament/matchup', params: { tournamentId: id, matchupId: mu.id } } as any)}
-                          data-testid={`bracket-match-${mu.id}`}
-                        >
-                          <View style={[s.bracketPlayer, aWon && s.bracketPlayerWin]}>
-                            <Text style={[s.bracketName, aWon && s.bracketNameWin]}>{mu.user_a_username}</Text>
-                            <Text style={[s.bracketPts, aWon && s.bracketPtsWin]}>{mu.user_a_points.toFixed(1)}</Text>
+              Object.entries(bracket).map(([phase, matchups]) => (
+                <View key={phase}>
+                  <Text style={s.sectionLabel}>{phase.toUpperCase()}</Text>
+                  {matchups.map(mu => {
+                    const aWon = mu.result === 'user_a_win';
+                    const bWon = mu.result === 'user_b_win';
+                    return (
+                      <TouchableOpacity
+                        key={mu.id}
+                        onPress={() => router.push({ pathname: '/tournament/matchup', params: { tournamentId: id, matchupId: mu.id } } as any)}
+                        data-testid={`bracket-match-${mu.id}`}
+                      >
+                        <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.bracketCard}>
+                          <AnimatedSweep />
+                          <View style={[s.bracketRow, aWon && { borderLeftColor: colors.success, borderLeftWidth: 3 }]}>
+                            <Text style={[s.bracketName, aWon && { color: '#fff', fontWeight: '800' }]}>{mu.user_a_username}</Text>
+                            <Text style={[s.bracketScore, aWon && { color: colors.success }]}>{mu.user_a_points.toFixed(1)}</Text>
                           </View>
-                          <View style={s.bracketVs}>
-                            <Text style={s.bracketVsText}>VS</Text>
+                          <View style={s.bracketDivider} />
+                          <View style={[s.bracketRow, bWon && { borderLeftColor: colors.success, borderLeftWidth: 3 }]}>
+                            <Text style={[s.bracketName, bWon && { color: '#fff', fontWeight: '800' }]}>{mu.user_b_username}</Text>
+                            <Text style={[s.bracketScore, bWon && { color: colors.success }]}>{mu.user_b_points.toFixed(1)}</Text>
                           </View>
-                          <View style={[s.bracketPlayer, bWon && s.bracketPlayerWin]}>
-                            <Text style={[s.bracketName, bWon && s.bracketNameWin]}>{mu.user_b_username}</Text>
-                            <Text style={[s.bracketPts, bWon && s.bracketPtsWin]}>{mu.user_b_points.toFixed(1)}</Text>
-                          </View>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                );
-              })
+                          <Ionicons name="chevron-forward" size={16} color={DARK.textMuted} style={{ position: 'absolute', right: 12, top: '50%' }} />
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              ))
             )}
           </>
         )}
@@ -390,76 +396,93 @@ export default function TournamentDetail() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, flex: 1, textAlign: 'center' },
-  tabBar: { flexDirection: 'row', backgroundColor: colors.card, paddingHorizontal: 12, paddingVertical: 6, gap: 4 },
-  tabItem: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
-  tabItemActive: { backgroundColor: colors.accent + '20' },
-  tabText: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
-  tabTextActive: { color: colors.accent, fontWeight: '700' },
-  scrollContent: { padding: 16, gap: 14, paddingBottom: 40 },
-  emptyText: { textAlign: 'center', color: colors.textMuted, paddingVertical: 30, fontSize: 14 },
+  container: { flex: 1, backgroundColor: '#F5F6F8' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  scrollContent: { padding: spacing.lg, paddingBottom: 100 },
 
-  // Info
-  infoCard: { backgroundColor: colors.card, borderRadius: borderRadius.xl, padding: 16, gap: 12, borderWidth: 1, borderColor: colors.border },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  infoLabel: { flex: 1, fontSize: 14, fontWeight: '500', color: colors.textSecondary },
-  infoValue: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
-  ctaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#1F4C8F', paddingVertical: 14, borderRadius: borderRadius.md },
-  ctaBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  registeredCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#22c55e15', paddingVertical: 14, borderRadius: borderRadius.md },
-  registeredCardText: { fontSize: 15, fontWeight: '600', color: '#22c55e' },
-  roundsSection: { gap: 8 },
-  sectionTitle: { fontSize: 13, fontWeight: '800', color: colors.textMuted, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 },
-  roundItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.card, padding: 14, borderRadius: borderRadius.md, borderWidth: 1, borderColor: colors.border },
-  roundLeft: { gap: 2 },
-  roundLabel: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
-  roundType: { fontSize: 11, color: colors.textMuted },
-  roundStatus: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  roundStatusText: { fontSize: 11, fontWeight: '700' },
+  // Header
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md, backgroundColor: '#F3F4F6' },
+  backBtn: { padding: 4 },
+  headerTitle: { ...typography.titleM, color: colors.textPrimary },
 
-  // Groups
-  groupCard: { backgroundColor: colors.card, borderRadius: borderRadius.xl, padding: 14, borderWidth: 1, borderColor: colors.border },
-  groupTitle: { fontSize: 16, fontWeight: '800', color: colors.accent, marginBottom: 10 },
-  tableHeader: { flexDirection: 'row', alignItems: 'center', paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
-  tableRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  tableRowMe: { backgroundColor: colors.accent + '10' },
-  tableRowQualify: { borderLeftWidth: 3, borderLeftColor: '#22c55e', paddingLeft: 4 },
-  tableCell: { flex: 1, fontSize: 12, color: colors.textSecondary, textAlign: 'center' },
-  tablePos: { fontSize: 12, fontWeight: '700', color: colors.textMuted, width: 18, textAlign: 'center' },
-  tableName: { fontSize: 13, fontWeight: '600', color: colors.textPrimary, flex: 1 },
+  // Hero Card (same as league matchday card)
+  heroCard: {
+    borderRadius: borderRadius.xl, padding: spacing.xl, overflow: 'hidden',
+    borderWidth: 1.5, borderColor: colors.accent,
+    shadowColor: '#162F5C', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.2, shadowRadius: 30, elevation: 10,
+    marginBottom: spacing.md,
+  },
+  whiteSweep: { position: 'absolute', top: -20, left: -20, right: -20, bottom: -20, opacity: 0.5 },
+  heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
+  heroLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  heroLabel: { ...typography.metaSmall, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: 1.5 },
+  heroTitle: { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: 6 },
+  heroSub: { ...typography.bodyS, color: 'rgba(255,255,255,0.55)', marginBottom: spacing.md },
 
-  // Bracket
-  emptyBracket: { alignItems: 'center', paddingVertical: 40, gap: 10 },
-  bracketRound: { gap: 10 },
-  bracketRoundTitle: { fontSize: 15, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', marginBottom: 4 },
-  bracketMatch: { backgroundColor: colors.card, borderRadius: borderRadius.md, overflow: 'hidden', borderWidth: 1, borderColor: colors.border },
-  bracketPlayer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 14 },
-  bracketPlayerWin: { backgroundColor: '#22c55e15' },
-  bracketName: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
-  bracketNameWin: { fontWeight: '800', color: '#22c55e' },
-  bracketPts: { fontSize: 14, fontWeight: '700', color: colors.textSecondary },
-  bracketPtsWin: { color: '#22c55e' },
-  bracketVs: { alignItems: 'center', paddingVertical: 2, backgroundColor: colors.background },
-  bracketVsText: { fontSize: 10, fontWeight: '800', color: colors.textMuted },
+  // CTA Button
+  ctaBtn: { borderRadius: 22, overflow: 'hidden', marginTop: spacing.sm },
+  ctaGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 14, paddingHorizontal: 24, borderRadius: 22 },
+  ctaText: { fontSize: 15, fontWeight: '800', color: '#fff' },
+  ctaIconCircle: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
 
-  // Matchup cards (Le mie sfide)
-  matchupCard: { backgroundColor: colors.card, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: colors.border },
-  matchupTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 },
-  matchupRound: { fontSize: 11, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  resultBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  resultBadgeText: { fontSize: 10, fontWeight: '800' },
-  matchupBody: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, gap: 0 },
-  matchupPlayer: { flex: 1, alignItems: 'center', gap: 4 },
-  matchupAvatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  matchupAvatarText: { fontSize: 16, fontWeight: '800' },
-  matchupName: { fontSize: 13, fontWeight: '700', color: colors.textPrimary },
-  matchupPts: { fontSize: 18, fontWeight: '800', color: colors.textSecondary },
-  matchupVs: { width: 36, alignItems: 'center', justifyContent: 'center' },
-  matchupVsText: { fontSize: 10, fontWeight: '800', color: colors.textMuted },
-  matchupFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 10, backgroundColor: colors.background, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  matchupCta: { fontSize: 12, fontWeight: '700', color: colors.accent },
+  // Enrolled banner
+  enrolledBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', marginTop: spacing.sm },
+  enrolledText: { ...typography.bodyS, color: 'rgba(255,255,255,0.7)', flex: 1 },
+  leaveText: { fontSize: 13, fontWeight: '700', color: colors.error },
+
+  // Performance row (same as league)
+  perfRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+  perfCardOuter: { flex: 1, borderRadius: borderRadius.xl, overflow: 'hidden', borderWidth: 1.5, borderColor: colors.accent },
+  perfCardGrad: { padding: spacing.md, borderRadius: borderRadius.xl, alignItems: 'center', overflow: 'hidden' },
+  perfIconWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  perfValue: { fontSize: 20, fontWeight: '800', color: '#fff' },
+  perfLabel: { ...typography.metaSmall, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', textAlign: 'center', marginTop: 4 },
+
+  // Tab bar
+  tabBar: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: borderRadius.lg, padding: 3, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border },
+  tabItem: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 10, borderRadius: borderRadius.md },
+  tabItemActive: { backgroundColor: colors.accent + '15' },
+  tabLabel: { fontSize: 11, fontWeight: '600', color: colors.textSecondary },
+  tabLabelActive: { color: colors.accent, fontWeight: '700' },
+
+  // Section label
+  sectionLabel: { fontSize: 12, fontWeight: '800', color: colors.accent, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 4 },
+
+  // Matchup cards
+  matchupCard: { borderRadius: borderRadius.xl, overflow: 'hidden', borderWidth: 1.5, borderColor: colors.accent, marginBottom: spacing.md, padding: spacing.lg },
+  matchupHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  matchupRound: { ...typography.metaSmall, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: 1 },
+  matchupBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  matchupBadgeText: { fontSize: 10, fontWeight: '800' },
+  matchupBody: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
+  matchupPlayerCol: { flex: 1, alignItems: 'center', gap: 4 },
+  matchupAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
+  matchupAvatarText: { fontSize: 18, fontWeight: '800', color: '#fff' },
+  matchupPlayerName: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.75)' },
+  matchupPts: { fontSize: 20, fontWeight: '800', color: '#fff' },
+  matchupVsCol: { width: 40, alignItems: 'center' },
+  matchupVs: { fontSize: 11, fontWeight: '800', color: 'rgba(255,255,255,0.25)' },
+  matchupFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' },
+  matchupCta: { fontSize: 13, fontWeight: '700', color: colors.accent },
+
+  // Group cards
+  groupCard: { borderRadius: borderRadius.xl, overflow: 'hidden', borderWidth: 1.5, borderColor: colors.accent, marginBottom: spacing.md, padding: spacing.lg },
+  groupTitle: { fontSize: 14, fontWeight: '800', color: colors.accent, marginBottom: spacing.sm },
+  tableHeader: { flexDirection: 'row', alignItems: 'center', paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  tableRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.06)' },
+  cell: { flex: 1, fontSize: 12, color: 'rgba(255,255,255,0.55)', textAlign: 'center' },
+  posNum: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.4)', width: 18 },
+  userName: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.75)', flex: 1 },
+
+  // Bracket cards
+  bracketCard: { borderRadius: borderRadius.xl, overflow: 'hidden', borderWidth: 1.5, borderColor: colors.accent, marginBottom: spacing.sm, padding: spacing.md },
+  bracketRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6, paddingHorizontal: 4 },
+  bracketName: { fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.65)', flex: 1 },
+  bracketScore: { fontSize: 16, fontWeight: '800', color: 'rgba(255,255,255,0.5)', width: 50, textAlign: 'right' },
+  bracketDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.06)' },
+
+  // Empty states
+  emptyCard: { borderRadius: borderRadius.xl, overflow: 'hidden', borderWidth: 1.5, borderColor: colors.accent, padding: spacing.xl, alignItems: 'center', gap: 8 },
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  emptySub: { ...typography.bodyS, color: 'rgba(255,255,255,0.45)', textAlign: 'center' },
 });
