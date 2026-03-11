@@ -268,7 +268,7 @@ export default function HomeScreen() {
       {/* League + Tournaments Switcher Dropdown */}
       {showLeagueSwitcher && (
         <TouchableOpacity style={s.switcherOverlay} activeOpacity={1} onPress={() => setShowLeagueSwitcher(false)}>
-          <View style={s.switcherDropdown}>
+          <ScrollView style={s.switcherDropdown} contentContainerStyle={s.switcherDropdownContent} bounces={false} showsVerticalScrollIndicator={true}>
             {/* LEGHE section */}
             <Text style={s.switcherSectionLabel}>LEGHE</Text>
             {leagues.map((lg: League) => (
@@ -317,11 +317,9 @@ export default function HomeScreen() {
                 ))}
               </>
             )}
-          </View>
+          </ScrollView>
         </TouchableOpacity>
       )}
-
-      {/* ═══ SCROLL CONTENT ═══ */}
       <Animated.ScrollView
         style={{ opacity: fadeScreen }}
         contentContainerStyle={s.scrollContent}
@@ -691,12 +689,15 @@ const s = StyleSheet.create({
   switcherDropdown: {
     backgroundColor: LIGHT.card,
     borderRadius: 16,
-    padding: 8,
+    maxHeight: '70%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
     shadowRadius: 24,
     elevation: 8,
+  },
+  switcherDropdownContent: {
+    paddingVertical: 8,
   },
   switcherTitle: {
     fontSize: 12,
