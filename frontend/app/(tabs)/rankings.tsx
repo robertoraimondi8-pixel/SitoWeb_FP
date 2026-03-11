@@ -222,11 +222,21 @@ export default function RankingsScreen() {
     Promise.all([
       apiCall(`/tournaments/${tournamentId}`, { token }),
       apiCall(`/tournaments/${tournamentId}/groups`, { token }).catch(() => []),
-      apiCall(`/tournaments/${tournamentId}/bracket`, { token }).catch(() => []),
-    ]).then(([detail, groups, bracket]) => {
+      apiCall(`/tournaments/${tournamentId}/bracket`, { token }).catch(() => ({})),
+    ]).then(([detail, groups, bracketRes]) => {
       setTrkTournament(detail);
       setTrkGroups(groups || []);
-      setTrkBracket(bracket || []);
+      // bracket API returns { bracket: { semifinal: [...], final: [...] } }
+      const raw = bracketRes?.bracket || {};
+      const rounds = Object.entries(raw).map(([roundType, matchups]) => ({
+        round_label: roundType === 'quarterfinal' ? 'Quarti di Finale' : roundType === 'semifinal' ? 'Semifinali' : roundType === 'final' ? 'Finale' : roundType,
+        round_type: roundType,
+        matchups: matchups as any[],
+      }));
+      // Sort: quarterfinal → semifinal → final
+      const order = ['quarterfinal', 'semifinal', 'final'];
+      rounds.sort((a, b) => order.indexOf(a.round_type) - order.indexOf(b.round_type));
+      setTrkBracket(rounds);
     }).catch(console.error).finally(() => setTrkLoading(false));
   }, [competitionMode, tournamentId, token]);
 
