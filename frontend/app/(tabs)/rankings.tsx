@@ -275,11 +275,14 @@ export default function RankingsScreen() {
           </View>
         </View>
 
-        {trkLoading ? (
+        {trkLoading && (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
-        ) : trkTab === 'gironi' ? (
+        )}
+
+        {/* GIRONI TAB */}
+        {!trkLoading && trkTab === 'gironi' && (
           <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
             {!hasGroups ? (
               <View style={{ padding: 32, alignItems: 'center' }}>
@@ -318,42 +321,40 @@ export default function RankingsScreen() {
               </View>
             ))}
           </ScrollView>
-        ) : trkTab === 'tabellone' ? (
+        )}
+
+        {/* TABELLONE TAB */}
+        {!trkLoading && trkTab === 'tabellone' && (
           <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-            {!bracketReady ? (
+            {(!bracketReady || trkBracket.length === 0 || trkBracket.every((r: any) => (r.matchups || []).every((m: any) => m.status === 'pending'))) ? (
               <View style={{ padding: 32, alignItems: 'center' }}>
                 <Ionicons name="git-branch-outline" size={40} color={colors.textMuted} />
                 <Text style={{ marginTop: 12, fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>Tabellone eliminazione diretta</Text>
-                <Text style={{ marginTop: 6, fontSize: 13, color: colors.textMuted, textAlign: 'center' }}>Disponibile dopo la fase a gironi</Text>
+                <Text style={{ marginTop: 6, fontSize: 13, color: colors.textMuted, textAlign: 'center' }}>{bracketReady ? 'In attesa che terminino i gironi' : 'Disponibile dopo la fase a gironi'}</Text>
               </View>
-            ) : trkBracket.length === 0 || trkBracket.every((r: any) => (r.matchups || []).every((m: any) => m.status === 'pending')) ? (
-              <View style={{ padding: 32, alignItems: 'center' }}>
-                <Ionicons name="git-branch-outline" size={40} color={colors.textMuted} />
-                <Text style={{ marginTop: 12, fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>Tabellone eliminazione diretta</Text>
-                <Text style={{ marginTop: 6, fontSize: 13, color: colors.textMuted, textAlign: 'center' }}>In attesa che terminino i gironi</Text>
-              </View>
-            ) : trkBracket.map((round: any) => (
-              <View key={round.round_label} style={{ marginBottom: 20 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                  <View style={{ width: 4, height: 20, backgroundColor: colors.primary, borderRadius: 2 }} />
-                  <Text style={{ fontSize: 15, fontWeight: '800', color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.8 }}>{round.round_label}</Text>
-                </View>
-                {(round.matchups || []).map((m: any) => {
-                  const isMyMatch = m.user_a_id === user?.id || m.user_b_id === user?.id;
-                  return (
-                    <View key={m.id} style={{ backgroundColor: isMyMatch ? 'rgba(245,166,35,0.06)' : '#fff', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: isMyMatch ? 1.5 : 1, borderColor: isMyMatch ? colors.accent : '#e8e8e8' }}>
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Text style={{ fontSize: 14, fontWeight: m.user_a_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1 }} numberOfLines={1}>{m.user_a_username || 'TBD'}</Text>
-                        <View style={{ backgroundColor: m.status === 'completed' ? colors.primary : '#e0e0e0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginHorizontal: 8 }}>
-                          <Text style={{ fontSize: 12, fontWeight: '800', color: m.status === 'completed' ? '#fff' : colors.textSecondary }}>{m.user_a_points?.toFixed(1) ?? '-'} : {m.user_b_points?.toFixed(1) ?? '-'}</Text>
-                        </View>
-                        <Text style={{ fontSize: 14, fontWeight: m.user_b_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{m.user_b_username || 'TBD'}</Text>
-                      </View>
+            ) : (
+              <View>
+                {trkBracket.map((round: any, ri: number) => (
+                  <View key={ri} style={{ marginBottom: 20 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                      <View style={{ width: 4, height: 20, backgroundColor: colors.primary, borderRadius: 2 }} />
+                      <Text style={{ fontSize: 15, fontWeight: '800', color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.8 }}>{round.round_label}</Text>
                     </View>
-                  );
-                })}
+                    {(round.matchups || []).map((m: any, mi: number) => (
+                      <View key={mi} style={{ backgroundColor: (m.user_a_id === user?.id || m.user_b_id === user?.id) ? 'rgba(245,166,35,0.06)' : '#fff', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: (m.user_a_id === user?.id || m.user_b_id === user?.id) ? 1.5 : 1, borderColor: (m.user_a_id === user?.id || m.user_b_id === user?.id) ? colors.accent : '#e8e8e8' }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Text style={{ fontSize: 14, fontWeight: m.user_a_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1 }} numberOfLines={1}>{m.user_a_username || 'TBD'}</Text>
+                          <View style={{ backgroundColor: m.status === 'completed' ? colors.primary : '#e0e0e0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginHorizontal: 8 }}>
+                            <Text style={{ fontSize: 12, fontWeight: '800', color: m.status === 'completed' ? '#fff' : colors.textSecondary }}>{(m.user_a_points || 0).toFixed(1)} : {(m.user_b_points || 0).toFixed(1)}</Text>
+                          </View>
+                          <Text style={{ fontSize: 14, fontWeight: m.user_b_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{m.user_b_username || 'TBD'}</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                ))}
               </View>
-            ))}
+            )}
           </ScrollView>
         )}
 
