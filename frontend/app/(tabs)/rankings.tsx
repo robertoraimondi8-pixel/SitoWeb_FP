@@ -318,6 +318,12 @@ export default function RankingsScreen() {
                 <Text style={{ marginTop: 12, fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>Tabellone eliminazione diretta</Text>
                 <Text style={{ marginTop: 6, fontSize: 13, color: colors.textMuted, textAlign: 'center' }}>Disponibile dopo la fase a gironi</Text>
               </View>
+            ) : trkBracket.length === 0 || trkBracket.every((r: any) => (r.matchups || []).every((m: any) => m.status === 'pending')) ? (
+              <View style={{ padding: 32, alignItems: 'center' }}>
+                <Ionicons name="git-branch-outline" size={40} color={colors.textMuted} />
+                <Text style={{ marginTop: 12, fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>Tabellone eliminazione diretta</Text>
+                <Text style={{ marginTop: 6, fontSize: 13, color: colors.textMuted, textAlign: 'center' }}>In attesa che le sfide vengano giocate</Text>
+              </View>
             ) : trkBracket.map((round: any) => (
               <View key={round.round_label} style={{ marginBottom: 20 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
