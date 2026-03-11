@@ -148,6 +148,16 @@ Build an admin panel and a React Native mobile app for FantaPronostic, a fantasy
 - Long team names in prediction lists may overlap with match result
 - A flexbox fix was implemented, needs user verification
 
+## Completed - Tournament Unified Competition Context Refactor (P0) - 2026-03-11
+- **What**: Tournaments now render INSIDE the home.tsx screen via conditional rendering, NOT as separate pages
+- **Architecture**: `competitionMode` state in home.tsx switches between 'league' and 'tournament' views
+- **TournamentView.tsx**: Complete component with hero card, tabs (Le mie sfide, Gironi, Tabellone), inline matchup live view with side-by-side predictions
+- **Competition switcher dropdown**: Shows both LEGHE and TORNEI sections, switching sets state (no navigation)
+- **Deep linking**: Menu pages (my-tournaments, browse-tournaments) navigate to home with `tournament_id` params
+- **Deleted files**: `tournament-detail.tsx`, `tournament-matchup.tsx`, `tournament/[id].tsx`, `tournament/_layout.tsx`, `tournament/matchup.tsx`
+- **Header/tabs/menu**: Persistent and identical across league and tournament views
+- **Testing**: 100% backend (8/8), 95% frontend verified
+
 ## Completed - CORS Hardening (P1) - 2026-03-10
 - CORS now reads allowed origins from `CORS_ORIGINS` env var in backend/.env
 - Explicit allowlist: preview domain + fantapronostic.com
