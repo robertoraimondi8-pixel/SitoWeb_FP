@@ -106,6 +106,7 @@ Fantasy football predictions platform where users join leagues, predict match ou
 
 ### Completed Recently
 - [x] Side Menu Redesign (2026-03-12): Header da arancione a gradiente blu navy, icone arancioni, coerente con il design dell'app
+- [x] Admin Panel - Sezione Tornei (2026-03-12): Aggiunta gestione completa tornei nel pannello admin esterno (/api/admin-ui) con creazione, eliminazione, apertura iscrizioni, avvio forzato, counter stats, ricerca, tipologia torneo, prezzo, configurazione gironi
 
 ### Future
 - [ ] Push notification improvements

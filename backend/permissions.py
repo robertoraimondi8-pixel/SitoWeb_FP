@@ -16,6 +16,7 @@ ALL_PERMISSIONS = {
     "admin.audit.view": "Visualizzazione audit log",
     "admin.news.manage": "Gestione news",
     "admin.notifications.manage": "Gestione notifiche",
+    "admin.tournaments.manage": "Gestione tornei",
     "admin.impersonate": "Impersonare utenti",
 }
 
@@ -46,6 +47,7 @@ DEFAULT_ROLES = {
             "admin.matchdays.manage",
             "admin.matches.manage",
             "admin.leagues.manage",
+            "admin.tournaments.manage",
         ],
     },
     "viewer": {

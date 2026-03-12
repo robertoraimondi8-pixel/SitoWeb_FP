@@ -296,6 +296,7 @@ const MENU_ITEMS = [
   {id:'seasons', label:'Stagioni', perm:'admin.seasons.manage'},
   {id:'matchdays', label:'Giornate', perm:'admin.matchdays.manage'},
   {id:'leagues', label:'Leghe', perm:'admin.leagues.manage'},
+  {id:'tournaments', label:'Tornei', perm:'admin.tournaments.manage'},
   {section: 'AMMINISTRAZIONE'},
   {id:'roles', label:'Ruoli & Permessi', perm:'admin.roles.manage'},
   {id:'users', label:'Utenti', perm:'admin.users.manage'},
@@ -2695,6 +2696,236 @@ async function sendUserPush() {
   } catch(e) {
     resultEl.innerHTML = `<span style="color:#EF4444">${e.message}</span>`;
   }
+}
+
+// ========================================
+// TOURNAMENTS MANAGEMENT
+// ========================================
+let allTournamentsCache = [];
+
+async function render_tournaments() {
+  if (!hasPerm('admin.tournaments.manage')) { render_forbidden(); return; }
+  const el = document.getElementById('content');
+  el.innerHTML = '<h2>Gestione Tornei</h2><div id="tourn-actions" class="card"></div><div id="tourn-counters"></div><div id="tourn-list"></div>';
+
+  document.getElementById('tourn-actions').innerHTML = `
+    <div class="form-row" style="justify-content:space-between">
+      <button class="btn" onclick="showCreateTournamentModal()" data-testid="create-tournament-btn">+ Nuovo Torneo</button>
+      <input class="search-bar" style="margin:0;max-width:300px" id="tourn-search" placeholder="Cerca torneo..." oninput="filterTournaments()" data-testid="tourn-search-input">
+    </div>`;
+
+  try {
+    const tournaments = await apiCall('/admin/tournaments');
+    allTournamentsCache = tournaments;
+
+    const draft = tournaments.filter(t => t.status === 'draft').length;
+    const reg = tournaments.filter(t => t.status === 'registration').length;
+    const active = tournaments.filter(t => ['groups','knockout','semifinal','final'].includes(t.status)).length;
+    const completed = tournaments.filter(t => t.status === 'completed').length;
+
+    document.getElementById('tourn-counters').innerHTML = `
+    <div class="counter-row">
+      <div class="counter-box"><div class="num">${tournaments.length}</div><div class="label">Totale</div></div>
+      <div class="counter-box"><div class="num" style="color:#475569">${draft}</div><div class="label">Bozza</div></div>
+      <div class="counter-box"><div class="num" style="color:#3B82F6">${reg}</div><div class="label">Iscrizioni</div></div>
+      <div class="counter-box"><div class="num" style="color:#10B981">${active}</div><div class="label">In Corso</div></div>
+      <div class="counter-box"><div class="num" style="color:#6B7280">${completed}</div><div class="label">Completati</div></div>
+    </div>`;
+
+    renderTournamentsTable(tournaments);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function filterTournaments() {
+  const q = (document.getElementById('tourn-search').value || '').toLowerCase();
+  let filtered = allTournamentsCache;
+  if (q) filtered = filtered.filter(t => (t.name||'').toLowerCase().includes(q));
+  renderTournamentsTable(filtered);
+}
+
+function renderTournamentsTable(tournaments) {
+  if (tournaments.length === 0) {
+    document.getElementById('tourn-list').innerHTML = '<p style="color:#94A3B8;padding:16px">Nessun torneo trovato.</p>';
+    return;
+  }
+  let html = '<table><tr><th>Nome</th><th>Stato</th><th>Tipo</th><th>Partecipanti</th><th>Prezzo</th><th>Gironi</th><th>Passano</th><th>Creato</th><th>Azioni</th></tr>';
+  tournaments.forEach(t => {
+    const statusMap = {draft:'DRAFT',registration:'ISCRIZIONI',groups:'GIRONI',knockout:'ELIMINAZIONE',semifinal:'SEMIFINALE',final:'FINALE',completed:'COMPLETATO'};
+    const statusLabel = statusMap[t.status] || t.status;
+    const statusCls = t.status === 'draft' ? 'status-DRAFT' : t.status === 'registration' ? 'status-OPEN' : t.status === 'completed' ? 'status-COMPLETED' : 'status-LIVE';
+    const typeLabel = (t.tournament_type === 'knockout_only') ? 'Solo Eliminazione' : 'Gironi + Eliminazione';
+    const fee = t.entry_fee > 0 ? t.entry_fee.toFixed(2) + ' EUR' : '<span style="color:#10B981">Gratis</span>';
+    const created = t.created_at ? new Date(t.created_at).toLocaleDateString('it') : '-';
+
+    let actions = '';
+    if (t.status === 'draft') {
+      actions += `<button class="btn btn-sm btn-success" onclick="adminOpenTournamentReg('${t.id}')" data-testid="open-reg-${t.id}">Apri Iscrizioni</button> `;
+    }
+    if (t.status === 'registration') {
+      actions += `<button class="btn btn-sm" onclick="adminForceStartTournament('${t.id}','${t.name}')" data-testid="force-start-${t.id}">Avvia (anche senza pieni)</button> `;
+    }
+    actions += `<button class="btn btn-sm btn-danger" onclick="showDeleteTournamentModal('${t.id}','${t.name}')" data-testid="delete-tourn-${t.id}">Elimina</button>`;
+
+    html += `<tr data-testid="tourn-row-${t.id}">
+      <td><strong>${t.name}</strong></td>
+      <td><span class="status-badge ${statusCls}">${statusLabel}</span></td>
+      <td style="font-size:12px">${typeLabel}</td>
+      <td>${t.registered_count || 0} / ${t.max_participants}</td>
+      <td>${fee}</td>
+      <td>${t.groups_count || '-'} (${t.players_per_group || '-'}/g)</td>
+      <td>${t.advance_count || '-'}</td>
+      <td style="font-size:12px;color:#94A3B8">${created}</td>
+      <td>${actions}</td></tr>`;
+  });
+  html += '</table>';
+  document.getElementById('tourn-list').innerHTML = html;
+}
+
+function showCreateTournamentModal() {
+  showModal(`
+    <h3>Nuovo Torneo</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="grid-column:span 2">
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Nome Torneo *</label>
+        <input id="nt-name" placeholder="es. Torneo Primavera 2026" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="nt-name">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Tipologia Torneo</label>
+        <select id="nt-type" onchange="onTournTypeChange()" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="nt-type">
+          <option value="groups_knockout">Gironi + Eliminazione Diretta</option>
+          <option value="knockout_only">Solo Eliminazione Diretta</option>
+        </select>
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Prezzo Iscrizione (EUR)</label>
+        <input id="nt-fee" type="number" step="0.01" min="0" value="0" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="nt-fee">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Max Partecipanti</label>
+        <select id="nt-max" onchange="recalcTournament()" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="nt-max">
+          <option value="8">8</option>
+          <option value="16" selected>16</option>
+          <option value="32">32</option>
+          <option value="64">64</option>
+        </select>
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Durata Giornate (round di gironi)</label>
+        <input id="nt-rounds" type="number" min="1" max="10" value="3" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="nt-rounds">
+      </div>
+    </div>
+
+    <div id="nt-groups-section" style="margin-top:16px">
+      <h4 style="color:#F5A623;margin-bottom:8px;font-size:14px">Configurazione Gironi</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div>
+          <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Numero Gironi</label>
+          <input id="nt-groups" type="number" min="1" max="16" value="4" onchange="recalcTournament()" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="nt-groups">
+        </div>
+        <div>
+          <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Giocatori per Girone</label>
+          <input id="nt-ppg" type="number" min="2" max="16" value="4" onchange="recalcTournament()" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="nt-ppg">
+        </div>
+        <div>
+          <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Passano alla Eliminazione</label>
+          <input id="nt-advance" type="number" min="1" max="8" value="2" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="nt-advance">
+        </div>
+      </div>
+      <p id="nt-calc" style="color:#64748B;font-size:12px;margin-top:8px"></p>
+    </div>
+
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal()">Annulla</button>
+      <button class="btn" onclick="doCreateTournament()" data-testid="confirm-create-tournament">Crea Torneo</button>
+    </div>`);
+  recalcTournament();
+}
+
+function onTournTypeChange() {
+  const type = document.getElementById('nt-type').value;
+  document.getElementById('nt-groups-section').style.display = type === 'knockout_only' ? 'none' : 'block';
+}
+
+function recalcTournament() {
+  const max = parseInt(document.getElementById('nt-max').value) || 16;
+  const groups = parseInt(document.getElementById('nt-groups').value) || 4;
+  const ppg = parseInt(document.getElementById('nt-ppg').value) || 4;
+  const calcEl = document.getElementById('nt-calc');
+  if (calcEl) {
+    const expected = groups * ppg;
+    if (expected !== max) {
+      calcEl.innerHTML = '<span style="color:#EF4444">Attenzione: ' + groups + ' gironi x ' + ppg + ' giocatori = ' + expected + ' (diverso da ' + max + ' max partecipanti)</span>';
+    } else {
+      calcEl.innerHTML = '<span style="color:#10B981">OK: ' + groups + ' gironi x ' + ppg + ' giocatori = ' + expected + ' partecipanti</span>';
+    }
+  }
+}
+
+async function doCreateTournament() {
+  const type = document.getElementById('nt-type').value;
+  const body = {
+    name: document.getElementById('nt-name').value.trim(),
+    max_participants: parseInt(document.getElementById('nt-max').value),
+    duration_rounds: parseInt(document.getElementById('nt-rounds').value),
+    groups_count: parseInt(document.getElementById('nt-groups').value),
+    players_per_group: parseInt(document.getElementById('nt-ppg').value),
+    advance_count: parseInt(document.getElementById('nt-advance').value),
+    entry_fee: parseFloat(document.getElementById('nt-fee').value) || 0,
+    tournament_type: type,
+    knockout_from_group: parseInt(document.getElementById('nt-advance').value),
+  };
+
+  if (!body.name || body.name.length < 3) {
+    showToast('Il nome deve avere almeno 3 caratteri', 'error'); return;
+  }
+
+  try {
+    const res = await apiCall('/admin/tournaments', 'POST', body);
+    closeModal();
+    showToast('Torneo creato: ' + res.name);
+    render_tournaments();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function adminOpenTournamentReg(tournId) {
+  if (!confirm('Vuoi aprire le iscrizioni per questo torneo?')) return;
+  try {
+    await apiCall('/admin/tournaments/' + tournId + '/open-registration', 'POST');
+    showToast('Iscrizioni aperte');
+    render_tournaments();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function adminForceStartTournament(tournId, tournName) {
+  if (!confirm('Vuoi avviare "' + tournName + '" anche senza il numero completo di partecipanti? I gironi verranno ricalcolati automaticamente.')) return;
+  try {
+    const res = await apiCall('/admin/tournaments/' + tournId + '/force-start', 'POST');
+    showToast('Torneo avviato! ' + res.actual_participants + ' partecipanti, ' + res.groups + ' gironi, ' + res.matchups_created + ' sfide create');
+    render_tournaments();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function showDeleteTournamentModal(tournId, tournName) {
+  showModal(`
+    <h3 style="color:#EF4444">Elimina Torneo: ${tournName}</h3>
+    <p style="margin:12px 0;color:#94A3B8">Questa azione eliminera il torneo e tutti i dati correlati (iscrizioni, gironi, sfide).</p>
+    <p style="margin:8px 0">Digita <strong style="color:#EF4444">DELETE</strong> per confermare:</p>
+    <div class="form-row"><input id="delete-tourn-confirm" placeholder="Digita DELETE" data-testid="delete-tourn-confirm-input"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Annulla</button>
+      <button class="btn btn-danger" onclick="doDeleteTournament('${tournId}')" data-testid="confirm-delete-tournament">Elimina Torneo</button>
+    </div>`);
+}
+
+async function doDeleteTournament(tournId) {
+  if (document.getElementById('delete-tourn-confirm').value !== 'DELETE') {
+    showToast('Devi digitare DELETE per confermare', 'error'); return;
+  }
+  try {
+    await apiCall('/admin/tournaments/' + tournId, 'DELETE');
+    closeModal(); showToast('Torneo eliminato');
+    render_tournaments();
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
 // ========================================

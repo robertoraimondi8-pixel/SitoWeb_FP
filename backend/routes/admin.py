@@ -1,5 +1,6 @@
 """Admin routes: seasons, matchdays, matches, leagues management, v3 console."""
 from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel as PydanticBaseModel
 import logging
 
 from database import (
@@ -558,3 +559,213 @@ async def admin_reminders_status(admin=Depends(require_permission("admin.dashboa
         "recent_reminders": recent_reminders,
     }
 
+
+
+# ========================================
+# ADMIN: TOURNAMENT MANAGEMENT
+# ========================================
+
+@admin_router.get("/tournaments")
+async def admin_list_tournaments(admin=Depends(require_permission("admin.tournaments.manage"))):
+    """List all tournaments including drafts, with registration counts."""
+    from database import tournaments_col, tournament_registrations_col
+    tournaments = await tournaments_col.find({}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    for t in tournaments:
+        count = await tournament_registrations_col.count_documents(
+            {"tournament_id": t["id"], "status": "active"}
+        )
+        t["registered_count"] = count
+        t["spots_left"] = t["max_participants"] - count
+    return tournaments
+
+
+@admin_router.delete("/tournaments/{tournament_id}")
+async def admin_delete_tournament(tournament_id: str, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """Delete a tournament and all related data."""
+    from database import (
+        tournaments_col, tournament_registrations_col,
+        tournament_groups_col, tournament_rounds_col, tournament_matchups_col
+    )
+    t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+    if not t:
+        raise HTTPException(404, "Torneo non trovato")
+    await tournament_matchups_col.delete_many({"tournament_id": tournament_id})
+    await tournament_rounds_col.delete_many({"tournament_id": tournament_id})
+    await tournament_groups_col.delete_many({"tournament_id": tournament_id})
+    await tournament_registrations_col.delete_many({"tournament_id": tournament_id})
+    await tournaments_col.delete_one({"id": tournament_id})
+    await log_audit(admin["id"], admin["username"], "DELETE", "tournament", tournament_id, {"name": t.get("name")})
+    return {"ok": True, "deleted": tournament_id}
+
+
+@admin_router.post("/tournaments/{tournament_id}/force-start")
+async def admin_force_start_tournament(tournament_id: str, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """Force-start a tournament even without the full number of participants."""
+    import random
+    from database import (
+        tournaments_col, tournament_registrations_col,
+        tournament_groups_col, tournament_matchups_col
+    )
+    t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+    if not t:
+        raise HTTPException(404, "Torneo non trovato")
+    if t["status"] not in ("registration", "draft"):
+        raise HTTPException(400, f"Stato attuale: {t['status']}. Deve essere registration o draft.")
+
+    regs = await tournament_registrations_col.find(
+        {"tournament_id": tournament_id, "status": "active"}, {"_id": 0}
+    ).to_list(200)
+
+    if len(regs) < 2:
+        raise HTTPException(400, "Servono almeno 2 iscritti per avviare il torneo")
+
+    actual_count = len(regs)
+    groups_count = t.get("groups_count", 1)
+    players_per_group = actual_count // groups_count
+    leftover = actual_count % groups_count
+
+    # Recalculate groups to fit actual participants
+    if players_per_group < 2:
+        groups_count = max(1, actual_count // 2)
+        players_per_group = actual_count // groups_count
+        leftover = actual_count % groups_count
+
+    random.shuffle(regs)
+    group_names = [chr(65 + i) for i in range(groups_count)]
+    groups = []
+    idx = 0
+    for i, gn in enumerate(group_names):
+        size = players_per_group + (1 if i < leftover else 0)
+        members = [{"user_id": r["user_id"], "username": r["username"]} for r in regs[idx:idx+size]]
+        idx += size
+        groups.append({
+            "id": new_id(),
+            "tournament_id": tournament_id,
+            "group_name": gn,
+            "members": members,
+        })
+
+    await tournament_groups_col.insert_many(groups)
+
+    duration_rounds = t.get("duration_rounds", 3)
+    all_matchups = []
+    for g in groups:
+        members = g["members"]
+        pairs = []
+        for i in range(len(members)):
+            for j in range(i + 1, len(members)):
+                pairs.append((members[i], members[j]))
+        for pair_idx, (a, b) in enumerate(pairs):
+            all_matchups.append({
+                "id": new_id(),
+                "tournament_id": tournament_id,
+                "group_id": g["id"],
+                "round_number": (pair_idx % duration_rounds) + 1,
+                "round_type": "group",
+                "user_a_id": a["user_id"],
+                "user_b_id": b["user_id"],
+                "user_a_username": a["username"],
+                "user_b_username": b["username"],
+                "user_a_points": 0.0,
+                "user_b_points": 0.0,
+                "result": "pending",
+                "winner_id": None,
+                "status": "pending",
+            })
+
+    if all_matchups:
+        await tournament_matchups_col.insert_many(all_matchups)
+
+    await tournaments_col.update_one({"id": tournament_id}, {
+        "$set": {
+            "status": "groups",
+            "started_at": now_utc(),
+            "current_round": 0,
+            "max_participants": actual_count,
+            "groups_count": groups_count,
+            "players_per_group": players_per_group,
+        }
+    })
+
+    await log_audit(admin["id"], admin["username"], "FORCE_START", "tournament", tournament_id, {
+        "name": t.get("name"), "participants": actual_count, "groups": groups_count
+    })
+
+    return {
+        "ok": True,
+        "status": "groups",
+        "actual_participants": actual_count,
+        "groups": groups_count,
+        "matchups_created": len(all_matchups),
+    }
+
+
+class AdminCreateTournamentReq(PydanticBaseModel):
+    name: str
+    max_participants: int = 16
+    duration_rounds: int = 3
+    groups_count: int = 4
+    players_per_group: int = 4
+    advance_count: int = 2
+    entry_fee: float = 0.0
+    tournament_type: str = "groups_knockout"
+    knockout_from_group: int = 2
+
+
+@admin_router.post("/tournaments", response_model=None)
+async def admin_create_tournament(req: AdminCreateTournamentReq, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """Admin create tournament with extended options."""
+    from database import tournaments_col
+
+    if req.tournament_type == "groups_knockout":
+        if req.max_participants != req.groups_count * req.players_per_group:
+            raise HTTPException(400, f"Partecipanti ({req.max_participants}) != gironi ({req.groups_count}) x giocatori ({req.players_per_group})")
+        if req.advance_count >= req.players_per_group:
+            raise HTTPException(400, "Chi passa deve essere minore dei giocatori per girone")
+
+    doc = {
+        "id": new_id(),
+        "name": req.name,
+        "status": "draft",
+        "max_participants": req.max_participants,
+        "duration_rounds": req.duration_rounds,
+        "groups_count": req.groups_count,
+        "players_per_group": req.players_per_group,
+        "advance_count": req.advance_count,
+        "entry_fee": req.entry_fee,
+        "tournament_type": req.tournament_type,
+        "knockout_from_group": req.knockout_from_group,
+        "current_round": 0,
+        "created_by": admin["id"],
+        "created_at": now_utc(),
+        "started_at": None,
+        "completed_at": None,
+    }
+    await tournaments_col.insert_one(doc)
+    doc.pop("_id", None)
+    await log_audit(admin["id"], admin["username"], "CREATE", "tournament", doc["id"], {"name": req.name})
+    return doc
+
+
+@admin_router.put("/tournaments/{tournament_id}")
+async def admin_update_tournament(tournament_id: str, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """Update tournament basic info (placeholder for future fields)."""
+    from database import tournaments_col
+    t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+    if not t:
+        raise HTTPException(404, "Torneo non trovato")
+    return t
+
+
+@admin_router.post("/tournaments/{tournament_id}/open-registration")
+async def admin_open_registration(tournament_id: str, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """Open registration for a tournament."""
+    from database import tournaments_col
+    t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+    if not t:
+        raise HTTPException(404, "Torneo non trovato")
+    if t["status"] != "draft":
+        raise HTTPException(400, f"Stato attuale: {t['status']}. Deve essere draft.")
+    await tournaments_col.update_one({"id": tournament_id}, {"$set": {"status": "registration"}})
+    await log_audit(admin["id"], admin["username"], "OPEN_REGISTRATION", "tournament", tournament_id, {"name": t.get("name")})
+    return {"ok": True, "status": "registration"}
