@@ -78,7 +78,7 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
         t = totals_dict.get(uid, {"total_points": 0, "matchdays_played": 0, "created_at": ""})
         entries.append({
             "user_id": uid, "username": u["username"] if u else "Unknown",
-            "total_points": t["total_points"], "current_week_points": current_week_points.get(uid, 0),
+            "total_points": int(t["total_points"]), "current_week_points": int(current_week_points.get(uid, 0)),
             "matchdays_played": t["matchdays_played"], "jolly_used": jolly_counts.get(uid, 0),
             "created_at": t.get("created_at", ""), "is_current_user": uid == user["id"],
         })
@@ -152,8 +152,8 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
         stats = user_pred_stats.get(uid, {"total_correct": 0, "1x2_correct": 0})
         entries.append({
             "user_id": uid, "username": u["username"] if u else "Unknown",
-            "matchday_points": points_data["total_points"],
-            "base_points": points_data["base_points"], "joker_bonus": points_data["joker_bonus"],
+            "matchday_points": int(points_data["total_points"]),
+            "base_points": int(points_data["base_points"]), "joker_bonus": int(points_data["joker_bonus"]),
             "total_correct": stats["total_correct"], "1x2_correct": stats["1x2_correct"],
             "jolly_active": points_data["joker_active"], "is_current_user": uid == user["id"],
         })
@@ -281,8 +281,8 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
                 matchday_breakdown.append({
                     "matchday_id": score["matchday_id"], "matchday_number": md["number"],
                     "matchday_label": md.get("label", f"Giornata {md['number']}"), "status": md["status"],
-                    "base_points": score.get("base_points", 0), "joker_bonus": score.get("joker_bonus", 0),
-                    "total_points": score.get("total_points", 0),
+                    "base_points": int(score.get("base_points", 0)), "joker_bonus": int(score.get("joker_bonus", 0)),
+                    "total_points": int(score.get("total_points", 0)),
                 })
         matchday_breakdown.sort(key=lambda x: x["matchday_number"])
 
@@ -290,11 +290,11 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
         "user_id": target_user_id, "username": target_user["username"],
         "email": target_user.get("email", ""), "league_id": league_id,
         "league_name": league["name"] if league else "",
-        "rank": rank, "total_points": user_totals["total_points"],
+        "rank": rank, "total_points": int(user_totals["total_points"]),
         "matchdays_played": user_totals["matchdays_played"],
-        "total_base_points": user_totals["total_base_points"],
-        "total_joker_bonus": user_totals["total_joker_bonus"],
-        "current_week_points": current_week_points,
+        "total_base_points": int(user_totals["total_base_points"]),
+        "total_joker_bonus": int(user_totals["total_joker_bonus"]),
+        "current_week_points": int(current_week_points),
         "current_matchday": current_matchday["number"] if current_matchday else None,
         "last_matchday_id": last_matchday_id, "jolly_used": jolly_used,
         "is_current_user": target_user_id == user["id"],

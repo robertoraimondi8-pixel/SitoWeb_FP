@@ -332,7 +332,7 @@ async def complete_round(tournament_id: str, round_id: str, user=Depends(get_cur
         preds = await predictions_col.find(
             {"user_id": uid, "matchday_id": round_id, "league_id": tournament_id}, {"_id": 0}
         ).to_list(50)
-        total = 0.0
+        total = 0
         for p in preds:
             m = matches_dict.get(p.get("match_id"))
             if not m:
@@ -437,7 +437,7 @@ async def generate_knockout(tournament_id: str, req: AdvanceKnockoutReq, user=De
                 {"_id": 0}
             ).to_list(50)
             pts = 0
-            total_pred_pts = 0.0
+            total_pred_pts = 0
             for mu in matchups:
                 is_a = mu["user_a_id"] == uid
                 my_pts = mu["user_a_points"] if is_a else mu["user_b_points"]
@@ -659,8 +659,8 @@ async def get_tournament(tournament_id: str, user=Depends(get_current_user)):
         )
 
         opponent_name = None
-        my_points = 0.0
-        opp_points = 0.0
+        my_points = 0
+        opp_points = 0
         matchup_id = None
         if my_matchup:
             matchup_id = my_matchup["id"]
@@ -673,7 +673,7 @@ async def get_tournament(tournament_id: str, user=Depends(get_current_user)):
         live_total = None
         if effective_status == "LIVE" and my_matchup:
             from scoring import calculate_match_points
-            lt = 0.0
+            lt = 0
             my_preds = await predictions_col.find(
                 {"user_id": user["id"], "matchday_id": round_id, "league_id": tournament_id}, {"_id": 0}
             ).to_list(50)
@@ -687,7 +687,7 @@ async def get_tournament(tournament_id: str, user=Depends(get_current_user)):
                         m.get("status"), p.get("multiplier", 1.0)
                     )
                     lt += pts
-            live_total = round(lt, 1)
+            live_total = int(lt)
 
         t["current_round_info"] = {
             "round_id": round_id,
@@ -699,8 +699,8 @@ async def get_tournament(tournament_id: str, user=Depends(get_current_user)):
             "my_predictions_count": my_preds_count,
             "matchup_id": matchup_id,
             "opponent_name": opponent_name,
-            "my_points": round(my_points, 1),
-            "opp_points": round(opp_points, 1),
+            "my_points": int(my_points),
+            "opp_points": int(opp_points),
             "live_total": live_total,
         }
     else:
@@ -885,7 +885,7 @@ async def get_group_standings(tournament_id: str, user=Depends(get_current_user)
             ).to_list(50)
 
             wins = draws = losses = group_pts = 0
-            total_pred_pts = 0.0
+            total_pred_pts = 0
             for mu in matchups:
                 if mu["status"] != "completed":
                     continue
@@ -909,7 +909,7 @@ async def get_group_standings(tournament_id: str, user=Depends(get_current_user)
                 "draws": draws,
                 "losses": losses,
                 "group_points": group_pts,
-                "prediction_points": round(total_pred_pts, 1),
+                "prediction_points": int(total_pred_pts),
             })
 
         standings.sort(key=lambda x: (-x["group_points"], -x["prediction_points"]))
@@ -1019,15 +1019,15 @@ async def get_matchup_live(tournament_id: str, matchup_id: str, user=Depends(get
 
     # Calculate live scores
     from scoring import calculate_match_points
-    a_total = 0.0
-    b_total = 0.0
+    a_total = 0
+    b_total = 0
     match_details = []
     for m in round_matches:
         a_pred = a_by_match.get(m["id"])
         b_pred = b_by_match.get(m["id"])
 
-        a_pts = 0.0
-        b_pts = 0.0
+        a_pts = 0
+        b_pts = 0
         if a_pred and m.get("status") in ("finished", "live"):
             a_pts, _ = calculate_match_points(
                 a_pred["prediction_value"], a_pred["market_type"],

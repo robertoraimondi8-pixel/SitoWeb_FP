@@ -162,9 +162,9 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
             </View>
             <View style={s.muCenter}>
               <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-                <Text style={[s.muScore, aWin && { color: '#10B981' }, !aWin && !bWin && { color: '#fff' }]}>{user_a_total.toFixed(1)}</Text>
+                <Text style={[s.muScore, aWin && { color: '#10B981' }, !aWin && !bWin && { color: '#fff' }]}>{Math.round(user_a_total).toString()}</Text>
                 <Text style={s.muSep}>-</Text>
-                <Text style={[s.muScore, bWin && { color: '#10B981' }, !aWin && !bWin && { color: '#fff' }]}>{user_b_total.toFixed(1)}</Text>
+                <Text style={[s.muScore, bWin && { color: '#10B981' }, !aWin && !bWin && { color: '#fff' }]}>{Math.round(user_b_total).toString()}</Text>
               </View>
               <Text style={s.muResult}>{matchupLiveData.round.label}</Text>
             </View>
@@ -234,7 +234,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                       <Text style={s.predVal}>{md.user_a_prediction}</Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                         <Ionicons name={aPts > 0 ? 'checkmark-circle' : 'close-circle'} size={14} color={aPts > 0 ? '#10B981' : '#ef4444'} />
-                        <Text style={[s.predPts, { color: aPts > 0 ? '#10B981' : '#ef4444' }]}>{aPts > 0 ? `+${Math.round(aPts)}` : '0'}</Text>
+                        <Text style={[s.predPts, { color: aPts > 0 ? '#10B981' : '#ef4444' }]}>{aPts > 0 ? `+${Math.round(aPts).toString()}` : '0'}</Text>
                       </View>
                     </>
                   ) : show ? <Text style={s.noPred}>—</Text> : <Text style={s.hiddenPred}>?</Text>}
@@ -248,7 +248,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                       <Text style={s.predVal}>{md.user_b_prediction}</Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                         <Ionicons name={bPts > 0 ? 'checkmark-circle' : 'close-circle'} size={14} color={bPts > 0 ? '#10B981' : '#ef4444'} />
-                        <Text style={[s.predPts, { color: bPts > 0 ? '#10B981' : '#ef4444' }]}>{bPts > 0 ? `+${Math.round(bPts)}` : '0'}</Text>
+                        <Text style={[s.predPts, { color: bPts > 0 ? '#10B981' : '#ef4444' }]}>{bPts > 0 ? `+${Math.round(bPts).toString()}` : '0'}</Text>
                       </View>
                     </>
                   ) : show ? <Text style={s.noPred}>—</Text> : <Text style={s.hiddenPred}>?</Text>}
@@ -421,7 +421,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
                   <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
                   <View style={s.perfIconWrap}><Ionicons name="star" size={20} color="#fff" /></View>
-                  <Text style={s.perfValue}>{Math.round(totalPts)}</Text>
+                  <Text style={s.perfValue}>{Math.round(totalPts).toString()}</Text>
                   <Text style={s.perfLabel}>{'PUNTI\nTOTALI'}</Text>
                 </LinearGradient>
               </View>

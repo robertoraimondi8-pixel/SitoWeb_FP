@@ -145,11 +145,11 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             preds_dict = {p["match_id"]: p for p in preds}
             joker_active = False
 
-            base_pts_sum = 0.0
+            base_pts_sum = 0
             live_list = []
             for m in live_matches:
                 pred = preds_dict.get(m["id"])
-                pts = 0.0
+                pts = 0
                 if pred and m.get("home_score") is not None:
                     pts, _ = calculate_match_points(pred["prediction_value"], pred.get("market_type", m.get("market_type", "1X2")), m.get("home_score"), m.get("away_score"), m["status"], multiplier=m.get("multiplier", 1.0))
                     if m["status"] not in ("void", "postponed", "cancelled"):
@@ -182,7 +182,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             member_scores = []
             for uid in member_ids_live:
                 preds_d = user_preds_map.get(uid, {})
-                bp = 0.0
+                bp = 0
                 for lm in live_matches:
                     pred_lm = preds_d.get(lm["id"])
                     if pred_lm and lm.get("home_score") is not None:
@@ -238,7 +238,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
 
         entries = []
         user_rank = None
-        user_total_points = 0.0
+        user_total_points = 0
         if is_manual_league:
             user_matchdays_played = total_completed_in_season
         else:
@@ -251,10 +251,10 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         for i, t in enumerate(all_totals):
             if t["_id"] == user["id"]:
                 user_rank = i + 1
-                user_total_points = t["total"]
+                user_total_points = int(t["total"])
             if i < 5:
                 u = await users_col.find_one({"id": t["_id"]}, {"_id": 0, "password": 0})
-                entries.append({"rank": i + 1, "user_id": t["_id"], "username": u["username"] if u else "Unknown", "total_points": t["total"]})
+                entries.append({"rank": i + 1, "user_id": t["_id"], "username": u["username"] if u else "Unknown", "total_points": int(t["total"])})
 
         rankings_preview = {"league_name": first_league["name"], "top": entries}
         user_summary = {"rank": user_rank, "points": user_total_points, "matchdays_played": user_matchdays_played, "total_points": user_total_points}
@@ -265,7 +265,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
         for md in last_5_matchdays:
             score_filter = {"user_id": user["id"], "matchday_id": md["id"], "league_id": first_league["id"]}
             score = await score_summaries_col.find_one(score_filter, {"_id": 0, "total_points": 1})
-            pts = score.get("total_points", 0.0) if score else 0.0
+            pts = int(score.get("total_points", 0)) if score else 0
             last_5_performance.append({"matchday_number": md["number"], "points": pts})
         logger.info(f"[HOME] last5 league={first_league['id']}, md_ids={[m['id'] for m in last_5_matchdays]}, pts={[r['points'] for r in last_5_performance]}")
 

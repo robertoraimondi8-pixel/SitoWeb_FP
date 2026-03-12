@@ -265,12 +265,12 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
     score_summary = await score_summaries_col.find_one(ss_filter, {"_id": 0})
 
     predictions_list = []
-    total_base_points = 0.0
+    total_base_points = 0
 
     for m in sorted(matches, key=lambda x: x.get("start_time", "")):
         pred = preds_dict.get(m["id"])
         outcome = "pending"
-        points = 0.0
+        points = 0
 
         final_match_status = m["status"]
         if matchday["status"] == "COMPLETED" and final_match_status in ("scheduled", "live"):

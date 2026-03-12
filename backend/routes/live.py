@@ -61,7 +61,7 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
 
     for m in sorted(matches, key=lambda x: x.get("start_time", "")):
         pred = preds_dict.get(m["id"])
-        pts = 0.0
+        pts = 0
         is_correct = None
         outcome = "pending"
 
@@ -143,7 +143,7 @@ async def get_live_matchday(matchday_id: str, league_id: str = None, user=Depend
     live_matches = []
     for m in matches:
         pred = preds_dict.get(m["id"])
-        pts = 0.0
+        pts = 0
         is_correct = None
         if pred and m.get("home_score") is not None:
             pred_market = pred.get("market_type", m.get("market_type", "1X2"))

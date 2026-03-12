@@ -365,7 +365,7 @@ async def calculate_matchday_scores_full(matchday_id: str, admin: dict):
     for (uid, pred_league_id), preds in user_league_preds.items():
         joker_active = False
         match_pts = []
-        special_bonus = 0.0
+        special_bonus = 0
         for p in preds:
             m = matches_dict.get(p["match_id"])
             if not m:
