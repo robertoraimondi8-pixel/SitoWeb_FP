@@ -10,7 +10,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://match-arena-10.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://palmares-historic.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 STANDARD_USER = {"email": "ilio@raimondi.it", "password": "password123"}

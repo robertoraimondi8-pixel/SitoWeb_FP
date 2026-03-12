@@ -66,7 +66,7 @@
   "test_credentials": {
     "super_admin": "admin@fantapronostic.com / admin123",
     "standard_user": "ilio@raimondi.it / password123",
-    "admin_ui_url": "https://match-arena-10.preview.emergentagent.com/api/admin-ui"
+    "admin_ui_url": "https://palmares-historic.preview.emergentagent.com/api/admin-ui"
   },
   "seed_data_creation": "No new seed data created - used existing users and leagues",
   "retest_needed": false,

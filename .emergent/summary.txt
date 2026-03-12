@@ -1,154 +1,171 @@
 <analysis>**original_problem_statement**:
-The user wants to add a Tornei (Tournaments) module. The core user requirement, repeated with increasing emphasis, is that this module must **NOT** be a separate section of the app. Instead, it should be treated as a different competition context within the **EXISTING** app shell and UI.
+The user's initial goal was to refactor the Tornei (Tournaments) module into a competition context within the existing app, which was completed. The scope then expanded significantly. The user requested:
+1.  Several UI tweaks (disabling dark mode, adding a tournament counter, changing a header icon to a Palmares trophy icon).
+2.  A Championship Winner Predictions feature, which was fully implemented and then hidden at the user's request.
+3.  To make the Palmares icon functional, leading to the creation of a dedicated Palmares (Trophies) screen.
+4.  To make the Palmares screen dynamic, which required implementing a full backend system for awarding league, tournament, and weekly trophies.
+5.  After implementation, the user noticed that past achievements were not reflected in the Palmares, leading to the current task of creating a data backfill mechanism for trophies.
 
 **PRODUCT REQUIREMENTS**:
--   **Unified Experience**: When a user switches from a league to a tournament, only the content area of each tab (Home, Pronostici, Classifiche) should change. The main app shell (header, bottom tab bar) must remain persistent.
--   **Context-Aware Home**: The tournament home screen must be identical in structure to the league home screen: a dynamic hero card showing the current matchup status (e.g., INSERISCI PRONOSTICI, SEGUI LIVE), followed by Performance and Trend statistics.
--   **Context-Aware Rankings**: The Classifiche tab must be context-aware. For leagues, it shows the league table. For tournaments, it must show a screen with three sub-tabs: , , and .
--   **Context-Aware Predictions**: The Pronostici tab must load the fixtures for the currently active tournament round.
--   **UI/UX Parity**: All tournament screens must reuse the exact same visual components, styles, and layout as the Leghe (Leagues) section to ensure a consistent look and feel.
+-   **Trophy System Accuracy**: The Palmares screen must accurately reflect a user's entire history of achievements, including those that occurred before the trophy system was created.
+-   **Trophy Logic**: The system must have logic to award trophies for Weekly Bests, Tournament Wins, and League Championships.
+-   **Admin Functionality**: An admin user must have the ability to trigger a process that retroactively calculates and awards trophies for all past events.
 
 **User's preferred language**: Italiano
 
 **what currently exists?**
-The application now correctly implements the competition context architecture. A global  has been created to share the active competition state ( or ) across all main tabs. The separate, incorrect tournament pages have been deleted, and all tournament-related UI is now rendered conditionally within the existing tab screens (, , ).
+The application features a Palmares (Trophies) screen that dynamically fetches and displays a user's trophies from a new backend system. This system includes a  collection in MongoDB, an API endpoint () to get user trophies, and logic hooked into the scoring service to automatically award Weekly Winner trophies for *future* completed matchdays.
 
-The backend was enhanced with new endpoints and data fields (, , ) to support the new dynamic and context-aware frontend. The agent has just finished implementing a final set of UI tweaks on the Profile page and in the main header.
+The Championship Winner Predictions feature is fully built on both the backend and frontend but is currently hidden from the UI per the user's instructions.
+
+The agent confirmed that the trophy system does not account for past achievements, and was in the process of building an admin tool to backfill this historical data when the last session ended.
 
 **Last working item**:
--   **Last item agent was working**: Implementing three UI changes requested by the user:
-    1.  Disabling the non-functional light/dark mode toggle in the Profile.
-    2.  Adding a I miei tornei (My Tournaments) counter to the Profile stats.
-    3.  Replacing the redundant leagues list icon in the main header with a Palmares (Trophy) icon.
--   **Status**: USER VERIFICATION PENDING
+-   **Last item agent was working**: Implementing an admin-only endpoint to retroactively award trophies for all past completed events. This was initiated after the user (logged in as Admin) correctly pointed out that their past weekly wins were not appearing in their Palmares.
+-   **Status**: IN PROGRESS
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: . The agent should verify these three specific UI changes are correctly implemented and have not introduced any regressions.
+-   **Which testing method agent to use?**: backend testing agent.
+    1.  First, the agent must implement the admin endpoint ().
+    2.  Then, use the testing agent or  to call this endpoint while authenticated as the admin user ().
+    3.  After the call succeeds, verify by calling  for the admin user to confirm that trophies have been awarded.
+    4.  Finally, use the screenshot tool to visually confirm the updated trophy counts on the Palmares screen.
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: (P0) Verify last set of UI changes (Profile & Header)**
-    -   **Description**: The agent implemented the three changes listed in the Last working item section above, but they have not been tested or verified by the user.
+-   **Issue 1: (P0) Retroactively award trophies for past events.**
+    -   **Description**: The current trophy system only awards trophies for events completed *after* its implementation. Past wins (e.g., weekly high scores) are not counted, leading to an inaccurate Palmares for existing users.
+    -   **Attempted fixes**: The agent started creating the backend route and logic for an admin-triggered backfill process.
     -   **Next debug checklist**:
-        1.  Examine  to confirm the theme toggle is disabled and code exists to fetch and display .
-        2.  Examine  to confirm the right header icon has been changed to .
-        3.  Run the app, navigate to the Profile page, and visually confirm the changes.
-    -   **Why fix this issue and what will be achieved with the fix?**: To complete the user's latest requests and ensure the UI is in the desired state.
-    -   **Status**: USER VERIFICATION PENDING
+        1.  Finalize the creation of a new admin-only endpoint, likely , in a new  or existing .
+        2.  Ensure the endpoint is protected and only accessible by users with the 'admin' role.
+        3.  The endpoint's logic must iterate through all completed matchdays for all leagues.
+        4.  For each matchday, it should identify the user(s) with the highest score and call the existing  function (or similar logic) to grant them a Weekly Winner trophy.
+        5.  Test the endpoint thoroughly as described in the Last working item section.
+    -   **Why fix this issue and what will be achieved with the fix?**: This will ensure data integrity and user satisfaction by making the Palmares a complete and accurate record of a user's achievements.
+    -   **Status**: IN PROGRESS
     -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: Frontend
+    -   **Should Test frontend/backend/both after fix?**: Both.
     -   **Blocked on other issue**: None
 
 -   **Issue 2: (P1) Team Name Overlap Bug**
-    -   **Description**: A recurring UI bug where long team names in prediction lists overlap with the match result. This was noted in the initial handoff.
+    -   **Description**: A recurring UI bug where long team names in prediction lists overlap with the match result.
+    -   **Attempted fixes**: A CSS fix was applied to .
     -   **Status**: USER VERIFICATION PENDING
     -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: Frontend
 
 **In progress Task List**:
--   None. The work is captured in the pending issues list.
+-   **Task 1: (P0) Implement and Test the Retroactive Trophy Awarding System.**
+    -   **Where to resume**: The agent had just started creating the necessary backend files (). The next step is to write the full logic for the admin backfill endpoint and register it in .
+    -   **What will be achieved with this?**: The Palmares screen will display correct historical data for all users.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: Both
+    -   **Blocked on something**: None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   (P1) Implement Championship Winner Predictions feature.
+    -   (P1) Implement logic for awarding **League Champion** trophies. The backend hook exists, but the trigger logic (e.g., on season completion) needs to be built.
+    -   (P1) Implement logic for awarding **Tournament Champion** trophies. The backend hook exists, but the trigger logic (e.g., after the final match is scored) needs to be built.
 -   **Future Tasks**:
-    -   (P2) Design and implement an Achievements/Badges system (the new trophy icon is a placeholder for this).
+    -   (P2) Re-enable the Championship Winner Predictions feature (the code is implemented but hidden in the UI).
     -   (P2) Integrate Stripe for paid entry to the National League and Tournaments.
 
 **Completed work in this session**
--   **Architectural Refactor (Tournaments as Competition Context)**: Successfully refactored the entire frontend to treat Tournaments as a context within the main app shell, removing all separate tournament pages.
--   **Shared **: Implemented a React Context to provide  state to all tabs, making them context-aware.
--   **Context-Aware **: Refactored  to perfectly mirror the league's home screen, with a dynamic hero card and identical Performance and Trend sections.
--   **Context-Aware **: Implemented the , , and  tabs for the tournament view, including a dropdown filter for matches.
--   **Context-Aware **: Updated the predictions tab to fetch and display fixtures for the active tournament.
--   **Numerous Bug Fixes**: Resolved a series of critical bugs, including app freezes, rendering errors (), incorrect content display in tabs, and syntax errors that were blocking the app from running.
+-   **Championship Winner Predictions Feature**: A full-stack feature was implemented, including backend APIs (), a frontend selection screen (), and UI navigation links. This feature was subsequently hidden from the UI at the user's request.
+-   **Palmares Screen (Static)**: Created a new screen () and removed the now-defunct Theme setting from the Profile page. The header medal icon was wired to navigate to this new screen.
+-   **Trophy System (Dynamic)**:
+    -   **Backend**: Implemented a complete system to award, store, and retrieve user trophies ( collection,  endpoint, and automated awarding logic for future weekly winners).
+    -   **Frontend**: The  screen was refactored to dynamically load and display a user's real trophy counts and a list of recently won trophies.
+-   **Testing**: The dynamic trophy system successfully passed a full suite of automated tests via the testing agent.
 
 **Earlier issues found/mentioned but not fixed**
--   None. All major issues raised during this session were addressed.
+-   None.
 
 **Known issue recurrence from previous fork**
--   **Team Name Overlap Bug**: This UI issue from the previous fork is still pending final user verification.
--   **Incorrect Tournament UI Architecture**: This was the primary recurring issue from the previous session and has been fully **RESOLVED** by the architectural refactor.
+-   **Team Name Overlap Bug**: This UI issue was noted in the previous fork. A fix was attempted in this session, but it is pending final user verification.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **React Native (Expo)**, **FastAPI**, **MongoDB**.
--   **React Context API**: A  was created to manage the global state of  and . This is the cornerstone of the new architecture, enabling different tabs to react to the selected competition.
--   **Conditional Rendering**: Used extensively in , , and  to display different UI based on the .
--   **Component & Style Reuse**:  was heavily refactored to reuse the exact same components and gradient styles from the league home screen, ensuring UI consistency as requested by the user.
+-   **Data Backfilling/Migration**: The current task involves creating a script to process historical data and populate a new data structure, a common requirement when adding features to live applications.
+-   **Admin-Scoped Endpoints**: The solution requires creating an API endpoint that is protected and can only be accessed by users with an 'admin' role.
+-   **Event-Driven Logic**: The trophy system is designed to act on application events, such as the completion of a matchday.
 
 **key DB schema**
--   No changes made to the database schema.
+-   **trophies_col**: 
+-   **champion_picks_col**: Schema exists but the feature is currently unused.
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   **Context & Layout**:
-    -    (NEW)
-    -    (Wrapped with Provider, header icon changed)
--   **Context-Aware Screens**:
+-   **Backend (Trophy System)**:
     -   
     -   
     -   
     -   
--   **Components**:
+-   **Frontend (Palmares)**:
     -   
--   **Backend**:
+    -    (for the header icon link)
+    -    (where the theme setting was removed)
+-   **Backend (Hidden Feature)**:
+    -   
+-   **Frontend (Hidden Feature)**:
     -   
 
 **Areas that need refactoring**:
--   The major required refactoring is complete. The light/dark mode functionality is currently disabled and would require a significant refactor of the app's styling (moving from hardcoded colors to theme variables) to be implemented properly.
+-   The light/dark mode functionality remains disabled. A proper implementation would require refactoring the app's styling to use theme-based variables instead of hardcoded colors.
 
 **key api endpoints**
--   : Modified to include a  field for the dynamic hero card.
--   : New endpoint to provide tournament matches in a format compatible with the predictions screen.
--   : New endpoint that returns all matchups for a tournament, used in the Partite tab.
+-   : (Active) Fetches the current user's trophies.
+-   : (Pending) The endpoint to be created to backfill historical trophies.
+-   : (Inactive) Part of the hidden Championship Winner feature.
+-   : (Inactive) Part of the hidden Championship Winner feature.
 
 **Critical Info for New Agent**
--   The user is extremely detail-oriented and focused on UI/UX consistency. Ensure any new feature or change in the tournament section perfectly mirrors the existing league section's look and feel.
--   The  is the source of truth for the app's current mode. All tabs are designed to be context-aware.
--   Your first task is to verify the last set of changes made to the Profile screen and header. The user has not seen these yet.
+-   The immediate priority is to fix the data inaccuracy in the Palmares. You must build and test the admin endpoint for retroactively awarding trophies.
+-   Test the backfill feature using the admin account: .
+-   Do not re-enable the Championship Winner Predictions feature unless explicitly asked by the user. The code is complete and should be left as is.
+-   Remember to add logic hooks for awarding League and Tournament champion trophies once the backfill is complete and verified.
 -   Always respond in Italian.
 
 **documents and test reports created in this job**
--    (updated)
 -   
 -   
 -   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Reports the app freezes when switching from a tournament back to a league. (FIXED)
-2.  **User**: Reports 3 issues: 1) Light mode toggle in Profile is broken. 2) Profile page should show My Tournaments. 3) The header icon is redundant and should be changed to a Trophy/Palmares icon. (IN PROGRESS - implementation done, pending verification).
-3.  **Agent**: Acknowledges the 3 issues and starts working.
-4.  **Agent**: Implements the fixes for all three issues.
-5.  **User**: Reports a syntax error after the  refactor. (FIXED)
-6.  **User**: Reports the syntax error persists, likely due to a caching issue. (FIXED - agent forced multiple restarts and corrected the logic).
-7.  **User**: After fixes, asks to restart the bundle as preview is not loading. (DONE)
-8.  **User**: Reports a new  error. (FIXED - it was another syntax issue in  which the agent resolved by simplifying the rendering logic).
-9.  **User**: Asks for another bundle restart. (DONE)
-10. **LATEST**: The conversation concludes with the agent successfully fixing the final syntax error and getting the app running again. The next step is to verify the last functional changes (from message #2).
+1.  **User**: Asks for a bundle restart.
+2.  **Agent**: Confirms bundle restart.
+3.  **User**: Are you sure it works? I logged in as Admin, who has won weekly prizes before, but nothing shows up.
+4.  **Agent**: Acknowledges the problem, explaining that the logic only works for *future* events and not retroactively. Proposes a solution to create an admin endpoint to backfill the data.
+5.  **Agent**: Begins implementing the fix by creating the necessary backend files for the admin endpoint.
+6.  **User**: (implied)  - continue with the fix.
+7.  **Agent**: Continues with implementation.
+8.  **User**:  (restart bundle)
+9.  **Agent**: Restarts bundle.
+10. **LATEST**:  (ok, confirmed proceed) - User gives go-ahead to implement the full trophy system.
 
 **Project Health Check:**
--   **Broken**: None. All critical blocking bugs have been resolved.
+-   **Broken**: The trophy data is currently inaccurate for past events, which is a significant functional bug from the user's perspective.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
--   **API-Football (API-Sports)**: Core data provider.
--   **Expo (including Expo Push)**: Frontend framework and push notification service.
--   **APScheduler**: For scheduled backend tasks.
--   **SendGrid**: For transactional emails.
+-   API-Football (API-Sports)
+-   Expo (including Expo Push)
+-   APScheduler
+-   SendGrid
 
 **Testing status**
--   **Testing agent used after significant changes**: YES. The agent was used multiple times to validate large refactors and bug fixes, proving effective in catching issues.
+-   **Testing agent used after significant changes**: YES, for the initial implementation of the trophy system.
 -   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**:  (from previous session, but backend was modified).
--   **Known regressions**: None currently known.
+-   **Test files created**: None.
+-   **Known regressions**: Trophy counts are inaccurate for historical data.
 
 **Credentials to test flow:**
 -   **Standard User**:  / 
--   **Admin**:  / 
+-   **Admin**:  /  (Use this account to test the new backfill endpoint).
 
 **What agent forgot to execute**
--   The agent successfully addressed all user requests and bug reports from this session. The only remaining items are pre-existing future tasks from the product backlog.</analysis>
+-   The agent initially overlooked the need to backfill historical data when creating the new trophy feature. This was identified by the user and is now the highest priority task.</analysis>

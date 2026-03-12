@@ -104,6 +104,9 @@ Fantasy football predictions platform where users join leagues, predict match ou
 - [ ] Stripe integration for paid entry to leagues/tournaments
 - [ ] Light/dark mode full implementation
 
+### Completed Recently
+- [x] Side Menu Redesign (2026-03-12): Header da arancione a gradiente blu navy, icone arancioni, coerente con il design dell'app
+
 ### Future
 - [ ] Push notification improvements
 - [ ] Social features (chat, comments)

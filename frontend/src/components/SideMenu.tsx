@@ -4,6 +4,7 @@ import {
   Dimensions, ScrollView, Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
@@ -45,7 +46,7 @@ function PressableMenuItem({ item, onPress }: { item: MenuItem; onPress: () => v
         activeOpacity={0.7}
         data-testid={item.testId}
       >
-        <Ionicons name={item.icon} size={20} color={colors.textPrimary} />
+        <Ionicons name={item.icon} size={20} color={colors.accent} />
         <Text style={s.menuItemText}>{item.label}</Text>
         <Ionicons name="chevron-forward" size={16} color={colors.border} />
       </TouchableOpacity>
@@ -143,8 +144,13 @@ export function SideMenu({ visible, onClose }: Props) {
         {/* Drawer */}
         <Animated.View style={[s.drawer, { transform: [{ translateX: slideAnim }] }]}>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-            {/* User Header — Brand orange */}
-            <View style={s.userHeader}>
+            {/* User Header — Brand navy blue */}
+            <LinearGradient
+              colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={s.userHeader}
+            >
               <View style={s.avatar}>
                 <Text style={s.avatarText}>
                   {(user?.username || 'U').charAt(0).toUpperCase()}
@@ -157,7 +163,7 @@ export function SideMenu({ visible, onClose }: Props) {
               <TouchableOpacity onPress={onClose} style={s.closeBtn} data-testid="menu-close">
                 <Ionicons name="close" size={24} color="rgba(255,255,255,0.8)" />
               </TouchableOpacity>
-            </View>
+            </LinearGradient>
 
             {/* Active League Indicator */}
             {activeLeague && (
@@ -207,7 +213,6 @@ const s = StyleSheet.create({
     paddingTop: 54,
     paddingHorizontal: 18,
     paddingBottom: 18,
-    backgroundColor: colors.accent,
     gap: 12,
   },
   avatar: {
@@ -249,10 +254,10 @@ const s = StyleSheet.create({
     marginBottom: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: colors.background,
+    backgroundColor: 'rgba(31, 76, 143, 0.06)',
     borderRadius: borderRadius.xl,
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: colors.primary,
   },
   leagueBannerText: {
     fontSize: 13,

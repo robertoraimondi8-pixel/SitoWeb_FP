@@ -12,7 +12,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://match-arena-10.preview.emergentagent.com"
+BASE_URL = "https://palmares-historic.preview.emergentagent.com"
 
 class TestHealth:
     """API health check"""

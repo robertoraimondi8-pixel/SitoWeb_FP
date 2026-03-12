@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # API Configuration
-BASE_URL = "https://match-arena-10.preview.emergentagent.com/api"
+BASE_URL = "https://palmares-historic.preview.emergentagent.com/api"
 TEST_USER = {
     "email": "marco@test.com", 
     "password": "password123"
