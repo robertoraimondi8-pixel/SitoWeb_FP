@@ -1404,18 +1404,31 @@ async function render_matchdays() {
   const el = document.getElementById('content');
   el.innerHTML = '<h2>Giornate</h2><div id="md-controls" class="card"></div><div id="md-filter" class="card"></div><div id="md-list"></div>';
 
-  // Load leagues + seasons
-  const [leagues, seasons] = await Promise.all([apiCall('/rbac/leagues'), apiCall('/admin/seasons')]);
+  // Load leagues + seasons + tournaments
+  const [leagues, seasons, tournaments] = await Promise.all([
+    apiCall('/rbac/leagues'),
+    apiCall('/admin/seasons'),
+    hasPerm('admin.tournaments.manage') ? apiCall('/admin/tournaments').catch(() => []) : Promise.resolve([])
+  ]);
   allLeaguesCache = leagues;
   const seasonOpts = seasons.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
   // League selector: default to "all" if status filter from dashboard, else national
   const defaultAll = !!statusFilter;
-  const leagueOpts = `<option value="all" ${defaultAll ? 'selected' : ''}>Tutte le leghe</option>` + leagues.map(l => {
+  let leagueOpts = `<option value="all" ${defaultAll ? 'selected' : ''}>Tutte le leghe</option>`;
+  leagueOpts += leagues.map(l => {
     const sel = !defaultAll && l.league_type === 'national' ? 'selected' : '';
     const src = l.match_source_type === 'national' ? ' (eredita naz.)' : l.match_source_type === 'custom' ? ' (custom)' : '';
     return `<option value="${l.id}" ${sel}>${l.name}${src}</option>`;
   }).join('');
+
+  // Add tournaments to dropdown
+  const activeTournaments = tournaments.filter(t => ['groups','knockout'].includes(t.status));
+  if (activeTournaments.length > 0) {
+    leagueOpts += '<option disabled style="color:#F5A623">── TORNEI ──</option>';
+    leagueOpts += activeTournaments.map(t => `<option value="tourn_${t.id}">⚡ ${t.name} (Torneo)</option>`).join('');
+  }
+  window._tournamentsCache = tournaments;
 
   document.getElementById('md-controls').innerHTML = `
     <div class="form-row" style="align-items:flex-end">
@@ -1447,14 +1460,28 @@ let mdSortCol = 'number', mdSortDir = 'asc';
 function onMdLeagueChange() {
   const leagueId = document.getElementById('md-league').value;
   const isAll = leagueId === 'all';
-  const league = isAll ? null : allLeaguesCache.find(l => l.id === leagueId);
+  const isTournament = leagueId.startsWith('tourn_');
+  const tournId = isTournament ? leagueId.replace('tourn_', '') : null;
+  const league = (!isAll && !isTournament) ? allLeaguesCache.find(l => l.id === leagueId) : null;
   const isNational = league && league.league_type === 'national';
   const isCustom = league && league.match_source_type !== 'national';
-  const canManage = !isAll && (isNational || isCustom);
+  const canManage = !isAll && !isTournament && (isNational || isCustom);
 
   // Show create form only for manageable leagues
   const createZone = document.getElementById('md-create-zone');
   const manageableLeagues = allLeaguesCache.filter(l => l.league_type === 'national' || l.match_source_type !== 'national');
+
+  if (isTournament) {
+    // Tournament mode: show create round button
+    createZone.innerHTML = `
+      <div class="form-row" style="margin:0">
+        <input id="md-label" placeholder="Etichetta (es. Giornata 2)" style="flex:1">
+        <button class="btn" onclick="createTournamentMatchday('${tournId}')" data-testid="create-tourn-md-btn">+ Crea Giornata Torneo</button>
+      </div>`;
+    loadTournamentMatchdays(tournId);
+    return;
+  }
+
   if (canManage || isAll) {
     const sOpts = (window._mdSeasons||[]).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
     const leaguePicker = isAll
@@ -1482,6 +1509,7 @@ function onMdLeagueChange() {
 
 async function loadMatchdays() {
   const leagueId = document.getElementById('md-league').value;
+  if (leagueId.startsWith('tourn_')) return; // handled by loadTournamentMatchdays
   try {
     const mds = await apiCall('/admin/matchdays?league_id=' + leagueId);
     window._allMatchdays = mds;
@@ -1492,6 +1520,36 @@ async function loadMatchdays() {
     window._allMatchdays = mds;
     filterMatchdays();
   }
+}
+
+async function loadTournamentMatchdays(tournId) {
+  try {
+    const rounds = await apiCall('/admin/tournament-rounds/' + tournId);
+    window._allMatchdays = rounds.map(r => ({
+      id: r.id,
+      number: r.round_number,
+      label: r.label || ('Giornata ' + r.round_number),
+      status: r.status,
+      half: 1,
+      first_kickoff: r.created_at,
+      match_count: r.match_count || 0,
+      _is_tournament: true,
+      _tournament_id: tournId,
+    }));
+    filterMatchdays();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function createTournamentMatchday(tournId) {
+  const label = document.getElementById('md-label').value.trim();
+  try {
+    const res = await apiCall('/tournaments/' + tournId + '/rounds', 'POST', {
+      round_type: 'group',
+      label: label || undefined
+    });
+    showToast('Giornata ' + res.round_number + ' creata');
+    loadTournamentMatchdays(tournId);
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
 function filterMatchdays() {
@@ -1528,13 +1586,17 @@ function filterMatchdays() {
 
   mds.forEach(m => {
     const kickoff = m.first_kickoff ? new Date(m.first_kickoff).toLocaleString('it') : '-';
+    const isTournRound = m._is_tournament;
+    const crAction = isTournRound
+      ? `showMdControlRoom('${m.id}','${m._tournament_id}')`
+      : `showMdControlRoom('${m.id}')`;
     html += `<tr data-testid="md-row-${m.id}">
-      <td><strong>G${m.number}</strong></td>
+      <td><strong>${isTournRound ? 'R' : 'G'}${m.number}</strong></td>
       <td>${m.label||''}</td>
-      <td>${m.half==1?'Andata':'Ritorno'}</td>
+      <td>${isTournRound ? (m.match_count||0)+' partite' : (m.half==1?'Andata':'Ritorno')}</td>
       <td style="font-size:12px">${kickoff}</td>
       <td><span class="status-badge status-${m.status}">${m.status}</span></td>
-      <td><button class="btn btn-sm btn-outline" onclick="showMdControlRoom('${m.id}')" data-testid="control-md-${m.id}">Control Room</button></td></tr>`;
+      <td><button class="btn btn-sm btn-outline" onclick="${crAction}" data-testid="control-md-${m.id}">Control Room</button></td></tr>`;
   });
   html += '</table>';
   document.getElementById('md-list').innerHTML = html;
@@ -1642,18 +1704,34 @@ let mdcrTab = 'info';
 let mdcrId = null;
 let mdcrMatches = null;
 
-async function showMdControlRoom(mdId, tab) {
+async function showMdControlRoom(mdId, tabOrTournId, maybeTab) {
+  // Support: showMdControlRoom(mdId) or showMdControlRoom(mdId, tab) or showMdControlRoom(mdId, tournId, tab) 
+  let tournamentOverrideId = null;
+  let tab = 'info';
+  if (maybeTab) {
+    // 3 args: mdId, tournId, tab
+    tournamentOverrideId = tabOrTournId;
+    tab = maybeTab;
+  } else if (tabOrTournId && ['info','matches','import'].includes(tabOrTournId)) {
+    tab = tabOrTournId;
+  } else if (tabOrTournId) {
+    tournamentOverrideId = tabOrTournId;
+  }
+
   mdcrId = mdId;
-  mdcrTab = tab || 'info';
+  mdcrTab = tab;
   const md = (window._allMatchdays||[]).find(m => m.id === mdId);
   if (!md) return;
 
+  const isTournament = md._is_tournament || !!tournamentOverrideId;
+  const tournId = tournamentOverrideId || md._tournament_id;
+
   // Use matchday's own league when viewing all leagues
   const selectedLeagueId = document.getElementById('md-league').value;
-  const league = selectedLeagueId === 'all'
+  const league = isTournament ? null : (selectedLeagueId === 'all'
     ? allLeaguesCache.find(l => l.id === md.league_id)
-    : allLeaguesCache.find(l => l.id === selectedLeagueId);
-  const canManage = league && (league.league_type === 'national' || league.match_source_type !== 'national');
+    : allLeaguesCache.find(l => l.id === selectedLeagueId));
+  const canManage = isTournament || (league && (league.league_type === 'national' || league.match_source_type !== 'national'));
 
   const tabs = [
     {id:'info', label:'Info & Stato'},
@@ -1661,11 +1739,13 @@ async function showMdControlRoom(mdId, tab) {
   ];
   if (canManage) tabs.push({id:'import', label:'Importa da API'});
 
-  const tabsHtml = tabs.map(t => `<button class="btn btn-sm ${mdcrTab===t.id?'':'btn-outline'}" onclick="showMdControlRoom('${mdId}','${t.id}')" data-testid="mdcr-tab-${t.id}" style="${mdcrTab===t.id?'':'opacity:.6'}">${t.label}</button>`).join(' ');
+  const crCallBase = isTournament ? `showMdControlRoom('${mdId}','${tournId}'` : `showMdControlRoom('${mdId}'`;
+  const tabsHtml = tabs.map(t => `<button class="btn btn-sm ${mdcrTab===t.id?'':'btn-outline'}" onclick="${crCallBase},'${t.id}')" data-testid="mdcr-tab-${t.id}" style="${mdcrTab===t.id?'':'opacity:.6'}">${t.label}</button>`).join(' ');
 
+  const prefix = isTournament ? 'R' : 'G';
   let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
     <div style="display:flex;align-items:center;gap:12px">
-      <h3 style="margin:0">G${md.number} ${md.label ? '- '+md.label : ''}</h3>
+      <h3 style="margin:0">${prefix}${md.number} ${md.label ? '- '+md.label : ''}</h3>
       <span class="status-badge status-${md.status}">${md.status}</span>
     </div>
     <button class="btn btn-outline btn-sm" onclick="closeModal()">X</button>
@@ -1955,6 +2035,9 @@ function renderMdcrImport(md) {
         <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Competizione (API ID)</label>
         <select id="imp-league" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="import-league-select">
           <option value="135">Serie A (135)</option>
+          <option value="2">Champions League (2)</option>
+          <option value="3">Europa League (3)</option>
+          <option value="848">Conference League (848)</option>
           <option value="39">Premier League (39)</option>
           <option value="140">La Liga (140)</option>
           <option value="78">Bundesliga (78)</option>
