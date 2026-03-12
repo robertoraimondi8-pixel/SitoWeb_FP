@@ -784,3 +784,64 @@ async def admin_open_registration(tournament_id: str, admin=Depends(require_perm
     await tournaments_col.update_one({"id": tournament_id}, {"$set": {"status": "registration"}})
     await log_audit(admin["id"], admin["username"], "OPEN_REGISTRATION", "tournament", tournament_id, {"name": t.get("name")})
     return {"ok": True, "status": "registration"}
+
+
+
+@admin_router.get("/tournament-rounds/{tournament_id}")
+async def admin_list_tournament_rounds(tournament_id: str, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """List all rounds for a tournament with match counts."""
+    from database import tournament_rounds_col, matches_col
+    rounds = await tournament_rounds_col.find(
+        {"tournament_id": tournament_id}, {"_id": 0}
+    ).sort("round_number", 1).to_list(50)
+    for r in rounds:
+        r["match_count"] = await matches_col.count_documents(
+            {"matchday_id": r["id"], "league_id": tournament_id}
+        )
+    return rounds
+
+
+class AdminAddManualMatchReq(PydanticBaseModel):
+    tournament_id: str
+    round_id: str
+    home_team: str
+    away_team: str
+    competition: str = "Torneo"
+    start_time: str = ""
+
+
+@admin_router.post("/tournament-matches")
+async def admin_add_manual_match(req: AdminAddManualMatchReq, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """Add a manual match to a tournament round."""
+    from database import matches_col, tournament_rounds_col
+    rnd = await tournament_rounds_col.find_one(
+        {"id": req.round_id, "tournament_id": req.tournament_id}, {"_id": 0}
+    )
+    if not rnd:
+        raise HTTPException(404, "Round non trovato")
+
+    match_doc = {
+        "id": new_id(),
+        "matchday_id": req.round_id,
+        "league_id": req.tournament_id,
+        "tournament_id": req.tournament_id,
+        "home_team": req.home_team,
+        "away_team": req.away_team,
+        "home_logo": None,
+        "away_logo": None,
+        "competition": req.competition,
+        "competition_name": req.competition,
+        "start_time": req.start_time or now_utc(),
+        "home_score": None,
+        "away_score": None,
+        "status": "scheduled",
+        "elapsed": None,
+        "external_fixture_id": None,
+        "created_at": now_utc(),
+    }
+    await matches_col.insert_one(match_doc)
+    match_doc.pop("_id", None)
+    await log_audit(admin["id"], admin["username"], "ADD_MATCH", "tournament_round", req.round_id, {
+        "match": f"{req.home_team} vs {req.away_team}", "tournament": req.tournament_id
+    })
+    return match_doc

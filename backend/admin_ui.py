@@ -2765,6 +2765,7 @@ function renderTournamentsTable(tournaments) {
     if (t.status === 'registration') {
       actions += `<button class="btn btn-sm" onclick="adminForceStartTournament('${t.id}','${t.name}')" data-testid="force-start-${t.id}">Avvia</button> `;
     }
+    actions += `<button class="btn btn-sm btn-outline" onclick="showTournamentManager('${t.id}')" data-testid="manage-tourn-${t.id}">Gestisci</button> `;
     actions += `<button class="btn btn-sm btn-danger" onclick="showDeleteTournamentModal('${t.id}','${t.name}')" data-testid="delete-tourn-${t.id}">Elimina</button>`;
 
     html += `<tr data-testid="tourn-row-${t.id}">
@@ -2946,6 +2947,181 @@ async function doCreateTournament() {
     closeModal();
     showToast('Torneo creato: ' + res.name + ' (' + res.duration_rounds + ' giornate gironi)');
     render_tournaments();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+
+// ========================================
+// TOURNAMENT MANAGEMENT (rounds & matches)
+// ========================================
+async function showTournamentManager(tournId) {
+  const el = document.getElementById('content');
+  el.innerHTML = '<h2>Gestione Torneo</h2><div id="tm-loading" style="color:#94A3B8">Caricamento...</div>';
+
+  try {
+    const [tourn, rounds] = await Promise.all([
+      apiCall('/tournaments/' + tournId + '?include_drafts=true').catch(() => null),
+      apiCall('/admin/tournament-rounds/' + tournId).catch(() => [])
+    ]);
+
+    if (!tourn) {
+      el.innerHTML = '<h2>Gestione Torneo</h2><p style="color:#EF4444">Torneo non trovato</p>';
+      return;
+    }
+
+    let html = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">';
+    html += '<button class="btn btn-sm btn-outline" onclick="render_tournaments()">&larr; Torna ai Tornei</button>';
+    html += '<h2 style="margin:0;flex:1">' + tourn.name + '</h2>';
+    const statusMap = {draft:'DRAFT',registration:'ISCRIZIONI',groups:'GIRONI',knockout:'ELIMINAZIONE',completed:'COMPLETATO'};
+    const statusLabel = statusMap[tourn.status] || tourn.status;
+    const statusCls = tourn.status === 'draft' ? 'status-DRAFT' : tourn.status === 'registration' ? 'status-OPEN' : tourn.status === 'completed' ? 'status-COMPLETED' : 'status-LIVE';
+    html += '<span class="status-badge ' + statusCls + '">' + statusLabel + '</span>';
+    html += '</div>';
+
+    // Tournament info card
+    html += '<div class="card"><div class="counter-row">';
+    html += '<div class="counter-box"><div class="num">' + (tourn.registered_count || 0) + '/' + tourn.max_participants + '</div><div class="label">Iscritti</div></div>';
+    html += '<div class="counter-box"><div class="num" style="color:#3B82F6">' + (tourn.groups_count || 0) + '</div><div class="label">Gironi</div></div>';
+    html += '<div class="counter-box"><div class="num" style="color:#F5A623">' + (tourn.duration_rounds || 0) + '</div><div class="label">Giornate Gironi</div></div>';
+    html += '<div class="counter-box"><div class="num" style="color:#10B981">' + (rounds.length || 0) + '</div><div class="label">Round Creati</div></div>';
+    html += '</div>';
+
+    // Actions based on status
+    if (tourn.status === 'draft') {
+      html += '<button class="btn btn-success" onclick="adminOpenTournamentReg(&quot;' + tournId + '&quot;);setTimeout(function(){showTournamentManager(&quot;' + tournId + '&quot;)},1000)">Apri Iscrizioni</button> ';
+    }
+    if (tourn.status === 'registration') {
+      html += '<button class="btn" onclick="adminForceStartTournament(&quot;' + tournId + '&quot;,&quot;' + tourn.name + '&quot;);setTimeout(function(){showTournamentManager(&quot;' + tournId + '&quot;)},1500)">Avvia Torneo (anche senza pieni)</button> ';
+    }
+    html += '</div>';
+
+    // Rounds section
+    html += '<div class="card" style="margin-top:16px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+    html += '<h3 style="color:#F5A623;margin:0">Giornate del Torneo</h3>';
+    if (['groups','knockout'].includes(tourn.status)) {
+      html += '<button class="btn btn-sm" onclick="createTournamentRound(&quot;' + tournId + '&quot;)" data-testid="create-round-btn">+ Nuova Giornata</button>';
+    } else {
+      html += '<span style="color:#94A3B8;font-size:12px">Avvia il torneo per creare giornate</span>';
+    }
+    html += '</div>';
+
+    if (rounds.length === 0) {
+      html += '<p style="color:#94A3B8">Nessuna giornata creata.</p>';
+    } else {
+      html += '<table><tr><th>#</th><th>Etichetta</th><th>Tipo</th><th>Stato</th><th>Partite</th><th>Azioni</th></tr>';
+      rounds.forEach(r => {
+        const rStatusCls = r.status === 'OPEN' ? 'status-OPEN' : r.status === 'COMPLETED' ? 'status-COMPLETED' : 'status-DRAFT';
+        let rActions = '';
+        if (r.status === 'PENDING') {
+          rActions += '<button class="btn btn-sm" onclick="showAddMatchesModal(&quot;' + tournId + '&quot;,&quot;' + r.id + '&quot;,&quot;' + r.label + '&quot;)">+ Partite</button> ';
+          rActions += '<button class="btn btn-sm btn-success" onclick="openTournamentRound(&quot;' + tournId + '&quot;,&quot;' + r.id + '&quot;)">Apri</button> ';
+        }
+        if (r.status === 'OPEN') {
+          rActions += '<button class="btn btn-sm" onclick="showAddMatchesModal(&quot;' + tournId + '&quot;,&quot;' + r.id + '&quot;,&quot;' + r.label + '&quot;)">+ Partite</button> ';
+          rActions += '<button class="btn btn-sm btn-danger" onclick="completeTournamentRound(&quot;' + tournId + '&quot;,&quot;' + r.id + '&quot;)">Completa</button> ';
+        }
+        if (r.status === 'COMPLETED') {
+          rActions += '<span style="color:#10B981;font-size:12px">Completato</span>';
+        }
+        html += '<tr><td>' + r.round_number + '</td><td><strong>' + r.label + '</strong></td><td>' + r.round_type + '</td>';
+        html += '<td><span class="status-badge ' + rStatusCls + '">' + r.status + '</span></td>';
+        html += '<td>' + (r.match_count || 0) + '</td>';
+        html += '<td>' + rActions + '</td></tr>';
+      });
+      html += '</table>';
+    }
+    html += '</div>';
+
+    el.innerHTML = html;
+  } catch(e) { showToast(e.message, 'error'); el.innerHTML = '<h2>Gestione Torneo</h2><p style="color:#EF4444">Errore: ' + e.message + '</p>'; }
+}
+
+async function createTournamentRound(tournId) {
+  try {
+    const res = await apiCall('/tournaments/' + tournId + '/rounds', 'POST', {round_type: 'group'});
+    showToast('Giornata ' + res.round_number + ' creata');
+    showTournamentManager(tournId);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function openTournamentRound(tournId, roundId) {
+  if (!confirm('Aprire questa giornata per i pronostici?')) return;
+  try {
+    await apiCall('/tournaments/' + tournId + '/rounds/' + roundId + '/open', 'POST');
+    showToast('Giornata aperta per i pronostici');
+    showTournamentManager(tournId);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function completeTournamentRound(tournId, roundId) {
+  if (!confirm('Completare questa giornata? Verranno calcolati i punteggi.')) return;
+  try {
+    await apiCall('/tournaments/' + tournId + '/rounds/' + roundId + '/complete', 'POST');
+    showToast('Giornata completata, punteggi calcolati');
+    showTournamentManager(tournId);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function showAddMatchesModal(tournId, roundId, roundLabel) {
+  showModal(`
+    <h3>Aggiungi Partite a: ${roundLabel}</h3>
+    <p style="color:#94A3B8;font-size:13px;margin-bottom:12px">Inserisci gli ID delle fixture API-Football separati da virgola, oppure aggiungi partite manualmente.</p>
+    
+    <div style="margin-bottom:16px">
+      <h4 style="color:#F5A623;font-size:14px;margin-bottom:8px">Importa da API-Football</h4>
+      <div class="form-row">
+        <input id="am-fixtures" placeholder="Es: 1234567, 1234568, 1234569" style="flex:2">
+        <button class="btn" onclick="doImportFixtures('${tournId}','${roundId}')">Importa</button>
+      </div>
+    </div>
+
+    <div>
+      <h4 style="color:#F5A623;font-size:14px;margin-bottom:8px">Aggiungi Partita Manuale</h4>
+      <div class="form-row">
+        <input id="am-home" placeholder="Squadra Casa" style="flex:1">
+        <span style="color:#94A3B8;padding:0 8px">vs</span>
+        <input id="am-away" placeholder="Squadra Ospite" style="flex:1">
+        <input id="am-comp" placeholder="Competizione" style="flex:1" value="Torneo">
+        <input id="am-time" type="datetime-local" style="flex:1">
+        <button class="btn" onclick="doAddManualMatch('${tournId}','${roundId}')">Aggiungi</button>
+      </div>
+    </div>
+
+    <div id="am-result" style="margin-top:12px"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal();showTournamentManager('${tournId}')">Chiudi</button>
+    </div>`);
+}
+
+async function doImportFixtures(tournId, roundId) {
+  const ids = document.getElementById('am-fixtures').value.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+  if (ids.length === 0) { showToast('Inserisci almeno un ID fixture', 'error'); return; }
+  try {
+    const res = await apiCall('/tournaments/' + tournId + '/rounds/' + roundId + '/import-matches', 'POST', {fixture_ids: ids});
+    document.getElementById('am-result').innerHTML = '<span style="color:#10B981">Importate ' + res.imported + ' partite</span>';
+    document.getElementById('am-fixtures').value = '';
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function doAddManualMatch(tournId, roundId) {
+  const home = document.getElementById('am-home').value.trim();
+  const away = document.getElementById('am-away').value.trim();
+  const comp = document.getElementById('am-comp').value.trim();
+  const time = document.getElementById('am-time').value;
+  if (!home || !away) { showToast('Inserisci entrambe le squadre', 'error'); return; }
+  try {
+    await apiCall('/admin/tournament-matches', 'POST', {
+      tournament_id: tournId,
+      round_id: roundId,
+      home_team: home,
+      away_team: away,
+      competition: comp || 'Torneo',
+      start_time: time || new Date().toISOString()
+    });
+    document.getElementById('am-result').innerHTML = '<span style="color:#10B981">Partita aggiunta: ' + home + ' vs ' + away + '</span>';
+    document.getElementById('am-home').value = '';
+    document.getElementById('am-away').value = '';
   } catch(e) { showToast(e.message, 'error'); }
 }
 
