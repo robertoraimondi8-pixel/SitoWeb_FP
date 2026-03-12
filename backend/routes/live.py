@@ -22,11 +22,28 @@ live_router = APIRouter(prefix="/api/live", tags=["Live"])
 @live_router.get("/{matchday_id}")
 async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(get_current_user)):
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+
+    # Fallback: check tournament rounds
+    is_tournament = False
+    if not matchday:
+        from database import tournament_rounds_col
+        tourn_round = await tournament_rounds_col.find_one({"id": matchday_id}, {"_id": 0})
+        if tourn_round:
+            is_tournament = True
+            matchday = {
+                "id": tourn_round["id"],
+                "number": tourn_round["round_number"],
+                "label": tourn_round.get("label", f"Giornata {tourn_round['round_number']}"),
+                "status": tourn_round["status"],
+                "league_id": tourn_round["tournament_id"],
+            }
+
     if not matchday:
         raise HTTPException(404, "Matchday not found")
 
+    source_league_id = league_id if (is_tournament and league_id) else matchday.get("league_id")
     matches = await matches_col.find(
-        _match_source_query(matchday_id, matchday.get("league_id")), {"_id": 0}
+        {"matchday_id": matchday_id, "league_id": source_league_id}, {"_id": 0}
     ).to_list(20)
 
     pred_query = {"user_id": user["id"], "matchday_id": matchday_id}
@@ -92,11 +109,26 @@ async def get_live_data(matchday_id: str, league_id: str = None, user=Depends(ge
 @live_router.get("/matchday/{matchday_id}")
 async def get_live_matchday(matchday_id: str, league_id: str = None, user=Depends(get_current_user)):
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+
+    is_tournament = False
+    if not matchday:
+        from database import tournament_rounds_col
+        tourn_round = await tournament_rounds_col.find_one({"id": matchday_id}, {"_id": 0})
+        if tourn_round:
+            is_tournament = True
+            matchday = {
+                "id": tourn_round["id"],
+                "number": tourn_round["round_number"],
+                "label": tourn_round.get("label", f"Giornata {tourn_round['round_number']}"),
+                "status": tourn_round["status"],
+                "league_id": tourn_round["tournament_id"],
+            }
+
     if not matchday:
         raise HTTPException(404, "Matchday not found")
 
-    source_lid = matchday.get("league_id") or NATIONAL_LEAGUE_ID
-    matches = await matches_col.find(_match_source_query(matchday_id, source_lid), {"_id": 0}).to_list(20)
+    source_lid = league_id if (is_tournament and league_id) else (matchday.get("league_id") or NATIONAL_LEAGUE_ID)
+    matches = await matches_col.find({"matchday_id": matchday_id, "league_id": source_lid}, {"_id": 0}).to_list(20)
     pred_filter = {"user_id": user["id"], "matchday_id": matchday_id}
     if league_id:
         pred_filter["league_id"] = league_id
