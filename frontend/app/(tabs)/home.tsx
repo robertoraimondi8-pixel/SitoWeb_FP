@@ -420,7 +420,7 @@ export default function HomeScreen() {
                       {ctaConfig && (
                         <View style={s.ctaBtnWrap}>
                           <LinearGradient
-                            colors={['#F7A21B', '#E88E00']}
+                            colors={data.matchday.status?.toUpperCase() === 'LIVE' ? ['#10B981', '#059669'] : ['#F7A21B', '#E88E00']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
                             style={s.ctaBtn}

@@ -325,7 +325,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
           {cri.status !== 'PENDING' && (
           <TouchableOpacity onPress={handleHeroCta} data-testid="tournament-hero-cta">
             <LinearGradient
-              colors={cri.status === 'LIVE' ? ['#ef4444', '#dc2626'] : ['#F7A21B', '#E88E00']}
+              colors={cri.status === 'LIVE' ? ['#10B981', '#059669'] : ['#F7A21B', '#E88E00']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.ctaGrad}
             >
               <Text style={s.ctaText}>
