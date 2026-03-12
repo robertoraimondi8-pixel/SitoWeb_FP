@@ -1702,6 +1702,7 @@ async function createMatchday() {
 // ========================================
 let mdcrTab = 'info';
 let mdcrId = null;
+let mdcrTournId = null;
 let mdcrMatches = null;
 
 async function showMdControlRoom(mdId, tabOrTournId, maybeTab) {
@@ -1720,6 +1721,7 @@ async function showMdControlRoom(mdId, tabOrTournId, maybeTab) {
 
   mdcrId = mdId;
   mdcrTab = tab;
+  mdcrTournId = tournamentOverrideId || (md && md._tournament_id) || null;
   const md = (window._allMatchdays||[]).find(m => m.id === mdId);
   if (!md) return;
 
@@ -1924,13 +1926,16 @@ async function doMatchUpdate(matchId) {
       status: document.getElementById('lu-status').value
     });
     showToast('Match aggiornato');
-    showMdControlRoom(mdcrId, 'matches');
+    if (mdcrTournId) showMdControlRoom(mdcrId, mdcrTournId, 'matches');
+    else showMdControlRoom(mdcrId, 'matches');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
 async function doAddMatch(mdId) {
   try {
-    const leagueId = document.getElementById('md-league').value;
+    let leagueId = document.getElementById('md-league').value;
+    // Strip tournament prefix if present
+    if (leagueId.startsWith('tourn_')) leagueId = leagueId.replace('tourn_', '');
     await apiCall('/admin/matches', 'POST', {
       matchday_id: mdId,
       league_id: leagueId,
@@ -1942,7 +1947,7 @@ async function doAddMatch(mdId) {
       status: 'scheduled'
     });
     showToast('Partita aggiunta');
-    showMdControlRoom(mdId, 'matches');
+    showMdControlRoom(mdId, mdcrTournId || mdcrTab, mdcrTournId ? 'matches' : undefined);
   } catch(e) { showToast(e.message, 'error'); }
 }
 
