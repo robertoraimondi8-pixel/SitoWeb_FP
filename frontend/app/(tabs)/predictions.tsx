@@ -209,6 +209,16 @@ export default function PredictionsScreen() {
         return;
       }
 
+      // Auto-redirect to live/results screen when LIVE or COMPLETED
+      // Only when user tapped the bottom tab directly (no explicit matchday_id param)
+      const mdStatus = activeMatchday.status?.toUpperCase();
+      if (!paramMatchdayId && (mdStatus === 'LIVE' || mdStatus === 'COMPLETED')) {
+        const leagueParam = isTournament ? tournamentId : leagueId;
+        const qs = leagueParam ? `?league_id=${leagueParam}` : '';
+        router.replace(`/live/${activeMatchday.id}${qs}` as any);
+        return;
+      }
+
       // Carica predictions per questa giornata
       console.log('  Calling: /api/predictions/' + activeMatchday.id + '?league_id=' + leagueId);
       const predsRes = await apiCall(`/predictions/${activeMatchday.id}?league_id=${leagueId}`, { token });
