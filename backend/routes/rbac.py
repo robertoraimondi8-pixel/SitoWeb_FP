@@ -615,7 +615,11 @@ async def edit_league_rules(league_id: str, request: Request, user=Depends(requi
     for field in allowed_fields:
         if field in body and body[field] is not None:
             before[field] = league.get(field)
-            updates[field] = body[field]
+            if field == "scoring_config":
+                from services import normalize_scoring_config
+                updates[field] = normalize_scoring_config(body[field])
+            else:
+                updates[field] = body[field]
 
     if "name" in updates:
         new_name = str(updates["name"]).strip()
@@ -769,6 +773,9 @@ async def admin_create_league(request: Request, user=Depends(require_permission(
         raise HTTPException(400, "match_source_type deve essere 'national' o 'custom'")
 
     scoring = body.get("scoring_config") or DEFAULT_SCORING_CONFIG
+    # Enforce global scoring points, only respect enabled/disabled per market
+    from services import normalize_scoring_config
+    scoring = normalize_scoring_config(body.get("scoring_config"))
     start_md = body.get("start_matchday", 1)
     end_md = body.get("end_matchday", 38)
     if end_md < start_md:

@@ -1,0 +1,63 @@
+{
+  "summary": "Tested FantaPronostic scoring refactor from decimal (0.5/1.0/4.0) to integer scoring (1/2/5). Backend: 7/7 tests passed (100%). Frontend: Login, navigation, standings verified. Admin UI shows new scoring values correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_scoring_refactor_integer.py",
+    "/app/test_reports/pytest/scoring_refactor_integer_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: Backend scoring.py MARKET_POINTS has correct values: 1X2=2.0, GOAL_NOGOL=1.0, OVER_UNDER_25=1.0, EXACT_SCORE=5.0",
+    "VERIFIED: GET /api/leagues/{id} returns scoring_config with new values (1x2=2, over_under=1, goal_no_goal=1, exact_score=5)",
+    "VERIFIED: GET /api/standings/total shows integer point totals (41.0, 39.0, 18.0) - no 0.5 decimals",
+    "VERIFIED: GET /api/live/{matchday_id} returns live match data with PUNTI BASE and PUNTI PROVVISORI",
+    "VERIFIED: Admin UI /api/admin-ui Leghe list shows Regole column with '1X2:2 O/U:1 GG/NG:1 Esatto:5'",
+    "VERIFIED: Frontend login works with ilio@raimondi.it / password123",
+    "VERIFIED: Frontend Rankings tab shows integer point totals for users",
+    "VERIFIED: Frontend Predictions/Live tab shows X3 badge for special matches",
+    "VERIFIED: League switcher works - can switch between liga2 and Lega Nazionale FantaPronostic",
+    "NOTE: Rules screen (Regolamento) is accessible via hamburger menu but testing blocked by navigation timing",
+    "NOTE: X3 multiplier is configured and visible on match #8 (Genk vs SC Freiburg)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_scoring_refactor_integer.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 tests passed)",
+    "frontend": "90% - Login, Navigation, Standings, Live/Predictions verified"
+  },
+  "test_credentials": {
+    "standard_user": "ilio@raimondi.it / password123",
+    "admin_user": "admin@fantapronostic.com / admin123"
+  },
+  "seed_data_creation": "No new seed data created",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Scoring refactor verified working. NEW values: 1X2=2pts, GG/NG=1pt, O/U=1pt, Exact=5pts. OLD values were 1X2=1, GG/NG=0.5, O/U=0.5, Exact=4. All standings show integer totals. Admin UI displays scoring as read-only text in Regole column. X3 multiplier visible on special matches. User ilio@raimondi.it has multiple leagues - default is liga2, can switch to 'Lega Nazionale FantaPronostic' for LIVE Giornata 25.",
+  "verified_features": {
+    "backend_scoring_config": "PASS - GET /api/leagues/{id} returns scoring_config with 1x2=2, over_under=1, goal_no_goal=1, exact_score=5",
+    "backend_standings": "PASS - GET /api/standings/total shows integer totals (no 0.5 decimals)",
+    "backend_home": "PASS - GET /api/home returns matchday data",
+    "backend_live": "PASS - GET /api/live/{matchday_id} returns match data",
+    "frontend_login": "PASS - Login with standard user works",
+    "frontend_navigation": "PASS - Tab navigation works (Home, Statistics, Predictions, Rankings, Profile)",
+    "frontend_standings": "PASS - Rankings tab shows integer point totals",
+    "frontend_predictions": "PASS - Live/Predictions screen shows matches with X3 badge",
+    "admin_ui_login": "PASS - Admin login works",
+    "admin_ui_leagues": "PASS - Leghe list shows correct scoring in Regole column: 1X2:2 O/U:1 GG/NG:1 Esatto:5"
+  },
+  "scoring_migration_verified": {
+    "old_scoring": "1X2=1.0, GG/NG=0.5, O/U=0.5, Exact=4.0",
+    "new_scoring": "1X2=2, GG/NG=1, O/U=1, Exact=5",
+    "x3_multiplier_values": "1X2=6, GG/NG=3, O/U=3, Exact=15",
+    "no_decimal_points_found": true
+  }
+}

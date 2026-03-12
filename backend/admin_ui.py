@@ -1195,17 +1195,17 @@ async function showCreateLeagueModal() {
   const seasonOpts = seasons.map(s => `<option value="${s.id}">${s.name} (${s.year})</option>`).join('');
 
   const marketFields = [
-    {key:'1x2', label:'1X2', defEnabled:true, defPts:1},
-    {key:'over_under', label:'Over/Under', defEnabled:true, defPts:0.5},
-    {key:'goal_no_goal', label:'Goal/No Goal', defEnabled:true, defPts:0.5},
-    {key:'exact_score', label:'Risultato Esatto', defEnabled:true, defPts:4},
+    {key:'1x2', label:'1X2', defEnabled:true, defPts:2},
+    {key:'over_under', label:'Over/Under', defEnabled:true, defPts:1},
+    {key:'goal_no_goal', label:'Goal/No Goal', defEnabled:true, defPts:1},
+    {key:'exact_score', label:'Risultato Esatto', defEnabled:true, defPts:5},
   ];
   let marketsInputs = '';
   marketFields.forEach(m => {
     marketsInputs += `<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
       <label style="flex:1;color:#94A3B8;font-size:13px">${m.label}</label>
       <label style="font-size:12px;color:#94A3B8"><input type="checkbox" id="nl-${m.key}-on" ${m.defEnabled?'checked':''} style="margin-right:4px">Attivo</label>
-      <input id="nl-${m.key}-pts" type="number" step="0.5" min="0" value="${m.defPts}" style="width:70px;padding:6px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px">
+      <span style="width:70px;padding:6px;color:#F5A623;font-size:13px;font-weight:600;text-align:right">${m.defPts}</span>
       <span style="color:#64748B;font-size:11px">pt</span>
     </div>`;
   });
@@ -1263,11 +1263,12 @@ async function showCreateLeagueModal() {
 }
 
 async function doCreateLeague() {
+  const GLOBAL_PTS = {'1x2':2,'over_under':1,'goal_no_goal':1,'exact_score':5};
   const scoring_config = {};
   ['1x2','over_under','goal_no_goal','exact_score'].forEach(k => {
     scoring_config[k] = {
       enabled: document.getElementById('nl-'+k+'-on').checked,
-      points: parseFloat(document.getElementById('nl-'+k+'-pts').value) || 0
+      points: GLOBAL_PTS[k]
     };
   });
 
@@ -2348,6 +2349,7 @@ function renderCrInfo(l) {
 
 function renderCrEdit(l) {
   const sc = l.scoring_config || {};
+  const GLOBAL_PTS = {'1x2':2,'over_under':1,'goal_no_goal':1,'exact_score':5};
   const marketFields = [
     {key:'1x2', label:'1X2'},
     {key:'over_under', label:'Over/Under'},
@@ -2360,7 +2362,7 @@ function renderCrEdit(l) {
     marketsInputs += `<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
       <label style="flex:1;color:#94A3B8;font-size:13px">${m.label}</label>
       <label style="font-size:12px;color:#94A3B8"><input type="checkbox" id="rule-${m.key}-on" ${cfg.enabled?'checked':''} style="margin-right:4px">Attivo</label>
-      <input id="rule-${m.key}-pts" type="number" step="0.5" min="0" value="${cfg.points||0}" style="width:70px;padding:6px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px">
+      <span style="width:70px;padding:6px;color:#F5A623;font-size:13px;font-weight:600;text-align:right">${GLOBAL_PTS[m.key]}</span>
       <span style="color:#64748B;font-size:11px">pt</span>
     </div>`;
   });
@@ -2459,11 +2461,12 @@ function renderCrTeam(l) {
 async function doEditRules(leagueId) {
   if (!confirm('CONFERMA: Sei sicuro di voler modificare le impostazioni di questa lega? Le modifiche vengono registrate nell\\'audit log.')) return;
 
+  const GLOBAL_PTS = {'1x2':2,'over_under':1,'goal_no_goal':1,'exact_score':5};
   const scoring_config = {};
   ['1x2','over_under','goal_no_goal','exact_score'].forEach(k => {
     scoring_config[k] = {
       enabled: document.getElementById('rule-'+k+'-on').checked,
-      points: parseFloat(document.getElementById('rule-'+k+'-pts').value) || 0
+      points: GLOBAL_PTS[k]
     };
   });
 

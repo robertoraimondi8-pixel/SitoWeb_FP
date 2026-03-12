@@ -4,12 +4,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Points per market type
+# Points per market type (global, fixed values — not configurable per league)
 MARKET_POINTS = {
-    "1X2": 1.0,
-    "GOAL_NOGOL": 0.5,
-    "OVER_UNDER_25": 0.5,
-    "EXACT_SCORE": 4.0,
+    "1X2": 2.0,
+    "GOAL_NOGOL": 1.0,
+    "OVER_UNDER_25": 1.0,
+    "EXACT_SCORE": 5.0,
 }
 
 CHAMPION_BONUS = 5.0  # per competition

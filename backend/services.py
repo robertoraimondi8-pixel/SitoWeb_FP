@@ -30,11 +30,23 @@ MAX_MATCHES_PER_MATCHDAY = 10
 NATIONAL_LEAGUE_PRICE = 20.00  # EUR
 
 DEFAULT_SCORING_CONFIG = {
-    "1x2": {"enabled": True, "points": 1.0},
-    "over_under": {"enabled": True, "points": 0.5},
-    "goal_no_goal": {"enabled": True, "points": 0.5},
-    "exact_score": {"enabled": True, "points": 4.0},
+    "1x2": {"enabled": True, "points": 2},
+    "over_under": {"enabled": True, "points": 1},
+    "goal_no_goal": {"enabled": True, "points": 1},
+    "exact_score": {"enabled": True, "points": 5},
 }
+
+
+def normalize_scoring_config(raw_config: dict = None) -> dict:
+    """Normalize scoring config: enforce global point values, only allow enabled/disabled toggle."""
+    config = {}
+    for key, default in DEFAULT_SCORING_CONFIG.items():
+        user_cfg = (raw_config or {}).get(key, {})
+        config[key] = {
+            "enabled": user_cfg.get("enabled", default["enabled"]) if isinstance(user_cfg, dict) else default["enabled"],
+            "points": default["points"],
+        }
+    return config
 
 VALID_TRANSITIONS = {
     "DRAFT": ["OPEN"],

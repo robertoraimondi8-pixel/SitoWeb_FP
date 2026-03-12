@@ -98,10 +98,10 @@ class ScoringMarket(BaseModel):
     points: float
 
 class ScoringConfig(BaseModel):
-    one_x_two: ScoringMarket = ScoringMarket(enabled=True, points=1.0)
-    over_under: ScoringMarket = ScoringMarket(enabled=True, points=0.5)
-    goal_no_goal: ScoringMarket = ScoringMarket(enabled=True, points=0.5)
-    exact_score: ScoringMarket = ScoringMarket(enabled=True, points=4.0)
+    one_x_two: ScoringMarket = ScoringMarket(enabled=True, points=2.0)
+    over_under: ScoringMarket = ScoringMarket(enabled=True, points=1.0)
+    goal_no_goal: ScoringMarket = ScoringMarket(enabled=True, points=1.0)
+    exact_score: ScoringMarket = ScoringMarket(enabled=True, points=5.0)
 
 class LeagueCreate(BaseModel):
     name: str = Field(min_length=3, max_length=40)

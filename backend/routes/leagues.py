@@ -50,6 +50,9 @@ async def create_league(req: LeagueCreate, user=Depends(get_current_user)):
     league_id = new_id()
     invite_code = generate_invite_code()
     scoring = req.scoring_config or DEFAULT_SCORING_CONFIG
+    # Enforce global scoring points, only respect enabled/disabled per market
+    from services import normalize_scoring_config
+    scoring = normalize_scoring_config(req.scoring_config)
 
     league = {
         "id": league_id, "name": req.name, "league_type": "private",
