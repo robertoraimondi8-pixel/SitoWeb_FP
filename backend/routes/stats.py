@@ -102,10 +102,30 @@ def _extract_team_id_from_logo(logo_url: str) -> Optional[int]:
 
 @stats_router.get("/fixture-detail/{fixture_id}")
 async def stats_fixture_detail(fixture_id: int, user=Depends(get_current_user)):
-    """Get full fixture detail: events, statistics, lineups from API-Football."""
+    """Get full fixture detail: events, statistics, lineups from API-Football.
+    For NS (not started) matches, also includes pre-match preview (form, H2H)."""
     try:
         client = get_apifootball()
         detail = await client.get_fixture_detail(fixture_id)
+
+        # If match not started, add pre-match preview data
+        fx_status = detail.get("fixture", {}).get("status_short", "")
+        if fx_status in ("NS", "TBD", "PST"):
+            try:
+                home_id = detail.get("teams", {}).get("home", {}).get("id")
+                away_id = detail.get("teams", {}).get("away", {}).get("id")
+                if home_id and away_id:
+                    home_form = await client.get_team_last_matches(home_id, 5)
+                    away_form = await client.get_team_last_matches(away_id, 5)
+                    h2h = await client.get_h2h(home_id, away_id, 5)
+                    detail["preview"] = {
+                        "home_form": home_form,
+                        "away_form": away_form,
+                        "h2h": h2h,
+                    }
+            except Exception:
+                pass
+
         return detail
     except Exception as e:
         raise HTTPException(502, f"Dettagli partita non disponibili: {e}")

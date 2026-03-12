@@ -199,7 +199,7 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
 
               {/* Tab Content */}
               {activeTab === 'events' && <EventsList events={data.events} homeTeam={fx.home_team} halftime={fx.halftime} />}
-              {activeTab === 'stats' && <StatsComparison stats={data.statistics} />}
+              {activeTab === 'stats' && <StatsComparison stats={data.statistics} preview={data.preview} homeName={data.teams?.home?.name} awayName={data.teams?.away?.name} />}
               {activeTab === 'lineups' && <LineupsView lineups={data.lineups} />}
             </ScrollView>
           ) : null}
@@ -328,8 +328,62 @@ function EventRow({ ev, homeTeam }: { ev: FixtureEvent & { runningHome: number; 
 }
 
 /* ── Stats Comparison ── */
-function StatsComparison({ stats }: { stats: TeamStat[] }) {
+function StatsComparison({ stats, preview, homeName, awayName }: { stats: TeamStat[], preview?: any, homeName?: string, awayName?: string }) {
   if (stats.length < 2) {
+    // Show pre-match preview if available
+    if (preview) {
+      return (
+        <View>
+          {/* Form */}
+          {(preview.home_form?.length > 0 || preview.away_form?.length > 0) && (
+            <View style={{ marginBottom: 16 }}>
+              <Text style={[s.emptyText, { color: colors.accent, fontWeight: '700', marginBottom: 8 }]}>Forma Recente</Text>
+              {preview.home_form?.length > 0 && (
+                <View style={{ marginBottom: 8 }}>
+                  <Text style={{ color: colors.textPrimary, fontWeight: '600', fontSize: 13, marginBottom: 4 }}>{homeName || 'Casa'}</Text>
+                  <View style={{ flexDirection: 'row', gap: 4 }}>
+                    {preview.home_form.map((m: any, i: number) => {
+                      const isWin = m.result === 'W';
+                      const isDraw = m.result === 'D';
+                      const bg = isWin ? '#10B981' : isDraw ? '#F59E0B' : '#EF4444';
+                      return <View key={i} style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>{m.result}</Text></View>;
+                    })}
+                  </View>
+                </View>
+              )}
+              {preview.away_form?.length > 0 && (
+                <View>
+                  <Text style={{ color: colors.textPrimary, fontWeight: '600', fontSize: 13, marginBottom: 4 }}>{awayName || 'Ospite'}</Text>
+                  <View style={{ flexDirection: 'row', gap: 4 }}>
+                    {preview.away_form.map((m: any, i: number) => {
+                      const isWin = m.result === 'W';
+                      const isDraw = m.result === 'D';
+                      const bg = isWin ? '#10B981' : isDraw ? '#F59E0B' : '#EF4444';
+                      return <View key={i} style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>{m.result}</Text></View>;
+                    })}
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
+          {/* H2H */}
+          {preview.h2h?.length > 0 && (
+            <View>
+              <Text style={[s.emptyText, { color: colors.accent, fontWeight: '700', marginBottom: 8 }]}>Testa a Testa</Text>
+              {preview.h2h.map((m: any, i: number) => (
+                <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 0.5, borderBottomColor: colors.border }}>
+                  <Text style={{ color: colors.textSecondary, fontSize: 11 }}>{m.date ? new Date(m.date).toLocaleDateString('it') : ''}</Text>
+                  <Text style={{ color: colors.textPrimary, fontSize: 12, fontWeight: '600' }}>{m.home} {m.home_goals}-{m.away_goals} {m.away}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+          {!preview.home_form?.length && !preview.h2h?.length && (
+            <Text style={s.emptyText}>Statistiche pre-partita non disponibili</Text>
+          )}
+        </View>
+      );
+    }
     return <Text style={s.emptyText}>Statistiche non disponibili</Text>;
   }
 
