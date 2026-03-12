@@ -213,9 +213,14 @@ export default function PredictionsScreen() {
       // Only when user tapped the bottom tab directly (no explicit matchday_id param)
       const mdStatus = activeMatchday.status?.toUpperCase();
       if (!paramMatchdayId && (mdStatus === 'LIVE' || mdStatus === 'COMPLETED')) {
-        const leagueParam = isTournament ? tournamentId : leagueId;
-        const qs = leagueParam ? `?league_id=${leagueParam}` : '';
-        router.replace(`/live/${activeMatchday.id}${qs}` as any);
+        if (isTournament) {
+          // Tournament: go to Home which shows the matchup live view
+          router.replace({ pathname: '/(tabs)/home', params: { tournament_id: tournamentId } } as any);
+        } else {
+          // League: go to live/results screen
+          const qs = leagueId ? `?league_id=${leagueId}` : '';
+          router.replace(`/live/${activeMatchday.id}${qs}` as any);
+        }
         return;
       }
 
