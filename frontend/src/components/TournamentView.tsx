@@ -450,7 +450,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
         const totalPts = completed.reduce((acc: number, m: any) => acc + (isA(m) ? m.user_a_points : m.user_b_points), 0);
         const avg = completed.length > 0 ? Math.round(totalPts / completed.length).toString() : '-';
         return (
-          <>
+          <View>
             <Text style={s.sectionLabel}>PERFORMANCE</Text>
             <View style={s.perfRow}>
               <View style={s.perfCardOuter}>
@@ -484,7 +484,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                 </LinearGradient>
               </View>
             </View>
-          </>
+          </View>
         );
       })()}
 
@@ -526,14 +526,14 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
 
 const s = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
-  scrollContent: { padding: spacing.lg, paddingBottom: 100 },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 80, gap: 24 },
 
   // Back row
   backRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.md },
   backText: { fontSize: 14, fontWeight: '700', color: colors.accent },
 
   // Hero
-  heroCard: { borderRadius: borderRadius.xl, padding: spacing.xl, overflow: 'hidden', borderWidth: 1.5, borderColor: colors.accent, marginBottom: spacing.md },
+  heroCard: { borderRadius: 22, padding: 24, overflow: 'hidden', borderWidth: 1.5, borderColor: '#F5A623', shadowColor: '#162F5C', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.2, shadowRadius: 30, elevation: 10 },
   heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   heroLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   heroLabel: { fontSize: 10, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: 1.5 },
@@ -547,7 +547,7 @@ const s = StyleSheet.create({
   heroContextMsg: { fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginTop: 8, marginBottom: 2 },
 
   // Last 5 pills
-  last5Card: { padding: 18, borderRadius: 22, overflow: 'hidden', marginTop: 16 },
+  last5Card: { marginHorizontal: 16, marginTop: 16, borderRadius: 22, padding: 18, overflow: 'hidden' },
   last5Title: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.55)', letterSpacing: 1.2, marginBottom: 14 },
   last5Row: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   last5PillWrap: { flex: 1, alignItems: 'center', gap: 6 },
@@ -558,7 +558,7 @@ const s = StyleSheet.create({
   last5PillMd: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.35)' },
 
   // Mini ranking block
-  miniRankCard: { padding: 18, borderRadius: 22, overflow: 'hidden', marginTop: 16 },
+  miniRankCard: { marginHorizontal: 16, marginTop: 16, borderRadius: 22, padding: 18, overflow: 'hidden' },
   miniRankTitle: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.55)', letterSpacing: 1.2, marginBottom: 14 },
   miniRankRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 7, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.08)' },
   miniRankPos: { width: 32, fontSize: 15, fontWeight: '800', color: 'rgba(255,255,255,0.5)' },
@@ -592,7 +592,7 @@ const s = StyleSheet.create({
   perfRow: { flexDirection: 'row', gap: 12 },
   perfCardOuter: {
     flex: 1, borderRadius: 22, borderWidth: 1.5, borderColor: DARK.accent, overflow: 'hidden',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.12, shadowRadius: 30, elevation: 10, marginBottom: spacing.sm,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.12, shadowRadius: 30, elevation: 10,
   },
   perfCardGrad: { alignItems: 'center', paddingVertical: 16, paddingHorizontal: 8, overflow: 'hidden' },
   perfInset: { position: 'absolute', top: 0, left: 0, right: 0, height: 40 },
@@ -603,7 +603,6 @@ const s = StyleSheet.create({
   perfLabel: { fontSize: 9, fontWeight: '600', color: 'rgba(255,255,255,0.45)', letterSpacing: 0.8, textTransform: 'uppercase', textAlign: 'center', marginTop: 4, lineHeight: 13 },
   trendCardGrad: { padding: 16, borderRadius: 22, overflow: 'hidden' },
   sectionLabelInCard: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.55)', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 12 },
-  sectionLabel: { fontSize: 13, fontWeight: '800', color: '#6B7280', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 8, marginTop: 4 },
 
   // Matchup cards
   matchupCard: { borderRadius: borderRadius.xl, overflow: 'hidden', borderWidth: 1.5, borderColor: colors.accent, marginBottom: spacing.md, padding: spacing.lg },

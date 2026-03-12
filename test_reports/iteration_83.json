@@ -1,0 +1,62 @@
+{
+  "summary": "Visual comparison testing of Tournament Home vs League Home after TournamentView.tsx refactoring. Layout spacing (gap:24) is consistent. Tournament Home is NOT blank - all major sections render. One UI bug found: Tournament CLASSIFICA block missing 'Vedi classifica' CTA.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "TournamentView.tsx - Mini Ranking CLASSIFICA block",
+        "issue": "The 'Vedi classifica >' CTA with chevron icon is NOT visible in Tournament Home, but IS visible in League Home. Code exists at lines 436-439 but not rendering visually.",
+        "selector": "text=Vedi classifica",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_83.json"
+  ],
+  "action_items": [
+    "Investigate why TournamentView.tsx lines 436-439 (miniRankCtaRow with 'Vedi classifica' + chevron icon) are not rendering in Tournament Home CLASSIFICA block"
+  ],
+  "critical_code_review_comments": [
+    "VERIFIED: scrollContent gap:24 matches between home.tsx and TournamentView.tsx",
+    "VERIFIED: heroCard has no marginBottom in both files",
+    "VERIFIED: miniRankCard has marginHorizontal:16 in both files",
+    "VERIFIED: last5Card has marginHorizontal:16 marginTop:16 in both files",
+    "VERIFIED: sectionLabel style (fontSize:13, fontWeight:800, marginLeft:4) matches",
+    "VERIFIED: Performance section wrapped in <View> to prevent gap interference",
+    "VERIFIED: perfCardOuter has no marginBottom in tournament",
+    "BUG: TournamentView.tsx lines 436-439 miniRankCtaRow with 'Vedi classifica' text and chevron-forward icon exists in code but not visible in rendered UI"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only test)",
+    "frontend": "95% - Layout consistent, 1 UI element not rendering"
+  },
+  "test_credentials": {
+    "standard_user": "ilio@raimondi.it / password123",
+    "admin_user": "admin@fantapronostic.com / admin123 (used for tournament testing)"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Tournament Home layout refactoring verified. Layout spacing consistent with League Home. One bug found: Tournament CLASSIFICA block missing 'Vedi classifica >' CTA at bottom of card. The code exists in TournamentView.tsx lines 436-439 inside the miniRankCard LinearGradient, but it's not rendering visually. League Home shows this CTA correctly. Screenshots available in .screenshots/ folder.",
+  "verified_features": {
+    "TOURNAMENT_HOME_not_blank": "PASS - All sections render (Hero, CLASSIFICA, PERFORMANCE, ULTIME SFIDE)",
+    "gap_consistency": "PASS - scrollContent gap:24 in both League and Tournament",
+    "miniRankCard_marginHorizontal": "PASS - Both have marginHorizontal:16",
+    "last5Card_marginHorizontal": "PASS - Both have marginHorizontal:16",
+    "heroCard_no_marginBottom": "PASS - Both have no marginBottom",
+    "sectionLabel_style": "PASS - Same font style (13px, 800 weight, #6B7280)",
+    "perfCardOuter_no_marginBottom": "PASS - No extra bottom margin",
+    "performance_in_View_wrapper": "PASS - Wrapped in <View> not fragment",
+    "vedi_classifica_CTA": {
+      "league": "PASS - Visible",
+      "tournament": "FAIL - NOT visible despite code present"
+    }
+  }
+}
