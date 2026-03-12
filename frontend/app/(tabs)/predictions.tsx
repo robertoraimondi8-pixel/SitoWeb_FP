@@ -95,10 +95,20 @@ export default function PredictionsScreen() {
         setCompetitionName(tournamentName || 'Torneo');
         setLeagueInfo({ id: tournamentId, isManual: false, isOwner: false });
 
-        // Try to load tournament scoring config
+        // Load scoring config: first try tournament, then fall back to national league config
         try {
           const tDetail = await apiCall(`/tournaments/${tournamentId}`, { token });
-          if (tDetail?.scoring_config) setScoringConfig(tDetail.scoring_config);
+          if (tDetail?.scoring_config) {
+            setScoringConfig(tDetail.scoring_config);
+          } else {
+            // Use national league scoring config (tournaments use same rules)
+            const homeData = await apiCall('/home', { token });
+            if (homeData?.league?.id) {
+              const natLeague = await apiCall(`/leagues/${homeData.league.id}`, { token });
+              if (natLeague?.scoring_config) setScoringConfig(natLeague.scoring_config);
+              if (natLeague?.competition_name) setCompetitionName(tDetail?.name || tournamentName || 'Torneo');
+            }
+          }
         } catch (_) {}
       } else {
         const home = await apiCall('/home', { token });
