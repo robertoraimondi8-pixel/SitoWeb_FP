@@ -122,6 +122,8 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
     const isMe = (uid: string) => uid === user?.id;
     const aWin = user_a_total > user_b_total;
     const bWin = user_b_total > user_a_total;
+    const aName = isMe(mu.user_a_id) ? 'Tu' : mu.user_a_username;
+    const bName = isMe(mu.user_b_id) ? 'Tu' : mu.user_b_username;
 
     return (
       <ScrollView contentContainerStyle={s.scrollContent} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchMatchupLive(activeMatchup.id)} tintColor={colors.accent} />}>
@@ -131,7 +133,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
           <Text style={s.backText}>Torna al torneo</Text>
         </TouchableOpacity>
 
-        {/* Score card — same visual as league points card */}
+        {/* ═══ 1. HERO SCORE CARD ═══ */}
         <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.heroCard}>
           <AnimatedSweep />
           <View style={s.heroTop}>
@@ -139,47 +141,48 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
               <Ionicons name="flash" size={13} color={DARK.textMuted} />
               <Text style={s.heroLabel}>SFIDA 1 VS 1</Text>
             </View>
-            {isLive && <View style={s.liveBadge}><View style={s.liveDot} /><Text style={s.liveText}>LIVE</Text></View>}
+            {isLive && <View style={s.liveBadgeBig}><View style={s.liveDotBig} /><Text style={s.liveTextBig}>LIVE</Text></View>}
           </View>
           <View style={s.muScoreRow}>
             <View style={s.muPlayer}>
-              <View style={[s.muAvatar, isMe(mu.user_a_id) && s.muAvatarMe]}><Text style={s.muAvatarText}>{mu.user_a_username.charAt(0).toUpperCase()}</Text></View>
-              <Text style={[s.muName, isMe(mu.user_a_id) && { color: colors.accent }]} numberOfLines={1}>{isMe(mu.user_a_id) ? 'Tu' : mu.user_a_username}</Text>
+              <View style={[s.muAvatar, isMe(mu.user_a_id) && s.muAvatarMe, aWin && { borderColor: '#10B981', borderWidth: 2 }]}><Text style={s.muAvatarText}>{mu.user_a_username.charAt(0).toUpperCase()}</Text></View>
+              <Text style={[s.muName, isMe(mu.user_a_id) && { color: colors.accent }]} numberOfLines={1}>{aName}</Text>
             </View>
             <View style={s.muCenter}>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-                <Text style={[s.muScore, aWin && { color: '#fff' }]}>{user_a_total.toFixed(1)}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+                <Text style={[s.muScore, aWin && { color: '#10B981' }, !aWin && !bWin && { color: '#fff' }]}>{user_a_total.toFixed(1)}</Text>
                 <Text style={s.muSep}>-</Text>
-                <Text style={[s.muScore, bWin && { color: '#fff' }]}>{user_b_total.toFixed(1)}</Text>
+                <Text style={[s.muScore, bWin && { color: '#10B981' }, !aWin && !bWin && { color: '#fff' }]}>{user_b_total.toFixed(1)}</Text>
               </View>
               <Text style={s.muResult}>{matchupLiveData.round.label}</Text>
             </View>
             <View style={s.muPlayer}>
-              <View style={[s.muAvatar, isMe(mu.user_b_id) && s.muAvatarMe]}><Text style={s.muAvatarText}>{mu.user_b_username.charAt(0).toUpperCase()}</Text></View>
-              <Text style={[s.muName, isMe(mu.user_b_id) && { color: colors.accent }]} numberOfLines={1}>{isMe(mu.user_b_id) ? 'Tu' : mu.user_b_username}</Text>
+              <View style={[s.muAvatar, isMe(mu.user_b_id) && s.muAvatarMe, bWin && { borderColor: '#10B981', borderWidth: 2 }]}><Text style={s.muAvatarText}>{mu.user_b_username.charAt(0).toUpperCase()}</Text></View>
+              <Text style={[s.muName, isMe(mu.user_b_id) && { color: colors.accent }]} numberOfLines={1}>{bName}</Text>
             </View>
           </View>
         </LinearGradient>
 
-        {/* Matches — SAME style as league live cards */}
+        {/* ═══ 2. MATCH CARDS ═══ */}
         {matches.map((md: any, idx: number) => {
           const m = md.match;
           const mLive = m.status === 'live';
           const mDone = m.status === 'finished';
           const show = mDone || mLive;
+          const aPts = md.user_a_points || 0;
+          const bPts = md.user_b_points || 0;
           return (
             <TouchableOpacity key={m.id || idx} style={[s.matchCard, mLive && s.matchCardLive]} activeOpacity={m.external_fixture_id ? 0.7 : 1} onPress={() => m.external_fixture_id && setDetailFixtureId(m.external_fixture_id)} data-testid={`match-${idx}`}>
               <AnimatedSweep />
+              {/* Match header */}
               <View style={s.matchHeader}>
                 <View style={s.matchNumBadge}><Text style={s.matchNum}>{idx + 1}</Text></View>
                 <Text style={s.competition}>{m.competition || ''}</Text>
                 {mLive && m.elapsed != null && <View style={s.elapsedBadge}><Text style={s.elapsedText}>{m.elapsed}'</Text></View>}
-                <View style={[s.statusBadge, { backgroundColor: mLive ? colors.success : mDone ? 'rgba(255,255,255,0.4)' : colors.info }]}>
-                  {mLive && <View style={s.liveDotSm} />}
-                  <Text style={s.statusText}>{mLive ? 'LIVE' : mDone ? 'FT' : 'SCH'}</Text>
-                </View>
-                {m.external_fixture_id && <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.4)" style={{ marginLeft: 'auto' }} />}
+                {mLive && <View style={s.liveBadgeMatch}><View style={s.liveDotSm} /><Text style={s.liveTextMatch}>LIVE</Text></View>}
+                {mDone && <View style={[s.liveBadgeMatch, { backgroundColor: 'rgba(255,255,255,0.15)' }]}><Text style={[s.liveTextMatch, { color: 'rgba(255,255,255,0.6)' }]}>FT</Text></View>}
               </View>
+              {/* Teams + Score */}
               <View style={s.teamsRow}>
                 <View style={s.teamCol}>
                   <View style={s.teamNameRow}>
@@ -188,7 +191,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   </View>
                 </View>
                 <View style={s.scoreCol}>
-                  {m.home_score !== null ? <Text style={[s.score, mLive && { color: colors.success }]}>{m.home_score} - {m.away_score}</Text> : <Text style={s.vs}>vs</Text>}
+                  {m.home_score !== null ? <Text style={[s.score, mLive && { color: '#10B981', fontSize: 24 }]}>{m.home_score} - {m.away_score}</Text> : <Text style={s.vs}>vs</Text>}
                 </View>
                 <View style={s.teamCol}>
                   <View style={[s.teamNameRow, { justifyContent: 'flex-end' }]}>
@@ -197,22 +200,34 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   </View>
                 </View>
               </View>
-              {/* Pronostici affiancati */}
+              {/* ═══ 3. PREDICTIONS COMPARISON ═══ */}
               <View style={s.predRow}>
-                <View style={[s.predSide, md.user_a_points > 0 && s.predCorrect]}>
-                  <Text style={s.predPlayer}>{isMe(mu.user_a_id) ? 'Tu' : mu.user_a_username.slice(0, 8)}</Text>
+                <View style={[s.predSide, show && aPts > 0 && s.predCorrect, show && aPts === 0 && s.predWrong]}>
+                  <Text style={s.predPlayer} numberOfLines={1}>{aName}</Text>
                   {show && md.user_a_prediction ? (
-                    <><View style={s.mktBadge}><Text style={s.mktText}>{formatMarket(md.user_a_market)}</Text></View><Text style={s.predVal}>{md.user_a_prediction}</Text></>
+                    <>
+                      <View style={s.mktBadge}><Text style={s.mktText}>{formatMarket(md.user_a_market)}</Text></View>
+                      <Text style={s.predVal}>{md.user_a_prediction}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                        <Ionicons name={aPts > 0 ? 'checkmark-circle' : 'close-circle'} size={14} color={aPts > 0 ? '#10B981' : '#ef4444'} />
+                        <Text style={[s.predPts, { color: aPts > 0 ? '#10B981' : '#ef4444' }]}>{aPts > 0 ? `+${aPts.toFixed(1)}` : '0'}</Text>
+                      </View>
+                    </>
                   ) : show ? <Text style={s.noPred}>—</Text> : <Text style={s.hiddenPred}>?</Text>}
-                  {show && <Text style={[s.predPts, { color: md.user_a_points > 0 ? colors.success : colors.error }]}>{md.user_a_points > 0 ? `+${md.user_a_points.toFixed(1)}` : '0'}</Text>}
                 </View>
                 <View style={s.predVsCol}><Text style={s.predVsText}>VS</Text></View>
-                <View style={[s.predSide, md.user_b_points > 0 && s.predCorrect]}>
-                  <Text style={s.predPlayer}>{isMe(mu.user_b_id) ? 'Tu' : mu.user_b_username.slice(0, 8)}</Text>
+                <View style={[s.predSide, show && bPts > 0 && s.predCorrect, show && bPts === 0 && s.predWrong]}>
+                  <Text style={s.predPlayer} numberOfLines={1}>{bName}</Text>
                   {show && md.user_b_prediction ? (
-                    <><View style={s.mktBadge}><Text style={s.mktText}>{formatMarket(md.user_b_market)}</Text></View><Text style={s.predVal}>{md.user_b_prediction}</Text></>
+                    <>
+                      <View style={s.mktBadge}><Text style={s.mktText}>{formatMarket(md.user_b_market)}</Text></View>
+                      <Text style={s.predVal}>{md.user_b_prediction}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                        <Ionicons name={bPts > 0 ? 'checkmark-circle' : 'close-circle'} size={14} color={bPts > 0 ? '#10B981' : '#ef4444'} />
+                        <Text style={[s.predPts, { color: bPts > 0 ? '#10B981' : '#ef4444' }]}>{bPts > 0 ? `+${bPts.toFixed(1)}` : '0'}</Text>
+                      </View>
+                    </>
                   ) : show ? <Text style={s.noPred}>—</Text> : <Text style={s.hiddenPred}>?</Text>}
-                  {show && <Text style={[s.predPts, { color: md.user_b_points > 0 ? colors.success : colors.error }]}>{md.user_b_points > 0 ? `+${md.user_b_points.toFixed(1)}` : '0'}</Text>}
                 </View>
               </View>
             </TouchableOpacity>
@@ -483,21 +498,28 @@ const s = StyleSheet.create({
 
   // Shared matchup score
   muScoreRow: { flexDirection: 'row', alignItems: 'center' },
-  muPlayer: { flex: 1, alignItems: 'center', gap: 4 },
-  muAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
+  muPlayer: { flex: 1, alignItems: 'center', gap: 6 },
+  muAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
   muAvatarMe: { borderWidth: 2, borderColor: colors.accent },
-  muAvatarText: { fontSize: 18, fontWeight: '800', color: '#fff' },
-  muName: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.75)' },
+  muAvatarText: { fontSize: 20, fontWeight: '800', color: '#fff' },
+  muName: { fontSize: 13, fontWeight: '800', color: '#FFFFFF', textAlign: 'center' as const },
   muPtsSmall: { fontSize: 18, fontWeight: '800', color: '#fff' },
-  muCenter: { alignItems: 'center', paddingHorizontal: 12 },
-  muScore: { fontSize: 28, fontWeight: '900', color: 'rgba(255,255,255,0.6)' },
-  muSep: { fontSize: 20, fontWeight: '300', color: 'rgba(255,255,255,0.3)' },
-  muResult: { fontSize: 10, fontWeight: '700', color: colors.accent, marginTop: 4 },
+  muCenter: { alignItems: 'center', paddingHorizontal: 8 },
+  muScore: { fontSize: 34, fontWeight: '900', color: 'rgba(255,255,255,0.5)' },
+  muSep: { fontSize: 22, fontWeight: '300', color: 'rgba(255,255,255,0.3)' },
+  muResult: { fontSize: 11, fontWeight: '700', color: colors.accent, marginTop: 4, textTransform: 'uppercase' as const },
   muVs: { fontSize: 11, fontWeight: '800', color: 'rgba(255,255,255,0.25)' },
 
-  // Match cards (same as league live)
-  matchCard: { backgroundColor: '#1F4C8F', borderRadius: borderRadius.xl, padding: spacing.lg, marginBottom: spacing.md, borderWidth: 1.5, borderColor: colors.accent, overflow: 'hidden' },
-  matchCardLive: { borderColor: colors.success, borderWidth: 2 },
+  // LIVE badges
+  liveBadgeBig: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(16,185,113,0.2)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(16,185,113,0.4)' } as any,
+  liveDotBig: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#10B981' },
+  liveTextBig: { fontSize: 12, fontWeight: '900', color: '#10B981', letterSpacing: 1 },
+  liveBadgeMatch: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(16,185,113,0.25)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 } as any,
+  liveTextMatch: { fontSize: 10, fontWeight: '900', color: '#10B981', letterSpacing: 0.5 },
+
+  // Match cards
+  matchCard: { backgroundColor: '#1F4C8F', borderRadius: borderRadius.xl, padding: spacing.lg, marginBottom: spacing.md, borderWidth: 1.5, borderColor: colors.accent, overflow: 'hidden' as const },
+  matchCardLive: { borderColor: '#10B981', borderWidth: 2 },
   matchHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   matchNumBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   matchNum: { fontSize: 10, color: '#fff', fontWeight: '800' },
@@ -511,22 +533,23 @@ const s = StyleSheet.create({
   teamCol: { flex: 1, flexShrink: 1 },
   teamNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   teamLogo: { width: 22, height: 22, borderRadius: 11, flexShrink: 0 },
-  teamName: { fontSize: 14, color: '#fff', fontWeight: '600', flex: 1, flexShrink: 1 },
+  teamName: { fontSize: 15, color: '#FFFFFF', fontWeight: '700', flex: 1, flexShrink: 1 },
   scoreCol: { width: 80, alignItems: 'center', flexShrink: 0 },
-  score: { fontSize: 20, fontWeight: '800', color: '#fff' },
+  score: { fontSize: 22, fontWeight: '900', color: '#FFFFFF' },
   vs: { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
 
   // Predictions row
-  predRow: { flexDirection: 'row', alignItems: 'stretch', paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' },
-  predSide: { flex: 1, alignItems: 'center', gap: 4, paddingVertical: 8, paddingHorizontal: 4, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.04)' },
-  predCorrect: { backgroundColor: 'rgba(34,197,94,0.12)', borderWidth: 1, borderColor: 'rgba(34,197,94,0.25)' },
-  predPlayer: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' },
+  predRow: { flexDirection: 'row', alignItems: 'stretch', paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
+  predSide: { flex: 1, alignItems: 'center', gap: 5, paddingVertical: 10, paddingHorizontal: 6, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.06)' },
+  predCorrect: { backgroundColor: 'rgba(16,185,113,0.15)', borderWidth: 1.5, borderColor: 'rgba(16,185,113,0.35)' },
+  predWrong: { backgroundColor: 'rgba(239,68,68,0.06)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.15)' },
+  predPlayer: { fontSize: 11, fontWeight: '800', color: '#FFFFFF', textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   mktBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: 'rgba(59,130,246,0.2)' },
   mktText: { fontSize: 9, fontWeight: '700', color: '#60A5FA' },
-  predVal: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  predVal: { fontSize: 16, fontWeight: '800', color: '#FFFFFF' },
   noPred: { fontSize: 12, fontStyle: 'italic', color: 'rgba(255,255,255,0.3)' },
   hiddenPred: { fontSize: 16, fontWeight: '800', color: 'rgba(255,255,255,0.2)' },
-  predPts: { fontSize: 12, fontWeight: '700' },
+  predPts: { fontSize: 13, fontWeight: '800' },
   predVsCol: { width: 30, alignItems: 'center', justifyContent: 'center' },
   predVsText: { fontSize: 9, fontWeight: '800', color: 'rgba(255,255,255,0.25)' },
 
