@@ -530,7 +530,42 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* ─── 3. PERFORMANCE (premium gradient cards) ─── */}
+        {/* ─── 3. MINI CLASSIFICA ─── */}
+        {data?.rankings_preview?.top?.length > 0 && (
+          <Animated.View style={{ opacity: fadePerf, transform: [{ translateY: slidePerf }] }}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.push('/(tabs)/rankings')}
+              data-testid="mini-rankings-block"
+            >
+              <LinearGradient
+                colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                style={s.miniRankCard}
+              >
+                <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
+                <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
+                <Text style={s.miniRankTitle}>CLASSIFICA</Text>
+                {data.rankings_preview.top.slice(0, 3).map((entry: any, i: number) => {
+                  const isMe = entry.user_id === data.rankings_preview?.current_user_id;
+                  return (
+                    <View key={i} style={s.miniRankRow}>
+                      <Text style={[s.miniRankPos, i === 0 && { color: '#F7A21B' }]}>{entry.rank + '°'}</Text>
+                      <Text style={[s.miniRankName, isMe && { color: '#F7A21B', fontWeight: '700' }]} numberOfLines={1}>{entry.username}</Text>
+                      <Text style={s.miniRankPts}>{entry.total_points} pts</Text>
+                    </View>
+                  );
+                })}
+                <View style={s.miniRankCtaRow}>
+                  <Text style={s.miniRankCta}>Vedi classifica</Text>
+                  <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.5)" />
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {/* ─── 4. PERFORMANCE (premium gradient cards) ─── */}
         {data?.user_summary && (
           <Animated.View style={{ opacity: fadePerf, transform: [{ translateY: slidePerf }] }}>
             <Text style={s.sectionLabel}>PERFORMANCE</Text>
@@ -641,38 +676,28 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* ─── 4. TREND ─── */}
+        {/* ─── 5. ULTIME 5 (simplified pills) ─── */}
         {Array.isArray(data?.last_5_performance) && data.last_5_performance.length > 0 && (
           <Animated.View style={{ opacity: fadeTrend, transform: [{ translateY: slideTrend }] }}>
-            <View style={s.perfCardOuter}>
-                <LinearGradient
-                  colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={s.trendCardGrad}
-                >
-                  <LinearGradient
-                    colors={['rgba(255,255,255,0.07)', 'transparent']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={s.perfInset}
-                  />
-                  <LinearGradient
-                    colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']}
-                    start={{ x: 0.1, y: 0.0 }}
-                    end={{ x: 0.9, y: 1.0 }}
-                    style={s.whiteSweep}
-                  />
-                  <LinearGradient
-                    colors={['rgba(255,255,255,0.10)', 'transparent']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0, y: 1 }}
-                    style={s.topGlow}
-                  />
-                  <Text style={s.sectionLabelInCard}>{t('home.trend')}</Text>
-                  <LastFiveIndicator data={data.last_5_performance} label={t('home.points_per_matchday')} dark />
-                </LinearGradient>
+            <LinearGradient
+              colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={s.last5Card}
+            >
+              <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
+              <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
+              <Text style={s.last5Title}>ULTIME 5 GIORNATE</Text>
+              <View style={s.last5Row}>
+                {data.last_5_performance.map((item: any, i: number) => (
+                  <View key={i} style={s.last5PillWrap}>
+                    <View style={[s.last5Pill, item.points > 0 && s.last5PillActive]}>
+                      <Text style={[s.last5PillPts, item.points > 0 && s.last5PillPtsActive]}>{Math.round(item.points)}</Text>
+                    </View>
+                    <Text style={s.last5PillMd}>{item.matchday_number}</Text>
+                  </View>
+                ))}
               </View>
+            </LinearGradient>
           </Animated.View>
         )}
 
@@ -1086,6 +1111,107 @@ const s = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 12,
+  },
+
+  // ── Mini Ranking Block ──
+  miniRankCard: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 22,
+    padding: 18,
+    overflow: 'hidden',
+  },
+  miniRankTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: 1.2,
+    marginBottom: 14,
+  },
+  miniRankRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 7,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+  },
+  miniRankPos: {
+    width: 32,
+    fontSize: 15,
+    fontWeight: '800',
+    color: 'rgba(255,255,255,0.5)',
+  },
+  miniRankName: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#FFFFFF',
+  },
+  miniRankPts: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.75)',
+  },
+  miniRankCtaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 12,
+    gap: 4,
+  },
+  miniRankCta: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.5)',
+  },
+
+  // ── Last 5 Pills ──
+  last5Card: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 22,
+    padding: 18,
+    overflow: 'hidden',
+  },
+  last5Title: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: 1.2,
+    marginBottom: 14,
+  },
+  last5Row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  last5PillWrap: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+  },
+  last5Pill: {
+    width: '100%',
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+  },
+  last5PillActive: {
+    backgroundColor: 'rgba(247, 162, 27, 0.15)',
+  },
+  last5PillPts: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: 'rgba(255,255,255,0.4)',
+  },
+  last5PillPtsActive: {
+    color: '#F7A21B',
+  },
+  last5PillMd: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.35)',
   },
 
   // ── 5. Champion Pick Banner ──

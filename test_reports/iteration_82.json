@@ -1,0 +1,95 @@
+{
+  "summary": "Verified 2 new UX features: Mini Ranking Block and Last 5 Pills (simplified). All backend APIs and frontend UI rendering verified working for both League and Tournament views.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mini_ranking_last5_pills.py",
+    "/app/test_reports/pytest/mini_ranking_last5_pills_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: home.tsx lines 533-566 - Mini ranking block with data-testid='mini-rankings-block' shows top 3 with rank (°), username, pts and 'Vedi classifica' CTA",
+    "VERIFIED: home.tsx lines 679-701 - 'ULTIME 5 GIORNATE' shows simplified pills with matchday numbers below",
+    "VERIFIED: home.tsx lines 691-698 - Pills with points > 0 get orange highlight (last5PillActive style with #F7A21B)",
+    "VERIFIED: TournamentView.tsx lines 407-436 - Tournament mini ranking shows 'CLASSIFICA {GROUP_NAME}' with user's group standings",
+    "VERIFIED: TournamentView.tsx lines 488-507 - 'ULTIME SFIDE' shows pills only for completed matchups",
+    "VERIFIED: user.py line 259 - rankings_preview includes current_user_id field for highlighting current user",
+    "VERIFIED: Layout order correct - Hero > Mini Ranking > Performance > Last 5 Pills for both League and Tournament"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_mini_ranking_last5_pills.py"
+  ],
+  "success_rate": {
+    "backend": "100% (5/5 tests passed)",
+    "frontend": "100% - All features verified via Playwright"
+  },
+  "test_credentials": {
+    "standard_user": "ilio@raimondi.it / password123 (for Lega Nazionale test with last 5 data: [0, 22, 0, 12, 0] for md 21-25)",
+    "admin_user": "admin@fantapronostic.com / admin123 (for Torneo Redubull test in Group C)"
+  },
+  "seed_data_creation": "No new seed data created - used existing test data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Mini ranking and Last 5 pills features verified complete. League home shows top 3 rankings (admin=45, test_patch_35908d=39, desy=18) with 'Vedi classifica' CTA. Last 5 shows pills [0, 22, 0, 12, 0] for md 21-25. Tournament home shows Group C standings (TestPlayer20=6, admin=3, TestPlayer6=3) and ULTIME SFIDE with 1 completed round showing value 2.",
+  "verified_features": {
+    "LEAGUE_HOME_mini_ranking_block": {
+      "status": "PASS",
+      "details": [
+        "data-testid='mini-rankings-block' present",
+        "Title: CLASSIFICA",
+        "Top 3: 1° admin (45 pts), 2° test_patch_35908d (39 pts), 3° desy (18 pts)",
+        "Current user (ilio) highlighted if in top 3",
+        "1st place rank (1°) has orange/gold color",
+        "'Vedi classifica' CTA present with chevron"
+      ]
+    },
+    "LEAGUE_HOME_last_5_pills": {
+      "status": "PASS",
+      "details": [
+        "Title: ULTIME 5 GIORNATE",
+        "5 pills showing values [0, 22, 0, 12, 0]",
+        "Matchday numbers below pills: [21, 22, 23, 24, 25]",
+        "Pills with pts > 0 (22, 12) have orange highlight (#F7A21B)",
+        "Pills with 0 pts have muted appearance"
+      ]
+    },
+    "TOURNAMENT_HOME_mini_ranking_group": {
+      "status": "PASS",
+      "details": [
+        "Title: CLASSIFICA C (user's group)",
+        "Group C standings: 1° TestPlayer20 (6 pts), 2° admin (3 pts), 3° TestPlayer6 (3 pts)",
+        "Current user (admin) highlighted in orange/gold"
+      ]
+    },
+    "TOURNAMENT_HOME_ultime_sfide_pills": {
+      "status": "PASS",
+      "details": [
+        "Title: ULTIME SFIDE",
+        "Shows only 1 pill (1 completed round)",
+        "Pill value: 2 (admin's points from round 1)",
+        "Round number 1 below pill",
+        "Pill has orange highlight for positive value"
+      ]
+    },
+    "LAYOUT_ORDER": {
+      "league": "Hero Card > Mini Ranking > Performance > Last 5 Pills (PASS)",
+      "tournament": "Hero Card > Mini Ranking (Group) > Performance > Last 5 Pills (PASS)"
+    },
+    "BACKEND_API": {
+      "home_rankings_preview": "PASS - includes current_user_id field",
+      "home_last_5_performance": "PASS - returns matchday_number and points",
+      "tournaments_groups": "PASS - returns group standings with group_points"
+    }
+  },
+  "notes": {
+    "competition_switcher": "Dropdown shows LEGHE section (leagues) and TORNEI section (tournaments) with proper icons",
+    "performance_section": "League shows POSIZIONE ATTUALE, PUNTI TOTALI, MEDIA ULTIME 5. Tournament shows VITTORIE TORNEO, PUNTI TOTALI, MEDIA ULTIME 5"
+  }
+}

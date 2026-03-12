@@ -39,17 +39,20 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
   const [matchupLiveData, setMatchupLiveData] = useState<any>(null);
   const [matchupLoading, setMatchupLoading] = useState(false);
   const [detailFixtureId, setDetailFixtureId] = useState<number | null>(null);
+  const [groups, setGroups] = useState<any>(null);
   const liveInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!token || !tournamentId) return;
     try {
-      const [detail, matchups] = await Promise.all([
+      const [detail, matchups, groupsData] = await Promise.all([
         apiCall<any>(`/tournaments/${tournamentId}`, { token }),
         apiCall<any[]>(`/tournaments/${tournamentId}/my-matchups`, { token }).catch(() => []),
+        apiCall<any>(`/tournaments/${tournamentId}/groups`, { token }).catch(() => ({})),
       ]);
       setTournament(detail);
       setMyMatchups(matchups);
+      setGroups(groupsData);
       // Sync current round info to context for Pronostici tab routing
       if (detail?.current_round_info) setCurrentRoundInfo(detail.current_round_info);
     } catch (e) { console.error(e); }
@@ -401,6 +404,37 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
         </LinearGradient>
       )}
 
+      {/* ═══ MINI CLASSIFICA TORNEO ═══ */}
+      {groups && Array.isArray(groups) && groups.length > 0 && (() => {
+        // Find the group where the current user is
+        const myGroup = groups.find((g: any) => g.standings?.some((s: any) => s.user_id === user?.id));
+        if (!myGroup || !myGroup.standings?.length) return null;
+        const top3 = myGroup.standings.slice(0, 3);
+        return (
+          <View style={{ marginTop: 16 }}>
+            <LinearGradient
+              colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={s.miniRankCard}
+            >
+              <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
+              <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
+              <Text style={s.miniRankTitle}>CLASSIFICA {myGroup.group_name ? myGroup.group_name.toUpperCase() : 'GIRONE'}</Text>
+              {top3.map((entry: any, i: number) => {
+                const isMe = entry.user_id === user?.id;
+                return (
+                  <View key={i} style={s.miniRankRow}>
+                    <Text style={[s.miniRankPos, i === 0 && { color: '#F7A21B' }]}>{`${i + 1}°`}</Text>
+                    <Text style={[s.miniRankName, isMe && { color: '#F7A21B', fontWeight: '700' }]} numberOfLines={1}>{entry.username}</Text>
+                    <Text style={s.miniRankPts}>{entry.group_points} pts</Text>
+                  </View>
+                );
+              })}
+            </LinearGradient>
+          </View>
+        );
+      })()}
+
       {/* ═══ PERFORMANCE ═══ mirrors league home */}
       {hasGroups && myMatchups.length > 0 && (() => {
         const completed = myMatchups.filter((m: any) => m.status === 'completed');
@@ -451,18 +485,24 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
               </View>
             </View>
 
-            {/* ─── TREND ─── */}
+            {/* ─── ULTIME SFIDE (simplified pills) ─── */}
             {last5.length > 0 && (
               <View style={{ marginTop: 16 }}>
-              <View style={s.perfCardOuter}>
-                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.trendCardGrad}>
-                  <LinearGradient colors={['rgba(255,255,255,0.07)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.perfInset} />
+                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.last5Card}>
                   <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
                   <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
-                  <Text style={s.sectionLabelInCard}>TREND</Text>
-                  <LastFiveIndicator data={last5} label="Punti per sfida" dark />
+                  <Text style={s.sectionLabelInCard}>ULTIME SFIDE</Text>
+                  <View style={s.last5Row}>
+                    {last5.map((item: any, i: number) => (
+                      <View key={i} style={s.last5PillWrap}>
+                        <View style={[s.last5Pill, item.points > 0 && s.last5PillActive]}>
+                          <Text style={[s.last5PillPts, item.points > 0 && s.last5PillPtsActive]}>{Math.round(item.points).toString()}</Text>
+                        </View>
+                        <Text style={s.last5PillMd}>{item.matchday_number}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </LinearGradient>
-              </View>
               </View>
             )}
           </>
@@ -494,6 +534,24 @@ const s = StyleSheet.create({
   heroPrimaryMetric: { fontSize: 52, fontWeight: '900', color: '#FFFFFF', letterSpacing: -2, lineHeight: 58 },
   heroPrimaryLabel: { fontSize: 14, fontWeight: '700', color: 'rgba(255,255,255,0.75)', letterSpacing: 2, marginTop: 4 },
   heroContextMsg: { fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginTop: 8, marginBottom: 2 },
+
+  // Last 5 pills
+  last5Card: { padding: 18, borderRadius: 22, overflow: 'hidden' },
+  last5Row: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
+  last5PillWrap: { flex: 1, alignItems: 'center', gap: 6 },
+  last5Pill: { width: '100%', paddingVertical: 10, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.06)', alignItems: 'center' },
+  last5PillActive: { backgroundColor: 'rgba(247, 162, 27, 0.15)' },
+  last5PillPts: { fontSize: 18, fontWeight: '800', color: 'rgba(255,255,255,0.4)' },
+  last5PillPtsActive: { color: '#F7A21B' },
+  last5PillMd: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.35)' },
+
+  // Mini ranking block
+  miniRankCard: { padding: 18, borderRadius: 22, overflow: 'hidden' },
+  miniRankTitle: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.55)', letterSpacing: 1.2, marginBottom: 14 },
+  miniRankRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 7, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  miniRankPos: { width: 32, fontSize: 15, fontWeight: '800', color: 'rgba(255,255,255,0.5)' },
+  miniRankName: { flex: 1, fontSize: 15, fontWeight: '500', color: '#FFFFFF' },
+  miniRankPts: { fontSize: 15, fontWeight: '700', color: 'rgba(255,255,255,0.75)' },
 
   ctaGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 14, paddingHorizontal: 24, borderRadius: 22 },
   ctaText: { fontSize: 15, fontWeight: '800', color: '#fff' },

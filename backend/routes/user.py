@@ -256,7 +256,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
                 u = await users_col.find_one({"id": t["_id"]}, {"_id": 0, "password": 0})
                 entries.append({"rank": i + 1, "user_id": t["_id"], "username": u["username"] if u else "Unknown", "total_points": int(t["total"])})
 
-        rankings_preview = {"league_name": first_league["name"], "top": entries}
+        rankings_preview = {"league_name": first_league["name"], "top": entries, "current_user_id": user["id"]}
         user_summary = {"rank": user_rank, "points": user_total_points, "matchdays_played": user_matchdays_played, "total_points": user_total_points}
 
         last_5_matchdays = list(completed_matchdays_docs[:5])
