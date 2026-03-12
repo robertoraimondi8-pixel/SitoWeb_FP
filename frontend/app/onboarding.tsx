@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
-  ActivityIndicator, Image, Alert, Platform,
+  ActivityIndicator, Image, Alert, Platform, TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -21,6 +21,9 @@ export default function OnboardingScreen() {
   const { refreshLeagues } = useLeague();
   const router = useRouter();
   const [nationalLeagues, setNationalLeagues] = useState<any[]>([]);
+  const [availableTournaments, setAvailableTournaments] = useState<any[]>([]);
+  const [showTournaments, setShowTournaments] = useState(false);
+  const [tournCode, setTournCode] = useState('');
   const [loading, setLoading] = useState(true);
   const [payLoading, setPayLoading] = useState(false);
   const [lang, setLang] = useState(i18n.language);
@@ -37,8 +40,14 @@ export default function OnboardingScreen() {
   useEffect(() => {
     (async () => {
       try {
-        const nls = await apiCall('/leagues/national', { token });
+        const [nls, tournaments] = await Promise.all([
+          apiCall('/leagues/national', { token }),
+          apiCall('/tournaments', { token }).catch(() => []),
+        ]);
         setNationalLeagues(nls);
+        // Filter only tournaments with open registration
+        const open = (tournaments || []).filter((t: any) => t.status === 'registration');
+        setAvailableTournaments(open);
       } catch (e: unknown) { 
         if (isAuthError(e)) {
           const didLogout = await handleAuthError(e);
@@ -50,6 +59,17 @@ export default function OnboardingScreen() {
       finally { setLoading(false); }
     })();
   }, [token, handleAuthError, router]);
+
+  const handleJoinTournament = async (tournId: string) => {
+    setPayLoading(true);
+    try {
+      await apiCall(`/tournaments/${tournId}/register`, { method: 'POST', token });
+      Alert.alert('Iscritto!', 'Sei stato iscritto al torneo con successo.');
+      if (token) await refreshLeagues(token);
+      router.replace('/(tabs)/home');
+    } catch (e: any) { Alert.alert('Errore', e.message || 'Impossibile iscriversi'); }
+    finally { setPayLoading(false); }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -212,6 +232,86 @@ export default function OnboardingScreen() {
           </View>
           <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
         </TouchableOpacity>
+
+        {/* Path D: Join Tournament */}
+        <TouchableOpacity
+          testID="onboarding-join-tournament-btn"
+          style={[s.pathCard, { backgroundColor: '#1F4C8F', borderColor: showTournaments ? colors.accent : 'rgba(255,255,255,0.08)' }]}
+          onPress={() => setShowTournaments(!showTournaments)}
+          activeOpacity={0.85}
+        >
+          <View style={[s.pathIconWrap, { backgroundColor: 'rgba(245,166,35,0.15)' }]}>
+            <Ionicons name="trophy" size={28} color={colors.accent} />
+          </View>
+          <View style={s.pathContent}>
+            <Text style={[s.pathTitle, { color: '#FFFFFF' }]}>Entra in un Torneo</Text>
+            <Text style={[s.pathDesc, { color: 'rgba(255,255,255,0.5)' }]}>Sfida altri giocatori in tornei a eliminazione diretta</Text>
+          </View>
+          <Ionicons name={showTournaments ? 'chevron-down' : 'chevron-forward'} size={22} color={colors.accent} />
+        </TouchableOpacity>
+
+        {/* Tournament list (expandable) */}
+        {showTournaments && (
+          <View style={{ marginBottom: 16, marginTop: -4 }}>
+            {availableTournaments.length > 0 ? (
+              availableTournaments.map(t => (
+                <TouchableOpacity
+                  key={t.id}
+                  style={{ backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: colors.border, flexDirection: 'row', alignItems: 'center', gap: 12 }}
+                  onPress={() => handleJoinTournament(t.id)}
+                  disabled={payLoading}
+                >
+                  <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: 'rgba(31,76,143,0.1)', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="trophy" size={20} color={colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>{t.name}</Text>
+                    <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t.registered_count || 0}/{t.max_participants} iscritti</Text>
+                  </View>
+                  {t.entry_fee > 0 ? (
+                    <View style={{ backgroundColor: 'rgba(245,166,35,0.12)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent }}>{t.entry_fee.toFixed(2)} EUR</Text>
+                    </View>
+                  ) : (
+                    <View style={[s.freeBadge, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
+                      <Text style={[s.freeText, { color: colors.success }]}>GRATIS</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={{ backgroundColor: '#fff', borderRadius: 12, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: colors.border }}>
+                <Ionicons name="trophy-outline" size={32} color={colors.textMuted} />
+                <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 8, textAlign: 'center' }}>Nessun torneo disponibile al momento</Text>
+              </View>
+            )}
+
+            {/* Code input */}
+            <View style={{ backgroundColor: '#fff', borderRadius: 12, padding: 14, marginTop: 8, borderWidth: 1, borderColor: colors.border }}>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Hai un codice invito?</Text>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TextInput
+                  style={{ flex: 1, backgroundColor: '#F5F6F8', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, borderWidth: 1, borderColor: colors.border }}
+                  placeholder="Inserisci codice torneo"
+                  value={tournCode}
+                  onChangeText={setTournCode}
+                  autoCapitalize="characters"
+                  data-testid="tournament-code-input"
+                />
+                <TouchableOpacity
+                  style={{ backgroundColor: colors.primary, paddingHorizontal: 18, borderRadius: 8, alignItems: 'center', justifyContent: 'center' }}
+                  onPress={() => {
+                    if (!tournCode.trim()) return;
+                    Alert.alert('Info', 'Funzionalità codice torneo in arrivo');
+                  }}
+                  data-testid="tournament-code-submit"
+                >
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Entra</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
