@@ -20,9 +20,10 @@ const DARK = { accent: '#F5A623', textMuted: 'rgba(255,255,255,0.45)' };
 
 interface Props {
   tournamentId: string;
+  initialMatchupId?: string;
 }
 
-export function TournamentView({ tournamentId }: Props) {
+export function TournamentView({ tournamentId, initialMatchupId }: Props) {
   const { token, user } = useAuth();
   const router = useRouter();
   const [tournament, setTournament] = useState<any>(null);
@@ -52,6 +53,13 @@ export function TournamentView({ tournamentId }: Props) {
   }, [token, tournamentId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Auto-open matchup live if initialMatchupId is passed (from rankings)
+  useEffect(() => {
+    if (initialMatchupId && !loading && tournament) {
+      openMatchupLive({ id: initialMatchupId });
+    }
+  }, [initialMatchupId, loading, tournament]);
 
   // Matchup live fetch
   const fetchMatchupLive = useCallback(async (matchupId: string) => {

@@ -46,7 +46,7 @@ export default function HomeScreen() {
   const { token, user, handleAuthError } = useAuth();
   const { leagues, activeLeague, setActiveLeague, refreshLeagues } = useLeague();
   const router = useRouter();
-  const params = useLocalSearchParams<{ tournament_id?: string; tournament_name?: string }>();
+  const params = useLocalSearchParams<{ tournament_id?: string; tournament_name?: string; matchup_id?: string }>();
   const [data, setData] = useState<HomeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -346,7 +346,7 @@ export default function HomeScreen() {
       {/* ═══ CONTENT AREA: Tournament or League ═══ */}
       {competitionMode === 'tournament' && activeTournamentId ? (
         <View style={{ flex: 1 }}>
-          <TournamentView tournamentId={activeTournamentId} />
+          <TournamentView tournamentId={activeTournamentId} initialMatchupId={params.matchup_id} />
         </View>
       ) : (
       <Animated.ScrollView

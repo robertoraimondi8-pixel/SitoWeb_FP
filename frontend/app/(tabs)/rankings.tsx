@@ -363,12 +363,7 @@ export default function RankingsScreen() {
 
         {/* PARTITE TAB */}
         {!trkLoading && trkTab === 'partite' && (() => {
-          // Get fixtures for live scores
-          const fixtures = (window as any).__trkFixtures || [];
-          // Find active round (OPEN or LIVE)
           const activeRound = trkTournament?.current_round_info;
-          const activeFixtures = fixtures.find((md: any) => md.id === activeRound?.round_id);
-          const roundMatches = activeFixtures?.matches || [];
 
           // Build filter options: "all" + unique round labels
           const filterOptions = [{ key: 'all', label: 'Tutte le partite' }, ...trkAllMatchups.map(r => ({ key: `${r.round_type}_${r.round_number}`, label: r.label }))];
@@ -377,48 +372,6 @@ export default function RankingsScreen() {
 
           return (
             <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-              {/* Live Football Matches Section */}
-              {roundMatches.length > 0 && (
-                <View style={{ marginBottom: 20 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                    <View style={{ width: 4, height: 20, backgroundColor: colors.accent, borderRadius: 2 }} />
-                    <Text style={{ fontSize: 15, fontWeight: '800', color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.8 }}>{activeRound?.label || 'Giornata'} - Partite</Text>
-                  </View>
-                  {roundMatches.map((m: any) => {
-                    const isLive = m.status === 'live';
-                    const isFinished = m.status === 'finished';
-                    const hasScore = m.home_score !== null && m.home_score !== undefined;
-                    return (
-                      <TouchableOpacity
-                        key={m.id}
-                        style={{ backgroundColor: '#fff', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 1.5, borderColor: isLive ? colors.success : isFinished ? colors.textMuted : colors.border }}
-                        activeOpacity={0.7}
-                        onPress={() => {
-                          if (m.external_fixture_id) {
-                            router.push({ pathname: '/live/[id]', params: { id: activeRound?.round_id, league_id: tournamentId } } as any);
-                          }
-                        }}
-                      >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                          <Text style={{ fontSize: 10, color: colors.textMuted, flex: 1 }}>{m.competition || ''}</Text>
-                          {isLive && <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.success, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}><View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' }} /><Text style={{ fontSize: 9, fontWeight: '800', color: '#fff' }}>LIVE{m.elapsed ? ` ${m.elapsed}'` : ''}</Text></View>}
-                          {isFinished && <Text style={{ fontSize: 9, fontWeight: '700', color: colors.textMuted }}>FT</Text>}
-                          {!isLive && !isFinished && <Text style={{ fontSize: 9, color: colors.textMuted }}>{m.start_time ? new Date(m.start_time).toLocaleTimeString('it', { hour: '2-digit', minute: '2-digit' }) : ''}</Text>}
-                        </View>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, flex: 1 }} numberOfLines={1}>{m.home_team}</Text>
-                          <View style={{ backgroundColor: isLive ? colors.success : '#162F5C', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6, marginHorizontal: 8 }}>
-                            <Text style={{ fontSize: 14, fontWeight: '800', color: '#fff' }}>{hasScore ? `${m.home_score} - ${m.away_score}` : 'vs'}</Text>
-                          </View>
-                          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{m.away_team}</Text>
-                        </View>
-                        {m.is_special && <Text style={{ fontSize: 9, color: colors.accent, fontWeight: '800', marginTop: 4 }}>X3 PUNTI TRIPLICATI</Text>}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              )}
-
               {/* Dropdown filter for matchups */}
               <TouchableOpacity
                 onPress={() => setTrkFilterOpen(!trkFilterOpen)}
@@ -473,8 +426,8 @@ export default function RankingsScreen() {
                       <TouchableOpacity key={m.id} style={{ backgroundColor: isMyMatch ? 'rgba(245,166,35,0.06)' : '#fff', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: isMyMatch ? 1.5 : 1, borderColor: isMyMatch ? colors.accent : '#e8e8e8' }}
                         activeOpacity={0.7}
                         onPress={() => {
-                          // Navigate to home tab which shows tournament live view
-                          router.push({ pathname: '/(tabs)/home', params: { tournament_id: tournamentId } } as any);
+                          // Navigate to live matchup view via home tournament
+                          router.push({ pathname: '/(tabs)/home', params: { tournament_id: tournamentId, tournament_name: trkTournament?.name, matchup_id: m.id } } as any);
                         }}
                       >
                         {isMyMatch && <Text style={{ fontSize: 9, fontWeight: '800', color: colors.accent, letterSpacing: 1, marginBottom: 6 }}>LA TUA SFIDA</Text>}
