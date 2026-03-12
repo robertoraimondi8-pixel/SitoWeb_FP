@@ -15,14 +15,24 @@ interface CurrentRoundInfo {
   live_total: number | null;
 }
 
+interface LeagueMatchdayInfo {
+  matchdayId: string;
+  status: string;
+  leagueId: string;
+}
+
 interface CompetitionContextType {
   mode: 'league' | 'tournament';
   tournamentId: string | null;
   tournamentName: string;
   currentRoundInfo: CurrentRoundInfo | null;
+  leagueMatchdayInfo: LeagueMatchdayInfo | null;
+  pendingMatchupOpen: string | null;
   setLeagueMode: () => void;
   setTournamentMode: (id: string, name: string) => void;
   setCurrentRoundInfo: (info: CurrentRoundInfo | null) => void;
+  setLeagueMatchdayInfo: (info: LeagueMatchdayInfo | null) => void;
+  setPendingMatchupOpen: (id: string | null) => void;
 }
 
 const CompetitionContext = createContext<CompetitionContextType>({
@@ -30,9 +40,13 @@ const CompetitionContext = createContext<CompetitionContextType>({
   tournamentId: null,
   tournamentName: '',
   currentRoundInfo: null,
+  leagueMatchdayInfo: null,
+  pendingMatchupOpen: null,
   setLeagueMode: () => {},
   setTournamentMode: () => {},
   setCurrentRoundInfo: () => {},
+  setLeagueMatchdayInfo: () => {},
+  setPendingMatchupOpen: () => {},
 });
 
 export function CompetitionProvider({ children }: { children: React.ReactNode }) {
@@ -40,6 +54,8 @@ export function CompetitionProvider({ children }: { children: React.ReactNode })
   const [tournamentId, setTournamentId] = useState<string | null>(null);
   const [tournamentName, setTournamentName] = useState('');
   const [currentRoundInfo, setCurrentRoundInfo] = useState<CurrentRoundInfo | null>(null);
+  const [leagueMatchdayInfo, setLeagueMatchdayInfo] = useState<LeagueMatchdayInfo | null>(null);
+  const [pendingMatchupOpen, setPendingMatchupOpen] = useState<string | null>(null);
 
   const setLeagueMode = useCallback(() => {
     setMode('league');
@@ -52,10 +68,14 @@ export function CompetitionProvider({ children }: { children: React.ReactNode })
     setMode('tournament');
     setTournamentId(id);
     setTournamentName(name);
+    setLeagueMatchdayInfo(null);
   }, []);
 
   return (
-    <CompetitionContext.Provider value={{ mode, tournamentId, tournamentName, currentRoundInfo, setLeagueMode, setTournamentMode, setCurrentRoundInfo }}>
+    <CompetitionContext.Provider value={{
+      mode, tournamentId, tournamentName, currentRoundInfo, leagueMatchdayInfo, pendingMatchupOpen,
+      setLeagueMode, setTournamentMode, setCurrentRoundInfo, setLeagueMatchdayInfo, setPendingMatchupOpen,
+    }}>
       {children}
     </CompetitionContext.Provider>
   );

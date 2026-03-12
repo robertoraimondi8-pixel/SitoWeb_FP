@@ -57,7 +57,7 @@ export default function HomeScreen() {
   const [myTournaments, setMyTournaments] = useState<any[]>([]);
 
   // Competition mode from shared context (used by all tabs)
-  const { mode: competitionMode, tournamentId: activeTournamentId, tournamentName: activeTournamentName, setLeagueMode, setTournamentMode, setCurrentRoundInfo } = useCompetition();
+  const { mode: competitionMode, tournamentId: activeTournamentId, tournamentName: activeTournamentName, setLeagueMode, setTournamentMode, setCurrentRoundInfo, setLeagueMatchdayInfo } = useCompetition();
 
   // Animations
   const fadeScreen = useRef(new Animated.Value(0)).current;
@@ -123,6 +123,10 @@ export default function HomeScreen() {
       const res = await apiCall(url, { token: authToken });
       setData(res);
       if (res.matchday?.countdown_seconds) setCountdown(res.matchday.countdown_seconds);
+      // Cache league matchday info for Pronostici tab dynamic routing
+      if (res.matchday?.id && res.league?.id) {
+        setLeagueMatchdayInfo({ matchdayId: res.matchday.id, status: res.matchday.status, leagueId: res.league.id });
+      }
       runEntryAnimation();
       try {
         const nc = await apiCall<{ count: number }>('/notifications/unread-count', { token: authToken });

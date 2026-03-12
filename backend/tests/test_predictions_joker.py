@@ -13,7 +13,7 @@ import pytest
 import requests
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://palmares-historic.preview.emergentagent.com"
+BASE_URL = "https://context-aware-tabs.preview.emergentagent.com"
 
 
 @pytest.fixture

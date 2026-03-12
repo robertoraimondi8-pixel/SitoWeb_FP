@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
+import { useCompetition } from '../contexts/CompetitionContext';
 import { apiCall } from '../api/client';
 import { colors, typography, spacing, borderRadius } from '../theme/designSystem';
 import { AnimatedSweep, StatusBadge, LastFiveIndicator } from './ui';
@@ -26,6 +27,7 @@ interface Props {
 export function TournamentView({ tournamentId, initialMatchupId }: Props) {
   const { token, user } = useAuth();
   const router = useRouter();
+  const { setCurrentRoundInfo, pendingMatchupOpen, setPendingMatchupOpen } = useCompetition();
   const [tournament, setTournament] = useState<any>(null);
   const [myMatchups, setMyMatchups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +50,8 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
       ]);
       setTournament(detail);
       setMyMatchups(matchups);
+      // Sync current round info to context for Pronostici tab routing
+      if (detail?.current_round_info) setCurrentRoundInfo(detail.current_round_info);
     } catch (e) { console.error(e); }
     finally { setLoading(false); setRefreshing(false); }
   }, [token, tournamentId]);
@@ -88,6 +92,14 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
   useEffect(() => {
     return () => { if (liveInterval.current) clearInterval(liveInterval.current); };
   }, []);
+
+  // Handle pending matchup open from Pronostici tab navigation
+  useEffect(() => {
+    if (pendingMatchupOpen && !loading && tournament) {
+      openMatchupLive({ id: pendingMatchupOpen });
+      setPendingMatchupOpen(null);
+    }
+  }, [pendingMatchupOpen, loading, tournament]);
 
   const joinTournament = async () => {
     if (!token) return;
