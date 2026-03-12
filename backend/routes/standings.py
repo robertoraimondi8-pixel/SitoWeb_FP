@@ -177,8 +177,15 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
         league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
         if league:
             is_manual = league.get("match_source_type") in ("manual", "custom", "api")
+            is_national = league_id == NATIONAL_LEAGUE_ID
             if is_manual:
                 matchdays = await matchdays_col.find({"league_id": league_id}, {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}).sort("number", -1).to_list(50)
+                return matchdays
+            elif is_national:
+                season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
+                if not season:
+                    return []
+                matchdays = await matchdays_col.find({"season_id": season["id"], "league_id": NATIONAL_LEAGUE_ID}, {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}).sort("number", -1).to_list(50)
                 return matchdays
             else:
                 members = await memberships_col.find({"league_id": league_id, "status": "active"}, {"_id": 0, "user_id": 1}).to_list(1000)

@@ -1007,7 +1007,7 @@ const styles = StyleSheet.create({
   },
   pointsText: { 
     ...typography.statMedium,
-    color: colors.accent,
+    color: '#FFFFFF',
   },
   pointsTextLarge: {
     fontSize: 20,

@@ -408,7 +408,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
         const wins = completed.filter((m: any) => m.result === (isA(m) ? 'user_a_win' : 'user_b_win')).length;
         const totalPts = completed.reduce((s: number, m: any) => s + (isA(m) ? m.user_a_points : m.user_b_points), 0);
         const avg = completed.length > 0 ? Math.round(totalPts / completed.length).toString() : '-';
-        const last5 = myMatchups.slice(-5).map((m: any) => ({
+        const last5 = completed.slice(-5).map((m: any) => ({
           points: isA(m) ? m.user_a_points : m.user_b_points,
           matchday_number: m.round_number,
         }));
@@ -453,6 +453,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
 
             {/* ─── TREND ─── */}
             {last5.length > 0 && (
+              <View style={{ marginTop: 16 }}>
               <View style={s.perfCardOuter}>
                 <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.trendCardGrad}>
                   <LinearGradient colors={['rgba(255,255,255,0.07)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.perfInset} />
@@ -461,6 +462,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   <Text style={s.sectionLabelInCard}>TREND</Text>
                   <LastFiveIndicator data={last5} label="Punti per sfida" dark />
                 </LinearGradient>
+              </View>
               </View>
             )}
           </>
