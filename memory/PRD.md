@@ -10,6 +10,7 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - **Context-Aware Navigation**: Tab "Pronostici" naviga dinamicamente in base alla competizione selezionata e stato della giornata.
 - **Admin Panel**: Gestione completa leghe e tornei in `/api/admin-ui`.
 - **Tournament System**: Round-robin con "circle method", gironi, knockout, matchup 1v1.
+- **Visual Hierarchy**: Matchday card mostra metrica primaria prominente — punti per leghe, punteggio match per tornei.
 
 ## Tech Stack
 - **Frontend**: React Native (Expo) Web
@@ -31,10 +32,13 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] P0 Navigation fix - Tab "Pronostici" con routing dinamico
 - [x] Global scoring refactor (1X2=2, Goal/Over=1, Esatto=5)
 - [x] Data migration script per punteggi storici
-- [x] **Rimozione formattazione decimale** - Tutti i punti mostrati come interi puri (12/03/2026)
-  - Backend: `int()` wrapping su tutte le risposte API (standings, home, predictions, live, tournaments)
-  - Frontend: `.toString()` dopo `Math.round()` per evitare rendering "0.0" su React Native Web
-  - Verificato con testing agent: 100% backend + frontend
+- [x] Rimozione formattazione decimale — Tutti i punti mostrati come interi puri (12/03/2026)
+- [x] **Gerarchia visiva matchday card** — Metrica primaria prominente per leghe (punti) e tornei (punteggio match) (12/03/2026)
+  - League card LIVE/COMPLETED: grande numero punti centrato (52px, 900 weight) + label "PUNTI"
+  - Tournament card LIVE/COMPLETED: grande punteggio match "X – Y" centrato + label "VS OPPONENT"
+  - OPEN status: layout standard con titolo + progress pronostici
+  - Gerarchia condivisa: 1) Metrica primaria, 2) Titolo/label, 3) Badge stato, 4) CTA button
+  - Testato con testing agent: 100% frontend
 
 ## Prioritized Backlog
 
