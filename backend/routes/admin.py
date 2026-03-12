@@ -658,27 +658,42 @@ async def admin_force_start_tournament(tournament_id: str, admin=Depends(require
     all_matchups = []
     for g in groups:
         members = g["members"]
-        pairs = []
-        for i in range(len(members)):
-            for j in range(i + 1, len(members)):
-                pairs.append((members[i], members[j]))
-        for pair_idx, (a, b) in enumerate(pairs):
-            all_matchups.append({
-                "id": new_id(),
-                "tournament_id": tournament_id,
-                "group_id": g["id"],
-                "round_number": (pair_idx % duration_rounds) + 1,
-                "round_type": "group",
-                "user_a_id": a["user_id"],
-                "user_b_id": b["user_id"],
-                "user_a_username": a["username"],
-                "user_b_username": b["username"],
-                "user_a_points": 0.0,
-                "user_b_points": 0.0,
-                "result": "pending",
-                "winner_id": None,
-                "status": "pending",
-            })
+        n = len(members)
+        # Circle method round-robin: guarantees each player plays exactly once per round
+        # If odd number, add a "bye" player
+        players = list(range(n))
+        if n % 2 == 1:
+            players.append(-1)  # bye
+        num_players = len(players)
+        num_rounds = num_players - 1
+
+        for rnd in range(num_rounds):
+            round_num = rnd + 1
+            for i in range(num_players // 2):
+                p1 = players[i]
+                p2 = players[num_players - 1 - i]
+                if p1 == -1 or p2 == -1:
+                    continue  # bye round
+                a = members[p1]
+                b = members[p2]
+                all_matchups.append({
+                    "id": new_id(),
+                    "tournament_id": tournament_id,
+                    "group_id": g["id"],
+                    "round_number": round_num,
+                    "round_type": "group",
+                    "user_a_id": a["user_id"],
+                    "user_b_id": b["user_id"],
+                    "user_a_username": a["username"],
+                    "user_b_username": b["username"],
+                    "user_a_points": 0.0,
+                    "user_b_points": 0.0,
+                    "result": "pending",
+                    "winner_id": None,
+                    "status": "pending",
+                })
+            # Rotate: fix first player, rotate the rest
+            players = [players[0]] + [players[-1]] + players[1:-1]
 
     if all_matchups:
         await tournament_matchups_col.insert_many(all_matchups)

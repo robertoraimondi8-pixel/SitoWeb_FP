@@ -147,35 +147,43 @@ async def start_tournament(tournament_id: str, user=Depends(get_current_user)):
     await tournament_groups_col.insert_many(groups)
 
     # Generate group matchups (round-robin within each group)
-    # Each matchday = one set of group matchups
-    # For 4 players per group, there are 6 matchups (3 matchdays of 2 games each)
-    # We distribute them across the duration_rounds
+    # Circle method: guarantees each player plays exactly once per round
     all_matchups = []
     for g in groups:
         members = g["members"]
-        # Generate round-robin pairs
-        pairs = []
-        for i in range(len(members)):
-            for j in range(i + 1, len(members)):
-                pairs.append((members[i], members[j]))
-        # Distribute pairs across rounds (we'll assign round later when rounds are created)
-        for pair_idx, (a, b) in enumerate(pairs):
-            all_matchups.append({
-                "id": new_id(),
-                "tournament_id": tournament_id,
-                "group_id": g["id"],
-                "round_number": (pair_idx % t["duration_rounds"]) + 1,
-                "round_type": "group",
-                "user_a_id": a["user_id"],
-                "user_b_id": b["user_id"],
-                "user_a_username": a["username"],
-                "user_b_username": b["username"],
-                "user_a_points": 0.0,
-                "user_b_points": 0.0,
-                "result": "pending",
-                "winner_id": None,
-                "status": "pending",
-            })
+        n = len(members)
+        players = list(range(n))
+        if n % 2 == 1:
+            players.append(-1)  # bye
+        num_players = len(players)
+        num_rounds = num_players - 1
+
+        for rnd in range(num_rounds):
+            round_num = rnd + 1
+            for i in range(num_players // 2):
+                p1 = players[i]
+                p2 = players[num_players - 1 - i]
+                if p1 == -1 or p2 == -1:
+                    continue
+                a = members[p1]
+                b = members[p2]
+                all_matchups.append({
+                    "id": new_id(),
+                    "tournament_id": tournament_id,
+                    "group_id": g["id"],
+                    "round_number": round_num,
+                    "round_type": "group",
+                    "user_a_id": a["user_id"],
+                    "user_b_id": b["user_id"],
+                    "user_a_username": a["username"],
+                    "user_b_username": b["username"],
+                    "user_a_points": 0.0,
+                    "user_b_points": 0.0,
+                    "result": "pending",
+                    "winner_id": None,
+                    "status": "pending",
+                })
+            players = [players[0]] + [players[-1]] + players[1:-1]
 
     if all_matchups:
         await tournament_matchups_col.insert_many(all_matchups)
