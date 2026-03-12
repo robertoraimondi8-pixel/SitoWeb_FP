@@ -209,13 +209,18 @@ export default function PredictionsScreen() {
         return;
       }
 
-      // Auto-redirect to live/results screen when LIVE or COMPLETED
-      // Only when user tapped the bottom tab directly (no explicit matchday_id param)
+      // Auto-redirect based on matchday state and competition type
+      // Rule: Pronostici tab = same screen as Home matchday card
       const mdStatus = activeMatchday.status?.toUpperCase();
-      if (!paramMatchdayId && (mdStatus === 'LIVE' || mdStatus === 'COMPLETED' || mdStatus === 'CLOSED')) {
-        const leagueParam = isTournament ? tournamentId : leagueId;
-        const qs = leagueParam ? `?league_id=${leagueParam}` : '';
-        router.replace(`/live/${activeMatchday.id}${qs}` as any);
+      if (!paramMatchdayId && mdStatus !== 'OPEN') {
+        if (isTournament) {
+          // Tournament: go to Home which shows TournamentView (matchup live/results)
+          router.replace('/(tabs)/home' as any);
+        } else {
+          // League: go to live/results screen
+          const qs = leagueId ? `?league_id=${leagueId}` : '';
+          router.replace(`/live/${activeMatchday.id}${qs}` as any);
+        }
         return;
       }
 
