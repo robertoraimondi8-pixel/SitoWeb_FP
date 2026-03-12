@@ -257,7 +257,7 @@ export default function HomeScreen() {
               </View>
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={s.headerIcon} onPress={() => router.push('/menu/my-tournaments')}>
+          <TouchableOpacity style={s.headerIcon} onPress={() => router.push('/palmares')} data-testid="palmares-btn">
             <Ionicons name="medal-outline" size={22} color={LIGHT.text} />
           </TouchableOpacity>
         </View>

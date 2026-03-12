@@ -22,30 +22,33 @@ Fantasy football predictions platform where users join leagues, predict match ou
 ### Leagues System
 - National League (Lega Nazionale) with API-Football data
 - Private leagues with invite codes
-- League creation with configurable rules (scoring, matchdays, deadlines)
+- League creation with configurable rules
 - Member management, admin roles
 
 ### Predictions System  
 - Match-by-match predictions (1X2 format)
 - Joker usage (double points)
 - Auto-scoring with configurable point system
-- Matchday status tracking (upcoming, live, completed)
+- Matchday status tracking
 
-### Championship Winner Predictions (NEW - March 2026)
-- Users predict which team will win the league championship
-- Full team list from API-Football standings (20 Serie A teams)
-- Save/update predictions per league
-- View all league members' picks with team summary
-- Accessible via Home page banner and Side Menu
-- Backend: `/api/champion-picks/` (teams, save, my pick, league picks)
-- Frontend: `/champion-pick` screen with two tabs (La mia scelta, Lega)
+### Championship Winner Predictions (HIDDEN - ready for future)
+- Backend fully implemented at `/api/champion-picks/`
+- Frontend screen at `/champion-pick.tsx`
+- UI entry points hidden (banner + side menu removed)
 
 ### Tournament System (Competition Context)
-- Tournaments treated as a competition context within the existing app shell
-- Shared `CompetitionContext` provider for mode switching
+- Tournaments as competition context within existing app shell
+- Shared `CompetitionContext` provider
 - Context-aware tabs: Home, Predictions, Rankings
-- Tournament-specific views: Gironi, Tabellone, Partite
-- Tournament registration and group management
+- Tournament views: Gironi, Tabellone, Partite
+
+### Palmares / Trophies Screen (NEW - March 2026)
+- Accessible via medal icon in header (top right)
+- Three trophy categories:
+  - Trofei Lega (blue): Campione, 2° classificato, 3° classificato
+  - Trofei Tornei (green): Campione, Finalista, Semifinalista
+  - Trofei Settimanali (purple): Miglior punteggio, Punteggio perfetto, Serie positiva
+- Currently showing 0 for all (placeholder for future data)
 
 ### Rankings & Standings
 - General league standings
@@ -53,24 +56,10 @@ Fantasy football predictions platform where users join leagues, predict match ou
 - Live standings during active matchdays
 - Tournament brackets and group tables
 
-### Live Features
-- Real-time match score updates via API-Football
-- Live provisional standings
-- Auto-refresh background task
-
-### Admin Panel
-- Web-based admin UI at `/api/admin-ui`
-- Matchday management (create, edit, set results)
-- Match import from API-Football
-- User and league management
-- RBAC role management
-
-### UI/UX
-- Premium dark navy gradient design
-- Performance cards, trend charts
-- Side menu navigation
-- Notification system with badges
-- Multi-language support (i18n)
+### Profile
+- User stats: leagues count, tournaments count, role
+- Language selector (IT/EN/ES)
+- Theme toggle removed (was non-functional)
 
 ## Database Collections
 - users, seasons, leagues, memberships
@@ -85,24 +74,20 @@ Fantasy football predictions platform where users join leagues, predict match ou
 - **Standard User**: ilio@raimondi.it / password123
 - **Admin**: admin@fantapronostic.com / admin123
 
-## Completed Tasks (Latest Session - March 12, 2026)
-- [x] Verified P0 UI changes: disabled theme toggle, tournament counter in profile, Palmares icon
-- [x] Fixed team name overlap (flexShrink: 0 on vsContainer)
-- [x] Implemented Championship Winner Predictions feature (backend + frontend)
-- [x] Added champion pick banner to Home page
-- [x] Added "Pronostico Vincitore" to Side Menu
-- [x] Fixed MongoDB index for champion_picks (added league_id)
-- [x] All tests passed: 100% backend (15/15), 100% frontend
+## Completed Tasks (March 12, 2026)
+- [x] Removed "Tema Scuro" from Profile (non-functional toggle)
+- [x] Medal icon now navigates to Palmares screen (was opening leagues list)
+- [x] Created Palmares screen with 3 trophy categories
+- [x] Hidden Championship Winner Predictions feature (backend + frontend kept)
+- [x] Fixed team name overlap (flexShrink on vsContainer)
+- [x] Fixed MongoDB index for champion_picks
 
 ## Prioritized Backlog
 ### P1
-- [ ] Implement Achievements/Badges system (trophy icon placeholder exists)
+- [ ] Connect trophies to real data when competitions complete
+- [ ] Re-enable Championship Winner Predictions when decided
 
 ### P2
 - [ ] Stripe integration for paid entry to leagues/tournaments
-- [ ] Light/dark mode full implementation (currently disabled)
-
-### Future
-- [ ] Push notification improvements
-- [ ] Social features (chat, comments)
-- [ ] Advanced statistics dashboard
+- [ ] Full achievements/badges system
+- [ ] Light/dark mode implementation

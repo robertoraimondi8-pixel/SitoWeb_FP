@@ -20,6 +20,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="live/[id]" options={{ presentation: 'modal' }} />
             <Stack.Screen name="league" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="palmares" options={{ presentation: 'modal' }} />
           </Stack>
         </LeagueProvider>
       </AuthProvider>

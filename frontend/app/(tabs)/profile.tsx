@@ -148,18 +148,6 @@ export default function ProfileScreen() {
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>{t('profile.settings')}</Text>
 
-          <View style={styles.settingRow}>
-            <View style={[styles.settingIcon, { backgroundColor: colors.infoLight }]}>
-              <Ionicons name="moon" size={18} color={colors.info} />
-            </View>
-            <Text style={styles.settingLabel}>Tema Scuro</Text>
-            <View style={{ backgroundColor: 'rgba(0,0,0,0.06)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textMuted }}>Attivo</Text>
-            </View>
-          </View>
-
-          <View style={styles.settingDivider} />
-
           {/* Language Selector - 3 languages */}
           <View style={styles.langSection}>
             <View style={styles.settingRow}>
