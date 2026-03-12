@@ -423,9 +423,9 @@ const s = StyleSheet.create({
     borderWidth: 2,
   },
   matchCardSpecial: {
-    borderColor: colors.accent,
+    borderColor: '#E88E00',
     borderWidth: 2.5,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5A623',
   },
   matchHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   matchNumBadge: {

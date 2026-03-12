@@ -459,25 +459,43 @@ export default function HomeScreen() {
         {data?.matchday?.status?.toUpperCase() === 'LIVE' && (
           <Animated.View style={{ opacity: fadeLive, transform: [{ translateY: slideLive }] }}>
             <TouchableOpacity
-              style={s.liveCard}
               activeOpacity={0.7}
               data-testid="live-standings-btn"
               onPress={() => {
                 router.push({ pathname: '/(tabs)/rankings', params: { tab: 'weekly', matchdayId: data.matchday?.id, leagueId: data.league?.id } } as any);
               }}
             >
-              <View style={s.liveLeft}>
-                <View style={s.liveBadge}>
-                  <View style={s.liveDot} />
-                  <Text style={s.liveBadgeText}>LIVE</Text>
+              <LinearGradient
+                colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={s.liveCard}
+              >
+                <LinearGradient
+                  colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']}
+                  start={{ x: 0.1, y: 0.0 }}
+                  end={{ x: 0.9, y: 1.0 }}
+                  style={s.whiteSweep}
+                />
+                <LinearGradient
+                  colors={['rgba(255,255,255,0.10)', 'transparent']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={s.topGlow}
+                />
+                <View style={s.liveLeft}>
+                  <View style={s.liveBadge}>
+                    <View style={s.liveDot} />
+                    <Text style={s.liveBadgeText}>LIVE</Text>
+                  </View>
+                  <Text style={s.liveTitle}>Classifica</Text>
                 </View>
-                <Text style={s.liveTitle}>Classifica</Text>
-              </View>
-              <View style={s.liveRight}>
-                <Text style={s.liveRank}>{data.live?.live_rank ? `${data.live.live_rank}\u00B0` : '-'}</Text>
-                <Text style={s.livePoints}>{formatPoints(data.live?.live_points ?? 0)} pts</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.success} style={{ marginLeft: 8 }} />
+                <View style={s.liveRight}>
+                  <Text style={s.liveRank}>{data.live?.live_rank ? `${data.live.live_rank}\u00B0` : '-'}</Text>
+                  <Text style={s.livePoints}>{formatPoints(data.live?.live_points ?? 0)} pts</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.6)" style={{ marginLeft: 8 }} />
+              </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
         )}

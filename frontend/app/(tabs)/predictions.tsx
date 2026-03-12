@@ -510,9 +510,9 @@ export default function PredictionsScreen() {
                     <Text style={styles.matchNum}>{idx + 1}</Text>
                   </View>
                   <View style={styles.matchMeta}>
-                    <Text style={[styles.competition, m.is_special && { color: colors.textSecondary }]}>{m.competition || m.league_name}</Text>
+                    <Text style={[styles.competition, m.is_special && { color: '#fff' }]}>{m.competition || m.league_name}</Text>
                     {m.start_time && (
-                      <Text style={[styles.matchTime, m.is_special && { color: colors.textMuted }]}>{formatMatchTime(m.start_time)}</Text>
+                      <Text style={[styles.matchTime, m.is_special && { color: 'rgba(255,255,255,0.7)' }]}>{formatMatchTime(m.start_time)}</Text>
                     )}
                   </View>
                   {m.is_special && (
@@ -530,9 +530,9 @@ export default function PredictionsScreen() {
 
                 {/* Special match banner */}
                 {m.is_special && (
-                  <View style={[styles.specialBanner, { backgroundColor: 'rgba(245,166,35,0.1)' }]}>
-                    <Ionicons name="star" size={14} color={colors.accent} />
-                    <Text style={[styles.specialBannerText, { color: colors.accent }]}>Partita speciale – punti triplicati</Text>
+                  <View style={[styles.specialBanner, { backgroundColor: 'rgba(255,255,255,0.25)' }]}>
+                    <Ionicons name="star" size={14} color="#fff" />
+                    <Text style={[styles.specialBannerText, { color: '#fff', fontWeight: '800' }]}>PUNTI TRIPLICATI X3</Text>
                   </View>
                 )}
 
@@ -548,7 +548,7 @@ export default function PredictionsScreen() {
                     {m.home_logo && <Image source={{ uri: m.home_logo }} style={styles.teamLogo} />}
                     <Text style={[styles.teamName, m.is_special && { color: colors.textPrimary }]} numberOfLines={1}>{m.home_team}</Text>
                   </View>
-                  <View style={[styles.vsContainer, m.is_special && { backgroundColor: colors.accent }]}>
+                  <View style={[styles.vsContainer, m.is_special && { backgroundColor: '#E88E00' }]}>
                     <Text style={[styles.vs, m.is_special && { color: '#fff' }]}>vs</Text>
                   </View>
                   <View style={[styles.teamWithLogo, { justifyContent: 'flex-end' }]}>
@@ -839,8 +839,8 @@ const styles = StyleSheet.create({
   },
   matchCardSpecial: {
     borderWidth: 2.5,
-    borderColor: colors.accent,
-    backgroundColor: '#FFFFFF',
+    borderColor: '#E88E00',
+    backgroundColor: '#F5A623',
   },
   specialX3Badge: {
     backgroundColor: colors.accent,
