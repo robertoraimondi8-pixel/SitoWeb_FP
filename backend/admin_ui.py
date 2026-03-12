@@ -1937,9 +1937,17 @@ async function doMatchUpdate(matchId) {
 
 async function doAddMatch(mdId) {
   try {
-    let leagueId = document.getElementById('md-league').value;
-    // Strip tournament prefix if present
-    if (leagueId.startsWith('tourn_')) leagueId = leagueId.replace('tourn_', '');
+    // Determine correct league_id: check if this is a tournament round
+    const md = (window._allMatchdays||[]).find(m => m.id === mdId);
+    let leagueId;
+    if (md && md._is_tournament && md._tournament_id) {
+      leagueId = md._tournament_id;
+    } else if (mdcrTournId) {
+      leagueId = mdcrTournId;
+    } else {
+      leagueId = document.getElementById('md-league').value;
+      if (leagueId.startsWith('tourn_')) leagueId = leagueId.replace('tourn_', '');
+    }
     await apiCall('/admin/matches', 'POST', {
       matchday_id: mdId,
       league_id: leagueId,
