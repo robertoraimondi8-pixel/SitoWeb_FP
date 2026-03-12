@@ -406,12 +406,15 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
 
       {/* ═══ MINI CLASSIFICA TORNEO ═══ */}
       {groups && Array.isArray(groups) && groups.length > 0 && (() => {
-        // Find the group where the current user is
         const myGroup = groups.find((g: any) => g.standings?.some((s: any) => s.user_id === user?.id));
         if (!myGroup || !myGroup.standings?.length) return null;
         const top3 = myGroup.standings.slice(0, 3);
         return (
-          <View style={{ marginTop: 16 }}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => router.push('/(tabs)/rankings')}
+            data-testid="mini-rankings-block"
+          >
             <LinearGradient
               colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -430,27 +433,26 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   </View>
                 );
               })}
+              <View style={s.miniRankCtaRow}>
+                <Text style={s.miniRankCta}>Vedi classifica</Text>
+                <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.5)" />
+              </View>
             </LinearGradient>
-          </View>
+          </TouchableOpacity>
         );
       })()}
 
-      {/* ═══ PERFORMANCE ═══ mirrors league home */}
+      {/* ═══ PERFORMANCE ═══ */}
       {hasGroups && myMatchups.length > 0 && (() => {
         const completed = myMatchups.filter((m: any) => m.status === 'completed');
         const isA = (m: any) => m.user_a_id === user?.id;
         const wins = completed.filter((m: any) => m.result === (isA(m) ? 'user_a_win' : 'user_b_win')).length;
-        const totalPts = completed.reduce((s: number, m: any) => s + (isA(m) ? m.user_a_points : m.user_b_points), 0);
+        const totalPts = completed.reduce((acc: number, m: any) => acc + (isA(m) ? m.user_a_points : m.user_b_points), 0);
         const avg = completed.length > 0 ? Math.round(totalPts / completed.length).toString() : '-';
-        const last5 = completed.slice(-5).map((m: any) => ({
-          points: isA(m) ? m.user_a_points : m.user_b_points,
-          matchday_number: m.round_number,
-        }));
         return (
           <>
             <Text style={s.sectionLabel}>PERFORMANCE</Text>
             <View style={s.perfRow}>
-              {/* Vittorie */}
               <View style={s.perfCardOuter}>
                 <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCardGrad}>
                   <LinearGradient colors={['rgba(255,255,255,0.07)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.perfInset} />
@@ -461,7 +463,6 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   <Text style={s.perfLabel}>{'VITTORIE\nTORNEO'}</Text>
                 </LinearGradient>
               </View>
-              {/* Punti Totali */}
               <View style={s.perfCardOuter}>
                 <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCardGrad}>
                   <LinearGradient colors={['rgba(255,255,255,0.07)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.perfInset} />
@@ -472,7 +473,6 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   <Text style={s.perfLabel}>{'PUNTI\nTOTALI'}</Text>
                 </LinearGradient>
               </View>
-              {/* Media */}
               <View style={s.perfCardOuter}>
                 <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCardGrad}>
                   <LinearGradient colors={['rgba(255,255,255,0.07)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.perfInset} />
@@ -484,28 +484,39 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                 </LinearGradient>
               </View>
             </View>
-
-            {/* ─── ULTIME SFIDE (simplified pills) ─── */}
-            {last5.length > 0 && (
-              <View style={{ marginTop: 16 }}>
-                <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.last5Card}>
-                  <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
-                  <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
-                  <Text style={s.sectionLabelInCard}>ULTIME SFIDE</Text>
-                  <View style={s.last5Row}>
-                    {last5.map((item: any, i: number) => (
-                      <View key={i} style={s.last5PillWrap}>
-                        <View style={[s.last5Pill, item.points > 0 && s.last5PillActive]}>
-                          <Text style={[s.last5PillPts, item.points > 0 && s.last5PillPtsActive]}>{Math.round(item.points).toString()}</Text>
-                        </View>
-                        <Text style={s.last5PillMd}>{item.matchday_number}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </LinearGradient>
-              </View>
-            )}
           </>
+        );
+      })()}
+
+      {/* ═══ ULTIME 5 SFIDE ═══ */}
+      {hasGroups && myMatchups.length > 0 && (() => {
+        const completed = myMatchups.filter((m: any) => m.status === 'completed');
+        const isA = (m: any) => m.user_a_id === user?.id;
+        const last5 = completed.slice(-5).map((m: any) => ({
+          points: isA(m) ? m.user_a_points : m.user_b_points,
+          matchday_number: m.round_number,
+        }));
+        if (last5.length === 0) return null;
+        return (
+          <LinearGradient
+            colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={s.last5Card}
+          >
+            <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
+            <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
+            <Text style={s.last5Title}>ULTIME 5 SFIDE</Text>
+            <View style={s.last5Row}>
+              {last5.map((item: any, i: number) => (
+                <View key={i} style={s.last5PillWrap}>
+                  <View style={[s.last5Pill, item.points > 0 && s.last5PillActive]}>
+                    <Text style={[s.last5PillPts, item.points > 0 && s.last5PillPtsActive]}>{Math.round(item.points).toString()}</Text>
+                  </View>
+                  <Text style={s.last5PillMd}>{item.matchday_number}</Text>
+                </View>
+              ))}
+            </View>
+          </LinearGradient>
         );
       })()}
 
@@ -536,7 +547,8 @@ const s = StyleSheet.create({
   heroContextMsg: { fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginTop: 8, marginBottom: 2 },
 
   // Last 5 pills
-  last5Card: { padding: 18, borderRadius: 22, overflow: 'hidden' },
+  last5Card: { padding: 18, borderRadius: 22, overflow: 'hidden', marginTop: 16 },
+  last5Title: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.55)', letterSpacing: 1.2, marginBottom: 14 },
   last5Row: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   last5PillWrap: { flex: 1, alignItems: 'center', gap: 6 },
   last5Pill: { width: '100%', paddingVertical: 10, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.06)', alignItems: 'center' },
@@ -546,12 +558,14 @@ const s = StyleSheet.create({
   last5PillMd: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.35)' },
 
   // Mini ranking block
-  miniRankCard: { padding: 18, borderRadius: 22, overflow: 'hidden' },
+  miniRankCard: { padding: 18, borderRadius: 22, overflow: 'hidden', marginTop: 16 },
   miniRankTitle: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.55)', letterSpacing: 1.2, marginBottom: 14 },
   miniRankRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 7, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.08)' },
   miniRankPos: { width: 32, fontSize: 15, fontWeight: '800', color: 'rgba(255,255,255,0.5)' },
   miniRankName: { flex: 1, fontSize: 15, fontWeight: '500', color: '#FFFFFF' },
   miniRankPts: { fontSize: 15, fontWeight: '700', color: 'rgba(255,255,255,0.75)' },
+  miniRankCtaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 12, gap: 4 },
+  miniRankCta: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.5)' },
 
   ctaGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 14, paddingHorizontal: 24, borderRadius: 22 },
   ctaText: { fontSize: 15, fontWeight: '800', color: '#fff' },
