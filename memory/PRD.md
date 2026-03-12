@@ -9,23 +9,24 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - **Visual Hierarchy**: Matchday card con metrica primaria prominente + messaggio contestuale
 - **Mini Ranking**: Blocco competitivo sulla Home (classifica lega / girone torneo)
 - **Simplified Last 5**: Pills semplici al posto del bar chart per il trend
+- **Unified Tournament/League Layout**: Home screen identica per struttura e spaziature
 
 ## Completed Features
 - [x] Auth (JWT + Google OAuth), Leghe, Tornei, Pronostici, Live scores, Classifiche
 - [x] Admin Panel, BOOST X3, Tournament 1v1 live view
 - [x] P0 Navigation fix, Global scoring refactor, Data migration, Decimal formatting
 - [x] Gerarchia visiva matchday card + messaggi contestuali
-- [x] Fix classifica punti bianchi 4°+, dropdown settimanale, TREND torneo
+- [x] Fix classifica punti bianchi 4+, dropdown settimanale, TREND torneo
 - [x] **Mini Classifica Home** (12/03/2026)
-  - Lega: Top 3 classifica totale con highlight utente corrente
-  - Torneo: Top 3 classifica girone utente con group_points
-  - "Vedi classifica →" link al tab Classifiche
 - [x] **Ultime 5 Giornate Pills** (12/03/2026)
-  - Lega: 5 pills con punti + numeri giornata sotto
-  - Torneo: Pills solo per sfide completate
-  - Valori > 0 evidenziati in arancione (#F7A21B)
-  - Layout: Hero → Mini Ranking → Performance → Last 5 Pills
-  - Testato: 100% backend + frontend (iteration_82)
+- [x] **Unificazione Layout Tournament/League Home** (13/03/2026)
+  - scrollContent gap:24 identico
+  - marginHorizontal:16 su miniRankCard e last5Card
+  - Rimosso marginBottom da heroCard e perfCardOuter
+  - Fix sectionLabel duplicato (ora marginLeft:4)
+  - Performance section in <View> wrapper (non fragment)
+  - Shadow heroCard identico alla lega
+  - Testato: 95% frontend (iteration_83)
 
 ## Prioritized Backlog
 
