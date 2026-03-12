@@ -157,7 +157,7 @@ tr:hover{background:rgba(245,166,35,0.05)}
 #app{min-height:100vh}
 /* Modal */
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
-.modal{background:#1E293B;border-radius:16px;padding:24px;width:90%;max-width:600px;max-height:85vh;overflow-y:auto;border:1px solid #334155;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.modal{background:#1E293B;border-radius:16px;padding:24px;width:95%;max-width:900px;max-height:85vh;overflow-y:auto;border:1px solid #334155;box-shadow:0 8px 32px rgba(0,0,0,.4)}
 .modal h3{color:#F5A623;margin-bottom:16px;font-size:18px}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 /* Permissions grid */
@@ -1873,15 +1873,18 @@ function renderMdcrMatches(md, matches, canManage) {
     </div>`;
   }
 
-  let html = '<table style="font-size:13px"><tr><th>Casa</th><th>Ospite</th><th>Comp</th><th>Mercato</th><th>Orario</th><th>Score</th><th>Stato</th>';
+  let html = '<table style="font-size:13px"><tr><th>Casa</th><th>Ospite</th><th>Comp</th><th>Mercato</th><th>X3</th><th>Orario</th><th>Score</th><th>Stato</th>';
   if (canManage) html += '<th>Azioni</th>';
   html += '</tr>';
   matches.forEach(m => {
     const score = m.home_score !== null && m.home_score !== undefined ? `<strong>${m.home_score}-${m.away_score}</strong>` : '-';
     const time = m.start_time ? new Date(m.start_time).toLocaleString('it') : '-';
-    html += `<tr>
+    const isSpecial = m.is_special || false;
+    const rowStyle = isSpecial ? 'background:rgba(245,166,35,0.08);border-left:3px solid #F5A623' : '';
+    html += `<tr style="${rowStyle}">
       <td>${m.home_team}</td><td>${m.away_team}</td><td style="color:#94A3B8">${m.competition||'-'}</td>
       <td><span class="tag tag-role">${m.market_type||'-'}</span></td>
+      <td>${isSpecial ? '<span style="color:#F5A623;font-weight:800;font-size:14px">X3</span>' : '<span style="color:#475569">-</span>'}</td>
       <td style="font-size:12px">${time}</td>
       <td>${score}</td>`;
     if (canManage) {
@@ -1890,6 +1893,7 @@ function renderMdcrMatches(md, matches, canManage) {
         ${matchStatuses.map(s => `<option value="${s}" ${(m.status||'scheduled')===s?'selected':''}>${s}</option>`).join('')}
       </select></td>`;
       html += `<td style="white-space:nowrap">
+        <button class="btn btn-sm ${isSpecial ? '' : 'btn-outline'}" style="${isSpecial ? 'background:#F5A623;color:#0F172A' : ''}" onclick="doToggleSpecial('${md.id}','${m.id}')" data-testid="toggle-x3-${m.id}" title="${isSpecial ? 'Rimuovi X3' : 'Imposta X3'}">X3</button>
         <button class="btn btn-sm btn-outline" onclick="showMatchUpdate('${m.id}','${(m.home_team||'').replace(/'/g,"\\'")}','${(m.away_team||'').replace(/'/g,"\\'")}',${m.home_score||0},${m.away_score||0})">Score</button>
         <button class="btn btn-sm btn-danger" onclick="doDeleteMatch('${md.id}','${m.id}')">X</button>
       </td>`;
@@ -1956,7 +1960,17 @@ async function doDeleteMatch(mdId, matchId) {
   try {
     await apiCall('/admin/matches/' + matchId, 'DELETE');
     showToast('Partita rimossa');
-    showMdControlRoom(mdId, 'matches');
+    if (mdcrTournId) showMdControlRoom(mdcrId, mdcrTournId, 'matches');
+    else showMdControlRoom(mdId, 'matches');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function doToggleSpecial(mdId, matchId) {
+  try {
+    const res = await apiCall('/admin/matches/' + matchId + '/special', 'POST', {});
+    showToast(res.is_special ? 'Partita impostata come X3!' : 'X3 rimosso');
+    if (mdcrTournId) showMdControlRoom(mdcrId, mdcrTournId, 'matches');
+    else showMdControlRoom(mdId, 'matches');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1967,7 +1981,8 @@ async function doQuickMatchStatus(mdId, matchId, newStatus) {
       status: newStatus
     });
     showToast('Stato partita: ' + newStatus);
-    showMdControlRoom(mdId, 'matches');
+    if (mdcrTournId) showMdControlRoom(mdcrId, mdcrTournId, 'matches');
+    else showMdControlRoom(mdId, 'matches');
   } catch(e) { showToast(e.message, 'error'); }
 }
 

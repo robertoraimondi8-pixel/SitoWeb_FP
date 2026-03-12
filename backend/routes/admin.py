@@ -218,13 +218,20 @@ async def admin_set_special_match(match_id: str, body: dict = {}, user=Depends(g
     match = await matches_col.find_one({"id": match_id}, {"_id": 0})
     if not match:
         raise HTTPException(404, "Partita non trovata")
-    is_super = user.get("role") in ("admin", "superadmin")
+    is_super = user.get("role") in ("admin", "superadmin") or user.get("is_super_admin")
     if not is_super:
         match_league_id = match.get("league_id")
         if match_league_id:
-            league_of_match = await leagues_col.find_one({"id": match_league_id}, {"_id": 0})
-            if not league_of_match or league_of_match.get("owner_id") != user["id"]:
-                raise HTTPException(403, "Solo il creatore della lega o un super admin può impostare X3")
+            # Check if it's a tournament match
+            from database import tournaments_col
+            tournament = await tournaments_col.find_one({"id": match_league_id}, {"_id": 0})
+            if tournament:
+                if tournament.get("created_by") != user["id"]:
+                    raise HTTPException(403, "Solo il creatore del torneo o un super admin può impostare X3")
+            else:
+                league_of_match = await leagues_col.find_one({"id": match_league_id}, {"_id": 0})
+                if not league_of_match or league_of_match.get("owner_id") != user["id"]:
+                    raise HTTPException(403, "Solo il creatore della lega o un super admin può impostare X3")
         else:
             raise HTTPException(403, "Solo un super admin può impostare X3 sulle partite nazionali")
     new_special = body.get("is_special", not match.get("is_special", False))
