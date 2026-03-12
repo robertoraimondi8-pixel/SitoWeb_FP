@@ -112,8 +112,8 @@ async def stats_fixture_detail(fixture_id: int, user=Depends(get_current_user)):
         fx_status = detail.get("fixture", {}).get("status_short", "")
         if fx_status in ("NS", "TBD", "PST"):
             try:
-                home_id = detail.get("teams", {}).get("home", {}).get("id")
-                away_id = detail.get("teams", {}).get("away", {}).get("id")
+                home_id = detail.get("fixture", {}).get("home_id")
+                away_id = detail.get("fixture", {}).get("away_id")
                 if home_id and away_id:
                     home_form = await client.get_team_last_matches(home_id, 5)
                     away_form = await client.get_team_last_matches(away_id, 5)
