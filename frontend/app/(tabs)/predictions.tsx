@@ -72,7 +72,7 @@ export default function PredictionsScreen() {
   const [detailFixtureId, setDetailFixtureId] = useState<number | null>(null);
 
   const formatPts = (pts: number) => {
-    const val = pts % 1 === 0 ? pts.toString() : pts.toFixed(1).replace('.', ',');
+    return Math.round(pts).toString();
     return `${val} ${pts === 1 ? 'punto' : 'punti'}`;
   };
 

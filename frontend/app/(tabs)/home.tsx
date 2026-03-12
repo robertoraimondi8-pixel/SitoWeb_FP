@@ -171,7 +171,7 @@ export default function HomeScreen() {
 
   const formatPoints = (n: number | undefined | null) => {
     const num = typeof n === 'number' ? n : Number(n || 0);
-    return num.toFixed(1);
+    return Math.round(num).toString();
   };
 
   const getStatusLabel = (status: string) => t(`status.${status?.toUpperCase()}`, { defaultValue: status });
@@ -214,7 +214,7 @@ export default function HomeScreen() {
     const perf = data?.last_5_performance;
     if (!Array.isArray(perf) || perf.length === 0) return null;
     const sum = perf.reduce((acc: number, p: { points: number }) => acc + p.points, 0);
-    return (sum / perf.length).toFixed(1);
+    return Math.round(sum / perf.length).toString();
   };
 
   // CTA press handlers

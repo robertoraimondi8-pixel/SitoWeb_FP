@@ -6,10 +6,10 @@ logger = logging.getLogger(__name__)
 
 # Points per market type (global, fixed values — not configurable per league)
 MARKET_POINTS = {
-    "1X2": 2.0,
-    "GOAL_NOGOL": 1.0,
-    "OVER_UNDER_25": 1.0,
-    "EXACT_SCORE": 5.0,
+    "1X2": 2,
+    "GOAL_NOGOL": 1,
+    "OVER_UNDER_25": 1,
+    "EXACT_SCORE": 5,
 }
 
 CHAMPION_BONUS = 5.0  # per competition
@@ -78,8 +78,8 @@ def calculate_match_points(
         return (0.0, False)
 
     is_correct = prediction_value.upper() == actual.upper()
-    base_pts = MARKET_POINTS.get(market_type, 0.0) if is_correct else 0.0
-    points = base_pts * multiplier
+    base_pts = MARKET_POINTS.get(market_type, 0) if is_correct else 0
+    points = int(base_pts * multiplier)
 
     return (points, is_correct)
 
@@ -97,7 +97,7 @@ def calculate_matchday_total(
 
     Returns dict with base_points, joker_bonus, total_points, valid_matches, void_matches.
     """
-    base_points = 0.0
+    base_points = 0
     valid_matches = 0
     void_matches = 0
 
@@ -114,13 +114,13 @@ def calculate_matchday_total(
             base_points += points
 
     # Joker: x2 on total base_points from valid matches only
-    joker_bonus = base_points if joker_active else 0.0
+    joker_bonus = base_points if joker_active else 0
     total_points = base_points + joker_bonus
 
     return {
-        "base_points": base_points,
-        "joker_bonus": joker_bonus,
-        "total_points": total_points,
+        "base_points": int(base_points),
+        "joker_bonus": int(joker_bonus),
+        "total_points": int(total_points),
         "valid_matches": valid_matches,
         "void_matches": void_matches,
     }

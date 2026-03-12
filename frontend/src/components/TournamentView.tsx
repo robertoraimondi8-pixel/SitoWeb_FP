@@ -234,7 +234,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                       <Text style={s.predVal}>{md.user_a_prediction}</Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                         <Ionicons name={aPts > 0 ? 'checkmark-circle' : 'close-circle'} size={14} color={aPts > 0 ? '#10B981' : '#ef4444'} />
-                        <Text style={[s.predPts, { color: aPts > 0 ? '#10B981' : '#ef4444' }]}>{aPts > 0 ? `+${aPts.toFixed(1)}` : '0'}</Text>
+                        <Text style={[s.predPts, { color: aPts > 0 ? '#10B981' : '#ef4444' }]}>{aPts > 0 ? `+${Math.round(aPts)}` : '0'}</Text>
                       </View>
                     </>
                   ) : show ? <Text style={s.noPred}>—</Text> : <Text style={s.hiddenPred}>?</Text>}
@@ -248,7 +248,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                       <Text style={s.predVal}>{md.user_b_prediction}</Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                         <Ionicons name={bPts > 0 ? 'checkmark-circle' : 'close-circle'} size={14} color={bPts > 0 ? '#10B981' : '#ef4444'} />
-                        <Text style={[s.predPts, { color: bPts > 0 ? '#10B981' : '#ef4444' }]}>{bPts > 0 ? `+${bPts.toFixed(1)}` : '0'}</Text>
+                        <Text style={[s.predPts, { color: bPts > 0 ? '#10B981' : '#ef4444' }]}>{bPts > 0 ? `+${Math.round(bPts)}` : '0'}</Text>
                       </View>
                     </>
                   ) : show ? <Text style={s.noPred}>—</Text> : <Text style={s.hiddenPred}>?</Text>}
@@ -394,7 +394,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
         const isA = (m: any) => m.user_a_id === user?.id;
         const wins = completed.filter((m: any) => m.result === (isA(m) ? 'user_a_win' : 'user_b_win')).length;
         const totalPts = completed.reduce((s: number, m: any) => s + (isA(m) ? m.user_a_points : m.user_b_points), 0);
-        const avg = completed.length > 0 ? (totalPts / completed.length).toFixed(1) : '-';
+        const avg = completed.length > 0 ? Math.round(totalPts / completed.length).toString() : '-';
         const last5 = myMatchups.slice(-5).map((m: any) => ({
           points: isA(m) ? m.user_a_points : m.user_b_points,
           matchday_number: m.round_number,
@@ -421,7 +421,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
                   <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
                   <View style={s.perfIconWrap}><Ionicons name="star" size={20} color="#fff" /></View>
-                  <Text style={s.perfValue}>{totalPts.toFixed(1)}</Text>
+                  <Text style={s.perfValue}>{Math.round(totalPts)}</Text>
                   <Text style={s.perfLabel}>{'PUNTI\nTOTALI'}</Text>
                 </LinearGradient>
               </View>

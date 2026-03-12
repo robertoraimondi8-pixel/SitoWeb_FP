@@ -219,7 +219,7 @@ async def compute_matchday_points(user_id: str, matchday_id: str, league_id: str
     preds_dict = {p["match_id"]: p for p in preds}
 
     joker_active = False
-    base_points = 0.0
+    base_points = 0
     for m in matches:
         effective_status = m["status"]
         if matchday_completed and effective_status in ("scheduled", "live"):

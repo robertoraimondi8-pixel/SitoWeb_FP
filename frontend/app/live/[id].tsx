@@ -188,12 +188,12 @@ export default function LiveScreen() {
             <View style={s.pointsRow}>
               <View style={s.pointsItem}>
                 <Text style={s.pointsLabel}>Punti Base</Text>
-                <Text style={s.pointsValue}>{(data?.base_points || 0).toFixed(1)}</Text>
+                <Text style={s.pointsValue}>{Math.round(data?.base_points || 0)}</Text>
               </View>
               <View style={s.pointsDivider} />
               <View style={s.pointsItem}>
                 <Text style={s.pointsLabel}>{isCompleted ? 'Punti Ufficiali' : 'Punti Provvisori'}</Text>
-                <Text style={s.pointsValueBig}>{(data?.total_live_points || 0).toFixed(1)}</Text>
+                <Text style={s.pointsValueBig}>{Math.round(data?.total_live_points || 0)}</Text>
               </View>
             </View>
           </LinearGradient>
@@ -318,7 +318,7 @@ export default function LiveScreen() {
                       color={getOutcomeColor(match.outcome)} 
                     />
                     <Text style={[s.matchPoints, { color: getOutcomeColor(match.outcome) }]}>
-                      {match.outcome === 'correct' ? `+${match.points.toFixed(1)}` : '0'}
+                      {match.outcome === 'correct' ? `+${Math.round(match.points)}` : '0'}
                     </Text>
                   </>
                 )}

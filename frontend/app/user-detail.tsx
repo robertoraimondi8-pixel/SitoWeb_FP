@@ -146,7 +146,7 @@ export default function UserDetailScreen() {
             </View>
             <View style={s.rankPointsWrap}>
               <Text style={s.totalPointsLabel}>Punti Totali</Text>
-              <Text style={s.totalPointsValue}>{data.total_points.toFixed(1)}</Text>
+              <Text style={s.totalPointsValue}>{Math.round(data.total_points)}</Text>
             </View>
           </LinearGradient>
         </View>
@@ -163,7 +163,7 @@ export default function UserDetailScreen() {
           <View style={s.statOuter}>
             <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.statCard}>
               <Ionicons name="trophy" size={24} color={colors.accent} />
-              <Text style={s.statValue}>{data.total_base_points.toFixed(1)}</Text>
+              <Text style={s.statValue}>{Math.round(data.total_base_points)}</Text>
               <Text style={s.statLabel}>Punti Base</Text>
             </LinearGradient>
           </View>
@@ -174,7 +174,7 @@ export default function UserDetailScreen() {
           <View style={s.currentWeekCard}>
             <View style={s.currentWeekInfo}>
               <Text style={s.currentWeekLabel}>Giornata {data.current_matchday}</Text>
-              <Text style={s.currentWeekPoints}>+{data.current_week_points.toFixed(1)} pts</Text>
+              <Text style={s.currentWeekPoints}>+{Math.round(data.current_week_points)} pts</Text>
             </View>
             {data.last_matchday_id && (
               <TouchableOpacity 
@@ -215,7 +215,7 @@ export default function UserDetailScreen() {
                     </View>
                   </View>
                   <View style={s.breakdownRight}>
-                    <Text style={s.breakdownPointsValue}>{md.total_points.toFixed(1)}</Text>
+                    <Text style={s.breakdownPointsValue}>{Math.round(md.total_points)}</Text>
                     <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.4)" />
                   </View>
                 </TouchableOpacity>

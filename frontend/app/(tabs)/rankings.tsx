@@ -137,7 +137,7 @@ export default function RankingsScreen() {
     });
   };
 
-  const formatPoints = (n: number) => n.toFixed(1);
+  const formatPoints = (n: number) => Math.round(n).toString();
 
   // Frontend-only search filter (no API calls, no ranking changes)
   const filteredEntries = useMemo(() => {
@@ -317,7 +317,7 @@ export default function RankingsScreen() {
                       <Text style={{ flex: 1, fontSize: 12, color: '#22c55e', textAlign: 'center', fontWeight: '600' }}>{s.wins ?? 0}</Text>
                       <Text style={{ flex: 1, fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>{s.draws ?? 0}</Text>
                       <Text style={{ flex: 1, fontSize: 12, color: '#ef4444', textAlign: 'center' }}>{s.losses ?? 0}</Text>
-                      <Text style={{ flex: 1.5, fontSize: 13, fontWeight: '800', color: colors.primary, textAlign: 'right' }}>{(s.group_points ?? s.points ?? 0).toFixed(1)}</Text>
+                      <Text style={{ flex: 1.5, fontSize: 13, fontWeight: '800', color: colors.primary, textAlign: 'right' }}>{Math.round(s.group_points ?? s.points ?? 0)}</Text>
                     </View>
                   );
                 })}
@@ -348,7 +348,7 @@ export default function RankingsScreen() {
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Text style={{ fontSize: 14, fontWeight: m.user_a_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1 }} numberOfLines={1}>{m.user_a_username || 'TBD'}</Text>
                           <View style={{ backgroundColor: m.status === 'completed' ? colors.primary : '#e0e0e0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginHorizontal: 8 }}>
-                            <Text style={{ fontSize: 12, fontWeight: '800', color: m.status === 'completed' ? '#fff' : colors.textSecondary }}>{(m.user_a_points || 0).toFixed(1)} : {(m.user_b_points || 0).toFixed(1)}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: '800', color: m.status === 'completed' ? '#fff' : colors.textSecondary }}>{Math.round(m.user_a_points || 0)} : {Math.round(m.user_b_points || 0)}</Text>
                           </View>
                           <Text style={{ fontSize: 14, fontWeight: m.user_b_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{m.user_b_username || 'TBD'}</Text>
                         </View>
@@ -496,7 +496,7 @@ export default function RankingsScreen() {
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Text style={{ fontSize: 14, fontWeight: m.user_a_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1 }} numberOfLines={1}>{m.user_a_username || 'TBD'}</Text>
                           <View style={{ backgroundColor: statusColor, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginHorizontal: 8 }}>
-                            <Text style={{ fontSize: 12, fontWeight: '800', color: '#fff' }}>{isDone ? `${m.user_a_points?.toFixed(1)} : ${m.user_b_points?.toFixed(1)}` : statusLabel}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: '800', color: '#fff' }}>{isDone ? `${Math.round(m.user_a_points || 0)} : ${Math.round(m.user_b_points || 0)}` : statusLabel}</Text>
                           </View>
                           <Text style={{ fontSize: 14, fontWeight: m.user_b_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{m.user_b_username || 'TBD'}</Text>
                         </View>

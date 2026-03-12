@@ -31,7 +31,7 @@ export const LastFiveIndicator: React.FC<LastFiveIndicatorProps> = ({ data, labe
           return (
             <View key={idx} style={styles.barGroup}>
               <Text style={[styles.barValue, { color: isLatest ? colors.accent : mutedColor }]}>
-                {item.points.toFixed(1)}
+                {Math.round(item.points)}
               </Text>
               <View style={styles.barTrack}>
                 <View

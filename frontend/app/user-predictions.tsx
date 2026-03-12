@@ -136,12 +136,12 @@ export default function UserPredictionsScreen() {
           <View style={s.summaryRow}>
             <View style={s.summaryItem}>
               <Text style={s.summaryLabel}>Punti Base</Text>
-              <Text style={s.summaryValue}>{(data?.base_points || 0).toFixed(1)}</Text>
+              <Text style={s.summaryValue}>{Math.round(data?.base_points || 0)}</Text>
             </View>
             <View style={s.summaryDivider} />
             <View style={s.summaryItem}>
               <Text style={s.summaryLabel}>Totale</Text>
-              <Text style={s.summaryValueBig}>{(data?.total_points || 0).toFixed(1)}</Text>
+              <Text style={s.summaryValueBig}>{Math.round(data?.total_points || 0)}</Text>
             </View>
           </View>
         </LinearGradient>
@@ -227,7 +227,7 @@ export default function UserPredictionsScreen() {
                 />
                 {pred.outcome !== 'no_prediction' && pred.outcome !== 'pending' && (
                   <Text style={[s.pointsText, { color: getOutcomeColor(pred.outcome) }]}>
-                    {pred.outcome === 'correct' ? `+${pred.points.toFixed(1)}` : '0'}
+                    {pred.outcome === 'correct' ? `+${Math.round(pred.points)}` : '0'}
                   </Text>
                 )}
               </View>
