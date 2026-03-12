@@ -11,6 +11,7 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - **Admin Panel**: Gestione completa leghe e tornei in `/api/admin-ui`.
 - **Tournament System**: Round-robin con "circle method", gironi, knockout, matchup 1v1.
 - **Visual Hierarchy**: Matchday card mostra metrica primaria prominente — punti per leghe, punteggio match per tornei.
+- **Context Messages**: Messaggio contestuale umano sotto la metrica primaria (punti fatti / risultato match).
 
 ## Tech Stack
 - **Frontend**: React Native (Expo) Web
@@ -32,13 +33,12 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] P0 Navigation fix - Tab "Pronostici" con routing dinamico
 - [x] Global scoring refactor (1X2=2, Goal/Over=1, Esatto=5)
 - [x] Data migration script per punteggi storici
-- [x] Rimozione formattazione decimale — Tutti i punti mostrati come interi puri (12/03/2026)
-- [x] **Gerarchia visiva matchday card** — Metrica primaria prominente per leghe (punti) e tornei (punteggio match) (12/03/2026)
-  - League card LIVE/COMPLETED: grande numero punti centrato (52px, 900 weight) + label "PUNTI"
-  - Tournament card LIVE/COMPLETED: grande punteggio match "X – Y" centrato + label "VS OPPONENT"
-  - OPEN status: layout standard con titolo + progress pronostici
-  - Gerarchia condivisa: 1) Metrica primaria, 2) Titolo/label, 3) Badge stato, 4) CTA button
-  - Testato con testing agent: 100% frontend
+- [x] Rimozione formattazione decimale (12/03/2026)
+- [x] Gerarchia visiva matchday card (12/03/2026)
+- [x] **Messaggio contestuale matchday card** (12/03/2026)
+  - League: "PUNTI GIORNATA" + "Hai fatto X punti" / "Nessun punto questa giornata"
+  - Tournament: "Hai vinto" / "Hai pareggiato" / "Hai perso" + "VS OPPONENT"
+  - Testato: 100% frontend (iteration_79 + iteration_80)
 
 ## Prioritized Backlog
 
@@ -46,7 +46,7 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [ ] **Trophy System - Backfill**: Endpoint admin per assegnare retroattivamente trofei per eventi passati (pendente da 3 sessioni)
 - [ ] **Trophy - League Champion**: Logica per assegnare trofeo campione lega
 - [ ] **Trophy - Tournament Champion**: Logica per assegnare trofeo campione torneo
-- [ ] **Tournament Scheduling Fix**: Decidere con utente come gestire torneo "RedBull" creato con algoritmo vecchio (eliminare/ricreare vs script fix)
+- [ ] **Tournament Scheduling Fix**: Decidere con utente come gestire torneo "RedBull" creato con algoritmo vecchio
 
 ### P2 - Future
 - [ ] Championship Winner Predictions (codice pronto, nascosto)
@@ -55,21 +55,6 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 
 ### Known Issues
 - Team Name Overlap Bug (UI minore, non verificato)
-
-## Key API Endpoints
-- `GET /api/home` - Home screen data
-- `GET /api/standings/total` - Classifica totale
-- `GET /api/standings/weekly/{id}` - Classifica settimanale
-- `GET /api/predictions` - Pronostici giornata
-- `GET /api/live/{id}` - Partite live
-- `GET /api/tournaments` - Lista tornei
-- `POST /api/admin/tournaments` - Crea torneo (admin)
-
-## DB Schema (Key Collections)
-- `leagues`, `memberships`, `matchdays`, `matches`
-- `predictions`, `score_summaries`, `joker_usages`
-- `tournaments_col`, `tournament_rounds_col`, `tournament_matchups_col`
-- `users`, `trophies`, `notifications`
 
 ## Credentials
 - Standard User: `ilio@raimondi.it` / `password123`
