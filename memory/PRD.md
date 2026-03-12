@@ -1,49 +1,43 @@
 # FantaPronostic - Product Requirements Document
 
 ## Original Problem Statement
-App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente prevede risultati di partite e accumula punti. Sistema completo con admin panel, gestione giornate, live scores e profili utente.
+App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente prevede risultati di partite e accumula punti.
 
 ## Core Requirements
-- **Global Integer Scoring**: Punteggi fissi globali (1X2=2, Goal/Over=1, Esatto=5)
-- **Market Selection**: Le leghe private abilitano/disabilitano mercati, non valori punti
-- **Multiplier x3**: Funziona con punteggi base (es. esatto x3 = 15 punti)
-- **Context-Aware Navigation**: Tab "Pronostici" naviga dinamicamente per competizione/stato
-- **Admin Panel**: Gestione completa leghe e tornei in `/api/admin-ui`
-- **Tournament System**: Round-robin "circle method", gironi, knockout, matchup 1v1
-- **Visual Hierarchy**: Card matchday con metrica primaria prominente + messaggio contestuale
-
-## Tech Stack
-- **Frontend**: React Native (Expo) Web
-- **Backend**: FastAPI + MongoDB
-- **3rd Party**: API-Football, Expo Push, APScheduler, SendGrid
+- **Global Integer Scoring**: 1X2=2, Goal/Over=1, Esatto=5
+- **Context-Aware Navigation**: Tab "Pronostici" naviga dinamicamente
+- **Visual Hierarchy**: Matchday card con metrica primaria prominente + messaggio contestuale
+- **Mini Ranking**: Blocco competitivo sulla Home (classifica lega / girone torneo)
+- **Simplified Last 5**: Pills semplici al posto del bar chart per il trend
 
 ## Completed Features
 - [x] Auth (JWT + Google OAuth), Leghe, Tornei, Pronostici, Live scores, Classifiche
 - [x] Admin Panel, BOOST X3, Tournament 1v1 live view
-- [x] P0 Navigation fix, Global scoring refactor, Data migration
-- [x] Rimozione formattazione decimale
+- [x] P0 Navigation fix, Global scoring refactor, Data migration, Decimal formatting
 - [x] Gerarchia visiva matchday card + messaggi contestuali
-- [x] **Fix classifica punti bianchi 4°+ posto** (12/03/2026) - Top 3 arancio/oro, 4°+ bianco
-- [x] **Fix dropdown settimanale Lega Nazionale** (12/03/2026) - Mostra tutte 25 giornate (1-25)
-- [x] **Fix TREND torneo** (12/03/2026) - Solo round completati + spaziatura corretta
-- [x] **Migrazione matchup torneo float→int** (12/03/2026) - 126 matchup migrati
+- [x] Fix classifica punti bianchi 4°+, dropdown settimanale, TREND torneo
+- [x] **Mini Classifica Home** (12/03/2026)
+  - Lega: Top 3 classifica totale con highlight utente corrente
+  - Torneo: Top 3 classifica girone utente con group_points
+  - "Vedi classifica →" link al tab Classifiche
+- [x] **Ultime 5 Giornate Pills** (12/03/2026)
+  - Lega: 5 pills con punti + numeri giornata sotto
+  - Torneo: Pills solo per sfide completate
+  - Valori > 0 evidenziati in arancione (#F7A21B)
+  - Layout: Hero → Mini Ranking → Performance → Last 5 Pills
+  - Testato: 100% backend + frontend (iteration_82)
 
 ## Prioritized Backlog
 
 ### P1 - Next Up
-- [ ] **Trophy System - Backfill**: Endpoint admin per assegnare retroattivamente trofei
-- [ ] **Trophy - League Champion**: Logica per campione lega
-- [ ] **Trophy - Tournament Champion**: Logica per campione torneo
-- [ ] **Tournament Scheduling Fix**: Decidere come gestire torneo "RedBull" con algoritmo vecchio
+- [ ] **Trophy System - Backfill**: Endpoint admin per trofei retroattivi
+- [ ] **Trophy - League/Tournament Champion**: Logica per campioni
+- [ ] **Tournament Scheduling Fix**: Decidere come gestire torneo "RedBull"
 
 ### P2 - Future
 - [ ] Championship Winner Predictions
 - [ ] Integrazione Stripe
 - [ ] Breakdown punti per tipo nel profilo
-
-### Known Issues
-- Team Name Overlap Bug (UI minore, non verificato)
-- Tournament matchup points may not be 100% accurate for old data (migrated from float by rounding, not recalculated from predictions)
 
 ## Credentials
 - Standard User: `ilio@raimondi.it` / `password123`
