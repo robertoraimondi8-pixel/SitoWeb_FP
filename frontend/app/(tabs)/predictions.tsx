@@ -704,8 +704,8 @@ export default function PredictionsScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Footer - only show save when not completed */}
-      {!isCompleted && (
+      {/* Footer - only show save when OPEN (not locked, live, or completed) */}
+      {isOpen && (
         <View style={styles.footer}>
           {saved && (
             <View style={styles.savedBanner}>

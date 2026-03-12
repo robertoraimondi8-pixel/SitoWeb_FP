@@ -497,7 +497,7 @@ const s = StyleSheet.create({
   perfLabel: { fontSize: 9, fontWeight: '600', color: 'rgba(255,255,255,0.45)', letterSpacing: 0.8, textTransform: 'uppercase', textAlign: 'center', marginTop: 4, lineHeight: 13 },
   trendCardGrad: { padding: 16, borderRadius: 22, overflow: 'hidden' },
   sectionLabelInCard: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.55)', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 12 },
-  sectionLabel: { fontSize: 12, fontWeight: '800', color: colors.accent, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 4 },
+  sectionLabel: { fontSize: 13, fontWeight: '800', color: '#6B7280', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 8, marginTop: 4 },
 
   // Matchup cards
   matchupCard: { borderRadius: borderRadius.xl, overflow: 'hidden', borderWidth: 1.5, borderColor: colors.accent, marginBottom: spacing.md, padding: spacing.lg },
