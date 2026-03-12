@@ -4,57 +4,46 @@
 App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente prevede risultati di partite e accumula punti. Sistema completo con admin panel, gestione giornate, live scores e profili utente.
 
 ## Core Requirements
-- **Global Integer Scoring**: Punteggi fissi globali (1X2=2, Goal/Over=1, Esatto=5). Nessun valore custom per lega.
-- **Market Selection**: Le leghe private possono solo abilitare/disabilitare mercati (1X2, Goal/Over, Esatto), non i valori dei punti.
-- **Multiplier x3**: Funziona con i nuovi punteggi base (es. esatto su match x3 = 15 punti).
-- **Context-Aware Navigation**: Tab "Pronostici" naviga dinamicamente in base alla competizione selezionata e stato della giornata.
-- **Admin Panel**: Gestione completa leghe e tornei in `/api/admin-ui`.
-- **Tournament System**: Round-robin con "circle method", gironi, knockout, matchup 1v1.
-- **Visual Hierarchy**: Matchday card mostra metrica primaria prominente — punti per leghe, punteggio match per tornei.
-- **Context Messages**: Messaggio contestuale umano sotto la metrica primaria (punti fatti / risultato match).
+- **Global Integer Scoring**: Punteggi fissi globali (1X2=2, Goal/Over=1, Esatto=5)
+- **Market Selection**: Le leghe private abilitano/disabilitano mercati, non valori punti
+- **Multiplier x3**: Funziona con punteggi base (es. esatto x3 = 15 punti)
+- **Context-Aware Navigation**: Tab "Pronostici" naviga dinamicamente per competizione/stato
+- **Admin Panel**: Gestione completa leghe e tornei in `/api/admin-ui`
+- **Tournament System**: Round-robin "circle method", gironi, knockout, matchup 1v1
+- **Visual Hierarchy**: Card matchday con metrica primaria prominente + messaggio contestuale
 
 ## Tech Stack
 - **Frontend**: React Native (Expo) Web
 - **Backend**: FastAPI + MongoDB
 - **3rd Party**: API-Football, Expo Push, APScheduler, SendGrid
 
-## What's Been Implemented
-
-### Completed Features
-- [x] Sistema di autenticazione (JWT + Google OAuth)
-- [x] Sistema leghe (creazione, iscrizione, gestione)
-- [x] Sistema tornei (admin panel, round-robin, gironi, knockout)
-- [x] Pronostici e calcolo punteggi
-- [x] Live scores (API-Football integration)
-- [x] Classifiche (totali, settimanali, profilo utente)
-- [x] Admin Panel completo (`/api/admin-ui`)
-- [x] BOOST X3 visual treatment
-- [x] Tournament 1v1 live view
-- [x] P0 Navigation fix - Tab "Pronostici" con routing dinamico
-- [x] Global scoring refactor (1X2=2, Goal/Over=1, Esatto=5)
-- [x] Data migration script per punteggi storici
-- [x] Rimozione formattazione decimale (12/03/2026)
-- [x] Gerarchia visiva matchday card (12/03/2026)
-- [x] **Messaggio contestuale matchday card** (12/03/2026)
-  - League: "PUNTI GIORNATA" + "Hai fatto X punti" / "Nessun punto questa giornata"
-  - Tournament: "Hai vinto" / "Hai pareggiato" / "Hai perso" + "VS OPPONENT"
-  - Testato: 100% frontend (iteration_79 + iteration_80)
+## Completed Features
+- [x] Auth (JWT + Google OAuth), Leghe, Tornei, Pronostici, Live scores, Classifiche
+- [x] Admin Panel, BOOST X3, Tournament 1v1 live view
+- [x] P0 Navigation fix, Global scoring refactor, Data migration
+- [x] Rimozione formattazione decimale
+- [x] Gerarchia visiva matchday card + messaggi contestuali
+- [x] **Fix classifica punti bianchi 4°+ posto** (12/03/2026) - Top 3 arancio/oro, 4°+ bianco
+- [x] **Fix dropdown settimanale Lega Nazionale** (12/03/2026) - Mostra tutte 25 giornate (1-25)
+- [x] **Fix TREND torneo** (12/03/2026) - Solo round completati + spaziatura corretta
+- [x] **Migrazione matchup torneo float→int** (12/03/2026) - 126 matchup migrati
 
 ## Prioritized Backlog
 
 ### P1 - Next Up
-- [ ] **Trophy System - Backfill**: Endpoint admin per assegnare retroattivamente trofei per eventi passati (pendente da 3 sessioni)
-- [ ] **Trophy - League Champion**: Logica per assegnare trofeo campione lega
-- [ ] **Trophy - Tournament Champion**: Logica per assegnare trofeo campione torneo
-- [ ] **Tournament Scheduling Fix**: Decidere con utente come gestire torneo "RedBull" creato con algoritmo vecchio
+- [ ] **Trophy System - Backfill**: Endpoint admin per assegnare retroattivamente trofei
+- [ ] **Trophy - League Champion**: Logica per campione lega
+- [ ] **Trophy - Tournament Champion**: Logica per campione torneo
+- [ ] **Tournament Scheduling Fix**: Decidere come gestire torneo "RedBull" con algoritmo vecchio
 
 ### P2 - Future
-- [ ] Championship Winner Predictions (codice pronto, nascosto)
-- [ ] Integrazione Stripe per iscrizioni a pagamento
-- [ ] Breakdown punti per tipo nel profilo utente
+- [ ] Championship Winner Predictions
+- [ ] Integrazione Stripe
+- [ ] Breakdown punti per tipo nel profilo
 
 ### Known Issues
 - Team Name Overlap Bug (UI minore, non verificato)
+- Tournament matchup points may not be 100% accurate for old data (migrated from float by rounding, not recalculated from predictions)
 
 ## Credentials
 - Standard User: `ilio@raimondi.it` / `password123`
