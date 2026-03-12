@@ -612,6 +612,9 @@ async def get_tournament(tournament_id: str, user=Depends(get_current_user)):
             if r["status"] != "PENDING":
                 active_round = r
                 break
+    if not active_round and rounds:
+        # Fallback to latest PENDING round (show matchup info)
+        active_round = rounds[-1]
 
     if active_round and t["is_registered"]:
         round_id = active_round["id"]

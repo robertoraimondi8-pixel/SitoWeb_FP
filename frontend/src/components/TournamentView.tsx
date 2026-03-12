@@ -254,8 +254,8 @@ export function TournamentView({ tournamentId }: Props) {
               <Text style={s.heroLabel}>SFIDA TORNEO</Text>
             </View>
             <StatusBadge
-              status={cri.status === 'OPEN' ? 'OPEN' : cri.status === 'LIVE' ? 'LIVE' : 'COMPLETED'}
-              label={cri.status === 'OPEN' ? 'PRONOSTICI APERTI' : cri.status === 'LIVE' ? 'LIVE' : 'COMPLETATA'}
+              status={cri.status === 'OPEN' ? 'OPEN' : cri.status === 'LIVE' ? 'LIVE' : cri.status === 'PENDING' ? 'LOCKED' : 'COMPLETED'}
+              label={cri.status === 'OPEN' ? 'PRONOSTICI APERTI' : cri.status === 'LIVE' ? 'LIVE' : cri.status === 'PENDING' ? 'IN PREPARAZIONE' : 'COMPLETATA'}
             />
           </View>
 
@@ -266,7 +266,7 @@ export function TournamentView({ tournamentId }: Props) {
           {cri.opponent_name ? (
             <Text style={s.heroSub}>
               VS {cri.opponent_name}
-              {cri.status !== 'OPEN' ? `  \u2022  ${cri.my_points} - ${cri.opp_points}` : ''}
+              {cri.status !== 'OPEN' && cri.status !== 'PENDING' ? `  \u2022  ${cri.my_points} - ${cri.opp_points}` : ''}
             </Text>
           ) : (
             <Text style={s.heroSub}>{t.registered_count}/{t.max_participants} partecipanti</Text>
@@ -290,7 +290,16 @@ export function TournamentView({ tournamentId }: Props) {
             </View>
           )}
 
+          {/* PENDING state message */}
+          {cri.status === 'PENDING' && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, opacity: 0.7 }}>
+              <Ionicons name="time-outline" size={16} color="rgba(255,255,255,0.6)" />
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>In attesa delle partite da pronosticare</Text>
+            </View>
+          )}
+
           {/* CTA button — identical to league */}
+          {cri.status !== 'PENDING' && (
           <TouchableOpacity onPress={handleHeroCta} data-testid="tournament-hero-cta">
             <LinearGradient
               colors={cri.status === 'LIVE' ? ['#ef4444', '#dc2626'] : ['#F7A21B', '#E88E00']}
@@ -306,6 +315,7 @@ export function TournamentView({ tournamentId }: Props) {
               </View>
             </LinearGradient>
           </TouchableOpacity>
+          )}
         </LinearGradient>
       ) : (
         /* Fallback: Registration / No active round */

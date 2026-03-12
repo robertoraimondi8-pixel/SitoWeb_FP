@@ -680,12 +680,25 @@ async def admin_force_start_tournament(tournament_id: str, admin=Depends(require
         "$set": {
             "status": "groups",
             "started_at": now_utc(),
-            "current_round": 0,
+            "current_round": 1,
             "max_participants": actual_count,
             "groups_count": groups_count,
             "players_per_group": players_per_group,
         }
     })
+
+    # Auto-create Round 1
+    from database import tournament_rounds_col
+    round_doc = {
+        "id": new_id(),
+        "tournament_id": tournament_id,
+        "round_number": 1,
+        "round_type": "group",
+        "status": "PENDING",
+        "label": "Giornata 1",
+        "created_at": now_utc(),
+    }
+    await tournament_rounds_col.insert_one(round_doc)
 
     await log_audit(admin["id"], admin["username"], "FORCE_START", "tournament", tournament_id, {
         "name": t.get("name"), "participants": actual_count, "groups": groups_count
@@ -697,6 +710,7 @@ async def admin_force_start_tournament(tournament_id: str, admin=Depends(require
         "actual_participants": actual_count,
         "groups": groups_count,
         "matchups_created": len(all_matchups),
+        "round_1_created": True,
     }
 
 
