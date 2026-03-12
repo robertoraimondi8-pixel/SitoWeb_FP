@@ -225,7 +225,7 @@ export default function LiveScreen() {
               <View style={[s.matchNumBadge, match.is_special && { backgroundColor: colors.accent }]}>
                 <Text style={s.matchNum}>{idx + 1}</Text>
               </View>
-              <Text style={[s.competition, match.is_special && { color: colors.textSecondary }]}>{match.competition}</Text>
+              <Text style={[s.competition, match.is_special && { color: 'rgba(255,255,255,0.7)' }]}>{match.competition}</Text>
               {match.is_special && (
                 <View style={s.specialBadge}>
                   <Text style={s.specialText}>X3</Text>
@@ -257,7 +257,7 @@ export default function LiveScreen() {
               <View style={s.teamCol}>
                 <View style={s.teamNameRow}>
                   {match.home_logo && <Image source={{ uri: match.home_logo }} style={s.teamLogo} />}
-                  <Text style={[s.teamName, match.is_special && { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">{match.home_team}</Text>
+                  <Text style={s.teamName} numberOfLines={1} ellipsizeMode="tail">{match.home_team}</Text>
                 </View>
               </View>
               <View style={s.scoreCol}>
@@ -275,7 +275,7 @@ export default function LiveScreen() {
               </View>
               <View style={s.teamCol}>
                 <View style={[s.teamNameRow, { justifyContent: 'flex-end' }]}>
-                  <Text style={[s.teamName, { textAlign: 'right' }, match.is_special && { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+                  <Text style={[s.teamName, { textAlign: 'right' }]} numberOfLines={1} ellipsizeMode="tail">
                     {match.away_team}
                   </Text>
                   {match.away_logo && <Image source={{ uri: match.away_logo }} style={s.teamLogo} />}
@@ -423,9 +423,9 @@ const s = StyleSheet.create({
     borderWidth: 2,
   },
   matchCardSpecial: {
-    borderColor: '#E88E00',
-    borderWidth: 2.5,
-    backgroundColor: '#F5A623',
+    borderColor: '#F5A623',
+    borderWidth: 3,
+    backgroundColor: '#162F5C',
   },
   matchHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   matchNumBadge: {
