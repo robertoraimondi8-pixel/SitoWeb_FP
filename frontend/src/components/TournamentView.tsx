@@ -313,6 +313,9 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                 <Text style={s.heroPrimaryMetric} data-testid="tournament-primary-score">
                   {cri.my_points} – {cri.opp_points}
                 </Text>
+                <Text style={s.heroContextMsg} data-testid="tournament-context-msg">
+                  {cri.my_points > cri.opp_points ? 'Hai vinto' : cri.my_points < cri.opp_points ? 'Hai perso' : 'Hai pareggiato'}
+                </Text>
                 <Text style={s.heroPrimaryLabel}>VS {cri.opponent_name.toUpperCase()}</Text>
               </View>
 
@@ -488,6 +491,7 @@ const s = StyleSheet.create({
   heroPrimaryWrap: { alignItems: 'center', marginVertical: 16 },
   heroPrimaryMetric: { fontSize: 52, fontWeight: '900', color: '#FFFFFF', letterSpacing: -2, lineHeight: 58 },
   heroPrimaryLabel: { fontSize: 14, fontWeight: '700', color: 'rgba(255,255,255,0.75)', letterSpacing: 2, marginTop: 4 },
+  heroContextMsg: { fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginTop: 8, marginBottom: 2 },
 
   ctaGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 14, paddingHorizontal: 24, borderRadius: 22 },
   ctaText: { fontSize: 15, fontWeight: '800', color: '#fff' },

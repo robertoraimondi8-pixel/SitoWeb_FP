@@ -425,7 +425,17 @@ export default function HomeScreen() {
                               return val > 0 ? `+${val}` : `${val}`;
                             })()}
                           </Text>
-                          <Text style={s.heroPrimaryLabel}>PUNTI</Text>
+                          <Text style={s.heroPrimaryLabel}>PUNTI GIORNATA</Text>
+                          <Text style={s.heroContextMsg} data-testid="league-context-msg">
+                            {(() => {
+                              const pts = data.matchday.status?.toUpperCase() === 'LIVE'
+                                ? (data.live?.total_provisional ?? 0)
+                                : (data.matchday.my_points ?? data.live?.total_provisional ?? 0);
+                              const val = Math.round(Number(pts));
+                              if (val > 0) return `Hai fatto ${val} punti`;
+                              return 'Nessun punto questa giornata';
+                            })()}
+                          </Text>
                         </View>
                       ) : (
                         <>
@@ -885,6 +895,13 @@ const s = StyleSheet.create({
     color: DARK.textSub,
     letterSpacing: 2,
     marginTop: 4,
+  },
+  heroContextMsg: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 8,
+    marginBottom: 2,
   },
 
   // CTA Button (premium with highlight + top line)

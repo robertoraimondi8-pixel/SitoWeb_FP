@@ -1,0 +1,82 @@
+{
+  "summary": "Verified NEW context messages on matchday hero cards. League card (COMPLETED) shows 'PUNTI GIORNATA' label and context message 'Nessun punto questa giornata' (for 0 pts) or 'Hai fatto X punti' (for positive pts). Tournament card (COMPLETED) shows context message 'Hai vinto'/'Hai perso'/'Hai pareggiato' between score and VS OPPONENT label. All features implemented correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    ".screenshots/standard_home_1.png",
+    ".screenshots/tournament_view.png",
+    ".screenshots/switcher_dropdown.png"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: home.tsx lines 428-438 - League hero card shows 'PUNTI GIORNATA' label and context message correctly",
+    "VERIFIED: League context message logic: if points > 0 shows 'Hai fatto X punti', else 'Nessun punto questa giornata'",
+    "VERIFIED: TournamentView.tsx lines 316-318 - Tournament hero card shows context message 'Hai vinto'/'Hai perso'/'Hai pareggiato' correctly",
+    "VERIFIED: Tournament context message logic: compares my_points vs opp_points to determine win/loss/draw message",
+    "VERIFIED: Visual hierarchy: 1) Primary metric (big), 2) Context message, 3) Secondary info (VS opponent), 4) CTA button",
+    "VERIFIED: heroContextMsg style: fontSize 15, fontWeight 600, color rgba(255,255,255,0.8)",
+    "VERIFIED: PERFORMANCE and TREND sections render correctly for both league and tournament views"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A - frontend only test",
+    "frontend": "100% - All context messages verified"
+  },
+  "test_credentials": {
+    "standard_user": "ilio@raimondi.it / password123 (has 0 pts in liga2 GIORNATA 4 COMPLETED)",
+    "admin_user": "admin@fantapronostic.com / admin123 (has Torneo Redubull with 2-0 win showing 'Hai vinto')"
+  },
+  "seed_data_creation": "No new seed data created",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Context messages feature complete. League cards show 'PUNTI GIORNATA' label + 'Hai fatto X punti' or 'Nessun punto questa giornata'. Tournament cards show 'Hai vinto'/'Hai perso'/'Hai pareggiato' between score and VS label. Both verified working on COMPLETED status matchdays.",
+  "verified_features": {
+    "league_context_message_0_pts": {
+      "status": "PASS",
+      "user": "ilio@raimondi.it",
+      "league": "liga2",
+      "matchday": "GIORNATA 4",
+      "elements_verified": [
+        "Primary metric: '0' (big number)",
+        "Label: 'PUNTI GIORNATA'",
+        "Context message: 'Nessun punto questa giornata'",
+        "Status: COMPLETED badge",
+        "CTA: VIEW RESULTS button"
+      ]
+    },
+    "tournament_context_message_win": {
+      "status": "PASS",
+      "user": "admin@fantapronostic.com",
+      "tournament": "Torneo Redubull",
+      "round": "GIORNATA 1",
+      "elements_verified": [
+        "Primary metric: '2 – 0' (big score)",
+        "Context message: 'Hai vinto' (because 2 > 0)",
+        "Opponent label: 'VS TESTPLAYER31'",
+        "Status: COMPLETATA badge",
+        "CTA: VEDI RISULTATI button"
+      ]
+    },
+    "performance_section": {
+      "league": "PASS - Shows POSIZIONE ATTUALE, PUNTI TOTALI, MEDIA ULTIME 5",
+      "tournament": "PASS - Shows VITTORIE TORNEO, PUNTI TOTALI, MEDIA ULTIME 5"
+    },
+    "trend_section": {
+      "league": "PASS - Bar chart with 'Points per matchday'",
+      "tournament": "PASS - Bar chart with 'Punti per sfida'"
+    },
+    "competition_switcher": "PASS - Dropdown shows LEGHE and TORNEI sections correctly"
+  },
+  "code_implementation_verified": {
+    "league_context_msg_file": "app/(tabs)/home.tsx lines 429-438",
+    "tournament_context_msg_file": "src/components/TournamentView.tsx lines 316-318",
+    "style_heroContextMsg": "fontSize: 15, fontWeight: 600, color: rgba(255,255,255,0.8)"
+  }
+}
