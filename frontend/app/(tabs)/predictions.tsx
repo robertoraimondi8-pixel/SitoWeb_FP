@@ -212,7 +212,7 @@ export default function PredictionsScreen() {
       // Auto-redirect to live/results screen when LIVE or COMPLETED
       // Only when user tapped the bottom tab directly (no explicit matchday_id param)
       const mdStatus = activeMatchday.status?.toUpperCase();
-      if (!paramMatchdayId && (mdStatus === 'LIVE' || mdStatus === 'COMPLETED')) {
+      if (!paramMatchdayId && (mdStatus === 'LIVE' || mdStatus === 'COMPLETED' || mdStatus === 'CLOSED')) {
         if (isTournament) {
           // Tournament: go to Home which shows the matchup live view
           router.replace({ pathname: '/(tabs)/home', params: { tournament_id: tournamentId } } as any);
