@@ -13,7 +13,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://unified-competitions.preview.emergentagent.com"
+BACKEND_URL = "https://match-arena-10.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test credentials

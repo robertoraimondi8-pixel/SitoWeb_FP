@@ -28,6 +28,7 @@ export default function ProfileScreen() {
   const { user, token, logout, handleAuthError } = useAuth();
   const router = useRouter();
   const [leagueCount, setLeagueCount] = useState(0);
+  const [tournamentCount, setTournamentCount] = useState(0);
   const [ownedLeagues, setOwnedLeagues] = useState<OwnedLeague[]>([]);
 
   useEffect(() => {
@@ -35,6 +36,10 @@ export default function ProfileScreen() {
       try {
         const p = await apiCall('/profile', { token });
         setLeagueCount(p.leagues_count);
+        
+        // Carica tornei iscritti
+        const tournaments = await apiCall('/tournaments', { token }).catch(() => []);
+        setTournamentCount(Array.isArray(tournaments) ? tournaments.filter((t: any) => t.is_registered).length : 0);
         
         // Carica le leghe possedute dall'utente (owner/admin)
         const homeData = await apiCall('/home', { token });
@@ -127,6 +132,11 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
+              <Text style={styles.statValue}>{tournamentCount}</Text>
+              <Text style={styles.statLabel}>I miei tornei</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
               <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>{user?.role === 'admin' ? t('profile.role_admin') : ownedLeagues.length > 0 ? t('profile.role_owner') : t('profile.role_player')}</Text>
               <Text style={styles.statLabel}>{t('profile.role')}</Text>
             </View>
@@ -139,17 +149,13 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>{t('profile.settings')}</Text>
 
           <View style={styles.settingRow}>
-            <View style={[styles.settingIcon, { backgroundColor: isDark ? colors.accentLight : colors.infoLight }]}>
-              <Ionicons name={isDark ? 'moon' : 'sunny'} size={18} color={isDark ? colors.accent : colors.info} />
+            <View style={[styles.settingIcon, { backgroundColor: colors.infoLight }]}>
+              <Ionicons name="moon" size={18} color={colors.info} />
             </View>
-            <Text style={styles.settingLabel}>{isDark ? t('profile.dark_mode') : t('profile.light_mode')}</Text>
-            <Switch 
-              testID="theme-toggle" 
-              value={isDark} 
-              onValueChange={toggleTheme} 
-              trackColor={{ false: colors.border, true: colors.accent }} 
-              thumbColor={colors.textInverse} 
-            />
+            <Text style={styles.settingLabel}>Tema Scuro</Text>
+            <View style={{ backgroundColor: 'rgba(0,0,0,0.06)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textMuted }}>Attivo</Text>
+            </View>
           </View>
 
           <View style={styles.settingDivider} />

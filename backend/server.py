@@ -35,6 +35,7 @@ from routes.fixtures import fixtures_router, live_fixtures_loop
 from routes.stats import stats_router
 from routes.rbac import rbac_router
 from routes.tournaments import tournament_router
+from routes.champion_picks import champion_router
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -70,6 +71,7 @@ app.include_router(stats_router)
 app.include_router(news_router)
 app.include_router(rbac_router)
 app.include_router(tournament_router)
+app.include_router(champion_router)
 
 
 # ========================================

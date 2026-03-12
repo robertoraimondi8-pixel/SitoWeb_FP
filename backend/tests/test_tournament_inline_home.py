@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://unified-competitions.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://match-arena-10.preview.emergentagent.com')
 
 # Test credentials
 TEST_USER_EMAIL = "ilio@raimondi.it"

@@ -257,8 +257,8 @@ export default function HomeScreen() {
               </View>
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={s.headerIcon} onPress={() => router.push('/league/list')}>
-            <Ionicons name="people-outline" size={22} color={LIGHT.text} />
+          <TouchableOpacity style={s.headerIcon} onPress={() => router.push('/menu/my-tournaments')}>
+            <Ionicons name="medal-outline" size={22} color={LIGHT.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -626,6 +626,43 @@ export default function HomeScreen() {
                 </LinearGradient>
               </View>
           </Animated.View>
+        )}
+
+        {/* ─── 5. PRONOSTICO VINCITORE CAMPIONATO ─── */}
+        {data?.league && competitionMode === 'league' && (
+          <TouchableOpacity
+            style={s.championBanner}
+            activeOpacity={0.8}
+            data-testid="champion-pick-banner"
+            onPress={() => router.push({
+              pathname: '/champion-pick',
+              params: { league_id: data.league?.id, league_name: data.league?.name },
+            } as any)}
+          >
+            <LinearGradient
+              colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={s.championBannerGrad}
+            >
+              <LinearGradient
+                colors={['rgba(255,255,255,0.10)', 'transparent']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={s.topGlow}
+              />
+              <View style={s.championBannerContent}>
+                <View style={s.championBannerLeft}>
+                  <Ionicons name="football" size={28} color={DARK.accent} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.championBannerTitle}>Pronostico Vincitore</Text>
+                  <Text style={s.championBannerSub}>Chi vincerà il campionato?</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={DARK.accent} />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
         )}
 
       </Animated.ScrollView>
@@ -1009,6 +1046,42 @@ const s = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 12,
+  },
+
+  // ── 5. Champion Pick Banner ──
+  championBanner: {
+    marginTop: 16,
+    borderRadius: 22,
+    overflow: 'hidden',
+  },
+  championBannerGrad: {
+    borderRadius: 22,
+    overflow: 'hidden',
+  },
+  championBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 14,
+  },
+  championBannerLeft: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  championBannerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 0.2,
+  },
+  championBannerSub: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.55)',
+    marginTop: 2,
   },
 
 });

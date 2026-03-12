@@ -16,7 +16,7 @@ import requests
 import os
 
 # Use the public URL from frontend environment
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://unified-competitions.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://match-arena-10.preview.emergentagent.com')
 
 # Test credentials
 TEST_USERS = {

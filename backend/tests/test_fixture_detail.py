@@ -5,7 +5,7 @@ import os
 
 BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = 'https://unified-competitions.preview.emergentagent.com'
+    BASE_URL = 'https://match-arena-10.preview.emergentagent.com'
 
 # Test credentials
 STANDARD_USER_EMAIL = "ilio@raimondi.it"

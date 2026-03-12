@@ -1,169 +1,154 @@
 <analysis>**original_problem_statement**:
-The user has requested a major new feature: a Tornei (Tournaments) module. This module must exist separately from the current Leghe (Leagues) system but should reuse the existing prediction and scoring engine.
+The user wants to add a Tornei (Tournaments) module. The core user requirement, repeated with increasing emphasis, is that this module must **NOT** be a separate section of the app. Instead, it should be treated as a different competition context within the **EXISTING** app shell and UI.
 
-PRODUCT REQUIREMENTS for Tornei:
--   **Creation**: Tournaments are created only by a Super Admin via the admin panel.
--   **Configuration**: Admin can set the number of participants (8, 16, 32), duration in matchdays, and structure (e.g., 4 groups of 4, top 2 advance).
--   **Structure**: The system must support a group stage followed by a single-elimination knockout bracket.
--   **Enrollment**: Users can see and join available tournaments from a new Tornei section in the app. Enrollment is initially free but should be designed to support future payment integration.
--   **Automation**: The system should automatically generate groups when the tournament starts and create the knockout bracket based on group stage results and admin-defined rules (e.g., 1st vs 2nd).
--   **Gameplay**:
-    -   Matchups are 1v1. The winner of a matchup is the user with the higher total prediction score for that matchday.
-    -   Group stage points: Win = 3, Draw = 1, Loss = 0.
-    -   The admin selects a different set of matches for each tournament matchday.
-    -   Prediction submission window is the same as for leagues (closes 1 minute before the first match).
--   **Live View**: A critical feature is a live matchup screen showing the two competing users, their predictions, and the score updating in real time.
--   **UI**: A new Tornei section should be added to the app, separate from Leghe. It should have sub-sections for I miei tornei (My Tournaments) and Iscriviti a nuovi tornei (Join New Tournaments). The home screen should also feature a banner for available tournaments.
+**PRODUCT REQUIREMENTS**:
+-   **Unified Experience**: When a user switches from a league to a tournament, only the content area of each tab (Home, Pronostici, Classifiche) should change. The main app shell (header, bottom tab bar) must remain persistent.
+-   **Context-Aware Home**: The tournament home screen must be identical in structure to the league home screen: a dynamic hero card showing the current matchup status (e.g., INSERISCI PRONOSTICI, SEGUI LIVE), followed by Performance and Trend statistics.
+-   **Context-Aware Rankings**: The Classifiche tab must be context-aware. For leagues, it shows the league table. For tournaments, it must show a screen with three sub-tabs: , , and .
+-   **Context-Aware Predictions**: The Pronostici tab must load the fixtures for the currently active tournament round.
+-   **UI/UX Parity**: All tournament screens must reuse the exact same visual components, styles, and layout as the Leghe (Leagues) section to ensure a consistent look and feel.
 
 **User's preferred language**: Italiano
 
 **what currently exists?**
-The application is a full-stack solution with a modular FastAPI backend and a React Native (Expo) frontend. The core Leagues functionality is stable. In this session, several items were completed before starting the new Tournaments feature:
--   Unused jolly feature code was removed from the frontend.
--   A backend bug was fixed where the Matchday History in standings was empty.
--   A new Match Details feature was implemented, allowing users to click on a match to see a bottom sheet with stats, lineups, and a live-ticker-style event summary. The UI for this was polished based on user feedback.
--   Champions League and Europa League were added as importable competitions.
--   **Phase 1 (Backend Foundation)** of the Tournaments feature is **COMPLETE**. This includes the database models (, , ) and all necessary API endpoints for creating, listing, joining, and viewing tournaments. All backend tests passed.
+The application now correctly implements the competition context architecture. A global  has been created to share the active competition state ( or ) across all main tabs. The separate, incorrect tournament pages have been deleted, and all tournament-related UI is now rendered conditionally within the existing tab screens (, , ).
+
+The backend was enhanced with new endpoints and data fields (, , ) to support the new dynamic and context-aware frontend. The agent has just finished implementing a final set of UI tweaks on the Profile page and in the main header.
 
 **Last working item**:
--   **Last item agent was working**: Implementing **Phase 2 (Frontend Integration)** of the Tournaments feature. The agent created the file structure for the new UI screens and was in the process of integrating them.
--   **Status**: IN PROGRESS
+-   **Last item agent was working**: Implementing three UI changes requested by the user:
+    1.  Disabling the non-functional light/dark mode toggle in the Profile.
+    2.  Adding a I miei tornei (My Tournaments) counter to the Profile stats.
+    3.  Replacing the redundant leagues list icon in the main header with a Palmares (Trophy) icon.
+-   **Status**: USER VERIFICATION PENDING
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: . This is a large multi-screen feature that requires thorough end-to-end UI testing. Screenshots can be used for quick verification of individual components.
+-   **Which testing method agent to use?**: . The agent should verify these three specific UI changes are correctly implemented and have not introduced any regressions.
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: (P0) Complete Frontend for Tournaments (Phase 2)**
-    -   **Description**: The file structure for the tournament UI has been created, but the components and pages are currently empty placeholders. They need to be implemented to fetch data from the backend and render the user interface.
+-   **Issue 1: (P0) Verify last set of UI changes (Profile & Header)**
+    -   **Description**: The agent implemented the three changes listed in the Last working item section above, but they have not been tested or verified by the user.
     -   **Next debug checklist**:
-        1.  Implement  to fetch from  and display a list of joinable tournaments with participant counts.
-        2.  Implement  to fetch from  and display the user's current and past tournaments.
-        3.  Implement  to show the details of a specific tournament, including its groups, standings, and schedule.
-        4.  Finalize the integration of  into the  screen to display open tournaments.
-        5.  Implement the Join Tournament button functionality.
-        6.  Ensure the navigation from the Side Menu, home banner, and between tournament screens works correctly.
-    -   **Why fix this issue and what will be achieved with the fix?**: This will complete the user-facing part of the tournament feature, allowing users to discover and join tournaments.
-    -   **Status**: IN PROGRESS
+        1.  Examine  to confirm the theme toggle is disabled and code exists to fetch and display .
+        2.  Examine  to confirm the right header icon has been changed to .
+        3.  Run the app, navigate to the Profile page, and visually confirm the changes.
+    -   **Why fix this issue and what will be achieved with the fix?**: To complete the user's latest requests and ensure the UI is in the desired state.
+    -   **Status**: USER VERIFICATION PENDING
     -   **Is recurring issue?**: N
     -   **Should Test frontend/backend/both after fix?**: Frontend
-    -   **Blocked on other issue**: None.
+    -   **Blocked on other issue**: None
 
 -   **Issue 2: (P1) Team Name Overlap Bug**
-    -   **Description**: A recurring UI bug where long team names in prediction lists overlap with the match result. A flexbox fix was previously implemented but is awaiting final confirmation from the user.
+    -   **Description**: A recurring UI bug where long team names in prediction lists overlap with the match result. This was noted in the initial handoff.
     -   **Status**: USER VERIFICATION PENDING
     -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: Frontend
 
 **In progress Task List**:
--   **Task 1: Implement Phase 2 of Tournaments Feature (Frontend)**
-    -   **Where to resume**: The agent just created all the necessary files (, ,  for pages;  for navigation;  for the home screen) and added the link to the . The next logical step is to start implementing the UI and data fetching logic within  (the Join New Tournaments screen).
-    -   **What will be achieved with this?**: A functional user interface for browsing and joining tournaments.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: Frontend
-    -   **Blocked on something**: None.
+-   None. The work is captured in the pending issues list.
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks (Tournaments Feature Phases):**
-    -   **(P0) Phase 3 - Admin Panel for Tournaments**: Build the UI in the admin panel for creating and managing tournaments.
-    -   **(P1) Phase 4 - Group & Bracket Generation**: Implement backend logic for automatic group and knockout bracket generation.
-    -   **(P2) Phase 5 - 1v1 Matchup Logic**: Implement backend logic to process 1v1 matchups and determine winners based on prediction scores.
-    -   **(P3) Phase 6 - Live Matchup Screen**: Create the live view for a 1v1 tournament match, showing both users' predictions and scores in real-time.
-
--   **Future Tasks (General Backlog):**
+-   **Upcoming Tasks**:
     -   (P1) Implement Championship Winner Predictions feature.
-    -   (P2) Design and implement an Achievements/Badges system.
+-   **Future Tasks**:
+    -   (P2) Design and implement an Achievements/Badges system (the new trophy icon is a placeholder for this).
     -   (P2) Integrate Stripe for paid entry to the National League and Tournaments.
 
 **Completed work in this session**
--   **Jolly Dead Code Removal**: Removed all frontend code related to the obsolete jolly feature.
--   **Storico Giornate Bug Fix**: Corrected a backend query in  to ensure matchday history is correctly displayed in user standings.
--   **Match Details Feature**: Implemented a clickable match card that opens a bottom sheet with detailed Statistics, Lineups, and a new Diretta-style live Events summary.
--   **UI/UX Polish**: Added chevron icons to all clickable match cards and redesigned the Events tab in Italian per user feedback.
--   **Championship Expansion**: Added Champions League and Europa League to the list of available competitions in .
--   **Tournaments - Phase 1 (Backend)**: Designed, built, and tested the entire backend foundation for the Tournaments feature, including DB models and API endpoints for creation, listing, and joining.
+-   **Architectural Refactor (Tournaments as Competition Context)**: Successfully refactored the entire frontend to treat Tournaments as a context within the main app shell, removing all separate tournament pages.
+-   **Shared **: Implemented a React Context to provide  state to all tabs, making them context-aware.
+-   **Context-Aware **: Refactored  to perfectly mirror the league's home screen, with a dynamic hero card and identical Performance and Trend sections.
+-   **Context-Aware **: Implemented the , , and  tabs for the tournament view, including a dropdown filter for matches.
+-   **Context-Aware **: Updated the predictions tab to fetch and display fixtures for the active tournament.
+-   **Numerous Bug Fixes**: Resolved a series of critical bugs, including app freezes, rendering errors (), incorrect content display in tabs, and syntax errors that were blocking the app from running.
+
+**Earlier issues found/mentioned but not fixed**
+-   None. All major issues raised during this session were addressed.
 
 **Known issue recurrence from previous fork**
--   **Team Name Overlap Bug**: A UI issue that had a fix implemented but is pending final user verification.
+-   **Team Name Overlap Bug**: This UI issue from the previous fork is still pending final user verification.
+-   **Incorrect Tournament UI Architecture**: This was the primary recurring issue from the previous session and has been fully **RESOLVED** by the architectural refactor.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **React Native (Expo)**: Frontend framework.
--   **FastAPI**: Backend framework.
--   **MongoDB**: NoSQL database.
--   **Tournament Module**: A new, separate module designed to coexist with the existing Leagues system, reusing the prediction engine but with a different competition structure (groups -> knockout).
--   **React Navigation**: Used for the new stack navigator for the tournament section.
--   **Bottom Sheet**: Implemented for the match details feature.
+-   **React Native (Expo)**, **FastAPI**, **MongoDB**.
+-   **React Context API**: A  was created to manage the global state of  and . This is the cornerstone of the new architecture, enabling different tabs to react to the selected competition.
+-   **Conditional Rendering**: Used extensively in , , and  to display different UI based on the .
+-   **Component & Style Reuse**:  was heavily refactored to reuse the exact same components and gradient styles from the league home screen, ensuring UI consistency as requested by the user.
 
 **key DB schema**
--   **tournaments**: 
--   **tournament_groups**: 
--   **tournament_matchups**: 
+-   No changes made to the database schema.
+
+**changes in tech stack**
+-   None.
 
 **All files of reference**
--   **New Files**:
+-   **Context & Layout**:
+    -    (NEW)
+    -    (Wrapped with Provider, header icon changed)
+-   **Context-Aware Screens**:
     -   
     -   
     -   
     -   
+-   **Components**:
     -   
+-   **Backend**:
     -   
-    -   
--   **Key Modified Files**:
-    -    (registered tournament router)
-    -    (bug fix)
-    -    (new methods and leagues)
-    -    (SideMenu update)
-    -    (for banner integration)
-    -    (match details integration)
-    -    (match details integration)
-    -    (match details integration)
+
+**Areas that need refactoring**:
+-   The major required refactoring is complete. The light/dark mode functionality is currently disabled and would require a significant refactor of the app's styling (moving from hardcoded colors to theme variables) to be implemented properly.
+
+**key api endpoints**
+-   : Modified to include a  field for the dynamic hero card.
+-   : New endpoint to provide tournament matches in a format compatible with the predictions screen.
+-   : New endpoint that returns all matchups for a tournament, used in the Partite tab.
 
 **Critical Info for New Agent**
--   Your main priority is the **Tornei (Tournaments) feature**.
--   A detailed PRD from the user exists and the work is phased. Phase 1 (Backend) is complete. You are in the middle of **Phase 2 (Frontend)**.
--   The file structure for the frontend is in place, but the pages/components are just placeholders. Your immediate task is to build out the UI and data-fetching logic for these new frontend files.
--   The user is very clear that this new feature **must not** break the existing Leagues functionality.
--   Pay close attention to user's UI/UX preferences (e.g., chevrons for clickability, specific layouts for data).
+-   The user is extremely detail-oriented and focused on UI/UX consistency. Ensure any new feature or change in the tournament section perfectly mirrors the existing league section's look and feel.
+-   The  is the source of truth for the app's current mode. All tabs are designed to be context-aware.
+-   Your first task is to verify the last set of changes made to the Profile screen and header. The user has not seen these yet.
+-   Always respond in Italian.
 
 **documents and test reports created in this job**
--    (Tournament backend feature tests)
--    (Updated with tournament feature requirements and progress)
+-    (updated)
+-   
+-   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **LATEST**: User provides detailed requirements for the new Tournaments feature, broken down into 11 points covering creation, structure, enrollment, gameplay, and UI. Stresses it must not interfere with the existing leagues system.
-2.  User asks to add Champions League and Europa League as importable championships.
-3.  User confirms they can now see the clickable indicator (chevron) on the live results screen after a bundle restart.
-4.  User requests a bundle restart because the clickable indicator isn't visible.
-5.  User points out that the live/results screen card also needs a visual indicator to show it's clickable.
-6.  User requests a bundle restart.
-7.  User provides feedback on the new match details feature: 1) add a visual indicator (like a chevron) to show cards are clickable, and 2) redesign the Events tab to be like a live ticker (home/away alignment, running score, all in Italian).
-8.  User requests a bundle restart.
-9.  User confirms the plan to add match details, specifies they want a complete feature, suggests a bottom sheet modal, and lists the three screens where it should be active (, , ).
-10. User reports a bug in the Classifiche (Rankings) screen: the Storico Giornate (Matchday History) section is empty even when there are past matchdays.
+1.  **User**: Reports the app freezes when switching from a tournament back to a league. (FIXED)
+2.  **User**: Reports 3 issues: 1) Light mode toggle in Profile is broken. 2) Profile page should show My Tournaments. 3) The header icon is redundant and should be changed to a Trophy/Palmares icon. (IN PROGRESS - implementation done, pending verification).
+3.  **Agent**: Acknowledges the 3 issues and starts working.
+4.  **Agent**: Implements the fixes for all three issues.
+5.  **User**: Reports a syntax error after the  refactor. (FIXED)
+6.  **User**: Reports the syntax error persists, likely due to a caching issue. (FIXED - agent forced multiple restarts and corrected the logic).
+7.  **User**: After fixes, asks to restart the bundle as preview is not loading. (DONE)
+8.  **User**: Reports a new  error. (FIXED - it was another syntax issue in  which the agent resolved by simplifying the rendering logic).
+9.  **User**: Asks for another bundle restart. (DONE)
+10. **LATEST**: The conversation concludes with the agent successfully fixing the final syntax error and getting the app running again. The next step is to verify the last functional changes (from message #2).
 
 **Project Health Check:**
--   **Broken**: None.
+-   **Broken**: None. All critical blocking bugs have been resolved.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
 -   **API-Football (API-Sports)**: Core data provider.
 -   **Expo (including Expo Push)**: Frontend framework and push notification service.
 -   **APScheduler**: For scheduled backend tasks.
--   **SendGrid**: For transactional emails (password reset). Requires user API key.
--   **Emergent-managed Google Auth**: For social login.
+-   **SendGrid**: For transactional emails.
 
 **Testing status**
--   Testing agent used after significant changes: YES. The backend for the Tournaments feature (Phase 1) was thoroughly tested, with 29/29 tests passing.
--   Troubleshoot agent used after agent stuck in loop: NO.
--   Test files created:  (generated and run by the testing agent).
--   Known regressions: None.
+-   **Testing agent used after significant changes**: YES. The agent was used multiple times to validate large refactors and bug fixes, proving effective in catching issues.
+-   **Troubleshoot agent used after agent stuck in loop**: NO
+-   **Test files created**:  (from previous session, but backend was modified).
+-   **Known regressions**: None currently known.
 
 **Credentials to test flow:**
 -   **Standard User**:  / 
 -   **Admin**:  / 
--   **League Owner**:  / 
 
 **What agent forgot to execute**
--   Nothing was forgotten. The agent is proceeding methodically through the user's phased plan for the new feature.</analysis>
+-   The agent successfully addressed all user requests and bug reports from this session. The only remaining items are pre-existing future tasks from the product backlog.</analysis>
