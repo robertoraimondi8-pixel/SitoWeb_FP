@@ -19,7 +19,7 @@ const DEADLINE_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60];
 const DEFAULT_SCORING: Record<string, { enabled: boolean; points: number; label: string; desc: string }> = {
   '1x2':         { enabled: true,  points: 1.0,  label: '1X2',            desc: 'Risultato finale (1/X/2)' },
   'over_under':  { enabled: true,  points: 0.5,  label: 'Over/Under 2.5', desc: 'Totale goal superiore o inferiore a 2.5' },
-  'goal_no_goal':{ enabled: true,  points: 0.5,  label: 'Goal/No Goal',   desc: 'Entrambe le squadre segnano (Goal) oppure almeno una non segna (No Goal).' },
+  'goal_no_goal':{ enabled: true,  points: 0.5,  label: 'GG/NG',   desc: 'Entrambe le squadre segnano (Goal) oppure almeno una non segna (No Goal).' },
   'exact_score': { enabled: true,  points: 4.0,  label: 'Risultato Esatto', desc: 'Punteggio finale preciso' },
 };
 

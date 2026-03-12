@@ -29,7 +29,7 @@ const SCORING_LABELS: { key: string; label: string }[] = [
   { key: '1x2', label: 'Esito corretto (1X2)' },
   { key: 'exact_score', label: 'Risultato esatto' },
   { key: 'over_under', label: 'Under/Over' },
-  { key: 'goal_no_goal', label: 'Goal/NoGoal' },
+  { key: 'goal_no_goal', label: 'GG/NG' },
 ];
 
 export default function RulesScreen() {

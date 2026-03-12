@@ -23,7 +23,7 @@ import { StatusBadge, PrimaryButton, AnimatedSweep } from '../../src/components/
 
 const ALL_MARKETS = [
   { key: '1X2',          configKey: '1x2',         label: '1X2',               info: 'Scegli il risultato finale:\n1 = squadra di casa\nX = pareggio\n2 = squadra ospite', defaultPts: 1.0 },
-  { key: 'GOAL_NOGOL',   configKey: 'goal_no_goal', label: 'Goal/NoGoal', info: 'Sì = entrambe le squadre segnano almeno un gol\nNo = almeno una squadra non segna', defaultPts: 0.5 },
+  { key: 'GOAL_NOGOL',   configKey: 'goal_no_goal', label: 'GG/NG', info: 'Sì = entrambe le squadre segnano almeno un gol\nNo = almeno una squadra non segna', defaultPts: 0.5 },
   { key: 'OVER_UNDER_25',configKey: 'over_under',   label: 'U/O 2.5',         info: 'Over = almeno 3 gol totali nella partita\nUnder = meno di 3 gol totali', defaultPts: 0.5 },
   { key: 'EXACT_SCORE',  configKey: 'exact_score',  label: 'Ris. Esatto',      info: 'Indovina il punteggio finale esatto', defaultPts: 4.0 },
 ];
@@ -944,14 +944,15 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.background,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   vs: { 
     ...typography.metaSmall,
-    color: 'rgba(255,255,255,0.4)',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   
   lockedArea: { 
