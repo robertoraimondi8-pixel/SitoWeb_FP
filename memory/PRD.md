@@ -95,6 +95,7 @@ Fantasy football predictions platform where users join leagues, predict match ou
 ## Completed Tasks
 
 ### March 12, 2026 (Latest)
+- [x] **SCORING REFACTOR**: Replaced decimal scoring (0.5/1/4) with integer scoring (1/2/5). Centralized in `scoring.py` MARKET_POINTS. Global fixed values — leagues only control enabled/disabled markets. Migration: recalculated all 319 predictions, 89 score_summaries, cleared standings_cache. X3 multiplier verified (3/6/15). Admin UI points now read-only. Backend 100%, Frontend 90%.
 - [x] **P0 FIX: Dynamic Pronostici Tab Navigation** — Tab press listener in `_layout.tsx` intercepts and resolves destination dynamically based on competition mode + matchday state. Leagues LIVE/COMPLETED → `/live/{id}`. Tournaments LIVE/COMPLETED → Home + matchup auto-open via `pendingMatchupOpen`. Testing: 100% backend + frontend pass.
 - [x] Tournament Admin Panel (creation, configuration, force-start, round management)
 - [x] Tournament App Integration (predictions, live, fixtures endpoints support tournaments)
