@@ -365,14 +365,71 @@ export default function RankingsScreen() {
         {!trkLoading && trkTab === 'partite' && (() => {
           const activeRound = trkTournament?.current_round_info;
 
-          // Build filter options: "all" + unique round labels
-          const filterOptions = [{ key: 'all', label: 'Tutte le partite' }, ...trkAllMatchups.map(r => ({ key: `${r.round_type}_${r.round_number}`, label: r.label }))];
-          const filtered = trkPartiteFilter === 'all' ? trkAllMatchups : trkAllMatchups.filter(r => `${r.round_type}_${r.round_number}` === trkPartiteFilter);
+          // Build group map from trkGroups
+          const groupMap: Record<string, string> = {};
+          (trkGroups || []).forEach((g: any) => { groupMap[g.group_id] = g.group_name; });
+
+          // Collect unique groups and knockout phases from matchups
+          const groupIds = new Set<string>();
+          const knockoutTypes = new Set<string>();
+          const allMatchupsFlat: any[] = [];
+          (trkAllMatchups || []).forEach((round: any) => {
+            (round.matchups || []).forEach((mu: any) => {
+              const enriched = { ...mu, round_number: round.round_number, round_type: round.round_type, round_label: round.label };
+              allMatchupsFlat.push(enriched);
+              if (round.round_type === 'group' && mu.group_id) groupIds.add(mu.group_id);
+              if (round.round_type !== 'group') knockoutTypes.add(round.round_type);
+            });
+          });
+
+          // Build filter options
+          const knockoutLabels: Record<string, string> = { knockout: 'Sedicesimi', round_of_16: 'Ottavi di Finale', quarter: 'Quarti di Finale', semi: 'Semifinali', final: 'Finale' };
+          const filterOptions: { key: string; label: string; icon: string }[] = [
+            { key: 'all', label: 'Tutte le partite', icon: 'list' },
+          ];
+          // Add group filters sorted by name
+          [...groupIds].sort((a, b) => (groupMap[a] || '').localeCompare(groupMap[b] || '')).forEach(gid => {
+            filterOptions.push({ key: `group_${gid}`, label: `Girone ${groupMap[gid] || '?'}`, icon: 'people' });
+          });
+          // Add knockout filters
+          ['knockout', 'round_of_16', 'quarter', 'semi', 'final'].forEach(kt => {
+            if (knockoutTypes.has(kt)) {
+              filterOptions.push({ key: `ko_${kt}`, label: knockoutLabels[kt] || kt, icon: 'trophy' });
+            }
+          });
+
+          // Apply filter
+          let filtered: any[];
+          if (trkPartiteFilter === 'all') {
+            filtered = allMatchupsFlat;
+          } else if (trkPartiteFilter.startsWith('group_')) {
+            const gid = trkPartiteFilter.replace('group_', '');
+            filtered = allMatchupsFlat.filter(mu => mu.group_id === gid);
+          } else if (trkPartiteFilter.startsWith('ko_')) {
+            const kt = trkPartiteFilter.replace('ko_', '');
+            filtered = allMatchupsFlat.filter(mu => mu.round_type === kt);
+          } else {
+            filtered = allMatchupsFlat;
+          }
+
           const activeLabel = filterOptions.find(f => f.key === trkPartiteFilter)?.label || 'Tutte le partite';
+
+          // Group filtered matchups by round for display
+          const roundsMap: Record<string, { label: string; round_type: string; round_number: number; matchups: any[] }> = {};
+          filtered.forEach(mu => {
+            const key = `${mu.round_type}_${mu.round_number}`;
+            if (!roundsMap[key]) roundsMap[key] = { label: mu.round_label, round_type: mu.round_type, round_number: mu.round_number, matchups: [] };
+            roundsMap[key].matchups.push(mu);
+          });
+          const groupedRounds = Object.values(roundsMap).sort((a, b) => {
+            if (a.round_type === 'group' && b.round_type !== 'group') return -1;
+            if (a.round_type !== 'group' && b.round_type === 'group') return 1;
+            return a.round_number - b.round_number;
+          });
 
           return (
             <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-              {/* Dropdown filter for matchups */}
+              {/* Dropdown filter */}
               <TouchableOpacity
                 onPress={() => setTrkFilterOpen(!trkFilterOpen)}
                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: '#e0e0e0' }}
@@ -393,23 +450,28 @@ export default function RankingsScreen() {
                       onPress={() => { setTrkPartiteFilter(opt.key); setTrkFilterOpen(false); }}
                       style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f0f0f0', backgroundColor: trkPartiteFilter === opt.key ? 'rgba(31,76,143,0.05)' : 'transparent' }}
                     >
-                      <Text style={{ fontSize: 14, fontWeight: trkPartiteFilter === opt.key ? '700' : '400', color: trkPartiteFilter === opt.key ? colors.primary : colors.textPrimary }}>{opt.label}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        <Ionicons name={opt.icon as any} size={16} color={trkPartiteFilter === opt.key ? colors.primary : colors.textMuted} />
+                        <Text style={{ fontSize: 14, fontWeight: trkPartiteFilter === opt.key ? '700' : '400', color: trkPartiteFilter === opt.key ? colors.primary : colors.textPrimary }}>{opt.label}</Text>
+                      </View>
                       {trkPartiteFilter === opt.key && <Ionicons name="checkmark" size={16} color={colors.primary} />}
                     </TouchableOpacity>
                   ))}
                 </View>
               )}
 
-              {filtered.length === 0 ? (
+              {groupedRounds.length === 0 ? (
                 <View style={{ padding: 32, alignItems: 'center' }}>
                   <Ionicons name="football-outline" size={40} color={colors.textMuted} />
                   <Text style={{ marginTop: 12, fontSize: 14, color: colors.textMuted, textAlign: 'center' }}>Nessuna partita ancora disponibile</Text>
                 </View>
-              ) : filtered.map((round: any) => (
+              ) : groupedRounds.map((round: any) => (
                 <View key={`${round.round_type}_${round.round_number}`} style={{ marginBottom: 20 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                     <View style={{ width: 4, height: 20, backgroundColor: round.round_type === 'group' ? '#22c55e' : colors.primary, borderRadius: 2 }} />
-                    <Text style={{ fontSize: 15, fontWeight: '800', color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.8 }}>{round.label}</Text>
+                    <Text style={{ fontSize: 15, fontWeight: '800', color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                      {trkPartiteFilter.startsWith('group_') ? `Girone ${groupMap[trkPartiteFilter.replace('group_', '')] || ''} - Round ${round.round_number}` : round.label}
+                    </Text>
                     <View style={{ backgroundColor: round.round_type === 'group' ? 'rgba(34,197,94,0.1)' : 'rgba(31,76,143,0.1)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
                       <Text style={{ fontSize: 10, fontWeight: '700', color: round.round_type === 'group' ? '#22c55e' : colors.primary }}>{(round.matchups || []).length} sfide</Text>
                     </View>
