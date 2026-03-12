@@ -41,22 +41,32 @@ Fantasy football predictions platform where users join leagues, predict match ou
 - Shared `CompetitionContext` provider
 - Context-aware tabs: Home, Predictions, Rankings
 - Tournament views: Gironi, Tabellone, Partite
+- BOOST X3 premium card design for special matches
+- 1v1 live matchup view with score comparison
+- Round-robin scheduling with "circle method" algorithm
 
-### Trophy/Palmares System (NEW - March 2026)
+### Dynamic Tab Navigation (NEW - March 2026)
+- Tab press listener in `_layout.tsx` dynamically resolves destination
+- League OPEN/LOCKED → predictions form
+- League LIVE/COMPLETED → `/live/{matchdayId}` (live/results screen)
+- Tournament OPEN → predictions form
+- Tournament LIVE/COMPLETED → Home tab with TournamentView matchup auto-opened via `pendingMatchupOpen` context signal
+- No generic Home fallback — every navigation is context-aware
+
+### Trophy/Palmares System
 - **Backend engine** (`trophies.py`): Automatic trophy assignment
   - Weekly trophies: Best matchday score, Perfect score (all correct), 5+ win streak
   - League trophies: Champion, 2nd place, 3rd place (at season end)
   - Tournament trophies: Champion, Finalist, Semifinalist (at tournament end)
 - **API endpoints**: `GET /api/trophies/my`, `GET /api/trophies/user/{user_id}`
-- **Hooks integrated** into scoring flows:
-  - `services.py`: `award_weekly_trophies()` called after matchday scoring
-  - `tournaments.py`: `award_tournament_trophies()` called when all rounds complete
-- **Frontend Palmares screen** (`palmares.tsx`): 
-  - Accessible via medal icon in header
-  - Fetches real data from `/api/trophies/my`
-  - 3 colored categories: Lega (blue), Tornei (green), Settimanali (purple)
-  - Recent trophies list, empty state message
-  - Pull-to-refresh
+- **Hooks integrated** into scoring flows
+- **Frontend Palmares screen** (`palmares.tsx`)
+
+### Admin Panel (Server-Side Rendered)
+- Full tournament management (CRUD, groups, knockouts)
+- Giornate management for leagues and tournaments
+- Force-start tournaments, manage round states
+- Accessible at `/api/admin-ui`
 
 ### Rankings & Standings
 - General league standings
@@ -67,7 +77,6 @@ Fantasy football predictions platform where users join leagues, predict match ou
 ### Profile
 - User stats: leagues count, tournaments count, role
 - Language selector (IT/EN/ES)
-- Theme toggle removed (was non-functional)
 
 ## Database Collections
 - users, seasons, leagues, memberships
@@ -77,39 +86,48 @@ Fantasy football predictions platform where users join leagues, predict match ou
 - push_tokens, roles, password_resets
 - tournaments, tournament_registrations
 - tournament_groups, tournament_rounds, tournament_matchups
-- **trophies** (NEW)
+- trophies
 
 ## Test Credentials
 - **Standard User**: ilio@raimondi.it / password123
 - **Admin**: admin@fantapronostic.com / admin123
 
-## Completed Tasks (March 12, 2026)
+## Completed Tasks
+
+### March 12, 2026 (Latest)
+- [x] **P0 FIX: Dynamic Pronostici Tab Navigation** — Tab press listener in `_layout.tsx` intercepts and resolves destination dynamically based on competition mode + matchday state. Leagues LIVE/COMPLETED → `/live/{id}`. Tournaments LIVE/COMPLETED → Home + matchup auto-open via `pendingMatchupOpen`. Testing: 100% backend + frontend pass.
+- [x] Tournament Admin Panel (creation, configuration, force-start, round management)
+- [x] Tournament App Integration (predictions, live, fixtures endpoints support tournaments)
+- [x] BOOST X3 Global UI Refactor (premium card design across all screens/states)
+- [x] Tournament Live View Overhaul (1v1 matchup screen)
+- [x] Side Menu Redesign (navy gradient, consistent with app design)
+- [x] Round-robin scheduling with "circle method" algorithm
+
+### Earlier (March 2026)
 - [x] Removed "Tema Scuro" from Profile
-- [x] Medal icon navigates to Palmares screen (was opening leagues list)
-- [x] Created Palmares screen with 3 trophy categories (data from API)
+- [x] Medal icon navigates to Palmares screen
+- [x] Created Palmares screen with 3 trophy categories
 - [x] Built trophy assignment engine (trophies.py)
-- [x] Hooked trophy assignment into matchday scoring flow
-- [x] Hooked trophy assignment into tournament completion flow
-- [x] API endpoints for trophies (my + user)
+- [x] Hooked trophy assignment into matchday/tournament scoring flows
+- [x] API endpoints for trophies
 - [x] All tests passed: 14/14 backend (pytest)
 - [x] Hidden Championship Winner Predictions feature
 - [x] Fixed team name overlap (flexShrink on vsContainer)
 
 ## Prioritized Backlog
+
 ### P1
-- [ ] Re-enable Championship Winner Predictions when decided
-- [ ] Award league trophies at end of season (needs admin trigger or auto-detection)
+- [ ] Retroactively award trophies for past events (backfill: `POST /api/admin/recalculate-trophies`)
+- [ ] Implement League Champion trophy logic
+- [ ] Implement Tournament Champion trophy logic
+- [ ] Fix scheduling for existing "RedBull" tournament (regenerate matchups or recreate?)
 
 ### P2
+- [ ] Re-enable Championship Winner Predictions when decided
 - [ ] Stripe integration for paid entry to leagues/tournaments
-- [ ] Light/dark mode full implementation
-
-### Completed Recently
-- [x] Side Menu Redesign (2026-03-12): Header da arancione a gradiente blu navy, icone arancioni, coerente con il design dell'app
-- [x] Admin Panel - Sezione Tornei (2026-03-12): Gestione completa tornei nel pannello admin esterno con creazione, eliminazione, apertura iscrizioni, avvio forzato
-- [x] Logica Tornei Avanzata (2026-03-12): Calcolo automatico giornate gironi (N-1 andata, 2*(N-1) andata/ritorno), scelta formato andata/ritorno, calcolo automatico fase eliminatoria (32esimi/ottavi/quarti/ecc.), tabellone Champions League con incroci gironi, validazione potenza di 2 per qualificati
 
 ### Future
 - [ ] Push notification improvements
 - [ ] Social features (chat, comments)
 - [ ] Advanced statistics dashboard
+- [ ] Light/dark mode full implementation
