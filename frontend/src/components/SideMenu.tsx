@@ -95,7 +95,6 @@ export function SideMenu({ visible, onClose }: Props) {
   const leagueItems: MenuItem[] = [
     { icon: 'list-outline', label: 'Le mie leghe', route: '/menu/my-leagues', testId: 'menu-my-leagues' },
     { icon: 'people-outline', label: 'Partecipanti', route: '/menu/members', testId: 'menu-members' },
-    { icon: 'football-outline', label: 'Pronostico Vincitore', route: activeLeague ? `/champion-pick?league_id=${activeLeague.id}&league_name=${encodeURIComponent(activeLeague.name)}` : '/menu/my-leagues', testId: 'menu-champion-pick' },
     { icon: 'document-text-outline', label: 'Regolamento', route: '/menu/rules', testId: 'menu-rules' },
     { icon: 'mail-outline', label: 'I miei inviti', route: '/menu/invites', testId: 'menu-invites' },
   ];

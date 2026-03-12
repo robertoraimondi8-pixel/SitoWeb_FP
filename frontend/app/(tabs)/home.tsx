@@ -628,42 +628,7 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* ─── 5. PRONOSTICO VINCITORE CAMPIONATO ─── */}
-        {data?.league && competitionMode === 'league' && (
-          <TouchableOpacity
-            style={s.championBanner}
-            activeOpacity={0.8}
-            data-testid="champion-pick-banner"
-            onPress={() => router.push({
-              pathname: '/champion-pick',
-              params: { league_id: data.league?.id, league_name: data.league?.name },
-            } as any)}
-          >
-            <LinearGradient
-              colors={['#2C5FA8', '#1F4C8F', '#162F5C']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={s.championBannerGrad}
-            >
-              <LinearGradient
-                colors={['rgba(255,255,255,0.10)', 'transparent']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={s.topGlow}
-              />
-              <View style={s.championBannerContent}>
-                <View style={s.championBannerLeft}>
-                  <Ionicons name="football" size={28} color={DARK.accent} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={s.championBannerTitle}>Pronostico Vincitore</Text>
-                  <Text style={s.championBannerSub}>Chi vincerà il campionato?</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={DARK.accent} />
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        )}
+        {/* ─── 5. PRONOSTICO VINCITORE CAMPIONATO (hidden - future feature) ─── */}
 
       </Animated.ScrollView>
       )}
