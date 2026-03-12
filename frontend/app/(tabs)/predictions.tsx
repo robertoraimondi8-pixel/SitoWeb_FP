@@ -562,7 +562,7 @@ export default function PredictionsScreen() {
                 {m.external_fixture_id && (
                   <TouchableOpacity
                     style={styles.statsBtn}
-                    onPress={() => setDetailFixtureId(m.external_fixture_id)}
+                    onPress={() => setPreviewMatchId(m.id)}
                     data-testid={`stats-btn-${m.id}`}
                   >
                     <Ionicons name="stats-chart" size={14} color={colors.primary} />
