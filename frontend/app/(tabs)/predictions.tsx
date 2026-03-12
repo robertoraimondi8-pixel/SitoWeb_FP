@@ -528,11 +528,16 @@ export default function PredictionsScreen() {
                   )}
                 </View>
 
-                {/* Special match banner */}
+                {/* BOOST X3 premium header */}
                 {m.is_special && (
-                  <View style={[styles.specialBanner, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-                    <Ionicons name="star" size={14} color="#F5A623" />
-                    <Text style={[styles.specialBannerText, { color: '#F5A623', fontWeight: '800' }]}>PUNTI TRIPLICATI X3</Text>
+                  <View style={styles.boostHeader}>
+                    <View style={styles.boostLabelCol}>
+                      <Text style={styles.boostMainLabel}>BOOST X3</Text>
+                      <Text style={styles.boostSubLabel}>Moltiplica X3 i punti</Text>
+                    </View>
+                    <View style={styles.boostIcon}>
+                      <Ionicons name="flash" size={20} color="#0D2240" />
+                    </View>
                   </View>
                 )}
 
@@ -838,9 +843,49 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   matchCardSpecial: {
-    borderWidth: 3,
-    borderColor: '#F5A623',
-    backgroundColor: '#162F5C',
+    borderWidth: 0,
+    borderColor: 'transparent',
+    backgroundColor: '#0D2240',
+    shadowColor: '#F5A623',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+  },
+  boostHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginHorizontal: -16,
+    marginTop: -16,
+    marginBottom: 12,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    backgroundColor: '#F5A623',
+  },
+  boostLabelCol: {
+    flexDirection: 'column',
+    gap: 1,
+  },
+  boostMainLabel: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#0D2240',
+    letterSpacing: 1.5,
+  },
+  boostSubLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(13,34,64,0.7)',
+  },
+  boostIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(13,34,64,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   specialX3Badge: {
     backgroundColor: colors.accent,

@@ -220,6 +220,18 @@ export default function LiveScreen() {
             onPress={() => match.external_fixture_id && setDetailFixtureId(match.external_fixture_id)}
           >
             <AnimatedSweep />
+            {/* BOOST X3 premium header */}
+            {match.is_special && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, marginHorizontal: -16, marginTop: -16, marginBottom: 12, borderTopLeftRadius: 18, borderTopRightRadius: 18, backgroundColor: '#F5A623' }}>
+                <View>
+                  <Text style={{ fontSize: 16, fontWeight: '900', color: '#0D2240', letterSpacing: 1.5 }}>BOOST X3</Text>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: 'rgba(13,34,64,0.7)' }}>Moltiplica X3 i punti</Text>
+                </View>
+                <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(13,34,64,0.15)', alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name="flash" size={20} color="#0D2240" />
+                </View>
+              </View>
+            )}
             {/* Match Header */}
             <View style={s.matchHeader}>
               <View style={[s.matchNumBadge, match.is_special && { backgroundColor: colors.accent }]}>
@@ -423,9 +435,13 @@ const s = StyleSheet.create({
     borderWidth: 2,
   },
   matchCardSpecial: {
-    borderColor: '#F5A623',
-    borderWidth: 3,
-    backgroundColor: '#162F5C',
+    borderColor: 'transparent',
+    borderWidth: 0,
+    backgroundColor: '#0D2240',
+    shadowColor: '#F5A623',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
   },
   matchHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   matchNumBadge: {

@@ -172,8 +172,20 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
           const aPts = md.user_a_points || 0;
           const bPts = md.user_b_points || 0;
           return (
-            <TouchableOpacity key={m.id || idx} style={[s.matchCard, mLive && s.matchCardLive]} activeOpacity={m.external_fixture_id ? 0.7 : 1} onPress={() => m.external_fixture_id && setDetailFixtureId(m.external_fixture_id)} data-testid={`match-${idx}`}>
+            <TouchableOpacity key={m.id || idx} style={[s.matchCard, mLive && s.matchCardLive, m.is_special && s.matchCardSpecial]} activeOpacity={m.external_fixture_id ? 0.7 : 1} onPress={() => m.external_fixture_id && setDetailFixtureId(m.external_fixture_id)} data-testid={`match-${idx}`}>
               <AnimatedSweep />
+              {/* BOOST X3 premium header */}
+              {m.is_special && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, marginHorizontal: -16, marginTop: -16, marginBottom: 12, borderTopLeftRadius: 18, borderTopRightRadius: 18, backgroundColor: '#F5A623' }}>
+                  <View>
+                    <Text style={{ fontSize: 16, fontWeight: '900', color: '#0D2240', letterSpacing: 1.5 }}>BOOST X3</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: 'rgba(13,34,64,0.7)' }}>Moltiplica X3 i punti</Text>
+                  </View>
+                  <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(13,34,64,0.15)', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="flash" size={20} color="#0D2240" />
+                  </View>
+                </View>
+              )}
               {/* Match header */}
               <View style={s.matchHeader}>
                 <View style={s.matchNumBadge}><Text style={s.matchNum}>{idx + 1}</Text></View>
@@ -517,9 +529,9 @@ const s = StyleSheet.create({
   liveBadgeMatch: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(16,185,113,0.25)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 } as any,
   liveTextMatch: { fontSize: 10, fontWeight: '900', color: '#10B981', letterSpacing: 0.5 },
 
-  // Match cards
   matchCard: { backgroundColor: '#1F4C8F', borderRadius: borderRadius.xl, padding: spacing.lg, marginBottom: spacing.md, borderWidth: 1.5, borderColor: colors.accent, overflow: 'hidden' as const },
   matchCardLive: { borderColor: '#10B981', borderWidth: 2 },
+  matchCardSpecial: { borderWidth: 0, borderColor: 'transparent', backgroundColor: '#0D2240', shadowColor: '#F5A623', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 16 } as any,
   matchHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   matchNumBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   matchNum: { fontSize: 10, color: '#fff', fontWeight: '800' },
