@@ -866,3 +866,19 @@ async def admin_add_manual_match(req: AdminAddManualMatchReq, admin=Depends(requ
         "match": f"{req.home_team} vs {req.away_team}", "tournament": req.tournament_id
     })
     return match_doc
+
+
+
+@admin_router.put("/tournament-rounds/{round_id}/status")
+async def admin_update_tournament_round_status(round_id: str, body: dict = {}, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """Update tournament round status (PENDING, OPEN, LOCKED, LIVE, COMPLETED)."""
+    from database import tournament_rounds_col
+    new_status = body.get("status")
+    if not new_status:
+        raise HTTPException(400, "Stato mancante")
+    rnd = await tournament_rounds_col.find_one({"id": round_id}, {"_id": 0})
+    if not rnd:
+        raise HTTPException(404, "Round non trovato")
+    await tournament_rounds_col.update_one({"id": round_id}, {"$set": {"status": new_status}})
+    await log_audit(admin["id"], admin["username"], "UPDATE_STATUS", "tournament_round", round_id, {"old_status": rnd["status"], "new_status": new_status})
+    return {"ok": True, "status": new_status}

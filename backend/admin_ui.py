@@ -1992,21 +1992,29 @@ async function doMdTransition(mdId, newStatus) {
   const currentIdx = order.indexOf(md ? md.status : '');
   const targetIdx = order.indexOf(newStatus);
   const isBackward = targetIdx < currentIdx;
+  const isTournament = md && md._is_tournament;
   const msg = isBackward
     ? 'ATTENZIONE: stai tornando indietro a ' + newStatus + '. Confermare?'
     : 'Cambiare stato a ' + newStatus + '?';
   if (!confirm(msg)) return;
   try {
-    if (isBackward) {
-      // Use override for backward transitions
+    if (isTournament) {
+      // Tournament round: use dedicated endpoint
+      await apiCall('/admin/tournament-rounds/' + mdId + '/status', 'PUT', {status: newStatus});
+    } else if (isBackward) {
       const leagueId = md ? md.league_id : document.getElementById('md-league').value;
       await apiCall('/admin/matchday/' + mdId + '/override', 'POST', {league_id: leagueId, target_status: newStatus});
     } else {
       await apiCall('/admin/matchdays/' + mdId, 'PUT', {status: newStatus});
     }
     showToast('Stato aggiornato: ' + newStatus);
-    await loadMatchdays();
-    showMdControlRoom(mdId, 'info');
+    if (isTournament) {
+      await loadTournamentMatchdays(md._tournament_id);
+      showMdControlRoom(mdId, md._tournament_id, 'info');
+    } else {
+      await loadMatchdays();
+      showMdControlRoom(mdId, 'info');
+    }
   } catch(e) { showToast(e.message, 'error'); }
 }
 
