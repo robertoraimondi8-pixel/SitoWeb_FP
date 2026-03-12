@@ -703,19 +703,19 @@ async def admin_force_start_tournament(tournament_id: str, admin=Depends(require
 class AdminCreateTournamentReq(PydanticBaseModel):
     name: str
     max_participants: int = 16
-    duration_rounds: int = 3
     groups_count: int = 4
     players_per_group: int = 4
     advance_count: int = 2
     entry_fee: float = 0.0
     tournament_type: str = "groups_knockout"
-    knockout_from_group: int = 2
+    round_robin_type: str = "single"  # single = solo andata, double = andata e ritorno
 
 
 @admin_router.post("/tournaments", response_model=None)
 async def admin_create_tournament(req: AdminCreateTournamentReq, admin=Depends(require_permission("admin.tournaments.manage"))):
     """Admin create tournament with extended options."""
     from database import tournaments_col
+    import math
 
     if req.tournament_type == "groups_knockout":
         if req.max_participants != req.groups_count * req.players_per_group:
@@ -723,18 +723,33 @@ async def admin_create_tournament(req: AdminCreateTournamentReq, admin=Depends(r
         if req.advance_count >= req.players_per_group:
             raise HTTPException(400, "Chi passa deve essere minore dei giocatori per girone")
 
+    # Auto-calculate duration_rounds based on round-robin type
+    ppg = req.players_per_group
+    if req.round_robin_type == "double":
+        duration_rounds = 2 * (ppg - 1)
+    else:
+        duration_rounds = ppg - 1
+
+    # Calculate knockout info
+    total_qualifiers = req.groups_count * req.advance_count
+    knockout_rounds = int(math.log2(total_qualifiers)) if total_qualifiers > 0 and (total_qualifiers & (total_qualifiers - 1)) == 0 else 0
+
     doc = {
         "id": new_id(),
         "name": req.name,
         "status": "draft",
         "max_participants": req.max_participants,
-        "duration_rounds": req.duration_rounds,
+        "duration_rounds": duration_rounds,
         "groups_count": req.groups_count,
         "players_per_group": req.players_per_group,
         "advance_count": req.advance_count,
         "entry_fee": req.entry_fee,
         "tournament_type": req.tournament_type,
-        "knockout_from_group": req.knockout_from_group,
+        "round_robin_type": req.round_robin_type,
+        "knockout_from_group": req.advance_count,
+        "total_qualifiers": total_qualifiers,
+        "knockout_rounds": knockout_rounds,
+        "bracket_style": "champions_league",
         "current_round": 0,
         "created_by": admin["id"],
         "created_at": now_utc(),

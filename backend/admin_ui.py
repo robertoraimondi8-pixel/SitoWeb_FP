@@ -2748,12 +2748,13 @@ function renderTournamentsTable(tournaments) {
     document.getElementById('tourn-list').innerHTML = '<p style="color:#94A3B8;padding:16px">Nessun torneo trovato.</p>';
     return;
   }
-  let html = '<table><tr><th>Nome</th><th>Stato</th><th>Tipo</th><th>Partecipanti</th><th>Prezzo</th><th>Gironi</th><th>Passano</th><th>Creato</th><th>Azioni</th></tr>';
+  let html = '<table><tr><th>Nome</th><th>Stato</th><th>Tipo</th><th>Formato</th><th>Partecipanti</th><th>Prezzo</th><th>Gironi</th><th>Giornate</th><th>Passano</th><th>Creato</th><th>Azioni</th></tr>';
   tournaments.forEach(t => {
     const statusMap = {draft:'DRAFT',registration:'ISCRIZIONI',groups:'GIRONI',knockout:'ELIMINAZIONE',semifinal:'SEMIFINALE',final:'FINALE',completed:'COMPLETATO'};
     const statusLabel = statusMap[t.status] || t.status;
     const statusCls = t.status === 'draft' ? 'status-DRAFT' : t.status === 'registration' ? 'status-OPEN' : t.status === 'completed' ? 'status-COMPLETED' : 'status-LIVE';
-    const typeLabel = (t.tournament_type === 'knockout_only') ? 'Solo Eliminazione' : 'Gironi + Eliminazione';
+    const typeLabel = (t.tournament_type === 'knockout_only') ? 'Solo Elim.' : 'Gironi + Elim.';
+    const rrLabel = t.round_robin_type === 'double' ? 'A/R' : 'Andata';
     const fee = t.entry_fee > 0 ? t.entry_fee.toFixed(2) + ' EUR' : '<span style="color:#10B981">Gratis</span>';
     const created = t.created_at ? new Date(t.created_at).toLocaleDateString('it') : '-';
 
@@ -2762,7 +2763,7 @@ function renderTournamentsTable(tournaments) {
       actions += `<button class="btn btn-sm btn-success" onclick="adminOpenTournamentReg('${t.id}')" data-testid="open-reg-${t.id}">Apri Iscrizioni</button> `;
     }
     if (t.status === 'registration') {
-      actions += `<button class="btn btn-sm" onclick="adminForceStartTournament('${t.id}','${t.name}')" data-testid="force-start-${t.id}">Avvia (anche senza pieni)</button> `;
+      actions += `<button class="btn btn-sm" onclick="adminForceStartTournament('${t.id}','${t.name}')" data-testid="force-start-${t.id}">Avvia</button> `;
     }
     actions += `<button class="btn btn-sm btn-danger" onclick="showDeleteTournamentModal('${t.id}','${t.name}')" data-testid="delete-tourn-${t.id}">Elimina</button>`;
 
@@ -2770,9 +2771,11 @@ function renderTournamentsTable(tournaments) {
       <td><strong>${t.name}</strong></td>
       <td><span class="status-badge ${statusCls}">${statusLabel}</span></td>
       <td style="font-size:12px">${typeLabel}</td>
+      <td style="font-size:12px">${rrLabel}</td>
       <td>${t.registered_count || 0} / ${t.max_participants}</td>
       <td>${fee}</td>
       <td>${t.groups_count || '-'} (${t.players_per_group || '-'}/g)</td>
+      <td>${t.duration_rounds || '-'}</td>
       <td>${t.advance_count || '-'}</td>
       <td style="font-size:12px;color:#94A3B8">${created}</td>
       <td>${actions}</td></tr>`;
@@ -2810,8 +2813,11 @@ function showCreateTournamentModal() {
         </select>
       </div>
       <div>
-        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Durata Giornate (round di gironi)</label>
-        <input id="nt-rounds" type="number" min="1" max="10" value="3" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="nt-rounds">
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Formato Gironi</label>
+        <select id="nt-rr-type" onchange="recalcTournament()" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="nt-rr-type">
+          <option value="single">Solo Andata</option>
+          <option value="double">Andata e Ritorno</option>
+        </select>
       </div>
     </div>
 
@@ -2828,10 +2834,10 @@ function showCreateTournamentModal() {
         </div>
         <div>
           <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Passano alla Eliminazione</label>
-          <input id="nt-advance" type="number" min="1" max="8" value="2" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="nt-advance">
+          <input id="nt-advance" type="number" min="1" max="8" value="2" onchange="recalcTournament()" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="nt-advance">
         </div>
       </div>
-      <p id="nt-calc" style="color:#64748B;font-size:12px;margin-top:8px"></p>
+      <div id="nt-calc" style="margin-top:12px"></div>
     </div>
 
     <div class="modal-actions" style="margin-top:16px">
@@ -2844,35 +2850,91 @@ function showCreateTournamentModal() {
 function onTournTypeChange() {
   const type = document.getElementById('nt-type').value;
   document.getElementById('nt-groups-section').style.display = type === 'knockout_only' ? 'none' : 'block';
+  recalcTournament();
 }
 
 function recalcTournament() {
   const max = parseInt(document.getElementById('nt-max').value) || 16;
   const groups = parseInt(document.getElementById('nt-groups').value) || 4;
   const ppg = parseInt(document.getElementById('nt-ppg').value) || 4;
+  const advance = parseInt(document.getElementById('nt-advance').value) || 2;
+  const rrType = document.getElementById('nt-rr-type').value;
   const calcEl = document.getElementById('nt-calc');
-  if (calcEl) {
-    const expected = groups * ppg;
-    if (expected !== max) {
-      calcEl.innerHTML = '<span style="color:#EF4444">Attenzione: ' + groups + ' gironi x ' + ppg + ' giocatori = ' + expected + ' (diverso da ' + max + ' max partecipanti)</span>';
-    } else {
-      calcEl.innerHTML = '<span style="color:#10B981">OK: ' + groups + ' gironi x ' + ppg + ' giocatori = ' + expected + ' partecipanti</span>';
-    }
+  if (!calcEl) return;
+
+  let html = '';
+  const expected = groups * ppg;
+
+  if (expected !== max) {
+    html += '<div style="color:#EF4444;font-size:12px;margin-bottom:6px">&#9888; ' + groups + ' gironi x ' + ppg + ' giocatori = ' + expected + ' (diverso da ' + max + ' max)</div>';
+  } else {
+    html += '<div style="color:#10B981;font-size:12px;margin-bottom:6px">&#10003; ' + groups + ' gironi x ' + ppg + ' giocatori = ' + expected + ' partecipanti</div>';
   }
+
+  const matchdays = rrType === 'double' ? 2 * (ppg - 1) : (ppg - 1);
+  const matchesPerGroup = rrType === 'double' ? ppg * (ppg - 1) : ppg * (ppg - 1) / 2;
+  const rrLabel = rrType === 'double' ? 'Andata e Ritorno' : 'Solo Andata';
+  html += '<div style="color:#3B82F6;font-size:12px;margin-bottom:6px">&#9917; Fase a gironi (' + rrLabel + '): <strong>' + matchdays + ' giornate</strong>, ' + matchesPerGroup + ' partite per girone</div>';
+
+  const totalQualifiers = groups * advance;
+  const isPowerOf2 = totalQualifiers > 0 && (totalQualifiers & (totalQualifiers - 1)) === 0;
+
+  if (advance >= ppg) {
+    html += '<div style="color:#EF4444;font-size:12px;margin-bottom:6px">&#9888; Chi passa (' + advance + ') deve essere minore dei giocatori per girone (' + ppg + ')</div>';
+  } else if (!isPowerOf2) {
+    html += '<div style="color:#EF4444;font-size:12px;margin-bottom:6px">&#9888; Totale qualificati (' + totalQualifiers + ') non e una potenza di 2. Serve 2, 4, 8, 16, 32 o 64.</div>';
+  } else {
+    const knockoutNames = {2:'Finale',4:'Semifinali',8:'Quarti di finale',16:'Ottavi di finale',32:'Sedicesimi',64:'Trentaduesimi'};
+    const startRound = knockoutNames[totalQualifiers] || ('Turno da ' + totalQualifiers);
+    const knockoutRounds = Math.log2(totalQualifiers);
+    html += '<div style="color:#F5A623;font-size:12px;margin-bottom:6px">&#127942; Eliminazione diretta: <strong>' + totalQualifiers + ' qualificati</strong> &rarr; si parte dai <strong>' + startRound + '</strong> (' + knockoutRounds + ' turni)</div>';
+
+    html += '<div style="color:#94A3B8;font-size:11px;margin-top:4px;padding:8px;background:#0F172A;border-radius:6px;border:1px solid #334155">';
+    html += '<strong style="color:#F5A623">Tabellone Champions League:</strong><br>';
+    if (groups >= 2) {
+      const letters = [];
+      for (let i = 0; i < groups; i++) letters.push(String.fromCharCode(65 + i));
+      for (let i = 0; i < groups; i += 2) {
+        if (i + 1 < groups) {
+          const gA = letters[i], gB = letters[i+1];
+          const matches = [];
+          for (let r = 1; r <= advance; r++) {
+            const opponent = advance - r + 1;
+            matches.push(r + 'o ' + gA + ' vs ' + opponent + 'o ' + gB);
+          }
+          html += '<span style="color:#F5A623">' + gA + '-' + gB + ':</span> ' + matches.join(' &nbsp;|&nbsp; ');
+          if (i + 2 < groups) html += '<br>';
+        }
+      }
+    }
+    html += '</div>';
+  }
+
+  calcEl.innerHTML = html;
 }
 
 async function doCreateTournament() {
   const type = document.getElementById('nt-type').value;
+  const ppg = parseInt(document.getElementById('nt-ppg').value);
+  const advance = parseInt(document.getElementById('nt-advance').value);
+  const groups = parseInt(document.getElementById('nt-groups').value);
+  const totalQ = groups * advance;
+  const isPowerOf2 = totalQ > 0 && (totalQ & (totalQ - 1)) === 0;
+
+  if (!isPowerOf2 && type === 'groups_knockout') {
+    showToast('Il totale qualificati (' + totalQ + ') deve essere una potenza di 2', 'error');
+    return;
+  }
+
   const body = {
     name: document.getElementById('nt-name').value.trim(),
     max_participants: parseInt(document.getElementById('nt-max').value),
-    duration_rounds: parseInt(document.getElementById('nt-rounds').value),
-    groups_count: parseInt(document.getElementById('nt-groups').value),
-    players_per_group: parseInt(document.getElementById('nt-ppg').value),
-    advance_count: parseInt(document.getElementById('nt-advance').value),
+    groups_count: groups,
+    players_per_group: ppg,
+    advance_count: advance,
     entry_fee: parseFloat(document.getElementById('nt-fee').value) || 0,
     tournament_type: type,
-    knockout_from_group: parseInt(document.getElementById('nt-advance').value),
+    round_robin_type: document.getElementById('nt-rr-type').value,
   };
 
   if (!body.name || body.name.length < 3) {
@@ -2882,7 +2944,7 @@ async function doCreateTournament() {
   try {
     const res = await apiCall('/admin/tournaments', 'POST', body);
     closeModal();
-    showToast('Torneo creato: ' + res.name);
+    showToast('Torneo creato: ' + res.name + ' (' + res.duration_rounds + ' giornate gironi)');
     render_tournaments();
   } catch(e) { showToast(e.message, 'error'); }
 }
