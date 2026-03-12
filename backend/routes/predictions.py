@@ -25,11 +25,32 @@ prediction_router = APIRouter(prefix="/api/predictions", tags=["Predictions"])
 @prediction_router.get("/{matchday_id}")
 async def get_predictions(matchday_id: str, league_id: str = None, user=Depends(get_current_user)):
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+
+    # Fallback: check tournament rounds
+    is_tournament = False
+    if not matchday:
+        from database import tournament_rounds_col
+        tourn_round = await tournament_rounds_col.find_one({"id": matchday_id}, {"_id": 0})
+        if tourn_round:
+            is_tournament = True
+            matchday = {
+                "id": tourn_round["id"],
+                "number": tourn_round["round_number"],
+                "label": tourn_round.get("label", f"Giornata {tourn_round['round_number']}"),
+                "status": tourn_round["status"],
+                "league_id": tourn_round["tournament_id"],
+                "season_id": None,
+                "half": 1,
+                "first_kickoff": tourn_round.get("created_at"),
+            }
+
     if not matchday:
         raise HTTPException(404, "Matchday not found")
 
     match_query = {"matchday_id": matchday_id}
-    if league_id:
+    if is_tournament:
+        match_query["league_id"] = matchday["league_id"]
+    elif league_id:
         league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
         if league and league.get("match_source_type") in ("manual", "custom", "api"):
             match_query["league_id"] = league_id
@@ -60,6 +81,19 @@ async def get_predictions(matchday_id: str, league_id: str = None, user=Depends(
 @prediction_router.post("/{matchday_id}")
 async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=Depends(get_current_user)):
     matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+    is_tournament = False
+    if not matchday:
+        from database import tournament_rounds_col
+        tourn_round = await tournament_rounds_col.find_one({"id": matchday_id}, {"_id": 0})
+        if tourn_round:
+            is_tournament = True
+            matchday = {
+                "id": tourn_round["id"],
+                "number": tourn_round["round_number"],
+                "label": tourn_round.get("label", f"Giornata {tourn_round['round_number']}"),
+                "status": tourn_round["status"],
+                "league_id": tourn_round["tournament_id"],
+            }
     if not matchday:
         raise HTTPException(404, "Matchday not found")
     if matchday["status"] in ("COMPLETED",):
@@ -67,7 +101,14 @@ async def save_predictions(matchday_id: str, req: PredictionsBatchRequest, user=
 
     pred_league_id = req.league_id if req.league_id else None
 
-    if pred_league_id:
+    if is_tournament and pred_league_id:
+        # For tournaments, check tournament registration instead of league membership
+        from database import tournament_registrations_col
+        reg = await tournament_registrations_col.find_one(
+            {"tournament_id": pred_league_id, "user_id": user["id"], "status": "active"})
+        if not reg:
+            raise HTTPException(403, "Non sei iscritto a questo torneo")
+    elif pred_league_id:
         user_membership = await memberships_col.find_one({"user_id": user["id"], "league_id": pred_league_id, "status": "active"})
         if not user_membership:
             raise HTTPException(403, "Non sei membro di questa lega")
