@@ -840,6 +840,7 @@ const styles = StyleSheet.create({
   matchCardSpecial: {
     borderWidth: 2,
     borderColor: colors.accent,
+    backgroundColor: 'rgba(245,166,35,0.15)',
   },
   specialX3Badge: {
     backgroundColor: colors.accent,

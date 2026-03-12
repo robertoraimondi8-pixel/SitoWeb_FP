@@ -425,6 +425,7 @@ const s = StyleSheet.create({
   matchCardSpecial: {
     borderColor: colors.accent,
     borderWidth: 2,
+    backgroundColor: 'rgba(245,166,35,0.15)',
   },
   matchHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   matchNumBadge: {

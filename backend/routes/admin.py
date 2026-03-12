@@ -237,7 +237,6 @@ async def admin_set_special_match(match_id: str, body: dict = {}, user=Depends(g
     new_special = body.get("is_special", not match.get("is_special", False))
     matchday_id = match.get("matchday_id")
     if new_special:
-        await matches_col.update_many({"matchday_id": matchday_id, "is_special": True, "id": {"$ne": match_id}}, {"$set": {"is_special": False, "multiplier": 1.0}})
         await matches_col.update_one({"id": match_id}, {"$set": {"is_special": True, "multiplier": 3.0}})
         logger.info(f"[SPECIAL] Match {match_id} set as X3 special in matchday {matchday_id}")
     else:

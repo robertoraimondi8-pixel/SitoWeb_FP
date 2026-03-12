@@ -884,9 +884,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#162F5C',
     borderWidth: 1.5,
-    borderColor: DARK.accent,
+    borderColor: 'rgba(255,255,255,0.08)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.08,
@@ -906,10 +906,10 @@ const s = StyleSheet.create({
   },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' },
   liveBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
-  liveTitle: { fontSize: 17, fontWeight: '700', color: LIGHT.text, letterSpacing: -0.3 },
+  liveTitle: { fontSize: 17, fontWeight: '700', color: '#FFFFFF', letterSpacing: -0.3 },
   liveRight: { alignItems: 'flex-end', marginRight: 4 },
-  liveRank: { fontSize: 30, fontWeight: '800', color: LIGHT.green, lineHeight: 34 },
-  livePoints: { fontSize: 13, fontWeight: '600', color: LIGHT.textSec, marginTop: 2 },
+  liveRank: { fontSize: 30, fontWeight: '800', color: '#FFFFFF', lineHeight: 34 },
+  livePoints: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginTop: 2 },
 
   // ── 3. Performance (gradient cards + inset + sospensione) ──
   sectionLabel: {
