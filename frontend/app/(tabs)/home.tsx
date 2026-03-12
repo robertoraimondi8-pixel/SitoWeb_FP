@@ -404,20 +404,38 @@ export default function HomeScreen() {
                   <AnimatedSweep />
                   {data?.matchday ? (
                     <>
+                      {/* Top row: matchday label + status badge */}
                       <View style={s.heroTop}>
                         <View style={s.heroLabelRow}>
                           <Ionicons name="football" size={13} color={DARK.textMuted} />
-                          <Text style={s.heroLabel}>GIORNATA</Text>
+                          <Text style={s.heroLabel}>{(data.matchday.label || `GIORNATA ${data.matchday.number}`).toUpperCase()}</Text>
                         </View>
                         <StatusBadge status={data.matchday.status} label={getStatusLabel(data.matchday.status)} />
                       </View>
 
-                      <Text style={s.heroTitle}>
-                        {data.matchday.label || `Giornata ${data.matchday.number}`}
-                      </Text>
-
-                      {matchdayMsg !== '' && (
-                        <Text style={s.heroSub}>{matchdayMsg}</Text>
+                      {/* PRIMARY METRIC: points for LIVE/COMPLETED */}
+                      {(data.matchday.status?.toUpperCase() === 'LIVE' || data.matchday.status?.toUpperCase() === 'COMPLETED') ? (
+                        <View style={s.heroPrimaryWrap}>
+                          <Text style={s.heroPrimaryMetric} data-testid="league-primary-points">
+                            {(() => {
+                              const pts = data.matchday.status?.toUpperCase() === 'LIVE'
+                                ? (data.live?.total_provisional ?? 0)
+                                : (data.matchday.my_points ?? data.live?.total_provisional ?? 0);
+                              const val = Math.round(Number(pts));
+                              return val > 0 ? `+${val}` : `${val}`;
+                            })()}
+                          </Text>
+                          <Text style={s.heroPrimaryLabel}>PUNTI</Text>
+                        </View>
+                      ) : (
+                        <>
+                          <Text style={s.heroTitle}>
+                            {data.matchday.label || `Giornata ${data.matchday.number}`}
+                          </Text>
+                          {matchdayMsg !== '' && (
+                            <Text style={s.heroSub}>{matchdayMsg}</Text>
+                          )}
+                        </>
                       )}
 
                       {/* CTA Button — premium with highlight */}
@@ -429,14 +447,12 @@ export default function HomeScreen() {
                             end={{ x: 1, y: 1 }}
                             style={s.ctaBtn}
                           >
-                            {/* Highlight diagonal overlay */}
                             <LinearGradient
                               colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.05)', 'transparent']}
                               start={{ x: 0, y: 0 }}
                               end={{ x: 1, y: 1 }}
                               style={[StyleSheet.absoluteFill, { borderRadius: 22 }]}
                             />
-                            {/* Top light line */}
                             <View style={s.ctaTopLine} />
                             <Text style={s.ctaText}>{ctaConfig.label}</Text>
                             <View style={s.ctaIconCircle}>
@@ -849,6 +865,26 @@ const s = StyleSheet.create({
     fontWeight: '400',
     color: DARK.textSub,
     marginBottom: 16,
+  },
+
+  // Primary metric (points for league, score for tournament)
+  heroPrimaryWrap: {
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  heroPrimaryMetric: {
+    fontSize: 52,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: -2,
+    lineHeight: 58,
+  },
+  heroPrimaryLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: DARK.textSub,
+    letterSpacing: 2,
+    marginTop: 4,
   },
 
   // CTA Button (premium with highlight + top line)

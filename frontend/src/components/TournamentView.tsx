@@ -298,7 +298,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
           <View style={s.heroTop}>
             <View style={s.heroLabelRow}>
               <Ionicons name="flash" size={13} color={DARK.textMuted} />
-              <Text style={s.heroLabel}>SFIDA TORNEO</Text>
+              <Text style={s.heroLabel}>{cri.label?.toUpperCase() || 'SFIDA TORNEO'}</Text>
             </View>
             <StatusBadge
               status={cri.status === 'OPEN' ? 'OPEN' : cri.status === 'LIVE' ? 'LIVE' : cri.status === 'PENDING' ? 'LOCKED' : 'COMPLETED'}
@@ -306,43 +306,53 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
             />
           </View>
 
-          {/* Round label */}
-          <Text style={s.heroTitle}>{cri.label}</Text>
-
-          {/* Opponent info */}
-          {cri.opponent_name ? (
-            <Text style={s.heroSub}>
-              VS {cri.opponent_name}
-              {cri.status !== 'OPEN' && cri.status !== 'PENDING' ? `  \u2022  ${cri.my_points} - ${cri.opp_points}` : ''}
-            </Text>
-          ) : (
-            <Text style={s.heroSub}>{t.registered_count}/{t.max_participants} partecipanti</Text>
-          )}
-
-          {/* Live points badge */}
-          {cri.status === 'LIVE' && cri.live_total !== null && (
-            <View style={s.livePointsRow}>
-              <Text style={s.livePointsLabel}>I tuoi punti live</Text>
-              <Text style={s.livePointsVal}>{cri.live_total}</Text>
-            </View>
-          )}
-
-          {/* Prediction progress */}
-          {cri.status === 'OPEN' && (
-            <View style={s.predProgressRow}>
-              <View style={s.predProgressBarBg}>
-                <View style={[s.predProgressBarFill, { width: cri.total_matches > 0 ? `${(cri.my_predictions_count / cri.total_matches) * 100}%` : '0%' }]} />
+          {/* PRIMARY METRIC: match score for LIVE/COMPLETED */}
+          {(cri.status === 'LIVE' || cri.status === 'COMPLETED') && cri.opponent_name ? (
+            <>
+              <View style={s.heroPrimaryWrap}>
+                <Text style={s.heroPrimaryMetric} data-testid="tournament-primary-score">
+                  {cri.my_points} – {cri.opp_points}
+                </Text>
+                <Text style={s.heroPrimaryLabel}>VS {cri.opponent_name.toUpperCase()}</Text>
               </View>
-              <Text style={s.predProgressText}>{cri.my_predictions_count}/{cri.total_matches} pronostici</Text>
-            </View>
-          )}
 
-          {/* PENDING state message */}
-          {cri.status === 'PENDING' && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, opacity: 0.7 }}>
-              <Ionicons name="time-outline" size={16} color="rgba(255,255,255,0.6)" />
-              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>In attesa delle partite da pronosticare</Text>
-            </View>
+              {/* Live points badge */}
+              {cri.status === 'LIVE' && cri.live_total !== null && (
+                <View style={s.livePointsRow}>
+                  <Text style={s.livePointsLabel}>I tuoi punti live</Text>
+                  <Text style={s.livePointsVal}>{cri.live_total}</Text>
+                </View>
+              )}
+            </>
+          ) : (
+            <>
+              {/* OPEN/PENDING: keep title + opponent + progress */}
+              <Text style={s.heroTitle}>{cri.label}</Text>
+
+              {cri.opponent_name ? (
+                <Text style={s.heroSub}>VS {cri.opponent_name}</Text>
+              ) : (
+                <Text style={s.heroSub}>{t.registered_count}/{t.max_participants} partecipanti</Text>
+              )}
+
+              {/* Prediction progress */}
+              {cri.status === 'OPEN' && (
+                <View style={s.predProgressRow}>
+                  <View style={s.predProgressBarBg}>
+                    <View style={[s.predProgressBarFill, { width: cri.total_matches > 0 ? `${(cri.my_predictions_count / cri.total_matches) * 100}%` : '0%' }]} />
+                  </View>
+                  <Text style={s.predProgressText}>{cri.my_predictions_count}/{cri.total_matches} pronostici</Text>
+                </View>
+              )}
+
+              {/* PENDING state message */}
+              {cri.status === 'PENDING' && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, opacity: 0.7 }}>
+                  <Ionicons name="time-outline" size={16} color="rgba(255,255,255,0.6)" />
+                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>In attesa delle partite da pronosticare</Text>
+                </View>
+              )}
+            </>
           )}
 
           {/* CTA button — identical to league */}
@@ -473,6 +483,12 @@ const s = StyleSheet.create({
   heroLabel: { fontSize: 10, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: 1.5 },
   heroTitle: { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: 6 },
   heroSub: { fontSize: 13, color: 'rgba(255,255,255,0.55)', marginBottom: spacing.md },
+
+  // Primary metric (match score for tournament)
+  heroPrimaryWrap: { alignItems: 'center', marginVertical: 16 },
+  heroPrimaryMetric: { fontSize: 52, fontWeight: '900', color: '#FFFFFF', letterSpacing: -2, lineHeight: 58 },
+  heroPrimaryLabel: { fontSize: 14, fontWeight: '700', color: 'rgba(255,255,255,0.75)', letterSpacing: 2, marginTop: 4 },
+
   ctaGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 14, paddingHorizontal: 24, borderRadius: 22 },
   ctaText: { fontSize: 15, fontWeight: '800', color: '#fff' },
   ctaIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },

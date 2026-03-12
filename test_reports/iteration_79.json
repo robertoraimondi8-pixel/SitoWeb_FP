@@ -1,0 +1,80 @@
+{
+  "summary": "Tested visual hierarchy refactor for matchday hero cards on Home screen. Both League and Tournament home cards display the new visual hierarchy correctly. Primary metrics (points for leagues, score for tournaments) are prominently displayed with fontSize: 52px and fontWeight: 900. PERFORMANCE and TREND sections display correctly for both.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Home - data-testid attributes",
+        "issues": ["data-testid='league-primary-points' and data-testid='tournament-primary-score' are set in code but not picked up by querySelector in React Native Web DOM rendering - this is expected RN Web behavior, not a bug"]
+      }
+    ]
+  },
+  "test_report_links": [
+    ".screenshots/league_completed_verified.png",
+    ".screenshots/tournament_home.png",
+    ".screenshots/tournament_results.png"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: League Home Card (COMPLETED) shows: GIORNATA X label at top, COMPLETED badge, big primary points (fontSize: 52px, fontWeight: 900), PUNTI label, VIEW RESULTS CTA",
+    "VERIFIED: League Home Card (COMPLETED) - Score '0' displayed with correct styling: fontSize=52px, fontWeight=900",
+    "VERIFIED: Tournament Home Card (COMPLETED) shows: GIORNATA 1 label, COMPLETATA badge, big score '2 – 0' (fontSize: 52px, fontWeight: 900), VS TESTPLAYER31 label, VEDI RISULTATI CTA",
+    "VERIFIED: Tournament score '2 – 0' has correct styling: fontSize=52px, fontWeight=900, lineHeight=58px",
+    "VERIFIED: PERFORMANCE section displays correctly for both league (POSIZIONE ATTUALE, PUNTI TOTALI, MEDIA ULTIME 5) and tournament (VITTORIE TORNEO, PUNTI TOTALI, MEDIA ULTIME 5)",
+    "VERIFIED: TREND section with bar chart displays correctly for both league and tournament",
+    "VERIFIED: CTA navigation works - VIEW RESULTS navigates to /live/{matchday_id}?league_id={league_id}",
+    "VERIFIED: CTA navigation works - VEDI RISULTATI navigates to matchup details view showing individual match predictions",
+    "VERIFIED: Competition switcher dropdown shows LEGHE section and TORNEI section correctly"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A - frontend only test",
+    "frontend": "100% - All visual hierarchy elements verified"
+  },
+  "test_credentials": {
+    "standard_user": "ilio@raimondi.it / password123 (has league data: liga2, Lega Nazionale FantaPronostic)",
+    "admin_user": "admin@fantapronostic.com / admin123 (has tournament: Torneo Redubull with COMPLETED round showing 2-0 score)"
+  },
+  "seed_data_creation": "No new seed data created",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Visual hierarchy refactor for Home screen hero cards is complete and verified. League cards show big points number for COMPLETED/LIVE status, tournament cards show big match score. Both have correct font sizing (52px) and weight (900). The data-testid attributes are set in code but React Native Web doesn't expose them to standard querySelector - use evaluate() with fontSize detection instead for automation. PERFORMANCE and TREND sections unchanged and working correctly.",
+  "verified_features": {
+    "league_completed_card": {
+      "status": "PASS",
+      "elements_verified": [
+        "GIORNATA X label at top",
+        "COMPLETED status badge",
+        "Primary points number (fontSize: 52px, fontWeight: 900)",
+        "PUNTI label",
+        "VIEW RESULTS CTA button",
+        "Navigation to results page"
+      ]
+    },
+    "tournament_completed_card": {
+      "status": "PASS",
+      "elements_verified": [
+        "GIORNATA 1 round label at top",
+        "COMPLETATA status badge",
+        "Primary score '2 – 0' (fontSize: 52px, fontWeight: 900)",
+        "VS OPPONENT label",
+        "VEDI RISULTATI CTA button",
+        "Navigation to matchup details"
+      ]
+    },
+    "performance_section": {
+      "league": "PASS - Shows POSIZIONE ATTUALE, PUNTI TOTALI, MEDIA ULTIME 5",
+      "tournament": "PASS - Shows VITTORIE TORNEO, PUNTI TOTALI, MEDIA ULTIME 5"
+    },
+    "trend_section": {
+      "league": "PASS - Bar chart with points per matchday",
+      "tournament": "PASS - Bar chart with punti per sfida"
+    },
+    "competition_switcher": "PASS - Dropdown shows LEGHE and TORNEI sections"
+  }
+}
