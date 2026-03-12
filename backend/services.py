@@ -307,6 +307,13 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
     for user_id in user_points.keys():
         await recalculate_user_total_standings(user_id, league_id)
 
+    # Award weekly trophies after scoring
+    try:
+        from trophies import award_weekly_trophies
+        await award_weekly_trophies(matchday_id, league_id)
+    except Exception as e:
+        logger.error(f"[TROPHY] Error awarding weekly trophies: {e}")
+
     logger.info(f"[SCORING] Recalculated scores for {len(user_points)} users in matchday {matchday_id}, standings updated")
 
 
@@ -384,6 +391,18 @@ async def calculate_matchday_scores_full(matchday_id: str, admin: dict):
         })
 
     logger.info(f"[ADMIN] Scores calculated for {len(user_league_preds)} user+league combos in matchday {matchday_id}")
+
+    # Award weekly trophies for each league involved
+    try:
+        from trophies import award_weekly_trophies
+        leagues_processed = set()
+        for (uid, pred_league_id) in user_league_preds.keys():
+            if pred_league_id not in leagues_processed:
+                leagues_processed.add(pred_league_id)
+                await award_weekly_trophies(matchday_id, pred_league_id)
+    except Exception as e:
+        logger.error(f"[TROPHY] Error awarding weekly trophies: {e}")
+
     return len(user_league_preds)
 
 

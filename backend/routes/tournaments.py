@@ -382,6 +382,21 @@ async def complete_round(tournament_id: str, round_id: str, user=Depends(get_cur
         }})
 
     await tournament_rounds_col.update_one({"id": round_id}, {"$set": {"status": "COMPLETED"}})
+
+    # Check if this was a final round and award tournament trophies
+    try:
+        from trophies import award_tournament_trophies
+        t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+        remaining = await tournament_rounds_col.count_documents({
+            "tournament_id": tournament_id, "status": {"$ne": "COMPLETED"}
+        })
+        if remaining == 0 and t:
+            await tournaments_col.update_one({"id": tournament_id}, {"$set": {"status": "completed", "completed_at": now_utc()}})
+            await award_tournament_trophies(tournament_id)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"[TROPHY] Error awarding tournament trophies: {e}")
+
     return {"ok": True, "user_scores": user_scores, "matchups_updated": len(matchups)}
 
 

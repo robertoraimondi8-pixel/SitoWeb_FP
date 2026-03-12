@@ -42,13 +42,21 @@ Fantasy football predictions platform where users join leagues, predict match ou
 - Context-aware tabs: Home, Predictions, Rankings
 - Tournament views: Gironi, Tabellone, Partite
 
-### Palmares / Trophies Screen (NEW - March 2026)
-- Accessible via medal icon in header (top right)
-- Three trophy categories:
-  - Trofei Lega (blue): Campione, 2° classificato, 3° classificato
-  - Trofei Tornei (green): Campione, Finalista, Semifinalista
-  - Trofei Settimanali (purple): Miglior punteggio, Punteggio perfetto, Serie positiva
-- Currently showing 0 for all (placeholder for future data)
+### Trophy/Palmares System (NEW - March 2026)
+- **Backend engine** (`trophies.py`): Automatic trophy assignment
+  - Weekly trophies: Best matchday score, Perfect score (all correct), 5+ win streak
+  - League trophies: Champion, 2nd place, 3rd place (at season end)
+  - Tournament trophies: Champion, Finalist, Semifinalist (at tournament end)
+- **API endpoints**: `GET /api/trophies/my`, `GET /api/trophies/user/{user_id}`
+- **Hooks integrated** into scoring flows:
+  - `services.py`: `award_weekly_trophies()` called after matchday scoring
+  - `tournaments.py`: `award_tournament_trophies()` called when all rounds complete
+- **Frontend Palmares screen** (`palmares.tsx`): 
+  - Accessible via medal icon in header
+  - Fetches real data from `/api/trophies/my`
+  - 3 colored categories: Lega (blue), Tornei (green), Settimanali (purple)
+  - Recent trophies list, empty state message
+  - Pull-to-refresh
 
 ### Rankings & Standings
 - General league standings
@@ -69,25 +77,34 @@ Fantasy football predictions platform where users join leagues, predict match ou
 - push_tokens, roles, password_resets
 - tournaments, tournament_registrations
 - tournament_groups, tournament_rounds, tournament_matchups
+- **trophies** (NEW)
 
 ## Test Credentials
 - **Standard User**: ilio@raimondi.it / password123
 - **Admin**: admin@fantapronostic.com / admin123
 
 ## Completed Tasks (March 12, 2026)
-- [x] Removed "Tema Scuro" from Profile (non-functional toggle)
-- [x] Medal icon now navigates to Palmares screen (was opening leagues list)
-- [x] Created Palmares screen with 3 trophy categories
-- [x] Hidden Championship Winner Predictions feature (backend + frontend kept)
+- [x] Removed "Tema Scuro" from Profile
+- [x] Medal icon navigates to Palmares screen (was opening leagues list)
+- [x] Created Palmares screen with 3 trophy categories (data from API)
+- [x] Built trophy assignment engine (trophies.py)
+- [x] Hooked trophy assignment into matchday scoring flow
+- [x] Hooked trophy assignment into tournament completion flow
+- [x] API endpoints for trophies (my + user)
+- [x] All tests passed: 14/14 backend (pytest)
+- [x] Hidden Championship Winner Predictions feature
 - [x] Fixed team name overlap (flexShrink on vsContainer)
-- [x] Fixed MongoDB index for champion_picks
 
 ## Prioritized Backlog
 ### P1
-- [ ] Connect trophies to real data when competitions complete
 - [ ] Re-enable Championship Winner Predictions when decided
+- [ ] Award league trophies at end of season (needs admin trigger or auto-detection)
 
 ### P2
 - [ ] Stripe integration for paid entry to leagues/tournaments
-- [ ] Full achievements/badges system
-- [ ] Light/dark mode implementation
+- [ ] Light/dark mode full implementation
+
+### Future
+- [ ] Push notification improvements
+- [ ] Social features (chat, comments)
+- [ ] Advanced statistics dashboard

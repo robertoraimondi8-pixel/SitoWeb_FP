@@ -42,6 +42,9 @@ tournament_groups_col = db.tournament_groups
 tournament_rounds_col = db.tournament_rounds
 tournament_matchups_col = db.tournament_matchups
 
+# Trophies collection
+trophies_col = db.trophies
+
 
 async def create_indexes():
     """Create all required indexes for the database."""
@@ -101,6 +104,14 @@ async def create_indexes():
         await score_summaries_col.create_index(
             [("user_id", 1), ("matchday_id", 1), ("league_id", 1)], unique=True,
             name="user_matchday_league_unique"
+        )
+
+        # Trophies
+        await trophies_col.create_index("id", unique=True)
+        await trophies_col.create_index("user_id")
+        await trophies_col.create_index(
+            [("user_id", 1), ("type", 1), ("matchday_id", 1), ("league_id", 1)],
+            unique=True, sparse=True, name="trophy_unique"
         )
 
         # StandingsCache
