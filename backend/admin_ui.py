@@ -2251,13 +2251,35 @@ async function renderMdcrInfo(md, canManage) {
 
 async function loadMdcrMatches(md, canManage) {
   try {
-    const matches = await apiCall('/admin/matches?matchday_id=' + md.id);
-    mdcrMatches = matches;
-    document.getElementById('mdcr-body').innerHTML = renderMdcrMatches(md, matches, canManage);
-  } catch(e) { showToast(e.message, 'error'); }
+    const resp = await apiCall('/admin/matches?matchday_id=' + md.id);
+    const matches = resp.matches || resp;
+    mdcrMatches = Array.isArray(matches) ? matches : [];
+    document.getElementById('mdcr-body').innerHTML = renderMdcrMatches(md, mdcrMatches, canManage);
+  } catch(e) {
+    document.getElementById('mdcr-body').innerHTML = '<p style="color:#EF4444">Errore caricamento partite: ' + e.message + '</p>';
+  }
 }
 
 function renderMdcrMatches(md, matches, canManage) {
+  if (!matches || matches.length === 0) {
+    let empty = '<div style="text-align:center;padding:32px;color:#94A3B8"><p>Nessuna partita presente in questa giornata.</p></div>';
+    if (canManage) {
+      const markets = ['1X2','GOAL_NOGOL','OVER_UNDER_25','EXACT_SCORE'];
+      empty = `<div style="margin-bottom:16px;padding:12px;background:#0F172A;border-radius:8px">
+        <h4 style="color:#94A3B8;margin-bottom:8px;font-size:13px">Aggiungi Partita</h4>
+        <div class="form-row" style="margin:0">
+          <input id="nm-home" placeholder="Squadra casa" style="flex:1">
+          <input id="nm-away" placeholder="Squadra ospite" style="flex:1">
+          <input id="nm-comp" placeholder="Competizione" style="flex:1">
+          <select id="nm-market">${markets.map(m=>'<option value="'+m+'">'+m+'</option>').join('')}</select>
+          <input id="nm-time" type="datetime-local" style="flex:1">
+          <button class="btn btn-sm" onclick="doAddMatch('${md.id}')" data-testid="add-match-btn">Aggiungi</button>
+        </div>
+      </div>` + empty;
+    }
+    return empty;
+  }
+
   let addForm = '';
   if (canManage) {
     const markets = ['1X2','GOAL_NOGOL','OVER_UNDER_25','EXACT_SCORE'];
@@ -2518,17 +2540,19 @@ async function doSearchFixtures(mdId) {
       return;
     }
 
-    let html = '<table style="font-size:12px"><tr><th><input type="checkbox" id="fix-all" onchange="toggleAllFixtures()"></th><th>Casa</th><th>Ospite</th><th>Data</th><th>Stato</th></tr>';
+    let html = `<div id="import-selection-count" style="color:#F5A623;font-size:13px;font-weight:600;margin-bottom:8px"></div>`;
+    html += '<table style="font-size:12px"><tr><th><input type="checkbox" id="fix-all" onchange="toggleAllFixtures()"></th><th>Casa</th><th>Ospite</th><th>Data</th><th>Stato</th></tr>';
     fixtures.forEach(f => {
       const date = f.date ? new Date(f.date).toLocaleString('it') : '-';
       html += `<tr>
-        <td><input type="checkbox" name="fix-sel" value="${f.fixture_id}" class="fix-check"></td>
+        <td><input type="checkbox" name="fix-sel" value="${f.fixture_id}" class="fix-check" onchange="updateFixtureCount()"></td>
         <td>${f.home_team}</td><td>${f.away_team}</td>
         <td>${date}</td>
         <td>${f.status||'NS'}</td></tr>`;
     });
     html += '</table>';
-    html += `<div style="margin-top:12px;text-align:right">
+    html += `<div style="margin-top:12px;display:flex;align-items:center;justify-content:flex-end;gap:12px">
+      <span id="import-count-label" style="color:#94A3B8;font-size:13px"></span>
       <button class="btn" onclick="doImportFixtures('${mdId}')" data-testid="import-fixtures-btn">Importa Selezionate</button>
     </div>`;
     resultsDiv.innerHTML = html;
@@ -2540,22 +2564,41 @@ async function doSearchFixtures(mdId) {
 function toggleAllFixtures() {
   const all = document.getElementById('fix-all').checked;
   document.querySelectorAll('.fix-check').forEach(c => c.checked = all);
+  updateFixtureCount();
+}
+
+function updateFixtureCount() {
+  const count = document.querySelectorAll('.fix-check:checked').length;
+  const label = document.getElementById('import-count-label');
+  if (label) label.textContent = count > 0 ? count + ' partite selezionate' : '';
 }
 
 async function doImportFixtures(mdId) {
   const selected = Array.from(document.querySelectorAll('.fix-check:checked')).map(c => parseInt(c.value));
   if (selected.length === 0) { showToast('Seleziona almeno una partita', 'error'); return; }
 
-  const leagueId = document.getElementById('md-league').value;
+  // Get the league_id from the matchday context or the filter dropdown
+  const md = (window._allMatchdays||[]).find(m => m.id === mdId);
+  let leagueId = md ? md.league_id : null;
+  if (!leagueId) {
+    const filterVal = document.getElementById('md-league').value;
+    leagueId = (filterVal && filterVal !== 'all') ? filterVal : null;
+  }
+  if (!leagueId) { showToast('Impossibile determinare la lega. Seleziona una lega specifica nel filtro.', 'error'); return; }
+
   try {
     const r = await apiCall('/admin/real-fixtures/import', 'POST', {
       league_id: leagueId,
       matchday_id: mdId,
       fixture_ids: selected
     });
-    showToast('Importate ' + (r.imported||selected.length) + ' partite');
-    showMdControlRoom(mdId, 'matches');
-  } catch(e) { showToast(e.message, 'error'); }
+    const importedCount = r.imported || 0;
+    const skippedCount = (r.skipped && r.skipped.length) || 0;
+    let msg = importedCount + ' partite importate correttamente';
+    if (skippedCount > 0) msg += ' (' + skippedCount + ' gia presenti, saltate)';
+    showToast(msg);
+    showMdControlRoom(mdId, null, 'matches');
+  } catch(e) { showToast('Errore importazione: ' + e.message, 'error'); }
 }
 
 // ========================================
