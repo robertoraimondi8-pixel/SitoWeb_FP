@@ -2316,6 +2316,7 @@ function renderMdcrMatches(md, matches, canManage) {
         ${matchStatuses.map(s => `<option value="${s}" ${(m.status||'scheduled')===s?'selected':''}>${s}</option>`).join('')}
       </select></td>`;
       html += `<td style="white-space:nowrap">
+        <button class="btn btn-sm" style="background:#3B82F6" onclick="showEditMatchModal('${m.id}','${md.id}')" data-testid="edit-match-${m.id}" title="Modifica">Mod</button>
         <button class="btn btn-sm ${isSpecial ? '' : 'btn-outline'}" style="${isSpecial ? 'background:#F5A623;color:#0F172A' : ''}" onclick="doToggleSpecial('${md.id}','${m.id}')" data-testid="toggle-x3-${m.id}" title="${isSpecial ? 'Rimuovi X3' : 'Imposta X3'}">X3</button>
         <button class="btn btn-sm btn-outline" onclick="showMatchUpdate('${m.id}','${(m.home_team||'').replace(/'/g,"\\'")}','${(m.away_team||'').replace(/'/g,"\\'")}',${m.home_score||0},${m.away_score||0})">Score</button>
         <button class="btn btn-sm btn-danger" onclick="doDeleteMatch('${md.id}','${m.id}')">X</button>
@@ -2342,6 +2343,86 @@ function showMatchUpdate(matchId, home, away, hs, as) {
       <button class="btn btn-sm" onclick="doMatchUpdate('${matchId}')" data-testid="save-match-update">Salva</button>
     </div>
   </div>`;
+}
+
+async function showEditMatchModal(matchId, mdId) {
+  // Find the match from cached data
+  const m = (mdcrMatches || []).find(x => x.id === matchId);
+  if (!m) { showToast('Partita non trovata', 'error'); return; }
+  const statuses = ['scheduled','live','finished','suspended','postponed','cancelled','void'];
+  const markets = ['1X2','GOAL_NOGOL','OVER_UNDER_25','EXACT_SCORE'];
+  const kickoffVal = m.start_time ? new Date(m.start_time).toISOString().slice(0,16) : '';
+  const html = `<h3>Modifica Partita</h3>
+    <p style="color:#94A3B8;font-size:12px;margin-bottom:12px">${m.home_team || '?'} vs ${m.away_team || '?'}</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Squadra Casa</label>
+        <input id="em-home" value="${m.home_team||''}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Squadra Ospite</label>
+        <input id="em-away" value="${m.away_team||''}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Competizione</label>
+        <input id="em-comp" value="${m.competition||''}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Mercato</label>
+        <select id="em-market" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+          ${markets.map(mk => '<option value="'+mk+'" '+(m.market_type===mk?'selected':'')+'>'+mk+'</option>').join('')}
+        </select>
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Kickoff</label>
+        <input id="em-kickoff" type="datetime-local" value="${kickoffVal}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Stato</label>
+        <select id="em-status" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+          ${statuses.map(s => '<option value="'+s+'" '+((m.status||'scheduled')===s?'selected':'')+'>'+s+'</option>').join('')}
+        </select>
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Gol Casa</label>
+        <input id="em-hs" type="number" min="0" value="${m.home_score!=null?m.home_score:''}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Gol Ospite</label>
+        <input id="em-as" type="number" min="0" value="${m.away_score!=null?m.away_score:''}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal()">Annulla</button>
+      <button class="btn" onclick="doSaveEditMatch('${matchId}','${mdId}')" data-testid="save-edit-match-btn">Salva Modifiche</button>
+    </div>`;
+  showModal(html);
+}
+
+async function doSaveEditMatch(matchId, mdId) {
+  const body = {};
+  const home = document.getElementById('em-home').value.trim();
+  const away = document.getElementById('em-away').value.trim();
+  if (home) body.home_team = home;
+  if (away) body.away_team = away;
+  body.status = document.getElementById('em-status').value;
+  const kickoff = document.getElementById('em-kickoff').value;
+  if (kickoff) { try { body.kickoff = new Date(kickoff).toISOString(); } catch(e) {} }
+  const hs = document.getElementById('em-hs').value;
+  const as_ = document.getElementById('em-as').value;
+  if (hs !== '') body.home_score = parseInt(hs);
+  if (as_ !== '') body.away_score = parseInt(as_);
+  const comp = document.getElementById('em-comp').value;
+  if (comp) body.competition = comp;
+  const market = document.getElementById('em-market').value;
+  if (market) body.market_type = market;
+  try {
+    await apiCall('/admin/matches/' + matchId, 'PUT', body);
+    closeModal();
+    showToast('Partita aggiornata');
+    if (mdcrTournId) showMdControlRoom(mdcrId, mdcrTournId, 'matches');
+    else showMdControlRoom(mdId, 'matches');
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
 }
 
 async function doMatchUpdate(matchId) {

@@ -332,9 +332,12 @@ async def admin_update_match(match_id: str, body: dict = {}, admin=Depends(requi
         raise HTTPException(404, "Partita non trovata")
     allowed_fields = {"home_score", "away_score", "status", "kickoff", "home_team", "away_team", "competition", "start_time", "market_type"}
     updates = {k: v for k, v in body.items() if k in allowed_fields}
+    # Map kickoff -> start_time (the DB field)
+    if "kickoff" in updates:
+        updates["start_time"] = updates.pop("kickoff")
     if not updates:
         raise HTTPException(400, "Nessun campo valido da aggiornare")
-    if "status" in updates and updates["status"] not in ("scheduled", "live", "finished"):
+    if "status" in updates and updates["status"] not in ("scheduled", "live", "finished", "suspended", "postponed", "cancelled", "void"):
         raise HTTPException(400, "Stato non valido. Valori ammessi: scheduled, live, finished")
     if "home_score" in updates and updates["home_score"] is not None:
         updates["home_score"] = int(updates["home_score"])

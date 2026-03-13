@@ -1,0 +1,70 @@
+{
+  "summary": "Tested Matchday Control Room match management functionality. Backend (20/20 tests passed): GET /api/admin/matches returns matches array correctly, PUT /api/admin/matches/{id} accepts all fields (home_team, away_team, competition, market_type, kickoff->start_time, status, scores), all 7 statuses accepted (scheduled, live, finished, suspended, postponed, cancelled, void), X3 toggle and live-update work. Admin UI (100%): Control Room modal opens without errors, Partite tab loads matches correctly with full table (Casa, Ospite, Comp, Mercato, X3, Orario, Score, Stato, Azioni columns), all action buttons present (Mod, X3, Score, X delete), Edit modal has all required fields (Squadra Casa, Squadra Ospite, Competizione, Mercato, Kickoff, Stato, Gol Casa, Gol Ospite), status dropdown has all 7 valid statuses, Import da API tab loads with league selector and search.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_control_room_matches.py",
+    "/app/test_reports/pytest/control_room_matches_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_control_room_matches.py"
+  ],
+  "success_rate": {
+    "backend": "100% (20/20 tests passed)",
+    "frontend": "100% (all Control Room features verified)"
+  },
+  "test_credentials": {
+    "admin_email": "admin@fantapronostic.com",
+    "admin_password": "admin123",
+    "admin_panel_url": "https://context-aware-tabs.preview.emergentagent.com/api/admin-ui",
+    "test_matchday_id": "98856f76-a5d9-40e9-97b8-cf3e6667eeb2"
+  },
+  "seed_data_creation": "None - used existing matchday G1 with 10 matches",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Control Room match management is fully functional. Backend PUT /api/admin/matches/{id} accepts: home_team, away_team, competition, market_type, kickoff (mapped to start_time), status, home_score, away_score. All 7 statuses work: scheduled, live, finished, suspended, postponed, cancelled, void. UI shows proper table with columns Casa, Ospite, Comp, Mercato, X3, Orario, Score, Stato, Azioni. Edit modal has all 8 fields. X3 toggle POST /admin/matches/{id}/special works. Score inline editor and status dropdown work.",
+  "verified_features": {
+    "backend_api_tests": {
+      "GET_admin_matches_matchday_id": "PASS - returns {count, matches} with array of matches",
+      "PUT_admin_matches_home_team": "PASS - accepts and updates home_team",
+      "PUT_admin_matches_away_team": "PASS - accepts and updates away_team",
+      "PUT_admin_matches_competition": "PASS - accepts and updates competition",
+      "PUT_admin_matches_market_type": "PASS - accepts and updates market_type",
+      "PUT_admin_matches_kickoff": "PASS - kickoff maps to start_time in DB",
+      "PUT_admin_matches_scores": "PASS - accepts home_score and away_score",
+      "PUT_admin_matches_status_scheduled": "PASS",
+      "PUT_admin_matches_status_live": "PASS",
+      "PUT_admin_matches_status_finished": "PASS",
+      "PUT_admin_matches_status_suspended": "PASS",
+      "PUT_admin_matches_status_postponed": "PASS",
+      "PUT_admin_matches_status_cancelled": "PASS",
+      "PUT_admin_matches_status_void": "PASS",
+      "PUT_admin_matches_invalid_status": "PASS - returns 400",
+      "POST_admin_matches_special_toggle": "PASS - toggles is_special flag",
+      "POST_admin_matches_live_update": "PASS - updates scores and status",
+      "PUT_admin_matches_all_fields": "PASS - accepts all fields at once like UI"
+    },
+    "admin_ui_tests": {
+      "control_room_opens": "PASS - modal opens without errors",
+      "partite_tab_loads": "PASS - no forEach error, matches loaded",
+      "table_columns": "PASS - Casa, Ospite, Comp, Mercato, X3, Orario, Score, Stato, Azioni present",
+      "mod_button": "PASS - opens edit modal",
+      "x3_button": "PASS - toggles X3 flag",
+      "score_button": "PASS - opens inline score editor",
+      "delete_button": "PASS - X button present",
+      "status_dropdown": "PASS - 7 statuses available",
+      "edit_modal_fields": "PASS - all 8 fields present (Squadra Casa, Squadra Ospite, Competizione, Mercato, Kickoff, Stato, Gol Casa, Gol Ospite)",
+      "save_button": "PASS - Salva Modifiche button present",
+      "import_tab": "PASS - loads with league selector and search"
+    }
+  }
+}
