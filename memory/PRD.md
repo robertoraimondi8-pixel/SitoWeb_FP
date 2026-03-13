@@ -11,7 +11,7 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - **Simplified Last 5**: Pills semplici (punti per leghe, V/P/S per tornei)
 - **Unified Tournament/League Layout**: Home screen identica per struttura e spaziature
 - **Real Prediction Scores**: Punteggi pronostico reali (non punti girone) su hero card e performance
-- **Admin Dashboard Control Center**: Dashboard operativa con tutte le metriche
+- **Admin Dashboard Control Center**: Dashboard operativa con tutte le metriche, scadenze e azioni
 
 ## Completed Features
 - [x] Auth (JWT + Google OAuth), Leghe, Tornei, Pronostici, Live scores, Classifiche
@@ -24,13 +24,13 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] Ultime 5 Sfide V/P/S per tornei
 - [x] Fix punteggi reali torneo (hero card + performance)
 - [x] Messaggio "Hai fatto X punti su 10 partite" nella hero card lega
-- [x] **Admin Dashboard Overhaul** (13/03/2026) - Testato 100%
-  - Allarmi Critici: ora include tornei + partite inconsistenti
-  - Tornei: 6 KPI (Totale, Attivi, Round Live, Completati, Pending, A Rischio)
-  - Stato Partite: 4 KPI (Oggi, Live ora, Senza risultato, Inconsistenti)
-  - Attivita Pronostici: 5 KPI (Totale, Oggi, Giornate attive, Leghe, Tornei)
-  - Pagamenti: 5 KPI + tabella (Pending, Oggi, 7gg, Totale incassato, Falliti)
-  - Attivita Recente: badge azione colorati + link "Vedi tutto"
+- [x] Admin Dashboard Overhaul (13/03/2026) - Testato 100%
+- [x] **Admin Dashboard Operational Improvements** (13/03/2026) - Testato 100%
+  - Scadenze Pronostici: blocco con deadline upcoming (tipo, nome, label, LOCKED/OPEN, countdown)
+  - Match Status cliccabili (Senza risultato, Inconsistenti, Live ora → navigano a pagina filtrata)
+  - Allarmi Critici con "Vai →" cliccabili per ogni allarme
+  - Pagamenti: 5 KPI (Pending, Oggi, 7gg, Totale incassato EUR, Falliti) + tabella recenti
+  - Backend: nuovo campo `upcoming_deadlines` in dashboard-stats
 
 ## Prioritized Backlog
 
