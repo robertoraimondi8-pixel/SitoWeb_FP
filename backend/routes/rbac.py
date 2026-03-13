@@ -196,6 +196,53 @@ async def dashboard_stats(user=Depends(require_permission("admin.dashboard.view"
         {}, {"_id": 0}
     ).sort("created_at", -1).to_list(20)
 
+    # --- Upcoming Prediction Deadlines ---
+    upcoming_deadlines = []
+    # League matchdays that are OPEN or LOCKED (predictions still possible or about to close)
+    open_matchdays = await matchdays_col.find(
+        {"status": {"$in": ["OPEN", "LOCKED"]}},
+        {"_id": 0, "id": 1, "label": 1, "league_id": 1, "first_kickoff": 1, "status": 1}
+    ).to_list(50)
+    for md in open_matchdays:
+        league = await leagues_col.find_one({"id": md.get("league_id")}, {"_id": 0, "name": 1, "league_type": 1})
+        league_name = league["name"] if league else md.get("league_id", "?")
+        league_type = league.get("league_type", "private") if league else "private"
+        comp_type = "Lega Nazionale" if league_type == "national" else "Lega Privata"
+        upcoming_deadlines.append({
+            "type": comp_type,
+            "competition_name": league_name,
+            "label": md.get("label", "?"),
+            "closes_at": md.get("first_kickoff"),
+            "competition_id": md.get("league_id"),
+            "matchday_id": md.get("id"),
+            "status": md.get("status"),
+        })
+    # Tournament rounds that are OPEN
+    open_rounds = await tournament_rounds_col.find(
+        {"status": {"$in": ["OPEN"]}},
+        {"_id": 0, "id": 1, "label": 1, "tournament_id": 1, "round_number": 1, "status": 1}
+    ).to_list(50)
+    for r in open_rounds:
+        tourn = await tournaments_col.find_one({"id": r.get("tournament_id")}, {"_id": 0, "name": 1})
+        tourn_name = tourn["name"] if tourn else r.get("tournament_id", "?")
+        # Get first match kickoff for this round
+        first_match = await matches_col.find_one(
+            {"matchday_id": r["id"]},
+            {"_id": 0, "kickoff": 1}
+        )
+        closes_at = first_match.get("kickoff") if first_match else None
+        upcoming_deadlines.append({
+            "type": "Torneo",
+            "competition_name": tourn_name,
+            "label": r.get("label", f"Round {r.get('round_number', '?')}"),
+            "closes_at": closes_at,
+            "competition_id": r.get("tournament_id"),
+            "matchday_id": r.get("id"),
+            "status": r.get("status"),
+        })
+    # Sort by closes_at ascending (soonest first)
+    upcoming_deadlines.sort(key=lambda x: x.get("closes_at") or "9999")
+
     return {
         "users": {
             "total": total_users,
@@ -243,6 +290,7 @@ async def dashboard_stats(user=Depends(require_permission("admin.dashboard.view"
             "failed": failed_payments,
         },
         "audit": recent_audit,
+        "upcoming_deadlines": upcoming_deadlines,
     }
 
 

@@ -1,0 +1,65 @@
+{
+  "summary": "Admin Dashboard operational improvements testing - All features verified. New 'Scadenze Pronostici' block present between Allarmi Critici and Utenti with correct data-testid. Match Status counters (Live ora, Senza risultato, Inconsistenti) are clickable with cursor:pointer and onclick handlers. Pagamenti section shows all 5 KPI counters with euro symbol. Backend API returns upcoming_deadlines key with correct structure.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_85.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "admin_user": "admin@fantapronostic.com / admin123"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Admin Dashboard at /api/admin-ui fully tested. All new features verified: 1) Scadenze Pronostici block with data-testid='upcoming-deadlines' shows between Allarmi and Utenti, 2) Match Status counters are clickable with cursor:pointer and onclick, 3) Allarmi Critici rows have Vai links, 4) Pagamenti shows 5 counters with € symbol.",
+  "verified_features": {
+    "login_to_admin_panel": "PASS - admin@fantapronostic.com / admin123",
+    "scadenze_pronostici_section": {
+      "exists_with_correct_testid": "PASS - data-testid='upcoming-deadlines' found",
+      "position_between_allarmi_and_utenti": "PASS - Section appears between Allarmi Critici and Utenti sections",
+      "shows_competition_type": "PASS - Shows 'Lega Privata', 'Lega Nazionale', 'Torneo'",
+      "shows_competition_name": "PASS - Shows competition names",
+      "shows_matchday_label": "PASS - Shows 'Giornata 1', etc.",
+      "shows_locked_open_badge": "PASS - LOCKED/OPEN badges displayed",
+      "shows_time_remaining": "PASS - Shows 'tra Xg Yh', 'Scaduta', 'Data non definita'",
+      "deadline_rows_with_testid": "PASS - Found 8 rows with data-testid='deadline-X'"
+    },
+    "match_status_clickable_counters": {
+      "senza_risultato_cursor_pointer": "PASS - style contains cursor:pointer",
+      "senza_risultato_onclick": "PASS - onclick navigateWith('matchdays',{status:'COMPLETED'})",
+      "inconsistenti_onclick": "PASS - onclick navigateWith('matchdays',{status:'COMPLETED'})",
+      "live_ora_onclick": "PASS - onclick navigateWith('matchdays',{status:'LIVE'})",
+      "click_navigation_works": "PASS - Clicking counters navigates to matchdays page"
+    },
+    "allarmi_critici_vai_links": {
+      "vai_links_present": "PASS - Found 5 'Vai' links in section",
+      "vai_links_clickable": "PASS - Clicking alarm row navigates to relevant page (leagues)"
+    },
+    "pagamenti_section_5_kpis": {
+      "pending_counter": "PASS - Shows 'Pending' with count",
+      "oggi_counter": "PASS - Shows 'Oggi' with count",
+      "ultimi_7gg_counter": "PASS - Shows 'Ultimi 7gg' with count",
+      "totale_incassato_counter": "PASS - Shows 'Totale incassato' with € symbol",
+      "falliti_counter": "PASS - Shows 'Falliti' with count"
+    },
+    "backend_api_dashboard_stats": {
+      "returns_upcoming_deadlines_key": "PASS",
+      "deadlines_structure": "PASS - Contains type, competition_name, label, closes_at, status",
+      "deadlines_count": "PASS - Returns 10 deadline objects"
+    }
+  }
+}

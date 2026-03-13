@@ -418,6 +418,41 @@ async function render_dashboard() {
     }
     html += '</div>';
 
+    // === SCADENZE PRONOSTICI ===
+    const deadlines = d.upcoming_deadlines || [];
+    html += '<div class="card" data-testid="upcoming-deadlines">';
+    html += '<h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Scadenze Pronostici</h3>';
+    if (deadlines.length === 0) {
+      html += '<p style="color:#64748B;font-size:13px">Nessuna scadenza imminente</p>';
+    } else {
+      deadlines.slice(0, 8).forEach((dl, i) => {
+        let timeLabel = '';
+        if (dl.closes_at) {
+          const closes = new Date(dl.closes_at);
+          const diffMs = closes - new Date();
+          if (diffMs > 0) {
+            const diffH = Math.floor(diffMs / 3600000);
+            const diffM = Math.floor((diffMs % 3600000) / 60000);
+            if (diffH > 24) { timeLabel = 'tra ' + Math.floor(diffH/24) + 'g ' + (diffH%24) + 'h'; }
+            else if (diffH > 0) { timeLabel = 'tra ' + diffH + 'h ' + diffM + 'm'; }
+            else { timeLabel = 'tra ' + diffM + 'm'; }
+          } else {
+            timeLabel = 'Scaduta';
+          }
+        } else {
+          timeLabel = 'Data non definita';
+        }
+        const typeColor = dl.type === 'Torneo' ? '#F59E0B' : dl.type === 'Lega Nazionale' ? '#10B981' : '#3B82F6';
+        const statusBadge = dl.status === 'OPEN' ? '<span class="status-badge status-OPEN" style="font-size:10px;margin-left:4px">OPEN</span>' : '<span class="status-badge status-LOCKED" style="font-size:10px;margin-left:4px">LOCKED</span>';
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:${i>0?'1px solid #334155':'none'};cursor:pointer" onclick="navigateWith('matchdays',{})" data-testid="deadline-${i}">
+          <span style="font-size:11px;font-weight:600;color:${typeColor};min-width:90px;flex-shrink:0">${dl.type}</span>
+          <span style="flex:1;font-size:13px;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dl.competition_name} — ${dl.label}${statusBadge}</span>
+          <span style="font-size:12px;font-weight:600;color:${timeLabel==='Scaduta'?'#EF4444':'#F5A623'};white-space:nowrap">${timeLabel}</span>
+        </div>`;
+      });
+    }
+    html += '</div>';
+
     // === UTENTI ===
     const onlineCount = d.users.online || 0;
     const onlineDot = onlineCount > 0 ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;margin-right:6px;animation:pulse 1.5s infinite"></span>' : '';
@@ -490,9 +525,9 @@ async function render_dashboard() {
       <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Stato Partite</h3>
       <div class="counter-row">
         <div class="counter-box" data-testid="kpi-matches-today"><div class="num">${mt.today||0}</div><div class="label">Oggi</div></div>
-        <div class="counter-box" style="border-color:${mt.live > 0 ? '#10B981' : '#334155'}" data-testid="kpi-matches-live"><div class="num" style="color:#10B981">${mt.live||0}</div><div class="label">Live ora</div></div>
-        <div class="counter-box" style="border-color:${mt.no_result > 0 ? '#F59E0B' : '#334155'}" data-testid="kpi-matches-noresult"><div class="num" style="color:${mt.no_result > 0 ? '#F59E0B' : '#6B7280'}">${mt.no_result||0}</div><div class="label">Senza risultato</div></div>
-        <div class="counter-box" style="border-color:${mt.inconsistent > 0 ? '#EF4444' : '#334155'}" data-testid="kpi-matches-inconsistent"><div class="num" style="color:${mt.inconsistent > 0 ? '#EF4444' : '#6B7280'}">${mt.inconsistent||0}</div><div class="label">Inconsistenti</div></div>
+        <div class="counter-box" style="border-color:${mt.live > 0 ? '#10B981' : '#334155'};cursor:pointer" onclick="navigateWith('matchdays',{status:'LIVE'})" data-testid="kpi-matches-live"><div class="num" style="color:#10B981">${mt.live||0}</div><div class="label">Live ora</div></div>
+        <div class="counter-box" style="border-color:${mt.no_result > 0 ? '#F59E0B' : '#334155'};cursor:pointer" onclick="navigateWith('matchdays',{status:'COMPLETED'})" data-testid="kpi-matches-noresult"><div class="num" style="color:${mt.no_result > 0 ? '#F59E0B' : '#6B7280'}">${mt.no_result||0}</div><div class="label">Senza risultato</div></div>
+        <div class="counter-box" style="border-color:${mt.inconsistent > 0 ? '#EF4444' : '#334155'};cursor:pointer" onclick="navigateWith('matchdays',{status:'COMPLETED'})" data-testid="kpi-matches-inconsistent"><div class="num" style="color:${mt.inconsistent > 0 ? '#EF4444' : '#6B7280'}">${mt.inconsistent||0}</div><div class="label">Inconsistenti</div></div>
       </div>
     </div>`;
 
