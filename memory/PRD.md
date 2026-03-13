@@ -51,6 +51,8 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] **Dynamic Round Naming** - Round eliminazione calcolati dinamicamente dal numero di qualificati (groups × advance). Es: 16 qualificati → Ottavi → Quarti → Semi → Finale
 - [x] **Impersonate User** - Pulsante "Accedi come utente" nella User Control Room (solo Super Admin), con endpoint POST /api/admin/impersonate/{user_id}, audit log, sessione autenticata completa con banner arancione e pulsante "Esci"
 - [x] **Auth Provider Badges** - Badge colorati (EMAIL, GOOGLE, APPLE, FACEBOOK) nella lista utenti e nella User Control Room, supporto provider futuri
+- [x] **Push Notification History** - Storico notifiche migliorato con badge tipo (BROADCAST, DIRETTO, AUTO, GIORNATA, CLASSIFICA), colonna Destinatari/Scope, supporto notifiche automatiche con deduplicazione
+- [x] **Push Notification Preview** - Anteprima mobile in tempo reale nel form broadcast con titolo, messaggio, immagine opzionale e icona app
 - [x] **Backend API tornei** - Nuovi endpoint: PUT update, GET/POST/DELETE participants, POST reset-groups
 - [x] **Bug Fix: Admin UI JS Parse Error** - Fixed quote escaping in showLeagueStandings
 - [x] **Colonna "Progressione" Lista Leghe** - Giornata corrente vs totale con barra di progresso

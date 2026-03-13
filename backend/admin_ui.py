@@ -3302,25 +3302,44 @@ async function render_push() {
   <!-- BROADCAST -->
   <div class="card" style="max-width:700px;margin-bottom:24px">
     <h3 style="margin-top:0;margin-bottom:16px;color:#F59E0B">Invia notifica broadcast</h3>
-    <div class="form-row">
-      <label>Destinatario</label>
-      <select id="push-target">${leagueOptions}</select>
-    </div>
-    <div class="form-row">
-      <label>Titolo *</label>
-      <input type="text" id="push-title" placeholder="es. Nuova giornata disponibile!" />
-    </div>
-    <div class="form-row">
-      <label>Messaggio *</label>
-      <textarea id="push-body" rows="3" placeholder="Scrivi il messaggio..." style="width:100%;padding:10px;border:1px solid #E2E8F0;border-radius:8px;font-family:inherit;font-size:14px;resize:vertical"></textarea>
-    </div>
-    <div class="form-row">
-      <label>URL Immagine (opzionale)</label>
-      <input type="text" id="push-image" placeholder="https://esempio.com/immagine.png" />
-    </div>
-    <div style="display:flex;gap:12px;align-items:center;margin-top:16px">
-      <button onclick="sendBroadcastPush()" style="background:#F59E0B;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px">Invia Notifica</button>
-      <span id="push-result" style="font-size:13px"></span>
+    <div style="display:flex;gap:24px">
+      <div style="flex:1">
+        <div class="form-row">
+          <label>Destinatario</label>
+          <select id="push-target">${leagueOptions}</select>
+        </div>
+        <div class="form-row">
+          <label>Titolo *</label>
+          <input type="text" id="push-title" placeholder="es. Nuova giornata disponibile!" oninput="updatePushPreview()" />
+        </div>
+        <div class="form-row">
+          <label>Messaggio *</label>
+          <textarea id="push-body" rows="3" placeholder="Scrivi il messaggio..." style="width:100%;padding:10px;border:1px solid #E2E8F0;border-radius:8px;font-family:inherit;font-size:14px;resize:vertical" oninput="updatePushPreview()"></textarea>
+        </div>
+        <div class="form-row">
+          <label>URL Immagine (opzionale)</label>
+          <input type="text" id="push-image" placeholder="https://esempio.com/immagine.png" oninput="updatePushPreview()" />
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;margin-top:16px">
+          <button onclick="sendBroadcastPush()" style="background:#F59E0B;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px" data-testid="send-broadcast-btn">Invia Notifica</button>
+          <span id="push-result" style="font-size:13px"></span>
+        </div>
+      </div>
+      <div style="flex-shrink:0;width:260px" data-testid="push-preview-panel">
+        <div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;text-align:center">Anteprima Mobile</div>
+        <div id="push-preview" style="background:#1E293B;border-radius:16px;padding:16px;min-height:100px;border:2px solid #334155">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#F5A623,#D97706);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#0F172A">FP</div>
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#F1F5F9">FantaPronostic</div>
+              <div style="font-size:10px;color:#64748B">adesso</div>
+            </div>
+          </div>
+          <div id="push-preview-title" style="font-size:14px;font-weight:700;color:#F1F5F9;margin-bottom:4px">Titolo notifica...</div>
+          <div id="push-preview-body" style="font-size:12px;color:#94A3B8;line-height:1.4">Messaggio notifica...</div>
+          <div id="push-preview-img" style="display:none;margin-top:8px;border-radius:8px;overflow:hidden"><img id="push-preview-img-el" style="width:100%;height:auto;display:block" /></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -3355,17 +3374,24 @@ async function render_push() {
 
   <!-- HISTORY -->
   <div class="card" style="max-width:900px">
-    <h3 style="margin-top:0;margin-bottom:16px;color:#64748B">Storico Notifiche Admin</h3>`;
+    <h3 style="margin-top:0;margin-bottom:16px;color:#64748B">Storico Notifiche</h3>`;
   if (history.length === 0) {
-    html += `<p style="color:#94A3B8;font-size:14px">Nessuna notifica admin inviata.</p>`;
+    html += `<p style="color:#94A3B8;font-size:14px">Nessuna notifica inviata.</p>`;
   } else {
-    html += `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
-      <tr style="background:#F8FAFC"><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Data</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Tipo</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Titolo</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Messaggio</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Destinatario</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Img</th></tr>`;
+    html += `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px" data-testid="notification-history-table">
+      <tr style="background:#F8FAFC"><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Data</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Tipo</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Destinatari</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Titolo</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Messaggio</th><th style="text-align:left;padding:8px 10px;border-bottom:2px solid #E2E8F0">Img</th></tr>`;
     history.forEach(h => {
       const date = new Date(h.created_at).toLocaleString('it-IT', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
-      const typeBadge = h.type === 'admin_broadcast' ? '<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">BROADCAST</span>' : '<span style="background:#DBEAFE;color:#1E40AF;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">DIRETTO</span>';
+      let typeBadge;
+      if (h.type === 'admin_broadcast') typeBadge = '<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">BROADCAST</span>';
+      else if (h.type === 'admin_message') typeBadge = '<span style="background:#DBEAFE;color:#1E40AF;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">DIRETTO</span>';
+      else if (h.type === 'reminder_2h' || h.type === 'reminder_30m') typeBadge = '<span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">AUTO</span>';
+      else if (h.type === 'matchday_open') typeBadge = '<span style="background:#EDE9FE;color:#5B21B6;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">GIORNATA</span>';
+      else if (h.type === 'standings_updated') typeBadge = '<span style="background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">CLASSIFICA</span>';
+      else typeBadge = '<span style="background:#F1F5F9;color:#475569;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">' + h.type + '</span>';
+      const scope = h.scope || (h.username || '?');
       const imgIcon = h.image ? '<span title="'+h.image+'">&#128247;</span>' : '-';
-      html += `<tr style="border-bottom:1px solid #F1F5F9"><td style="padding:8px 10px;white-space:nowrap">${date}</td><td style="padding:8px 10px">${typeBadge}</td><td style="padding:8px 10px;font-weight:600">${h.title}</td><td style="padding:8px 10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.message}</td><td style="padding:8px 10px">${h.username}</td><td style="padding:8px 10px;text-align:center">${imgIcon}</td></tr>`;
+      html += `<tr style="border-bottom:1px solid #F1F5F9"><td style="padding:8px 10px;white-space:nowrap">${date}</td><td style="padding:8px 10px">${typeBadge}</td><td style="padding:8px 10px;font-size:12px;color:#64748B">${scope}</td><td style="padding:8px 10px;font-weight:600">${h.title}</td><td style="padding:8px 10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.message}</td><td style="padding:8px 10px;text-align:center">${imgIcon}</td></tr>`;
     });
     html += `</table></div>`;
   }
@@ -3402,6 +3428,20 @@ function selectPushUser(id, username, email) {
   document.getElementById('push-user-id').value = id;
   document.getElementById('push-user-search').value = username + ' (' + email + ')';
   document.getElementById('push-user-dropdown').style.display = 'none';
+}
+
+function updatePushPreview() {
+  const title = (document.getElementById('push-title').value || '').trim();
+  const body = (document.getElementById('push-body').value || '').trim();
+  const img = (document.getElementById('push-image').value || '').trim();
+  document.getElementById('push-preview-title').textContent = title || 'Titolo notifica...';
+  document.getElementById('push-preview-title').style.color = title ? '#F1F5F9' : '#475569';
+  document.getElementById('push-preview-body').textContent = body || 'Messaggio notifica...';
+  document.getElementById('push-preview-body').style.color = body ? '#94A3B8' : '#475569';
+  const imgContainer = document.getElementById('push-preview-img');
+  const imgEl = document.getElementById('push-preview-img-el');
+  if (img) { imgEl.src = img; imgContainer.style.display = 'block'; imgEl.onerror = function() { imgContainer.style.display = 'none'; }; }
+  else { imgContainer.style.display = 'none'; }
 }
 
 async function sendBroadcastPush() {

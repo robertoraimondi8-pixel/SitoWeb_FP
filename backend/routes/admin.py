@@ -661,14 +661,26 @@ async def admin_push_to_user(user_id: str, request_body: dict, admin=Depends(req
 
 @admin_router.get("/push/history")
 async def admin_push_history(limit: int = 50, admin=Depends(require_permission("admin.dashboard.view"))):
-    """Get recent admin-sent notifications history."""
+    """Get recent notifications history (admin-sent + automatic)."""
     from database import notifications_col
     notifs = await notifications_col.find(
-        {"type": {"$in": ["admin_broadcast", "admin_message"]}},
+        {"type": {"$in": ["admin_broadcast", "admin_message", "reminder_2h", "reminder_30m", "matchday_open", "standings_updated"]}},
         {"_id": 0}
     ).sort("created_at", -1).to_list(limit)
 
-    user_ids = list(set(n.get("user_id", "") for n in notifs))
+    # Deduplicate auto notifications by (type, title, created_at minute) to avoid showing one per user
+    seen_auto = set()
+    deduped = []
+    for n in notifs:
+        if n.get("type") in ("admin_broadcast", "admin_message"):
+            deduped.append(n)
+        else:
+            key = (n.get("type"), n.get("title", ""), n.get("created_at", "")[:16])
+            if key not in seen_auto:
+                seen_auto.add(key)
+                deduped.append(n)
+
+    user_ids = list(set(n.get("user_id", "") for n in deduped))
     users_map = {}
     if user_ids:
         users_list = await users_col.find(
@@ -677,17 +689,30 @@ async def admin_push_history(limit: int = 50, admin=Depends(require_permission("
         users_map = {u["id"]: u for u in users_list}
 
     result = []
-    for n in notifs:
+    for n in deduped:
         u = users_map.get(n.get("user_id", ""))
+        ntype = n.get("type", "")
+        if ntype in ("admin_broadcast",):
+            scope = "Tutti / Lega"
+        elif ntype in ("admin_message",):
+            scope = u["username"] if u else "?"
+        elif ntype in ("reminder_2h", "reminder_30m"):
+            scope = "Pronostici mancanti"
+        elif ntype in ("matchday_open",):
+            scope = "Lega"
+        elif ntype in ("standings_updated",):
+            scope = "Lega"
+        else:
+            scope = "?"
         result.append({
             "id": n.get("id"),
-            "type": n.get("type"),
+            "type": ntype,
             "title": n.get("title"),
             "message": n.get("message"),
             "image": n.get("image", ""),
             "user_id": n.get("user_id"),
-            "username": u["username"] if u else "?",
-            "email": u["email"] if u else "",
+            "username": u["username"] if u else "",
+            "scope": scope,
             "read": n.get("read", False),
             "created_at": n.get("created_at"),
         })
