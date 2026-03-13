@@ -81,6 +81,13 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] **Admin Backfill Button** - Pulsante "Esegui Backfill Tiebreak" nella pagina Trofei admin.
 - [x] **`total_correct_predictions`** = 1X2 + Over/Under + Goal/NoGoal + Esatti corretti (somma di TUTTI i mercati corretti)
 
+## Completed (14/03/2026 - Standings UI Improvement)
+- [x] **Rimossa label "Ind."** - La colonna separata accanto ai punti è stata eliminata.
+- [x] **Stats come metadata** - Le statistiche (Correct X · Exact Y · 1X2 Z) ora appaiono come riga secondaria sotto il nome del giocatore.
+- [x] **Layout unificato** - Stesso layout sia per classifica Totale che Settimanale.
+- [x] **Punti rimangono elemento primario** - I punti restano l'elemento visivo principale a destra.
+- [x] **Weekly standings con exact_correct** - Aggiunto il campo `exact_correct` anche alla classifica settimanale.
+
 ## Prioritized Backlog
 
 ### P1 - Next Up
