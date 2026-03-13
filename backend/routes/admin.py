@@ -1471,3 +1471,80 @@ async def admin_trophy_stats(admin=Depends(require_permission("admin.leagues.man
         "by_type": by_type,
         "recent": recent,
     }
+
+
+
+# ── Tiebreak Stats Backfill ──────────────────────────────────────
+
+@admin_router.post("/backfill-tiebreak-stats")
+async def admin_backfill_tiebreak_stats(admin=Depends(require_permission("admin.leagues.manage"))):
+    """Recalculate tiebreak stats (total_correct_predictions, exact_score_hits, one_x_two_hits) for ALL existing score_summaries."""
+    from database import score_summaries_col, predictions_col, matches_col
+    from scoring import calculate_match_points
+
+    summaries = await score_summaries_col.find({}, {"_id": 0}).to_list(10000)
+    updated = 0
+    errors = []
+
+    for s in summaries:
+        try:
+            # Get all predictions for this user/matchday/league
+            preds = await predictions_col.find(
+                {"user_id": s["user_id"], "matchday_id": s["matchday_id"], "league_id": s["league_id"]},
+                {"_id": 0}
+            ).to_list(100)
+
+            tcp = 0
+            esh = 0
+            oxth = 0
+            ouh = 0
+            gnh = 0
+
+            for p in preds:
+                # Use pre-calculated is_correct from predictions (already set by scoring system)
+                if p.get("is_correct"):
+                    tcp += 1
+                    market = p.get("market_type", "1X2")
+                    if market == "EXACT_SCORE":
+                        esh += 1
+                    elif market == "1X2":
+                        oxth += 1
+                    elif market == "OVER_UNDER_25":
+                        ouh += 1
+                    elif market == "GOAL_NOGOL":
+                        gnh += 1
+
+            await score_summaries_col.update_one(
+                {"user_id": s["user_id"], "matchday_id": s["matchday_id"], "league_id": s["league_id"]},
+                {"$set": {
+                    "total_correct_predictions": tcp,
+                    "exact_score_hits": esh,
+                    "one_x_two_hits": oxth,
+                    "over_under_hits": ouh,
+                    "goal_nogol_hits": gnh,
+                    "correct_matches": tcp,
+                }}
+            )
+            updated += 1
+        except Exception as e:
+            errors.append(f"{s.get('user_id','?')[:8]}/{s.get('matchday_id','?')[:8]}: {str(e)[:80]}")
+
+    # Now recalculate standings_cache for all user/league combinations
+    from services import recalculate_user_total_standings
+    cache_updated = 0
+    unique_pairs = set()
+    for s in summaries:
+        pair = (s["user_id"], s["league_id"])
+        if pair not in unique_pairs:
+            unique_pairs.add(pair)
+            try:
+                await recalculate_user_total_standings(s["user_id"], s["league_id"])
+                cache_updated += 1
+            except Exception as e:
+                errors.append(f"cache {s['user_id'][:8]}: {str(e)[:80]}")
+
+    await log_audit(admin["id"], admin["username"], "BACKFILL_TIEBREAK", "system", "all", {
+        "summaries_updated": updated, "cache_updated": cache_updated
+    }, ip=admin.get("_request_ip"))
+
+    return {"ok": True, "summaries_updated": updated, "cache_updated": cache_updated, "errors": errors[:20]}

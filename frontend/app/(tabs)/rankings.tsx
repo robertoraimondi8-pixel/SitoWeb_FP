@@ -34,6 +34,9 @@ interface StandingEntry {
   exact_correct?: number;
   total_correct?: number;
   '1x2_correct'?: number;
+  total_correct_predictions?: number;
+  exact_score_hits?: number;
+  one_x_two_hits?: number;
   is_current_user: boolean;
 }
 
@@ -191,6 +194,14 @@ export default function RankingsScreen() {
           )}
         </View>
         
+        {/* Indovinati column - only in total tab */}
+        {tab === 'total' && (
+          <View style={styles.correctCol} data-testid={`correct-${entry.user_id}`}>
+            <Text style={styles.correctValue}>{entry.total_correct_predictions ?? 0}</Text>
+            <Text style={styles.correctLabel}>Ind.</Text>
+          </View>
+        )}
+
         <View style={styles.pointsContainer}>
           <Text style={[
             styles.pointsText,
@@ -352,6 +363,14 @@ export default function RankingsScreen() {
                           </View>
                           <Text style={{ fontSize: 14, fontWeight: m.user_b_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{m.user_b_username || 'TBD'}</Text>
                         </View>
+                        {m.tiebreak_reason && m.status === 'completed' && (
+                          <Text style={{ fontSize: 10, color: '#F5A623', fontWeight: '600', textAlign: 'center', marginTop: 4 }} data-testid={`tiebreak-${m.id}`}>
+                            {m.tiebreak_reason === 'total_correct_predictions' ? 'Vince per tiebreak: piu pronostici indovinati'
+                              : m.tiebreak_reason === 'exact_score_hits' ? 'Vince per tiebreak: piu risultati esatti'
+                              : m.tiebreak_reason === 'one_x_two_hits' ? 'Vince per tiebreak: piu 1X2 corretti'
+                              : 'Vince per tiebreak: sorteggio'}
+                          </Text>
+                        )}
                       </View>
                     ))}
                   </View>
@@ -1004,6 +1023,21 @@ const styles = StyleSheet.create({
   pointsContainer: { 
     alignItems: 'flex-end',
     marginRight: spacing.xs,
+  },
+  correctCol: {
+    alignItems: 'center',
+    minWidth: 32,
+    marginRight: spacing.sm,
+  },
+  correctValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.8)',
+  },
+  correctLabel: {
+    fontSize: 9,
+    color: 'rgba(255,255,255,0.35)',
+    marginTop: 1,
   },
   pointsText: { 
     ...typography.statMedium,

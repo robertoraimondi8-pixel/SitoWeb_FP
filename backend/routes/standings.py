@@ -57,7 +57,15 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
     else:
         standings_match = {"user_id": {"$in": member_user_ids}, "league_id": league_id}
 
-    pipeline = [{"$match": standings_match}, {"$group": {"_id": "$user_id", "total_points": {"$sum": "$total_points"}, "matchdays_played": {"$sum": 1}, "created_at": {"$min": "$created_at"}}}]
+    pipeline = [{"$match": standings_match}, {"$group": {
+        "_id": "$user_id",
+        "total_points": {"$sum": "$total_points"},
+        "matchdays_played": {"$sum": 1},
+        "created_at": {"$min": "$created_at"},
+        "total_correct_predictions": {"$sum": {"$ifNull": ["$total_correct_predictions", {"$ifNull": ["$correct_matches", 0]}]}},
+        "exact_score_hits": {"$sum": {"$ifNull": ["$exact_score_hits", 0]}},
+        "one_x_two_hits": {"$sum": {"$ifNull": ["$one_x_two_hits", 0]}},
+    }}]
     totals = await score_summaries_col.aggregate(pipeline).to_list(1000)
     totals_dict = {t["_id"]: t for t in totals}
 
@@ -75,23 +83,31 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
     entries = []
     for uid in member_user_ids:
         u = await users_col.find_one({"id": uid}, {"_id": 0, "password": 0})
-        t = totals_dict.get(uid, {"total_points": 0, "matchdays_played": 0, "created_at": ""})
+        t = totals_dict.get(uid, {"total_points": 0, "matchdays_played": 0, "created_at": "", "total_correct_predictions": 0, "exact_score_hits": 0, "one_x_two_hits": 0})
+        random_seed = hash(uid) & 0xFFFFFFFF  # deterministic random fallback
         entries.append({
             "user_id": uid, "username": u["username"] if u else "Unknown",
             "total_points": int(t["total_points"]), "current_week_points": int(current_week_points.get(uid, 0)),
             "matchdays_played": t["matchdays_played"], "jolly_used": jolly_counts.get(uid, 0),
+            "total_correct_predictions": int(t.get("total_correct_predictions", 0)),
+            "exact_score_hits": int(t.get("exact_score_hits", 0)),
+            "one_x_two_hits": int(t.get("one_x_two_hits", 0)),
             "created_at": t.get("created_at", ""), "is_current_user": uid == user["id"],
+            "_random": random_seed,
         })
 
-    entries.sort(key=lambda x: (-x["total_points"], -x["current_week_points"], x["created_at"]))
+    # Tiebreak: points → total_correct_predictions → exact_score_hits → one_x_two_hits → random
+    entries.sort(key=lambda x: (-x["total_points"], -x["total_correct_predictions"], -x["exact_score_hits"], -x["one_x_two_hits"], x["_random"]))
     for i, e in enumerate(entries):
         e["rank"] = i + 1
+        e.pop("_random", None)
 
     my_pos = next((e for e in entries if e["is_current_user"]), None)
     return {
         "league_id": league_id, "league_name": league_doc["name"], "standings_type": "total",
         "entries": entries[:50], "my_position": my_pos,
         "current_matchday": current_matchday["number"] if current_matchday else None,
+        "tiebreak_rules": ["total_correct_predictions", "exact_score_hits", "one_x_two_hits", "random"],
     }
 
 

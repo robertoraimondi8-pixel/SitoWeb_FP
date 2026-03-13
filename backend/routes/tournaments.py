@@ -325,25 +325,36 @@ async def complete_round(tournament_id: str, round_id: str, user=Depends(get_cur
     ).to_list(200)
     user_ids = [r["user_id"] for r in regs]
 
-    # Calculate score for each user
+    # Calculate score AND tiebreak stats for each user
     from scoring import calculate_match_points
     user_scores = {}
+    user_tiebreak = {}
     for uid in user_ids:
         preds = await predictions_col.find(
             {"user_id": uid, "matchday_id": round_id, "league_id": tournament_id}, {"_id": 0}
         ).to_list(50)
         total = 0
+        tcp = 0  # total_correct_predictions
+        esh = 0  # exact_score_hits
+        oxth = 0  # one_x_two_hits
         for p in preds:
             m = matches_dict.get(p.get("match_id"))
             if not m:
                 continue
-            pts, _ = calculate_match_points(
+            pts, is_correct = calculate_match_points(
                 p["prediction_value"], p["market_type"],
                 m.get("home_score"), m.get("away_score"),
                 m.get("status", "scheduled"), p.get("multiplier", 1.0)
             )
             total += pts
+            if is_correct:
+                tcp += 1
+                if p["market_type"] == "EXACT_SCORE":
+                    esh += 1
+                elif p["market_type"] == "1X2":
+                    oxth += 1
         user_scores[uid] = total
+        user_tiebreak[uid] = {"tcp": tcp, "esh": esh, "oxth": oxth}
 
         # Upsert score_summary (reuse existing system)
         await score_summaries_col.update_one(
@@ -357,7 +368,10 @@ async def complete_round(tournament_id: str, round_id: str, user=Depends(get_cur
                 "special_bonus": 0,
                 "total_points": total,
                 "valid_matches": len([p for p in preds if matches_dict.get(p.get("match_id"), {}).get("status") == "finished"]),
-                "correct_matches": 0,
+                "correct_matches": tcp,
+                "total_correct_predictions": tcp,
+                "exact_score_hits": esh,
+                "one_x_two_hits": oxth,
             }},
             upsert=True,
         )
@@ -371,6 +385,10 @@ async def complete_round(tournament_id: str, round_id: str, user=Depends(get_cur
     for mu in matchups:
         a_pts = user_scores.get(mu["user_a_id"], 0.0)
         b_pts = user_scores.get(mu["user_b_id"], 0.0)
+        a_tb = user_tiebreak.get(mu["user_a_id"], {"tcp": 0, "esh": 0, "oxth": 0})
+        b_tb = user_tiebreak.get(mu["user_b_id"], {"tcp": 0, "esh": 0, "oxth": 0})
+        tiebreak_reason = None
+
         if a_pts > b_pts:
             result = "user_a_win"
             winner = mu["user_a_id"]
@@ -378,16 +396,47 @@ async def complete_round(tournament_id: str, round_id: str, user=Depends(get_cur
             result = "user_b_win"
             winner = mu["user_b_id"]
         else:
-            result = "draw"
-            winner = None
+            # TIEBREAK: points tied, apply tiebreak rules
+            import random as rng
+            if a_tb["tcp"] > b_tb["tcp"]:
+                winner = mu["user_a_id"]
+                tiebreak_reason = "total_correct_predictions"
+            elif b_tb["tcp"] > a_tb["tcp"]:
+                winner = mu["user_b_id"]
+                tiebreak_reason = "total_correct_predictions"
+            elif a_tb["esh"] > b_tb["esh"]:
+                winner = mu["user_a_id"]
+                tiebreak_reason = "exact_score_hits"
+            elif b_tb["esh"] > a_tb["esh"]:
+                winner = mu["user_b_id"]
+                tiebreak_reason = "exact_score_hits"
+            elif a_tb["oxth"] > b_tb["oxth"]:
+                winner = mu["user_a_id"]
+                tiebreak_reason = "one_x_two_hits"
+            elif b_tb["oxth"] > a_tb["oxth"]:
+                winner = mu["user_b_id"]
+                tiebreak_reason = "one_x_two_hits"
+            else:
+                winner = rng.choice([mu["user_a_id"], mu["user_b_id"]])
+                tiebreak_reason = "random"
+            result = "user_a_win" if winner == mu["user_a_id"] else "user_b_win"
 
-        await tournament_matchups_col.update_one({"id": mu["id"]}, {"$set": {
+        update_data = {
             "user_a_points": a_pts,
             "user_b_points": b_pts,
             "result": result,
             "winner_id": winner,
             "status": "completed",
-        }})
+            "user_a_correct": a_tb["tcp"],
+            "user_b_correct": b_tb["tcp"],
+            "user_a_exact": a_tb["esh"],
+            "user_b_exact": b_tb["esh"],
+            "user_a_1x2": a_tb["oxth"],
+            "user_b_1x2": b_tb["oxth"],
+        }
+        if tiebreak_reason:
+            update_data["tiebreak_reason"] = tiebreak_reason
+        await tournament_matchups_col.update_one({"id": mu["id"]}, {"$set": update_data})
 
     await tournament_rounds_col.update_one({"id": round_id}, {"$set": {"status": "COMPLETED"}})
 

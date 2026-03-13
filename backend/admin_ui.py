@@ -2955,17 +2955,23 @@ async function showLeagueStandings(leagueId) {
       return;
     }
     let html = '<h4 style="color:#F5A623;margin-bottom:12px">Classifica</h4>';
-    html += '<table style="font-size:13px"><tr><th>#</th><th>Giocatore</th><th>Punti</th><th>G. Giocate</th><th>Media</th></tr>';
+    html += '<table style="font-size:13px"><tr><th>#</th><th>Giocatore</th><th>Punti</th><th>Indovinati</th><th>Esatti</th><th>1X2</th><th>G. Giocate</th><th>Media</th></tr>';
     entries.forEach((e, i) => {
       const pos = i + 1;
       const posStyle = pos <= 3 ? 'color:#F5A623;font-weight:bold' : 'color:#94A3B8';
       const pts = e.total_points || 0;
       const played = e.matchdays_played || 0;
       const avg = played > 0 ? (pts / played).toFixed(1) : '-';
+      const tcp = e.total_correct_predictions || 0;
+      const esh = e.exact_score_hits || 0;
+      const oxth = e.one_x_two_hits || 0;
       html += `<tr>
         <td style="${posStyle}">${pos}</td>
         <td><strong>${e.username || e.user_id}</strong></td>
         <td style="color:#F5A623;font-weight:bold">${pts}</td>
+        <td style="color:#3B82F6;font-weight:600">${tcp}</td>
+        <td style="color:#8B5CF6">${esh}</td>
+        <td style="color:#10B981">${oxth}</td>
         <td style="color:#94A3B8">${played}</td>
         <td style="color:#94A3B8">${avg}</td>
       </tr>`;
@@ -3252,6 +3258,21 @@ async function doBackfillAllTrophies() {
     if (r.errors && r.errors.length > 0) msg += ' (' + r.errors.length + ' errori)';
     showToast(msg);
   } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function doBackfillTiebreakStats() {
+  if (!confirm('Ricalcolare le statistiche di tiebreak (Indovinati, Esatti, 1X2) per tutti i punteggi? Questo potrebbe richiedere tempo.')) return;
+  const statusEl = document.getElementById('tiebreak-backfill-status');
+  if (statusEl) statusEl.innerHTML = '<span style="color:#3B82F6">Ricalcolo in corso...</span>';
+  try {
+    const r = await apiCall('/admin/backfill-tiebreak-stats', 'POST');
+    const msg = 'Completato: ' + (r.summaries_updated||0) + ' punteggi aggiornati, ' + (r.cache_updated||0) + ' cache ricalcolate';
+    if (statusEl) statusEl.innerHTML = '<span style="color:#10B981">' + msg + '</span>';
+    showToast(msg);
+  } catch(e) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:#EF4444">Errore: ' + e.message + '</span>';
+    showToast(e.message, 'error');
+  }
 }
 async function render_payments() {
   if (!hasPerm('admin.payments.view')) { render_forbidden(); return; }
@@ -4503,6 +4524,14 @@ async function render_trophies() {
       <h3 style="color:#F5A623;margin-bottom:8px">Backfill Retroattivo</h3>
       <p style="color:#94A3B8;font-size:13px;margin-bottom:12px">Ricalcola e assegna retroattivamente tutti i trofei (settimanali, campioni lega, campioni torneo) per tutte le competizioni completate. I trofei gia assegnati vengono ignorati automaticamente.</p>
       <button class="btn btn-sm" style="background:#F5A623;color:#0F172A" onclick="doBackfillAllTrophies()" data-testid="backfill-trophies-btn">Esegui Backfill Trofei</button>
+    </div>`;
+
+    // Tiebreak Stats Backfill
+    html += `<div class="card" style="border:1px solid rgba(59,130,246,.2)">
+      <h3 style="color:#3B82F6;margin-bottom:8px">Backfill Statistiche Tiebreak</h3>
+      <p style="color:#94A3B8;font-size:13px;margin-bottom:12px">Ricalcola le statistiche di spareggio (Indovinati, Esatti, 1X2) per tutti i punteggi esistenti. Necessario dopo il primo setup o se i dati sembrano incorretti.</p>
+      <button class="btn btn-sm" style="background:#3B82F6;color:#fff" onclick="doBackfillTiebreakStats()" data-testid="backfill-tiebreak-btn">Esegui Backfill Tiebreak</button>
+      <span id="tiebreak-backfill-status" style="margin-left:12px;font-size:12px"></span>
     </div>`;
 
     // Recent trophies

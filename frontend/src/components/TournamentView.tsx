@@ -178,6 +178,18 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
           </View>
         </LinearGradient>
 
+        {/* ═══ TIEBREAK INDICATOR ═══ */}
+        {mu.tiebreak_reason && mu.status === 'completed' && (
+          <View style={{ marginTop: -6, marginBottom: 12, alignSelf: 'center', backgroundColor: 'rgba(245,166,35,0.12)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(245,166,35,0.3)' }} data-testid="tiebreak-indicator">
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#F5A623', textAlign: 'center' }}>
+              {mu.tiebreak_reason === 'total_correct_predictions' ? 'Vince per tiebreak: piu pronostici indovinati'
+                : mu.tiebreak_reason === 'exact_score_hits' ? 'Vince per tiebreak: piu risultati esatti'
+                : mu.tiebreak_reason === 'one_x_two_hits' ? 'Vince per tiebreak: piu 1X2 corretti'
+                : 'Vince per tiebreak: sorteggio'}
+            </Text>
+          </View>
+        )}
+
         {/* ═══ 2. MATCH CARDS ═══ */}
         {matches.map((md: any, idx: number) => {
           const m = md.match;

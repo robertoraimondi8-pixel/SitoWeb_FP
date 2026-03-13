@@ -276,18 +276,32 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
         if not match or match.get("home_score") is None:
             continue
         multiplier = match.get("multiplier", 1.0)
+        pred_market = pred.get("market_type", match.get("market_type", "1X2"))
         pts, is_correct = calculate_match_points(
-            pred.get("prediction_value"), pred.get("market_type", match.get("market_type", "1X2")),
+            pred.get("prediction_value"), pred_market,
             match.get("home_score"), match.get("away_score"), "finished", multiplier
         )
         await predictions_col.update_one({"id": pred["id"]}, {"$set": {"points": pts, "is_correct": is_correct}})
         user_id = pred.get("user_id")
         if user_id not in user_points:
-            user_points[user_id] = {"base_points": 0, "matches_correct": 0, "matches_total": 0, "special_bonus": 0}
+            user_points[user_id] = {
+                "base_points": 0, "matches_correct": 0, "matches_total": 0, "special_bonus": 0,
+                "total_correct_predictions": 0, "exact_score_hits": 0,
+                "one_x_two_hits": 0, "over_under_hits": 0, "goal_nogol_hits": 0,
+            }
         user_points[user_id]["matches_total"] += 1
         if is_correct:
             user_points[user_id]["base_points"] += pts
             user_points[user_id]["matches_correct"] += 1
+            user_points[user_id]["total_correct_predictions"] += 1
+            if pred_market == "EXACT_SCORE":
+                user_points[user_id]["exact_score_hits"] += 1
+            elif pred_market == "1X2":
+                user_points[user_id]["one_x_two_hits"] += 1
+            elif pred_market == "OVER_UNDER_25":
+                user_points[user_id]["over_under_hits"] += 1
+            elif pred_market == "GOAL_NOGOL":
+                user_points[user_id]["goal_nogol_hits"] += 1
             if multiplier > 1.0:
                 base_market_pts = pts / multiplier
                 user_points[user_id]["special_bonus"] += pts - base_market_pts
@@ -305,6 +319,11 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
                 {"$set": {"base_points": base_points, "joker_bonus": joker_bonus, "special_bonus": special_bonus,
                           "total_points": total_points, "joker_active": joker_active,
                           "valid_matches": points_data["matches_total"], "correct_matches": points_data["matches_correct"],
+                          "total_correct_predictions": points_data["total_correct_predictions"],
+                          "exact_score_hits": points_data["exact_score_hits"],
+                          "one_x_two_hits": points_data["one_x_two_hits"],
+                          "over_under_hits": points_data["over_under_hits"],
+                          "goal_nogol_hits": points_data["goal_nogol_hits"],
                           "updated_at": now_utc()}}
             )
         else:
@@ -313,6 +332,11 @@ async def recalculate_matchday_scores(matchday_id: str, league_id: str):
                 "base_points": base_points, "joker_bonus": joker_bonus, "special_bonus": special_bonus,
                 "total_points": total_points, "joker_active": joker_active,
                 "valid_matches": points_data["matches_total"], "correct_matches": points_data["matches_correct"],
+                "total_correct_predictions": points_data["total_correct_predictions"],
+                "exact_score_hits": points_data["exact_score_hits"],
+                "one_x_two_hits": points_data["one_x_two_hits"],
+                "over_under_hits": points_data["over_under_hits"],
+                "goal_nogol_hits": points_data["goal_nogol_hits"],
                 "updated_at": now_utc(),
             })
 
@@ -335,10 +359,21 @@ async def recalculate_user_total_standings(user_id: str, league_id: str):
     total_correct = sum(s.get("correct_matches", 0) for s in summaries)
     total_matches = sum(s.get("valid_matches", 0) for s in summaries)
     matchdays_played = len(summaries)
+    # Tiebreak stats aggregation
+    total_correct_predictions = sum(s.get("total_correct_predictions", s.get("correct_matches", 0)) for s in summaries)
+    exact_score_hits = sum(s.get("exact_score_hits", 0) for s in summaries)
+    one_x_two_hits = sum(s.get("one_x_two_hits", 0) for s in summaries)
+    over_under_hits = sum(s.get("over_under_hits", 0) for s in summaries)
+    goal_nogol_hits = sum(s.get("goal_nogol_hits", 0) for s in summaries)
     await standings_cache_col.update_one(
         {"user_id": user_id, "league_id": league_id, "type": "total"},
         {"$set": {"total_points": total_points, "correct_matches": total_correct,
                   "valid_matches": total_matches, "matchdays_played": matchdays_played,
+                  "total_correct_predictions": total_correct_predictions,
+                  "exact_score_hits": exact_score_hits,
+                  "one_x_two_hits": one_x_two_hits,
+                  "over_under_hits": over_under_hits,
+                  "goal_nogol_hits": goal_nogol_hits,
                   "updated_at": now_utc()},
          "$setOnInsert": {"id": new_id()}},
         upsert=True
@@ -366,6 +401,13 @@ async def calculate_matchday_scores_full(matchday_id: str, admin: dict):
         joker_active = False
         match_pts = []
         special_bonus = 0
+        # Tiebreak stats
+        total_correct_predictions = 0
+        exact_score_hits = 0
+        one_x_two_hits = 0
+        over_under_hits = 0
+        goal_nogol_hits = 0
+
         for p in preds:
             m = matches_dict.get(p["match_id"])
             if not m:
@@ -380,6 +422,16 @@ async def calculate_matchday_scores_full(matchday_id: str, admin: dict):
             multiplier = m.get("multiplier", 1.0)
             if is_correct and multiplier > 1.0:
                 special_bonus += pts - (pts / multiplier)
+            if is_correct:
+                total_correct_predictions += 1
+                if pred_market == "EXACT_SCORE":
+                    exact_score_hits += 1
+                elif pred_market == "1X2":
+                    one_x_two_hits += 1
+                elif pred_market == "OVER_UNDER_25":
+                    over_under_hits += 1
+                elif pred_market == "GOAL_NOGOL":
+                    goal_nogol_hits += 1
             await predictions_col.update_one(
                 {"id": p["id"]},
                 {"$set": {"points": pts, "is_correct": is_correct}}
@@ -398,6 +450,12 @@ async def calculate_matchday_scores_full(matchday_id: str, admin: dict):
             "total_points": totals["total_points"],
             "valid_matches": totals["valid_matches"],
             "void_matches": totals["void_matches"],
+            "correct_matches": total_correct_predictions,
+            "total_correct_predictions": total_correct_predictions,
+            "exact_score_hits": exact_score_hits,
+            "one_x_two_hits": one_x_two_hits,
+            "over_under_hits": over_under_hits,
+            "goal_nogol_hits": goal_nogol_hits,
             "joker_active": joker_active,
             "created_at": now_utc(),
         })
