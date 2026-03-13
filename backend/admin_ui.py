@@ -400,8 +400,8 @@ async function render_dashboard() {
     });
     if ((d.tournaments?.live_rounds || 0) > 0) alarms.push({icon:'L', color:'#10B981', text:`${d.tournaments.live_rounds} round torneo LIVE`, action:()=>"navigateWith('tournaments',{})"});
     // Match alarms
-    if ((d.matches?.inconsistent || 0) > 0) alarms.push({icon:'M', color:'#EF4444', text:`${d.matches.inconsistent} partite con stato inconsistente`, action:()=>"navigateWith('matchdays',{})"});
-    if ((d.matches?.no_result || 0) > 0) alarms.push({icon:'M', color:'#F59E0B', text:`${d.matches.no_result} partite finite senza risultato`, action:()=>"navigateWith('matchdays',{})"});
+    if ((d.matches?.inconsistent || 0) > 0) alarms.push({icon:'M', color:'#EF4444', text:`${d.matches.inconsistent} partite con stato inconsistente`, action:()=>"navigateWith('matches',{filter:'inconsistent'})"});
+    if ((d.matches?.no_result || 0) > 0) alarms.push({icon:'M', color:'#F59E0B', text:`${d.matches.no_result} partite finite senza risultato`, action:()=>"navigateWith('matches',{filter:'no_result'})"});
 
     html += '<div class="card" data-testid="critical-alarms" style="border-color:' + (alarms.length > 0 ? '#EF4444' : '#334155') + '">';
     html += '<h3 style="color:' + (alarms.length > 0 ? '#EF4444' : '#10B981') + ';margin-bottom:12px;font-size:15px">Allarmi Critici</h3>';
@@ -503,8 +503,8 @@ async function render_dashboard() {
         <div class="counter-box" data-testid="kpi-tournaments-active"><div class="num" style="color:#10B981">${tr.active||0}</div><div class="label">Attivi</div></div>
         <div class="counter-box" data-testid="kpi-tournaments-live"><div class="num" style="color:#3B82F6">${tr.live_rounds||0}</div><div class="label">Round Live</div></div>
         <div class="counter-box" data-testid="kpi-tournaments-completed"><div class="num" style="color:#6B7280">${tr.completed||0}</div><div class="label">Completati</div></div>
-        <div class="counter-box" data-testid="kpi-tournaments-pending"><div class="num" style="color:#F59E0B">${tr.pending||0}</div><div class="label">Pending</div></div>
-        <div class="counter-box" style="cursor:pointer;border-color:${trRiskColor}" data-testid="kpi-tournaments-risk"><div class="num" style="color:${trRiskColor}">${trRiskCount}</div><div class="label">A Rischio</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('tournaments',{})" data-testid="kpi-tournaments-pending"><div class="num" style="color:#F59E0B">${tr.pending||0}</div><div class="label">Pending</div></div>
+        <div class="counter-box" style="cursor:pointer;border-color:${trRiskColor}" onclick="navigateWith('tournaments',{})" data-testid="kpi-tournaments-risk"><div class="num" style="color:${trRiskColor}">${trRiskCount}</div><div class="label">A Rischio</div></div>
       </div>`;
     if (trRiskCount > 0) {
       html += '<div style="margin-top:12px">';
@@ -525,9 +525,9 @@ async function render_dashboard() {
       <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Stato Partite</h3>
       <div class="counter-row">
         <div class="counter-box" data-testid="kpi-matches-today"><div class="num">${mt.today||0}</div><div class="label">Oggi</div></div>
-        <div class="counter-box" style="border-color:${mt.live > 0 ? '#10B981' : '#334155'};cursor:pointer" onclick="navigateWith('matchdays',{status:'LIVE'})" data-testid="kpi-matches-live"><div class="num" style="color:#10B981">${mt.live||0}</div><div class="label">Live ora</div></div>
-        <div class="counter-box" style="border-color:${mt.no_result > 0 ? '#F59E0B' : '#334155'};cursor:pointer" onclick="navigateWith('matchdays',{status:'COMPLETED'})" data-testid="kpi-matches-noresult"><div class="num" style="color:${mt.no_result > 0 ? '#F59E0B' : '#6B7280'}">${mt.no_result||0}</div><div class="label">Senza risultato</div></div>
-        <div class="counter-box" style="border-color:${mt.inconsistent > 0 ? '#EF4444' : '#334155'};cursor:pointer" onclick="navigateWith('matchdays',{status:'COMPLETED'})" data-testid="kpi-matches-inconsistent"><div class="num" style="color:${mt.inconsistent > 0 ? '#EF4444' : '#6B7280'}">${mt.inconsistent||0}</div><div class="label">Inconsistenti</div></div>
+        <div class="counter-box" style="border-color:${mt.live > 0 ? '#10B981' : '#334155'};cursor:pointer" onclick="navigateWith('matches',{filter:'live'})" data-testid="kpi-matches-live"><div class="num" style="color:#10B981">${mt.live||0}</div><div class="label">Live ora</div></div>
+        <div class="counter-box" style="border-color:${mt.no_result > 0 ? '#F59E0B' : '#334155'};cursor:pointer" onclick="navigateWith('matches',{filter:'no_result'})" data-testid="kpi-matches-noresult"><div class="num" style="color:${mt.no_result > 0 ? '#F59E0B' : '#6B7280'}">${mt.no_result||0}</div><div class="label">Senza risultato</div></div>
+        <div class="counter-box" style="border-color:${mt.inconsistent > 0 ? '#EF4444' : '#334155'};cursor:pointer" onclick="navigateWith('matches',{filter:'inconsistent'})" data-testid="kpi-matches-inconsistent"><div class="num" style="color:${mt.inconsistent > 0 ? '#EF4444' : '#6B7280'}">${mt.inconsistent||0}</div><div class="label">Inconsistenti</div></div>
       </div>
     </div>`;
 
@@ -538,8 +538,7 @@ async function render_dashboard() {
       <div class="counter-row">
         <div class="counter-box" data-testid="kpi-predictions-total"><div class="num">${pr.total||0}</div><div class="label">Totale</div></div>
         <div class="counter-box" data-testid="kpi-predictions-today"><div class="num" style="color:#10B981">${pr.today||0}</div><div class="label">Oggi</div></div>
-        <div class="counter-box" data-testid="kpi-predictions-active"><div class="num" style="color:#3B82F6">${pr.active_matchdays||0}</div><div class="label">Giornate attive</div></div>
-        <div class="counter-box" data-testid="kpi-predictions-league"><div class="num" style="color:#14B8A6">${pr.league||0}</div><div class="label">Leghe</div></div>
+        <div class="counter-box" data-testid="kpi-predictions-league"><div class="num" style="color:#3B82F6">${pr.league||0}</div><div class="label">Leghe</div></div>
         <div class="counter-box" data-testid="kpi-predictions-tournament"><div class="num" style="color:#F59E0B">${pr.tournament||0}</div><div class="label">Tornei</div></div>
       </div>
     </div>`;
@@ -1498,6 +1497,57 @@ async function createSeason() {
 async function toggleSeason(id, active) {
   await apiCall('/admin/seasons/'+id, 'PUT', {is_active: active});
   showToast('Stagione aggiornata'); render_seasons();
+}
+
+// ========================================
+// MATCHES DRILL-DOWN (from dashboard)
+// ========================================
+async function render_matches() {
+  const filterType = navFilter.filter || 'live';
+  navFilter = {};
+  const el = document.getElementById('content');
+  const titleMap = { live: 'Partite Live', inconsistent: 'Partite Inconsistenti', no_result: 'Partite Senza Risultato' };
+  el.innerHTML = `<h2>${titleMap[filterType] || 'Partite'}</h2><p style="color:#94A3B8;font-size:13px">Caricamento...</p>`;
+
+  try {
+    const d = await apiCall('/admin/matches-overview?filter=' + filterType);
+    let html = `<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <button class="btn btn-sm btn-outline" onclick="navigate('dashboard')">&larr; Dashboard</button>
+      <span style="color:#F5A623;font-weight:600">${d.count} partite trovate</span>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn btn-sm ${filterType==='live'?'':'btn-outline'}" onclick="navigateWith('matches',{filter:'live'})">Live</button>
+        <button class="btn btn-sm ${filterType==='inconsistent'?'':'btn-outline'}" onclick="navigateWith('matches',{filter:'inconsistent'})">Inconsistenti</button>
+        <button class="btn btn-sm ${filterType==='no_result'?'':'btn-outline'}" onclick="navigateWith('matches',{filter:'no_result'})">Senza risultato</button>
+      </div>
+    </div>`;
+
+    if (d.matches.length === 0) {
+      html += '<div class="card"><p style="color:#10B981;font-size:14px">Nessuna partita trovata per questo filtro.</p></div>';
+    } else {
+      html += '<div class="card"><table><tr><th>Partita</th><th>Risultato</th><th>Stato</th><th>Giornata</th><th>Lega</th>';
+      if (filterType === 'inconsistent') html += '<th>Problema</th>';
+      html += '</tr>';
+      d.matches.forEach(m => {
+        const score = (m.home_score !== null && m.away_score !== null) ? `${m.home_score} - ${m.away_score}` : '- vs -';
+        const statusCls = m.status === 'live' ? 'status-live' : m.status === 'finished' ? 'status-COMPLETED' : 'status-LOCKED';
+        html += `<tr>
+          <td style="font-weight:600;font-size:13px">${m.home_team} vs ${m.away_team}</td>
+          <td style="text-align:center;font-weight:700">${score}</td>
+          <td><span class="status-badge ${statusCls}">${m.status}</span></td>
+          <td style="font-size:12px">${m.matchday_label}</td>
+          <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${m.league_name}</td>`;
+        if (filterType === 'inconsistent') {
+          html += `<td style="font-size:12px;color:#EF4444">${m.issue || '-'}</td>`;
+        }
+        html += '</tr>';
+      });
+      html += '</table></div>';
+    }
+
+    el.innerHTML = `<h2>${titleMap[filterType] || 'Partite'}</h2>` + html;
+  } catch(e) {
+    el.innerHTML = `<h2>Partite</h2><p style="color:#EF4444">Errore: ${e.message}</p><button class="btn btn-sm btn-outline" onclick="navigate('dashboard')">&larr; Dashboard</button>`;
+  }
 }
 
 // ========================================

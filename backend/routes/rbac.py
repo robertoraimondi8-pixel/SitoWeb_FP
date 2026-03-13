@@ -123,7 +123,7 @@ async def dashboard_stats(user=Depends(require_permission("admin.dashboard.view"
     # --- Tournaments KPI ---
     total_tournaments = await tournaments_col.count_documents({})
     all_tournaments = await tournaments_col.find({}, {"_id": 0, "id": 1, "name": 1, "status": 1}).to_list(200)
-    active_tournaments = sum(1 for t in all_tournaments if t.get("status") in ("active", "in_progress"))
+    active_tournaments = sum(1 for t in all_tournaments if t.get("status") in ("active", "in_progress", "groups", "knockout"))
     completed_tournaments = sum(1 for t in all_tournaments if t.get("status") == "completed")
     pending_tournaments = sum(1 for t in all_tournaments if t.get("status") in ("pending", "draft", None))
     # Tournaments at risk

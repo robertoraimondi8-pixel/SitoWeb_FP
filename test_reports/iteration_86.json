@@ -1,0 +1,81 @@
+{
+  "summary": "Dashboard metric logic and drill-down behavior testing - All features verified. Tournament 'Active' now correctly shows 2 (fix confirmed). Match Status counters (Live ora=26, Inconsistenti=40, Senza risultato=0) navigate to dedicated matches drill-down page (render_matches). Drill-down page shows correct columns, 'Problema' column for inconsistent filter, back button, and filter tabs. Tournament 'Pending' and 'A Rischio' counters are clickable. Predictions Activity simplified to 4 info-only KPIs.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_86.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "admin_user": "admin@fantapronostic.com / admin123"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All dashboard metric fixes verified. render_matches() drill-down page accessible via navigateWith('matches',{filter:'live/inconsistent/no_result'}). Backend /api/admin/matches-overview endpoint returns correct data with issue descriptions for inconsistent filter.",
+  "verified_features": {
+    "login_to_admin_panel": "PASS - admin@fantapronostic.com / admin123",
+    "tournaments_active_count_fix": {
+      "dashboard_shows_active_2": "PASS - Was 0 before fix, now shows 2",
+      "backend_returns_active_2": "PASS - /api/rbac/dashboard-stats returns tournaments.active=2",
+      "status_groups_knockout_included": "PASS - Tournaments with status 'groups' or 'knockout' count as active"
+    },
+    "tournament_counters_clickable": {
+      "pending_cursor_pointer": "PASS - style contains cursor:pointer",
+      "pending_onclick": "PASS - onclick navigateWith('tournaments',{})",
+      "at_risk_cursor_pointer": "PASS - style contains cursor:pointer",
+      "at_risk_onclick": "PASS - onclick navigateWith('tournaments',{})"
+    },
+    "match_status_drill_down": {
+      "live_ora_counter": {
+        "count": "26",
+        "onclick": "PASS - navigateWith('matches',{filter:'live'})",
+        "navigates_to_drill_down": "PASS"
+      },
+      "inconsistenti_counter": {
+        "count": "40",
+        "onclick": "PASS - navigateWith('matches',{filter:'inconsistent'})",
+        "navigates_to_drill_down": "PASS"
+      },
+      "senza_risultato_counter": {
+        "count": "0",
+        "onclick": "PASS - navigateWith('matches',{filter:'no_result'})",
+        "navigates_to_drill_down": "PASS"
+      }
+    },
+    "matches_drill_down_page": {
+      "title_shows_filter_name": "PASS - 'Partite Live', 'Partite Inconsistenti', 'Partite Senza Risultato'",
+      "count_matches_dashboard": "PASS - '26 partite trovate' matches dashboard counter",
+      "dashboard_back_button": "PASS - '← Dashboard' button present and functional",
+      "filter_tabs": "PASS - Live, Inconsistenti, Senza risultato tabs present",
+      "table_columns_standard": "PASS - Partita, Risultato, Stato, Giornata, Lega",
+      "table_columns_inconsistent": "PASS - Additional 'Problema' column with issue description",
+      "issue_description_example": "Stato 'live' in giornata COMPLETED"
+    },
+    "predictions_activity_section": {
+      "total_kpi": "PASS - Totale counter present, info-only",
+      "today_kpi": "PASS - Oggi counter present, info-only",
+      "league_kpi": "PASS - Leghe counter present, info-only",
+      "tournament_kpi": "PASS - Tornei counter present, info-only",
+      "counters_not_clickable": "PASS - No onclick handlers, no cursor:pointer"
+    },
+    "backend_api_matches_overview": {
+      "filter_live": "PASS - Returns count=26 with match details",
+      "filter_inconsistent": "PASS - Returns count=40 with issue descriptions",
+      "filter_no_result": "PASS - Returns count=0"
+    }
+  }
+}

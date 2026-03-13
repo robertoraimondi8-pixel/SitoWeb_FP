@@ -896,3 +896,108 @@ async def admin_update_tournament_round_status(round_id: str, body: dict = {}, a
     await tournament_rounds_col.update_one({"id": round_id}, {"$set": {"status": new_status}})
     await log_audit(admin["id"], admin["username"], "UPDATE_STATUS", "tournament_round", round_id, {"old_status": rnd["status"], "new_status": new_status})
     return {"ok": True, "status": new_status}
+
+
+# ── Matches drill-down for dashboard ──────────────────────────────
+@admin_router.get("/matches-overview")
+async def matches_overview(filter: str = "all", admin=Depends(get_current_user)):
+    """Return individual matches for dashboard drill-down.
+    Filters: live, inconsistent, no_result, all
+    """
+    results = []
+
+    if filter == "live":
+        matches = await matches_col.find({"status": "live"}, {"_id": 0}).to_list(200)
+        for m in matches:
+            md = await matchdays_col.find_one({"id": m.get("matchday_id")}, {"_id": 0, "label": 1, "league_id": 1, "status": 1})
+            league = await leagues_col.find_one({"id": m.get("league_id")}, {"_id": 0, "name": 1}) if m.get("league_id") else None
+            results.append({
+                "id": m["id"],
+                "home_team": m.get("home_team", "?"),
+                "away_team": m.get("away_team", "?"),
+                "home_score": m.get("home_score"),
+                "away_score": m.get("away_score"),
+                "status": m.get("status"),
+                "kickoff": m.get("kickoff"),
+                "matchday_label": md.get("label") if md else "?",
+                "matchday_status": md.get("status") if md else "?",
+                "league_name": league.get("name") if league else m.get("league_id", "?")[:12],
+                "issue": None,
+            })
+
+    elif filter == "inconsistent":
+        # Definition: matches in COMPLETED matchdays that are NOT "finished"
+        # OR matches marked "finished" without a valid score
+        # OR matches marked "live" in a non-LIVE matchday
+        completed_mds = await matchdays_col.find({"status": "COMPLETED"}, {"_id": 0, "id": 1, "label": 1, "league_id": 1}).to_list(500)
+        completed_md_map = {md["id"]: md for md in completed_mds}
+
+        # Matches in completed matchdays that are still scheduled or live
+        bad_matches = await matches_col.find({
+            "matchday_id": {"$in": list(completed_md_map.keys())},
+            "status": {"$in": ["scheduled", "live"]}
+        }, {"_id": 0}).to_list(500)
+
+        for m in bad_matches:
+            md = completed_md_map.get(m.get("matchday_id"), {})
+            league = await leagues_col.find_one({"id": m.get("league_id")}, {"_id": 0, "name": 1}) if m.get("league_id") else None
+            issue = f"Stato '{m.get('status')}' in giornata COMPLETED"
+            results.append({
+                "id": m["id"],
+                "home_team": m.get("home_team", "?"),
+                "away_team": m.get("away_team", "?"),
+                "home_score": m.get("home_score"),
+                "away_score": m.get("away_score"),
+                "status": m.get("status"),
+                "kickoff": m.get("kickoff"),
+                "matchday_label": md.get("label", "?"),
+                "matchday_status": "COMPLETED",
+                "league_name": league.get("name") if league else m.get("league_id", "?")[:12],
+                "issue": issue,
+            })
+
+        # Also: finished matches without scores
+        no_score = await matches_col.find({
+            "status": "finished",
+            "$or": [{"home_score": None}, {"away_score": None}]
+        }, {"_id": 0}).to_list(200)
+        for m in no_score:
+            md = await matchdays_col.find_one({"id": m.get("matchday_id")}, {"_id": 0, "label": 1})
+            league = await leagues_col.find_one({"id": m.get("league_id")}, {"_id": 0, "name": 1}) if m.get("league_id") else None
+            results.append({
+                "id": m["id"],
+                "home_team": m.get("home_team", "?"),
+                "away_team": m.get("away_team", "?"),
+                "home_score": m.get("home_score"),
+                "away_score": m.get("away_score"),
+                "status": m.get("status"),
+                "kickoff": m.get("kickoff"),
+                "matchday_label": md.get("label") if md else "?",
+                "matchday_status": "?",
+                "league_name": league.get("name") if league else m.get("league_id", "?")[:12],
+                "issue": "Finita senza risultato",
+            })
+
+    elif filter == "no_result":
+        matches = await matches_col.find({
+            "status": "finished",
+            "$or": [{"home_score": None}, {"away_score": None}]
+        }, {"_id": 0}).to_list(200)
+        for m in matches:
+            md = await matchdays_col.find_one({"id": m.get("matchday_id")}, {"_id": 0, "label": 1})
+            league = await leagues_col.find_one({"id": m.get("league_id")}, {"_id": 0, "name": 1}) if m.get("league_id") else None
+            results.append({
+                "id": m["id"],
+                "home_team": m.get("home_team", "?"),
+                "away_team": m.get("away_team", "?"),
+                "home_score": m.get("home_score"),
+                "away_score": m.get("away_score"),
+                "status": m.get("status"),
+                "kickoff": m.get("kickoff"),
+                "matchday_label": md.get("label") if md else "?",
+                "matchday_status": "?",
+                "league_name": league.get("name") if league else m.get("league_id", "?")[:12],
+                "issue": "Senza risultato",
+            })
+
+    return {"filter": filter, "count": len(results), "matches": results}
