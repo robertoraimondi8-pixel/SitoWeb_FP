@@ -1512,20 +1512,31 @@ async function render_seasons() {
       <input id="s-year" placeholder="Anno (es. 2025-2026)">
       <input id="s-start" type="date" placeholder="Inizio">
       <input id="s-end" type="date" placeholder="Fine">
+      <input id="s-total-md" type="number" min="1" max="50" value="38" placeholder="Tot. Giornate" style="width:100px">
+      <input id="s-current-md" type="number" min="1" max="50" value="1" placeholder="Giornata Attuale" style="width:100px">
       <button class="btn" onclick="createSeason()">Crea</button>
     </div>`;
   const seasons = await apiCall('/admin/seasons');
   const statusColors = {draft:'#6B7280',active:'#10B981',completed:'#3B82F6',archived:'#9CA3AF'};
   const statusLabels = {draft:'Bozza',active:'Attiva',completed:'Completata',archived:'Archiviata'};
-  let html = '<table><tr><th>Nome</th><th>Anno</th><th>Stato</th><th>Azioni</th></tr>';
+  let html = '<table><tr><th>Nome</th><th>Anno</th><th>Giornate</th><th>Giornata Attuale</th><th>Stato</th><th>Azioni</th></tr>';
   seasons.forEach(s => {
     const st = s.status || (s.is_active ? 'active' : 'draft');
     const badge = `<span style="padding:2px 8px;border-radius:12px;font-size:11px;color:#fff;background:${statusColors[st]||'#6B7280'}">${statusLabels[st]||st}</span>`;
-    let actions = '';
-    if (st === 'draft') actions = `<button class="btn btn-sm" onclick="activateSeason('${s.id}')">Attiva</button>`;
-    else if (st === 'active') actions = `<button class="btn btn-sm" style="background:#3B82F6" onclick="completeSeason('${s.id}')">Completa Stagione</button>`;
-    else if (st === 'completed') actions = `<button class="btn btn-sm" style="background:#9CA3AF" onclick="archiveSeason('${s.id}')">Archivia</button>`;
-    html += `<tr><td>${s.name}</td><td>${s.year}</td><td>${badge}</td><td>${actions}</td></tr>`;
+    const totalMd = s.total_matchdays || 38;
+    const currentMd = s.current_matchday || 1;
+    let actions = `<button class="btn btn-sm" style="background:#F59E0B;margin-right:4px" onclick="editSeason('${s.id}')">Modifica</button>`;
+    if (st === 'draft') actions += `<button class="btn btn-sm" onclick="activateSeason('${s.id}')">Attiva</button>`;
+    else if (st === 'active') actions += `<button class="btn btn-sm" style="background:#3B82F6" onclick="completeSeason('${s.id}')">Completa Stagione</button>`;
+    else if (st === 'completed') actions += `<button class="btn btn-sm" style="background:#9CA3AF" onclick="archiveSeason('${s.id}')">Archivia</button>`;
+    html += `<tr>
+      <td>${s.name}</td>
+      <td>${s.year}</td>
+      <td style="text-align:center">${totalMd}</td>
+      <td style="text-align:center"><strong style="color:#F5A623">${currentMd}</strong> / ${totalMd}</td>
+      <td>${badge}</td>
+      <td>${actions}</td>
+    </tr>`;
   });
   html += '</table>';
   document.getElementById('season-list').innerHTML = html;
@@ -1538,9 +1549,65 @@ async function createSeason() {
       year: document.getElementById('s-year').value,
       start_date: document.getElementById('s-start').value,
       end_date: document.getElementById('s-end').value,
-      is_active: false
+      is_active: false,
+      total_matchdays: parseInt(document.getElementById('s-total-md').value) || 38,
+      current_matchday: parseInt(document.getElementById('s-current-md').value) || 1
     });
     showToast('Stagione creata in stato Bozza'); render_seasons();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function editSeason(id) {
+  const seasons = await apiCall('/admin/seasons');
+  const s = seasons.find(x => x.id === id);
+  if (!s) return;
+  const html = `<h3>Modifica Stagione</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Nome</label>
+        <input id="es-name" value="${s.name}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Anno</label>
+        <input id="es-year" value="${s.year}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Data Inizio</label>
+        <input id="es-start" type="date" value="${s.start_date||''}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Data Fine</label>
+        <input id="es-end" type="date" value="${s.end_date||''}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Totale Giornate</label>
+        <input id="es-total-md" type="number" min="1" max="50" value="${s.total_matchdays||38}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Giornata Attuale</label>
+        <input id="es-current-md" type="number" min="1" max="50" value="${s.current_matchday||1}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9">
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal()">Annulla</button>
+      <button class="btn" onclick="saveEditSeason('${id}')">Salva</button>
+    </div>`;
+  showModal(html);
+}
+
+async function saveEditSeason(id) {
+  try {
+    await apiCall('/admin/seasons/'+id, 'PUT', {
+      name: document.getElementById('es-name').value,
+      year: document.getElementById('es-year').value,
+      start_date: document.getElementById('es-start').value,
+      end_date: document.getElementById('es-end').value,
+      total_matchdays: parseInt(document.getElementById('es-total-md').value) || 38,
+      current_matchday: parseInt(document.getElementById('es-current-md').value) || 1
+    });
+    closeModal();
+    showToast('Stagione aggiornata');
+    render_seasons();
   } catch(e) { showToast(e.message, 'error'); }
 }
 

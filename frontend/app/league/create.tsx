@@ -13,7 +13,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, borderRadius } from '../../src/theme/designSystem';
 
-const MATCHDAY_OPTIONS = Array.from({ length: 38 }, (_, i) => i + 1);
 const DEADLINE_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60];
 
 const DEFAULT_SCORING: Record<string, { enabled: boolean; points: number; label: string; desc: string }> = {
@@ -33,6 +32,10 @@ export default function CreateLeagueScreen() {
   const [created, setCreated]     = useState<CreatedLeague | null>(null);
   const [error, setError]         = useState('');
 
+  // Matchday range from API
+  const [mdRange, setMdRange]     = useState<{ first: number; last: number }>({ first: 1, last: 38 });
+  const [rangeLoading, setRangeLoading] = useState(true);
+
   // Form fields
   const [name, setName]             = useState('');
   const [startMD, setStartMD]       = useState(1);
@@ -49,7 +52,21 @@ export default function CreateLeagueScreen() {
   useEffect(() => {
     if (!token) return;
     apiCall('/leagues/seasons', { token }).then(setSeasons).catch(() => {});
+    // Fetch valid matchday range
+    apiCall('/leagues/matchday-range', { token }).then((r: any) => {
+      const first = r.first_selectable || 1;
+      const last = r.last_matchday || 38;
+      setMdRange({ first, last });
+      setStartMD(first);
+      setEndMD(last);
+      setRangeLoading(false);
+    }).catch(() => setRangeLoading(false));
   }, [token]);
+
+  const matchdayOptions = Array.from(
+    { length: mdRange.last - mdRange.first + 1 },
+    (_, i) => mdRange.first + i
+  );
 
   const toggleMarket = (key: string) => {
     setScoring(prev => ({ ...prev, [key]: { ...prev[key], enabled: !prev[key].enabled } }));
@@ -186,7 +203,7 @@ export default function CreateLeagueScreen() {
               </TouchableOpacity>
               {showStart && (
                 <ScrollView style={[s.dropdownList, { backgroundColor: colors.card, borderColor: colors.border }]} nestedScrollEnabled>
-                  {MATCHDAY_OPTIONS.map(n => (
+                  {matchdayOptions.map(n => (
                     <TouchableOpacity key={n} style={[s.dropdownItem, startMD === n && { backgroundColor: colors.accent + '22' }]}
                       onPress={() => { setStartMD(n); setShowStart(false); if (endMD < n) setEndMD(n); }}>
                       <Text style={[s.dropdownItemText, { color: startMD === n ? colors.accent : colors.textPrimary }]}>Giornata {n}</Text>
@@ -207,7 +224,7 @@ export default function CreateLeagueScreen() {
               </TouchableOpacity>
               {showEnd && (
                 <ScrollView style={[s.dropdownList, { backgroundColor: colors.card, borderColor: colors.border }]} nestedScrollEnabled>
-                  {MATCHDAY_OPTIONS.filter(n => n >= startMD).map(n => (
+                  {matchdayOptions.filter(n => n >= startMD).map(n => (
                     <TouchableOpacity key={n} style={[s.dropdownItem, endMD === n && { backgroundColor: colors.accent + '22' }]}
                       onPress={() => { setEndMD(n); setShowEnd(false); }}>
                       <Text style={[s.dropdownItemText, { color: endMD === n ? colors.accent : colors.textPrimary }]}>Giornata {n}</Text>

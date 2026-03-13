@@ -579,51 +579,28 @@ LEAGUE_STATES = ["draft", "active", "completed", "cancelled"]
 
 async def get_league_matchday_range(season_id: str):
     """Calculate the valid selectable matchday range for league creation.
-    Returns (first_selectable, last_matchday) based on National League progression.
+    Uses season.current_matchday and season.total_matchdays.
     """
+    season = await seasons_col.find_one({"id": season_id}, {"_id": 0})
+    if not season:
+        return (1, 38)
+
+    total_matchdays = season.get("total_matchdays", 38)
+    current_matchday = season.get("current_matchday", 1)
+
+    # Check if the current matchday is already live or completed
+    # If so, the first selectable is the next one
     national_league = await leagues_col.find_one({"league_type": "national"}, {"_id": 0, "id": 1})
-    if not national_league:
-        return (1, 38)
+    if national_league:
+        nl_id = national_league["id"]
+        current_md_doc = await matchdays_col.find_one(
+            {"season_id": season_id, "league_id": nl_id, "number": current_matchday},
+            {"_id": 0, "status": 1}
+        )
+        if current_md_doc and current_md_doc.get("status") in ("LIVE", "COMPLETED"):
+            current_matchday = min(current_matchday + 1, total_matchdays)
 
-    nl_id = national_league["id"]
-    matchdays = await matchdays_col.find(
-        {"season_id": season_id, "league_id": nl_id},
-        {"_id": 0, "id": 1, "number": 1, "status": 1}
-    ).sort("number", 1).to_list(100)
-
-    if not matchdays:
-        return (1, 38)
-
-    last_matchday = matchdays[-1]["number"]
-
-    # Find first matchday that is still playable
-    # DRAFT or OPEN = still selectable (not yet started)
-    # LIVE or COMPLETED = already past, not selectable
-    first_selectable = last_matchday  # fallback: last one
-    for md in matchdays:
-        status = md.get("status", "DRAFT")
-        if status in ("DRAFT", "OPEN"):
-            first_selectable = md["number"]
-            break
-        elif status == "LIVE":
-            # LIVE means it's in progress, next one is selectable
-            continue
-        elif status == "COMPLETED":
-            continue
-
-    # If all matchdays are COMPLETED or LIVE, the first selectable is after the last non-DRAFT
-    # Re-check: find the first non-completed/non-live
-    first_selectable = None
-    for md in matchdays:
-        status = md.get("status", "DRAFT")
-        if status in ("DRAFT", "OPEN"):
-            first_selectable = md["number"]
-            break
-    if first_selectable is None:
-        # All matchdays are LIVE or COMPLETED, no league can be created
-        first_selectable = last_matchday + 1  # invalid range
-
-    return (first_selectable, last_matchday)
+    return (current_matchday, total_matchdays)
 
 
 async def check_league_auto_completion(matchday_id: str, league_id: str):

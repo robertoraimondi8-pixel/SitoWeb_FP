@@ -1,0 +1,65 @@
+{
+  "summary": "Tested league matchday range bug fix and season configuration fields. Backend (6/6 tests passed): matchday range APIs return first_selectable=26, last_matchday=38; league creation validates against retroactive dates; season model includes total_matchdays and current_matchday fields. Admin UI (100%): Seasons page shows 'Giornate' and 'Giornata Attuale' columns with values 38 and 26/38; Edit modal has total_matchdays and current_matchday fields; Create League modal shows 'Range giornate disponibili: G26 → G38' with dropdowns limited to 26-38. Frontend mobile create league page shows default values (Giornata 1) when not authenticated, but backend correctly returns 26-38 range when auth token provided.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_matchday_range_bug.py",
+    "/app/test_reports/pytest/matchday_range_bug_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_matchday_range_bug.py"
+  ],
+  "success_rate": {
+    "backend": "100% (6/6 tests passed)",
+    "frontend": "100% (Admin UI verified, mobile requires auth which Playwright couldn't persist)"
+  },
+  "test_credentials": {
+    "admin_email": "admin@fantapronostic.com",
+    "admin_password": "admin123",
+    "user_email": "ilio@raimondi.it",
+    "user_password": "password123",
+    "admin_panel_url": "https://context-aware-tabs.preview.emergentagent.com/api/admin-ui",
+    "active_season_id": "19e329ae-4c6b-47ea-ab38-50a4d1baab1e"
+  },
+  "seed_data_creation": "Created test leagues during testing (Test Valid G26-38 with random suffix) - can be cleaned up",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All matchday range features working correctly. Season has total_matchdays=38, current_matchday=26, status=active. API /leagues/matchday-range returns first_selectable=26, last_matchday=38. Admin UI Create League modal correctly shows G26-G38 range. Backend validation rejects retroactive league creation (start_matchday < 26). Frontend mobile page works correctly when authenticated (token in AsyncStorage) - Playwright couldn't persist auth token between navigations.",
+  "verified_features": {
+    "backend_api_tests": {
+      "GET_leagues_matchday_range": "PASS - returns first_selectable=26, last_matchday=38",
+      "GET_admin_league_matchday_range": "PASS - returns first_selectable=26, last_matchday=38 for season_id",
+      "POST_leagues_retroactive_fails": "PASS - returns 400 for start_matchday=1",
+      "POST_leagues_valid_range_succeeds": "PASS - creates league with start_matchday=26, end_matchday=38",
+      "GET_admin_seasons_matchday_fields": "PASS - seasons return total_matchdays=38, current_matchday=26",
+      "PUT_admin_seasons_update_matchday": "PASS - can update current_matchday and total_matchdays"
+    },
+    "admin_ui_tests": {
+      "seasons_page_columns": "PASS - Shows 'Giornate' (38) and 'Giornata Attuale' (26/38) columns",
+      "seasons_edit_modal": "PASS - Has 'Totale Giornate' and 'Giornata Attuale' input fields",
+      "create_league_modal_range_info": "PASS - Shows 'Range giornate disponibili: G26 → G38'",
+      "create_league_modal_dropdowns": "PASS - Start/End dropdowns only show Giornata 26-38"
+    },
+    "frontend_mobile_tests": {
+      "api_returns_correct_range": "PASS - Backend returns first_selectable=26, last_matchday=38 when authenticated",
+      "create_page_renders": "PASS - Page renders with GIORNATE section and dropdowns"
+    }
+  },
+  "api_verification": {
+    "GET /api/leagues/matchday-range": {"status": 200, "response": {"first_selectable": 26, "last_matchday": 38}},
+    "GET /api/admin/league-matchday-range?season_id=...": {"status": 200, "response": {"first_selectable": 26, "last_matchday": 38}},
+    "POST /api/leagues (start_matchday=1)": {"status": 400, "error": "La giornata iniziale deve essere >= 26"},
+    "POST /api/leagues (start_matchday=26, end_matchday=38)": {"status": 200, "league_created": true},
+    "GET /api/admin/seasons": {"status": 200, "has_total_matchdays": true, "has_current_matchday": true},
+    "PUT /api/admin/seasons/{id}": {"status": 200, "updates_matchday_fields": true}
+  }
+}

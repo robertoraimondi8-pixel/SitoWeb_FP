@@ -42,10 +42,29 @@ async def get_my_leagues(user=Depends(get_current_user)):
     return leagues
 
 
+@league_router.get("/matchday-range")
+async def get_matchday_range(user=Depends(get_current_user)):
+    """Get the valid selectable matchday range for league creation in the mobile app."""
+    from services import get_league_matchday_range
+    season = await seasons_col.find_one({"is_active": True}, {"_id": 0, "id": 1, "total_matchdays": 1, "current_matchday": 1})
+    if not season:
+        return {"first_selectable": 1, "last_matchday": 38}
+    first_selectable, last_matchday = await get_league_matchday_range(season["id"])
+    return {"first_selectable": first_selectable, "last_matchday": last_matchday}
+
+
 @league_router.post("")
 async def create_league(req: LeagueCreate, user=Depends(get_current_user)):
     if req.end_matchday < req.start_matchday:
         raise HTTPException(400, "La giornata finale deve essere >= giornata iniziale")
+
+    # Validate matchday range against active season progression
+    from services import get_league_matchday_range
+    first_selectable, last_matchday = await get_league_matchday_range(req.season_id)
+    if req.start_matchday < first_selectable:
+        raise HTTPException(400, f"La giornata iniziale deve essere >= {first_selectable} (prima giornata ancora giocabile)")
+    if req.end_matchday > last_matchday:
+        raise HTTPException(400, f"La giornata finale deve essere <= {last_matchday} (ultima giornata della stagione)")
 
     league_id = new_id()
     invite_code = generate_invite_code()
@@ -62,6 +81,7 @@ async def create_league(req: LeagueCreate, user=Depends(get_current_user)):
         "end_matchday": req.end_matchday, "bet_deadline_minutes": req.bet_deadline_minutes,
         "match_source_type": req.match_source_type, "scoring_config": scoring,
         "include_championship_predictions": req.include_championship_predictions,
+        "status": "active",
         "rules_locked": False, "created_at": now_utc(),
     }
 

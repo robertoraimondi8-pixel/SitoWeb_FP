@@ -80,6 +80,8 @@ class SeasonCreate(BaseModel):
     start_date: str
     end_date: str
     is_active: bool = True
+    total_matchdays: int = 38
+    current_matchday: int = 1
 
 
 class SeasonResponse(BaseModel):
@@ -360,6 +362,8 @@ class AdminSeasonUpdate(BaseModel):
     end_date: Optional[str] = None
     is_active: Optional[bool] = None
     status: Optional[str] = None
+    total_matchdays: Optional[int] = None
+    current_matchday: Optional[int] = None
 
 
 class AdminMatchdayUpdate(BaseModel):

@@ -40,7 +40,7 @@ async def admin_list_seasons(admin=Depends(require_permission("admin.seasons.man
 @admin_router.post("/seasons")
 async def admin_create_season(req: SeasonCreate, admin=Depends(require_permission("admin.seasons.manage"))):
     season_id = new_id()
-    season = {"id": season_id, "name": req.name, "year": req.year, "start_date": req.start_date, "end_date": req.end_date, "is_active": req.is_active, "status": "draft", "created_at": now_utc()}
+    season = {"id": season_id, "name": req.name, "year": req.year, "start_date": req.start_date, "end_date": req.end_date, "is_active": req.is_active, "status": "draft", "total_matchdays": req.total_matchdays, "current_matchday": req.current_matchday, "created_at": now_utc()}
     await seasons_col.insert_one(season)
     await log_audit(admin["id"], admin["username"], "CREATE", "season", season_id, {"name": req.name})
     season.pop("_id", None)
