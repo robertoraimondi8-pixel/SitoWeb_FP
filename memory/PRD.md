@@ -46,7 +46,8 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
   - Endpoint pubblico GET /leagues/matchday-range per mobile app
 
 ## Completed (13/03/2026 - Latest Session)
-- [x] **Tournament Control Room** - Sostituzione completa della pagina "Modifica" con Control Room a 5 tab (Info & Regole, Modifica, Partecipanti, Struttura Torneo, Zona Pericolo), stessa architettura della League Control Room
+- [x] **Tournament Control Room** - Sostituzione completa della pagina "Modifica" con Control Room a 5 tab
+- [x] **Elimination Bracket Visualization** - Barra progressione fasi (Gironi → Quarti → Semifinali → Finale con fase attiva evidenziata), sezione tabellone eliminazione con matchup cards (Player A vs Player B, punteggi, vincitore), integrato nel tab Struttura Torneo
 - [x] **Backend API tornei** - Nuovi endpoint: PUT update, GET/POST/DELETE participants, POST reset-groups
 - [x] **Bug Fix: Admin UI JS Parse Error** - Fixed quote escaping in showLeagueStandings
 - [x] **Colonna "Progressione" Lista Leghe** - Giornata corrente vs totale con barra di progresso
