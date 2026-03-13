@@ -8,7 +8,9 @@ from database import (
     matchdays_col, matches_col, predictions_col,
     score_summaries_col, standings_cache_col,
     joker_usages_col, payments_col, audit_logs_col,
-    password_resets_col, seasons_col
+    password_resets_col, seasons_col,
+    tournaments_col, tournament_rounds_col,
+    tournament_matchups_col, tournament_registrations_col
 )
 from models import (
     RoleCreate, RoleUpdate, AssignRolesRequest, SetSuperAdminRequest,
@@ -110,6 +112,84 @@ async def dashboard_stats(user=Depends(require_permission("admin.dashboard.view"
     for p in recent_payments:
         p.pop("_id", None)
     pending_payments = await payments_col.count_documents({"payment_status": {"$ne": "paid"}})
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    payments_today = await payments_col.count_documents({"created_at": {"$gte": today_start}})
+    payments_7d = await payments_col.count_documents({"created_at": {"$gte": seven_days_ago_str}})
+    failed_payments = await payments_col.count_documents({"payment_status": "failed"})
+    # Total collected
+    paid_list = await payments_col.find({"payment_status": "paid"}, {"_id": 0, "amount": 1}).to_list(5000)
+    total_collected = sum(p.get("amount", 0) for p in paid_list)
+
+    # --- Tournaments KPI ---
+    total_tournaments = await tournaments_col.count_documents({})
+    all_tournaments = await tournaments_col.find({}, {"_id": 0, "id": 1, "name": 1, "status": 1}).to_list(200)
+    active_tournaments = sum(1 for t in all_tournaments if t.get("status") in ("active", "in_progress"))
+    completed_tournaments = sum(1 for t in all_tournaments if t.get("status") == "completed")
+    pending_tournaments = sum(1 for t in all_tournaments if t.get("status") in ("pending", "draft", None))
+    # Tournaments at risk
+    tournaments_at_risk = []
+    for t in all_tournaments:
+        tid = t["id"]
+        tname = t.get("name", "?")
+        # No rounds generated
+        round_count = await tournament_rounds_col.count_documents({"tournament_id": tid})
+        if round_count == 0 and t.get("status") in ("active", "in_progress"):
+            tournaments_at_risk.append({"id": tid, "name": tname, "reason": "Nessun round generato"})
+            continue
+        # No participants
+        reg_count = await tournament_registrations_col.count_documents({"tournament_id": tid, "status": "active"})
+        if reg_count == 0:
+            tournaments_at_risk.append({"id": tid, "name": tname, "reason": "Nessun partecipante"})
+            continue
+        # Stuck in pending
+        if t.get("status") in ("pending", "draft", None):
+            tournaments_at_risk.append({"id": tid, "name": tname, "reason": "Stato pending/draft"})
+    # Live tournament rounds
+    live_tournament_rounds = await tournament_rounds_col.count_documents({"status": "LIVE"})
+
+    # --- Match Status KPI ---
+    today_str = now.strftime("%Y-%m-%d")
+    matches_today = await matches_col.count_documents({
+        "kickoff": {"$regex": f"^{today_str}"}
+    })
+    matches_live = await matches_col.count_documents({"status": "live"})
+    matches_no_result = await matches_col.count_documents({
+        "status": "finished",
+        "$or": [{"home_score": None}, {"away_score": None}]
+    })
+    # Matches in finished matchdays still marked as scheduled/live
+    finished_md_ids = [md["id"] async for md in matchdays_col.find({"status": "COMPLETED"}, {"_id": 0, "id": 1})]
+    matches_inconsistent = 0
+    if finished_md_ids:
+        matches_inconsistent = await matches_col.count_documents({
+            "matchday_id": {"$in": finished_md_ids},
+            "status": {"$in": ["scheduled", "live"]}
+        })
+
+    # --- Predictions Activity KPI ---
+    predictions_today = await predictions_col.count_documents({
+        "created_at": {"$gte": today_start}
+    })
+    # Active matchday IDs (OPEN or LIVE)
+    active_md_ids = []
+    async for md in matchdays_col.find({"status": {"$in": ["OPEN", "LOCKED", "LIVE"]}}, {"_id": 0, "id": 1}):
+        active_md_ids.append(md["id"])
+    # Also add live tournament rounds
+    async for r in tournament_rounds_col.find({"status": {"$in": ["OPEN", "LIVE"]}}, {"_id": 0, "id": 1}):
+        active_md_ids.append(r["id"])
+    predictions_active = 0
+    if active_md_ids:
+        predictions_active = await predictions_col.count_documents({
+            "matchday_id": {"$in": active_md_ids}
+        })
+    # League vs tournament predictions (count by league_id presence in tournaments)
+    tournament_ids = [t["id"] for t in all_tournaments]
+    predictions_tournament = 0
+    predictions_league = 0
+    if tournament_ids:
+        predictions_tournament = await predictions_col.count_documents({"league_id": {"$in": tournament_ids}})
+    total_predictions = await predictions_col.count_documents({})
+    predictions_league = total_predictions - predictions_tournament
 
     # --- Audit ---
     recent_audit = await audit_logs_col.find(
@@ -132,10 +212,35 @@ async def dashboard_stats(user=Depends(require_permission("admin.dashboard.view"
             "private_custom_count": sum(1 for lg in all_leagues_list if lg.get("league_type") != "national" and lg.get("match_source_type") != "national"),
             "private_national_count": sum(1 for lg in all_leagues_list if lg.get("league_type") != "national" and lg.get("match_source_type") == "national"),
         },
+        "tournaments": {
+            "total": total_tournaments,
+            "active": active_tournaments,
+            "completed": completed_tournaments,
+            "pending": pending_tournaments,
+            "live_rounds": live_tournament_rounds,
+            "at_risk": tournaments_at_risk,
+        },
+        "matches": {
+            "today": matches_today,
+            "live": matches_live,
+            "no_result": matches_no_result,
+            "inconsistent": matches_inconsistent,
+        },
+        "predictions": {
+            "total": total_predictions,
+            "today": predictions_today,
+            "active_matchdays": predictions_active,
+            "league": predictions_league,
+            "tournament": predictions_tournament,
+        },
         "matchdays": md_statuses,
         "payments": {
             "recent": recent_payments,
             "pending_count": pending_payments,
+            "today": payments_today,
+            "last_7d": payments_7d,
+            "total_collected": round(total_collected, 2),
+            "failed": failed_payments,
         },
         "audit": recent_audit,
     }

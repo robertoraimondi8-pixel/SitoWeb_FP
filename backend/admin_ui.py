@@ -393,6 +393,15 @@ async function render_dashboard() {
     const liveMd = d.matchdays.LIVE || 0;
     if (openMd > 0) alarms.push({icon:'O', color:'#3B82F6', text:`${openMd} giornate OPEN`, action:()=>"navigateWith('matchdays',{status:'OPEN'})"});
     if (liveMd > 0) alarms.push({icon:'L', color:'#10B981', text:`${liveMd} giornate LIVE`, action:()=>"navigateWith('matchdays',{status:'LIVE'})"});
+    // Tournament alarms
+    const tournRisk = d.tournaments?.at_risk || [];
+    tournRisk.forEach(t => {
+      alarms.push({icon:'T', color:'#F59E0B', text:`Torneo "${t.name}": ${t.reason}`, action:()=>"navigateWith('tournaments',{})"});
+    });
+    if ((d.tournaments?.live_rounds || 0) > 0) alarms.push({icon:'L', color:'#10B981', text:`${d.tournaments.live_rounds} round torneo LIVE`, action:()=>"navigateWith('tournaments',{})"});
+    // Match alarms
+    if ((d.matches?.inconsistent || 0) > 0) alarms.push({icon:'M', color:'#EF4444', text:`${d.matches.inconsistent} partite con stato inconsistente`, action:()=>"navigateWith('matchdays',{})"});
+    if ((d.matches?.no_result || 0) > 0) alarms.push({icon:'M', color:'#F59E0B', text:`${d.matches.no_result} partite finite senza risultato`, action:()=>"navigateWith('matchdays',{})"});
 
     html += '<div class="card" data-testid="critical-alarms" style="border-color:' + (alarms.length > 0 ? '#EF4444' : '#334155') + '">';
     html += '<h3 style="color:' + (alarms.length > 0 ? '#EF4444' : '#10B981') + ';margin-bottom:12px;font-size:15px">Allarmi Critici</h3>';
@@ -409,7 +418,7 @@ async function render_dashboard() {
     }
     html += '</div>';
 
-    // === UTENTI (U1: clickable KPIs + online indicator) ===
+    // === UTENTI ===
     const onlineCount = d.users.online || 0;
     const onlineDot = onlineCount > 0 ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;margin-right:6px;animation:pulse 1.5s infinite"></span>' : '';
     html += `<div class="card" data-testid="kpi-users">
@@ -448,7 +457,59 @@ async function render_dashboard() {
     }
     html += '</div>';
 
-    // === MATCHDAY ===
+    // === TORNEI ===
+    const tr = d.tournaments || {};
+    const trRiskCount = (tr.at_risk || []).length;
+    const trRiskColor = trRiskCount > 0 ? '#EF4444' : '#10B981';
+    html += `<div class="card" data-testid="kpi-tournaments">
+      <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Tornei</h3>
+      <div class="counter-row">
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('tournaments',{})" data-testid="kpi-tournaments-total"><div class="num">${tr.total||0}</div><div class="label">Totale</div></div>
+        <div class="counter-box" data-testid="kpi-tournaments-active"><div class="num" style="color:#10B981">${tr.active||0}</div><div class="label">Attivi</div></div>
+        <div class="counter-box" data-testid="kpi-tournaments-live"><div class="num" style="color:#3B82F6">${tr.live_rounds||0}</div><div class="label">Round Live</div></div>
+        <div class="counter-box" data-testid="kpi-tournaments-completed"><div class="num" style="color:#6B7280">${tr.completed||0}</div><div class="label">Completati</div></div>
+        <div class="counter-box" data-testid="kpi-tournaments-pending"><div class="num" style="color:#F59E0B">${tr.pending||0}</div><div class="label">Pending</div></div>
+        <div class="counter-box" style="cursor:pointer;border-color:${trRiskColor}" data-testid="kpi-tournaments-risk"><div class="num" style="color:${trRiskColor}">${trRiskCount}</div><div class="label">A Rischio</div></div>
+      </div>`;
+    if (trRiskCount > 0) {
+      html += '<div style="margin-top:12px">';
+      tr.at_risk.forEach(t => {
+        html += `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px">
+          <span class="tag tag-disabled">${t.reason}</span>
+          <span>${t.name}</span>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // === MATCH STATUS ===
+    const mt = d.matches || {};
+    const mtAlertColor = (mt.inconsistent > 0 || mt.no_result > 0) ? '#EF4444' : '#334155';
+    html += `<div class="card" data-testid="kpi-matches" style="border-color:${mtAlertColor}">
+      <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Stato Partite</h3>
+      <div class="counter-row">
+        <div class="counter-box" data-testid="kpi-matches-today"><div class="num">${mt.today||0}</div><div class="label">Oggi</div></div>
+        <div class="counter-box" style="border-color:${mt.live > 0 ? '#10B981' : '#334155'}" data-testid="kpi-matches-live"><div class="num" style="color:#10B981">${mt.live||0}</div><div class="label">Live ora</div></div>
+        <div class="counter-box" style="border-color:${mt.no_result > 0 ? '#F59E0B' : '#334155'}" data-testid="kpi-matches-noresult"><div class="num" style="color:${mt.no_result > 0 ? '#F59E0B' : '#6B7280'}">${mt.no_result||0}</div><div class="label">Senza risultato</div></div>
+        <div class="counter-box" style="border-color:${mt.inconsistent > 0 ? '#EF4444' : '#334155'}" data-testid="kpi-matches-inconsistent"><div class="num" style="color:${mt.inconsistent > 0 ? '#EF4444' : '#6B7280'}">${mt.inconsistent||0}</div><div class="label">Inconsistenti</div></div>
+      </div>
+    </div>`;
+
+    // === PREDICTIONS ACTIVITY ===
+    const pr = d.predictions || {};
+    html += `<div class="card" data-testid="kpi-predictions">
+      <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Attivita Pronostici</h3>
+      <div class="counter-row">
+        <div class="counter-box" data-testid="kpi-predictions-total"><div class="num">${pr.total||0}</div><div class="label">Totale</div></div>
+        <div class="counter-box" data-testid="kpi-predictions-today"><div class="num" style="color:#10B981">${pr.today||0}</div><div class="label">Oggi</div></div>
+        <div class="counter-box" data-testid="kpi-predictions-active"><div class="num" style="color:#3B82F6">${pr.active_matchdays||0}</div><div class="label">Giornate attive</div></div>
+        <div class="counter-box" data-testid="kpi-predictions-league"><div class="num" style="color:#14B8A6">${pr.league||0}</div><div class="label">Leghe</div></div>
+        <div class="counter-box" data-testid="kpi-predictions-tournament"><div class="num" style="color:#F59E0B">${pr.tournament||0}</div><div class="label">Tornei</div></div>
+      </div>
+    </div>`;
+
+    // === GIORNATE ===
     const md = d.matchdays || {};
     html += `<div class="card" data-testid="kpi-matchdays">
       <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Giornate</h3>
@@ -462,14 +523,19 @@ async function render_dashboard() {
     </div>`;
 
     // === PAGAMENTI ===
+    const pay = d.payments || {};
     html += `<div class="card" data-testid="kpi-payments">
       <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Pagamenti</h3>
       <div class="counter-row" style="margin-bottom:12px">
-        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('payments',{status:'pending'})"><div class="num" style="color:#F59E0B">${d.payments.pending_count}</div><div class="label">Pending</div></div>
+        <div class="counter-box" style="cursor:pointer" onclick="navigateWith('payments',{status:'pending'})"><div class="num" style="color:#F59E0B">${pay.pending_count||0}</div><div class="label">Pending</div></div>
+        <div class="counter-box" data-testid="kpi-payments-today"><div class="num" style="color:#10B981">${pay.today||0}</div><div class="label">Oggi</div></div>
+        <div class="counter-box" data-testid="kpi-payments-7d"><div class="num" style="color:#3B82F6">${pay.last_7d||0}</div><div class="label">Ultimi 7gg</div></div>
+        <div class="counter-box" data-testid="kpi-payments-total"><div class="num" style="color:#F5A623">${pay.total_collected||0}&euro;</div><div class="label">Totale incassato</div></div>
+        <div class="counter-box" style="border-color:${(pay.failed||0) > 0 ? '#EF4444' : '#334155'}" data-testid="kpi-payments-failed"><div class="num" style="color:${(pay.failed||0) > 0 ? '#EF4444' : '#6B7280'}">${pay.failed||0}</div><div class="label">Falliti</div></div>
       </div>`;
-    if (d.payments.recent && d.payments.recent.length > 0) {
+    if (pay.recent && pay.recent.length > 0) {
       html += '<table><tr><th>Data</th><th>Utente</th><th>Importo</th><th>Stato</th></tr>';
-      d.payments.recent.forEach(p => {
+      pay.recent.forEach(p => {
         const statusCls = p.payment_status === 'paid' ? 'status-live' : p.payment_status === 'pending' ? 'status-LOCKED' : 'status-void';
         html += `<tr style="cursor:pointer" onclick="navigateWith('payments',{})">
           <td style="font-size:12px">${p.created_at ? new Date(p.created_at).toLocaleString('it') : '-'}</td>
@@ -485,14 +551,18 @@ async function render_dashboard() {
 
     // === AUDIT ===
     html += `<div class="card" data-testid="kpi-audit">
-      <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px;cursor:pointer" onclick="navigateWith('audit',{})">Attivita Recente <span style="font-size:12px;color:#64748B">(clicca per tutti)</span></h3>`;
+      <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px;display:flex;align-items:center;gap:8px">
+        Attivita Recente
+        <span style="font-size:12px;color:#64748B;cursor:pointer;margin-left:auto" onclick="navigateWith('audit',{})">Vedi tutto &rarr;</span>
+      </h3>`;
     if (d.audit && d.audit.length > 0) {
       html += '<table><tr><th>Data</th><th>Chi</th><th>Azione</th><th>Entita</th></tr>';
       d.audit.forEach(a => {
+        const actionColor = a.action === 'CREATE' ? '#10B981' : a.action === 'DELETE' ? '#EF4444' : a.action === 'UPDATE' ? '#3B82F6' : '#F5A623';
         html += `<tr>
           <td style="font-size:12px;white-space:nowrap">${a.created_at ? new Date(a.created_at).toLocaleString('it') : '-'}</td>
           <td>${a.admin_username||'-'}</td>
-          <td><span class="status-badge status-OPEN">${a.action||'-'}</span></td>
+          <td><span class="status-badge" style="background:${actionColor}22;color:${actionColor};border:1px solid ${actionColor}44">${a.action||'-'}</span></td>
           <td style="font-size:12px">${a.entity_type||'-'}/${(a.entity_id||'').substring(0,8)}</td></tr>`;
       });
       html += '</table>';
