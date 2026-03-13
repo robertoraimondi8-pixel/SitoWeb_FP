@@ -258,7 +258,16 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
 
     pipeline = [
         {"$match": {"user_id": target_user_id, "league_id": league_id}},
-        {"$group": {"_id": "$user_id", "total_points": {"$sum": "$total_points"}, "matchdays_played": {"$sum": 1}, "total_base_points": {"$sum": "$base_points"}, "total_joker_bonus": {"$sum": "$joker_bonus"}}}
+        {"$group": {
+            "_id": "$user_id",
+            "total_points": {"$sum": "$total_points"},
+            "matchdays_played": {"$sum": 1},
+            "total_base_points": {"$sum": "$base_points"},
+            "total_joker_bonus": {"$sum": "$joker_bonus"},
+            "total_correct_predictions": {"$sum": {"$ifNull": ["$total_correct_predictions", {"$ifNull": ["$correct_matches", 0]}]}},
+            "exact_score_hits": {"$sum": {"$ifNull": ["$exact_score_hits", 0]}},
+            "one_x_two_hits": {"$sum": {"$ifNull": ["$one_x_two_hits", 0]}},
+        }}
     ]
     totals = await score_summaries_col.aggregate(pipeline).to_list(1)
     user_totals = totals[0] if totals else {"total_points": 0, "matchdays_played": 0, "total_base_points": 0, "total_joker_bonus": 0}
@@ -319,6 +328,9 @@ async def get_user_standings_profile(target_user_id: str, league_id: str = None,
         "matchdays_played": user_totals["matchdays_played"],
         "total_base_points": int(user_totals["total_base_points"]),
         "total_joker_bonus": int(user_totals["total_joker_bonus"]),
+        "total_correct_predictions": int(user_totals.get("total_correct_predictions", 0)),
+        "exact_score_hits": int(user_totals.get("exact_score_hits", 0)),
+        "one_x_two_hits": int(user_totals.get("one_x_two_hits", 0)),
         "current_week_points": int(current_week_points),
         "current_matchday": current_matchday["number"] if current_matchday else None,
         "last_matchday_id": last_matchday_id, "jolly_used": jolly_used,

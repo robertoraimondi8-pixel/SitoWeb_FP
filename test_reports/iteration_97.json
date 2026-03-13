@@ -1,0 +1,102 @@
+{
+  "summary": "Tested Standings UI Refinement feature. All 8 backend API tests passed. Frontend UI verified: Main standings list shows only 'Indovinati X' (no Exact/1X2), User detail page shows 'Statistiche Spareggio' section with 3 tiebreak stats (Indovinati=19, Risultati esatti=0, 1X2 indovinati=14) and tiebreak order note. Admin panel retains all columns.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_standings_ui_refinement.py",
+    "/app/test_reports/pytest/standings_ui_refinement_v97_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_standings_ui_refinement.py"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8 passed)",
+    "frontend": "100% (All visual/functional requirements verified)"
+  },
+  "test_credentials": {
+    "admin_email": "admin@fantapronostic.com",
+    "admin_password": "admin123",
+    "league_id": "f1373417-43aa-4043-b6a2-125873181c95",
+    "admin_user_id": "f0a01bb1-4b0c-4f6f-9c8e-a7b33b445651"
+  },
+  "verified_features": {
+    "backend_apis": {
+      "GET_standings_total": {
+        "status": "PASS",
+        "returns_total_correct_predictions": true,
+        "returns_exact_score_hits": true,
+        "returns_one_x_two_hits": true,
+        "returns_tiebreak_rules": true
+      },
+      "GET_standings_user_userId": {
+        "status": "PASS",
+        "returns_total_correct_predictions": true,
+        "returns_exact_score_hits": true,
+        "returns_one_x_two_hits": true,
+        "admin_user_values": {
+          "total_correct_predictions": 19,
+          "exact_score_hits": 0,
+          "one_x_two_hits": 14
+        }
+      },
+      "GET_standings_weekly": {
+        "status": "PASS",
+        "returns_total_correct": true,
+        "returns_exact_correct": true,
+        "returns_1x2_correct": true
+      }
+    },
+    "frontend_main_standings_list": {
+      "status": "PASS",
+      "shows_only_indovinati": true,
+      "no_exact_in_list": true,
+      "no_1x2_in_list": true,
+      "verified_entries": [
+        "admin (Tu) - Indovinati 19",
+        "test_patch_35908d - Indovinati 15",
+        "desy - Indovinati 7"
+      ]
+    },
+    "frontend_user_detail_page": {
+      "status": "PASS",
+      "statistiche_spareggio_title": "Present",
+      "tiebreak_stats_shown": {
+        "indovinati": 19,
+        "risultati_esatti": 0,
+        "1x2_indovinati": 14
+      },
+      "tiebreak_order_note": "Ordine spareggio: Punti > Indovinati > Esatti > 1X2"
+    },
+    "admin_panel": {
+      "status": "PASS",
+      "columns_verified": ["Giocatore", "Punti", "Indovinati", "Esatti", "1X2"]
+    }
+  },
+  "test_scenarios_verified": [
+    "1. GET /api/standings/total returns total_correct_predictions, exact_score_hits, one_x_two_hits - PASS",
+    "2. GET /api/standings/user/{userId} returns all three tiebreak fields with correct values - PASS",
+    "3. GET /api/standings/weekly returns total_correct, exact_correct, 1x2_correct - PASS",
+    "4. Main standings list shows only 'Indovinati X' without Exact/1X2 - PASS",
+    "5. User detail page shows 'Statistiche Spareggio' section - PASS",
+    "6. User detail page shows three tiebreak stats with Italian labels - PASS",
+    "7. User detail page shows tiebreak order note - PASS",
+    "8. Admin panel retains Indovinati/Esatti/1X2 columns - PASS"
+  ],
+  "seed_data_creation": "None - used existing data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Standings UI refinement verified. The main list now shows only 'Indovinati X' under player names. User detail page has 'Statistiche Spareggio' section with three tiebreak stats and order note. Note: After code changes, Expo may need a restart for changes to take effect. Token injection via localStorage keys 'access_token', 'refresh_token', 'user' works for Playwright testing.",
+  "notes": {
+    "expo_restart_needed": "After frontend code changes, run 'sudo supervisorctl restart expo' and wait ~15s for rebundling",
+    "data_testid_issue": "data-testid attributes in React Native Web may not be queryable via standard DOM methods but content is present"
+  }
+}

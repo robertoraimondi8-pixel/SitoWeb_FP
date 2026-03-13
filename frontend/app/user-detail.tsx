@@ -34,6 +34,9 @@ interface UserProfile {
   matchdays_played: number;
   total_base_points: number;
   total_joker_bonus: number;
+  total_correct_predictions: number;
+  exact_score_hits: number;
+  one_x_two_hits: number;
   current_week_points: number;
   current_matchday: number | null;
   last_matchday_id: string | null;
@@ -169,6 +172,26 @@ export default function UserDetailScreen() {
           </View>
         </View>
 
+        {/* Tiebreak Stats Section */}
+        <View style={s.tiebreakSection}>
+          <Text style={s.tiebreakTitle}>Statistiche Spareggio</Text>
+          <View style={s.tiebreakGrid}>
+            <View style={s.tiebreakItem}>
+              <Text style={s.tiebreakValue} data-testid="stat-indovinati">{data.total_correct_predictions ?? 0}</Text>
+              <Text style={s.tiebreakLabel}>Indovinati</Text>
+            </View>
+            <View style={[s.tiebreakItem, s.tiebreakItemBorder]}>
+              <Text style={s.tiebreakValue} data-testid="stat-esatti">{data.exact_score_hits ?? 0}</Text>
+              <Text style={s.tiebreakLabel}>Risultati esatti</Text>
+            </View>
+            <View style={s.tiebreakItem}>
+              <Text style={s.tiebreakValue} data-testid="stat-1x2">{data.one_x_two_hits ?? 0}</Text>
+              <Text style={s.tiebreakLabel}>1X2 indovinati</Text>
+            </View>
+          </View>
+          <Text style={s.tiebreakNote}>Ordine spareggio: Punti {'>'} Indovinati {'>'} Esatti {'>'} 1X2</Text>
+        </View>
+
         {/* Current Week Highlight */}
         {data.current_week_points > 0 && data.current_matchday && (
           <View style={s.currentWeekCard}>
@@ -283,6 +306,55 @@ const s = StyleSheet.create({
     flexDirection: 'row', 
     gap: 10,
     marginBottom: spacing.lg,
+  },
+
+  // Tiebreak Stats
+  tiebreakSection: {
+    backgroundColor: '#1F4C8F',
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    borderWidth: 1.5,
+    borderColor: colors.accent,
+  },
+  tiebreakTitle: {
+    ...typography.meta,
+    color: 'rgba(255,255,255,0.5)',
+    textTransform: 'uppercase',
+    marginBottom: spacing.md,
+    letterSpacing: 1,
+  },
+  tiebreakGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  tiebreakItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  tiebreakItemBorder: {
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  tiebreakValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.accent,
+  },
+  tiebreakLabel: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.45)',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  tiebreakNote: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.3)',
+    textAlign: 'center',
+    marginTop: spacing.md,
+    fontStyle: 'italic',
   },
   statOuter: {
     flex: 1,

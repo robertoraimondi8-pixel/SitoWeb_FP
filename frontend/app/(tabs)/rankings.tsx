@@ -192,11 +192,11 @@ export default function RankingsScreen() {
               {tab === 'total' && entry.matchdays_played ? ` · ${entry.matchdays_played} giornate` : ''}
             </Text>
           )}
-          {/* Stats row under player name */}
+          {/* Stats row under player name - only Indovinati */}
           <Text style={styles.statsRow} data-testid={`stats-${entry.user_id}`}>
             {tab === 'total'
-              ? `Correct ${entry.total_correct_predictions ?? 0} · Exact ${entry.exact_score_hits ?? 0} · 1X2 ${entry.one_x_two_hits ?? 0}`
-              : `Correct ${entry.total_correct ?? 0} · Exact ${entry.exact_correct ?? 0} · 1X2 ${entry['1x2_correct'] ?? 0}`}
+              ? `Indovinati ${entry.total_correct_predictions ?? 0}`
+              : `Indovinati ${entry.total_correct ?? 0}`}
           </Text>
         </View>
 
