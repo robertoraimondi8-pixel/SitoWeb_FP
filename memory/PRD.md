@@ -12,6 +12,7 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - **Unified Tournament/League Layout**: Home screen identica per struttura e spaziature
 - **Real Prediction Scores**: Punteggi pronostico reali su hero card e performance
 - **Admin Dashboard Control Center**: Dashboard operativa con metriche corrette e drill-down
+- **Admin Matches Management**: Pagina "Partite" con CRUD completo (filtra, modifica, elimina)
 
 ## Completed Features
 - [x] Auth (JWT + Google OAuth), Leghe, Tornei, Pronostici, Live scores, Classifiche
@@ -26,15 +27,13 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] Messaggio "Hai fatto X punti su 10 partite"
 - [x] Admin Dashboard Overhaul + Scadenze Pronostici
 - [x] **Admin Dashboard Metric Correctness** (13/03/2026) - Testato 100%
-  - Match Status drill-down: pagina `render_matches` con tabella partite individuali
-  - "Live ora" (26) → drill-down mostra 26 partite live esatte
-  - "Inconsistenti" (40) → drill-down con colonna "Problema" (es: "Stato 'live' in giornata COMPLETED")
-  - "Senza risultato" → drill-down filtrato
-  - Backend endpoint `/api/admin/matches-overview` con filtri live/inconsistent/no_result
-  - Tournament "Active" corretto: ora include status groups/knockout (era 0, ora 2)
-  - Tournament Pending + At Risk cliccabili
-  - Predictions Activity: 4 KPI info-only (Totale, Oggi, Leghe, Tornei)
-  - Regola: ogni metrica è o solo informativa o operativa con drill-down corretto
+- [x] **Admin Matches Management Page "Partite"** (13/03/2026) - Testato 100%
+  - Tabella partite con colonne: Partita, Risultato, Stato, Giornata, Competizione, Kickoff, Azioni
+  - Filtri: Tutte, Live, Programmate, Finite, Inconsistenti, Senza risultato
+  - Modal Modifica: Gol Casa/Trasferta, Stato, Kickoff
+  - Elimina con conferma e supporto force per partite con pronostici
+  - Dashboard drill-down corretto (Live ora -> status:live, Inconsistenti -> filter:inconsistent)
+  - Fix route conflict FastAPI: endpoint consolidati, duplicati rimossi
 
 ## Prioritized Backlog
 
