@@ -3683,6 +3683,10 @@ async function showTournamentControlRoom(tournId, tab) {
     if (tcrTab === 'participants' && !tcrParticipants) {
       try { tcrParticipants = await apiCall('/admin/tournaments/' + tournId + '/participants'); } catch(e) { tcrParticipants = []; }
     }
+    let tcrMatchups = null;
+    if (tcrTab === 'structure') {
+      try { tcrMatchups = await apiCall('/tournaments/' + tournId + '/all-matchups'); } catch(e) { tcrMatchups = []; }
+    }
 
     const statusMap = {draft:'BOZZA',registration:'ISCRIZIONI',groups:'GIRONI',knockout:'ELIMINAZIONE',semifinal:'SEMIFINALE',final:'FINALE',completed:'COMPLETATO'};
     const statusLabel = statusMap[tourn.status] || tourn.status;
@@ -3712,7 +3716,7 @@ async function showTournamentControlRoom(tournId, tab) {
     if (tcrTab === 'info') body.innerHTML = renderTcrInfo(tourn, rounds);
     else if (tcrTab === 'edit') body.innerHTML = renderTcrEdit(tourn);
     else if (tcrTab === 'participants') body.innerHTML = await renderTcrParticipants(tourn);
-    else if (tcrTab === 'structure') body.innerHTML = renderTcrStructure(tourn, rounds);
+    else if (tcrTab === 'structure') body.innerHTML = renderTcrStructure(tourn, rounds, tcrMatchups);
     else if (tcrTab === 'danger') body.innerHTML = renderTcrDanger(tourn);
   } catch(e) { showToast(e.message, 'error'); }
 }
@@ -3902,13 +3906,56 @@ async function removeParticipant(userId, username) {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-function renderTcrStructure(t, rounds) {
+function renderTcrStructure(t, rounds, matchups) {
   let html = '';
+  const allMatchups = matchups || [];
 
-  // Groups section
+  // ── PHASE PROGRESSION BAR ──
+  const phases = [];
+  if (t.tournament_type === 'groups_knockout') phases.push({key:'groups',label:'Gironi'});
+  const koRoundNames = {quarterfinal:'Quarti di Finale',semifinal:'Semifinali',final:'Finale'};
+  // Determine which knockout phases exist from matchups or config
+  const knockoutTypes = ['quarterfinal','semifinal','final'];
+  const existingKoTypes = allMatchups.filter(r => knockoutTypes.includes(r.round_type)).map(r => r.round_type);
+  const expectedKo = [];
+  if (t.knockout_rounds >= 3) expectedKo.push('quarterfinal');
+  if (t.knockout_rounds >= 2) expectedKo.push('semifinal');
+  if (t.knockout_rounds >= 1) expectedKo.push('final');
+  const koPhases = expectedKo.length > 0 ? expectedKo : (existingKoTypes.length > 0 ? [...new Set(existingKoTypes)] : knockoutTypes.slice(1));
+  koPhases.forEach(k => phases.push({key:k, label:koRoundNames[k]||k}));
+
+  // Determine current phase
+  let currentPhase = t.status === 'groups' ? 'groups' : t.status === 'completed' ? 'completed' : null;
+  if (!currentPhase && ['knockout','semifinal','final'].includes(t.status)) {
+    // Find active knockout round from matchups
+    const activeKo = allMatchups.find(r => knockoutTypes.includes(r.round_type) && r.matchups && r.matchups.some(m => m.status === 'pending' || m.status === 'active'));
+    if (activeKo) currentPhase = activeKo.round_type;
+    else {
+      const lastCompleted = [...allMatchups].reverse().find(r => knockoutTypes.includes(r.round_type) && r.matchups && r.matchups.every(m => m.result !== 'pending'));
+      if (lastCompleted) currentPhase = lastCompleted.round_type;
+      else currentPhase = koPhases.length > 0 ? koPhases[0] : 'quarterfinal';
+    }
+  }
+
+  if (phases.length > 1) {
+    html += '<div style="display:flex;align-items:center;gap:0;margin-bottom:20px;overflow-x:auto" data-testid="phase-progression">';
+    phases.forEach((p, i) => {
+      const isCurrent = p.key === currentPhase;
+      const isPast = t.status === 'completed' || (currentPhase && phases.findIndex(x=>x.key===currentPhase) > i);
+      const bg = isCurrent ? '#F5A623' : isPast ? '#10B981' : '#334155';
+      const fg = (isCurrent || isPast) ? '#0F172A' : '#94A3B8';
+      html += `<div style="display:flex;align-items:center">
+        <div style="background:${bg};color:${fg};padding:8px 16px;border-radius:8px;font-size:13px;font-weight:${isCurrent?'700':'500'};white-space:nowrap${isCurrent?';box-shadow:0 0 12px rgba(245,166,35,.4)':''}" data-testid="phase-${p.key}">${p.label}${isCurrent?' (ATTIVO)':isPast?' ✓':''}</div>`;
+      if (i < phases.length - 1) html += '<div style="width:24px;height:2px;background:#475569"></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // ── GROUPS SECTION ──
   if (t.groups && t.groups.length > 0) {
-    html += '<h4 style="color:#F5A623;margin-bottom:12px">Gironi</h4>';
-    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px">';
+    html += '<h4 style="color:#F5A623;margin-bottom:12px">Fase a Gironi</h4>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px">';
     t.groups.forEach(g => {
       html += `<div style="background:#0F172A;border:1px solid #334155;border-radius:8px;padding:12px" data-testid="group-${g.group_name}">
         <h5 style="color:#F5A623;margin-bottom:8px;font-size:14px">Gruppo ${g.group_name}</h5>`;
@@ -3920,8 +3967,77 @@ function renderTcrStructure(t, rounds) {
     html += '</div>';
   }
 
-  // Rounds section
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+  // ── ELIMINATION BRACKET ──
+  const koRounds = allMatchups.filter(r => knockoutTypes.includes(r.round_type));
+  if (koRounds.length > 0 || ['knockout','semifinal','final','completed'].includes(t.status)) {
+    html += '<h4 style="color:#F5A623;margin-bottom:16px">Tabellone Eliminazione</h4>';
+
+    if (koRounds.length === 0) {
+      html += '<p style="color:#94A3B8;font-size:13px;padding:12px 0">Il tabellone eliminazione non e ancora stato generato.</p>';
+    } else {
+      // Render bracket as horizontal flow
+      html += '<div style="display:flex;gap:24px;overflow-x:auto;padding-bottom:12px" data-testid="elimination-bracket">';
+      const orderedKo = [];
+      knockoutTypes.forEach(kt => {
+        const found = koRounds.filter(r => r.round_type === kt);
+        found.forEach(r => orderedKo.push(r));
+      });
+
+      orderedKo.forEach((round, ri) => {
+        const isActive = round.matchups && round.matchups.some(m => m.status === 'pending' || m.status === 'active');
+        const isCompleted = round.matchups && round.matchups.length > 0 && round.matchups.every(m => m.result !== 'pending');
+        const roundLabel = koRoundNames[round.round_type] || round.label;
+        const borderColor = isActive ? '#F5A623' : isCompleted ? '#10B981' : '#334155';
+        const headerBg = isActive ? 'rgba(245,166,35,.15)' : isCompleted ? 'rgba(16,185,129,.1)' : 'transparent';
+
+        html += `<div style="min-width:260px;flex-shrink:0" data-testid="bracket-round-${round.round_type}">
+          <div style="background:${headerBg};border:2px solid ${borderColor};border-radius:10px;padding:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <h5 style="color:${isActive?'#F5A623':isCompleted?'#10B981':'#F1F5F9'};margin:0;font-size:14px">${roundLabel}</h5>
+              ${isActive ? '<span style="background:#F5A623;color:#0F172A;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700">ATTIVO</span>' :
+                isCompleted ? '<span style="color:#10B981;font-size:11px">Completato</span>' :
+                '<span style="color:#64748B;font-size:11px">In attesa</span>'}
+            </div>`;
+
+        if (round.matchups && round.matchups.length > 0) {
+          round.matchups.forEach((m, mi) => {
+            const isDone = m.result !== 'pending' && m.result !== null;
+            const aWon = m.winner_id === m.user_a_id;
+            const bWon = m.winner_id === m.user_b_id;
+            const matchBorder = isDone ? '#334155' : isActive ? 'rgba(245,166,35,.3)' : '#1E293B';
+
+            html += `<div style="background:#0F172A;border:1px solid ${matchBorder};border-radius:8px;padding:10px;margin-bottom:${mi<round.matchups.length-1?'8':'0'}px" data-testid="match-${m.id || mi}">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <span style="color:${aWon?'#10B981':'#F1F5F9'};font-size:13px;font-weight:${aWon?'700':'400'}">${m.user_a_username || 'TBD'}</span>
+                <span style="color:${aWon?'#10B981':'#94A3B8'};font-size:13px;font-weight:700">${isDone ? m.user_a_points.toFixed(1) : '-'}</span>
+              </div>
+              <div style="height:1px;background:#1E293B;margin:4px 0"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+                <span style="color:${bWon?'#10B981':'#F1F5F9'};font-size:13px;font-weight:${bWon?'700':'400'}">${m.user_b_username || 'TBD'}</span>
+                <span style="color:${bWon?'#10B981':'#94A3B8'};font-size:13px;font-weight:700">${isDone ? m.user_b_points.toFixed(1) : '-'}</span>
+              </div>
+              ${isDone && m.winner_id ? '<div style="margin-top:6px;font-size:10px;color:#10B981;text-align:right">Avanza: ' + (aWon ? m.user_a_username : m.user_b_username) + '</div>' : ''}
+            </div>`;
+          });
+        } else {
+          html += '<p style="color:#64748B;font-size:12px;text-align:center;padding:8px 0">Nessuna sfida generata</p>';
+        }
+
+        html += '</div></div>';
+        // Arrow connector between rounds
+        if (ri < orderedKo.length - 1) {
+          html += '<div style="display:flex;align-items:center;flex-shrink:0"><div style="width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:12px solid #475569"></div></div>';
+        }
+      });
+      html += '</div>';
+    }
+  } else if (['knockout','semifinal','final'].includes(t.status)) {
+    html += '<h4 style="color:#F5A623;margin-bottom:12px">Tabellone Eliminazione</h4>';
+    html += '<p style="color:#94A3B8;font-size:13px">Fase eliminazione in corso, ma nessun matchup trovato.</p>';
+  }
+
+  // ── ROUNDS TABLE (giornate/matchdays) ──
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px">';
   html += '<h4 style="color:#F5A623;margin:0">Giornate del Torneo</h4>';
   if (['groups','knockout'].includes(t.status)) {
     html += `<button class="btn btn-sm" onclick="createTournamentRound('${t.id}')" data-testid="tcr-create-round">+ Nuova Giornata</button>`;
