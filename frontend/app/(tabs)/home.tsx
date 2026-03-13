@@ -432,7 +432,7 @@ export default function HomeScreen() {
                                 ? (data.live?.total_provisional ?? 0)
                                 : (data.matchday.my_points ?? data.live?.total_provisional ?? 0);
                               const val = Math.round(Number(pts));
-                              if (val > 0) return `Hai fatto ${val} punti su ${data.matchday.total_matches || ''}`;
+                              if (val > 0) return `Hai fatto ${val} punti su 10 partite`;
                               return 'Nessun punto questa giornata';
                             })()}
                           </Text>
