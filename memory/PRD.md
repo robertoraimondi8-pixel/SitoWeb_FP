@@ -13,6 +13,23 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - **Real Prediction Scores**: Punteggi pronostico reali su hero card e performance
 - **Admin Dashboard Control Center**: Dashboard operativa con metriche corrette e drill-down
 - **Admin Matches Management**: Pagina "Partite" con CRUD completo (filtra, modifica, elimina)
+- **Lifecycle Management**: Season/League/Tournament states con auto-completion e palmares
+
+## Lifecycle States
+### Seasons: draft -> active -> completed -> archived
+- **draft**: creata ma non ancora usata
+- **active**: stagione corrente e giocabile
+- **completed**: stagione finita, classifiche congelate, vincitori determinati
+- **archived**: storica, visibile solo nel palmares
+
+### Leagues: draft -> active -> completed -> cancelled
+- Auto-completion quando end_matchday raggiunta e tutte le partite finite
+- Vincitore e top 3 salvati nel palmares
+
+### League Creation Constraints
+- start_matchday >= prima giornata ancora giocabile (non retro-attiva)
+- end_matchday <= ultima giornata della stagione
+- Dropdown dinamici nell'admin UI
 
 ## Completed Features
 - [x] Auth (JWT + Google OAuth), Leghe, Tornei, Pronostici, Live scores, Classifiche
@@ -26,26 +43,36 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] Fix punteggi reali torneo (hero card + performance)
 - [x] Messaggio "Hai fatto X punti su 10 partite"
 - [x] Admin Dashboard Overhaul + Scadenze Pronostici
-- [x] **Admin Dashboard Metric Correctness** (13/03/2026) - Testato 100%
-- [x] **Admin Matches Management Page "Partite"** (13/03/2026) - Testato 100%
-  - Tabella partite con colonne: Partita, Risultato, Stato, Giornata, Competizione, Kickoff, Azioni
-  - Filtri: Tutte, Live, Programmate, Finite, Inconsistenti, Senza risultato
-  - Modal Modifica: Gol Casa/Trasferta, Stato, Kickoff
-  - Elimina con conferma e supporto force per partite con pronostici
-  - Dashboard drill-down corretto (Live ora -> status:live, Inconsistenti -> filter:inconsistent)
-  - Fix route conflict FastAPI: endpoint consolidati, duplicati rimossi
+- [x] Admin Dashboard Metric Correctness (13/03/2026)
+- [x] Admin Matches Management Page "Partite" (13/03/2026) - Testato 100%
+- [x] **Season/League Lifecycle Management** (13/03/2026) - Testato 100%
+  - Season states (draft/active/completed/archived) con transizioni admin
+  - League states (draft/active/completed/cancelled) con auto-completion
+  - Matchday range constraint per creazione leghe (no retro-attive)
+  - Admin UI: badge stato stagioni/leghe, pulsante "Completa Stagione"
+  - Admin UI: dropdown giornata dinamici nella creazione lega
+  - Stagione corrente aggiornata a "Serie A 2025-2026"
+  - Collezione palmares per risultati storici persistenti
+  - 61 leghe migrated a status 'active'
+  - Auto-completion hook nel flusso COMPLETED matchday
 
 ## Prioritized Backlog
 
 ### P1 - Next Up
 - [ ] **Trophy System - Backfill**: Endpoint admin per trofei retroattivi
-- [ ] **Trophy - League/Tournament Champion**: Logica per campioni
+- [ ] **Trophy - League/Tournament Champion**: Logica per campioni (collegata al lifecycle)
 - [ ] **Tournament Scheduling Fix**: Decidere come gestire torneo "RedBull"
 
 ### P2 - Future
 - [ ] Championship Winner Predictions
 - [ ] Integrazione Stripe
 - [ ] Breakdown punti per tipo nel profilo
+
+## Key Data State
+- Season: "Serie A 2025-2026" (status=active)
+- Matchdays: G1-G25 COMPLETED, G26 DRAFT
+- National League: start_matchday=1, end_matchday=38
+- Selectable range for new leagues: 26-26
 
 ## Credentials
 - Standard User: `ilio@raimondi.it` / `password123`
