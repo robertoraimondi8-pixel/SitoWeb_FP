@@ -2701,8 +2701,12 @@ async function render_leagues() {
   el.innerHTML = '<h2>Gestione Leghe</h2><div id="leagues-filter" class="card"></div><div id="leagues-list"></div>';
 
   try {
-    const leagues = await apiCall('/rbac/leagues');
+    const [leagues, seasons] = await Promise.all([
+      apiCall('/rbac/leagues'),
+      window._mdSeasons ? Promise.resolve(window._mdSeasons) : apiCall('/admin/seasons').catch(() => [])
+    ]);
     allLeaguesCache = leagues;
+    if (!window._mdSeasons) window._mdSeasons = seasons;
 
     // Filter bar
     document.getElementById('leagues-filter').innerHTML = `
@@ -2901,7 +2905,7 @@ async function showLeagueStandings(leagueId) {
     const data = await apiCall('/standings/total?league_id=' + leagueId);
     const entries = data.entries || [];
     if (entries.length === 0) {
-      body.innerHTML = '<p style="color:#94A3B8;text-align:center;padding:24px">Nessun dato in classifica per questa lega.</p><div style="text-align:center"><button class="btn btn-outline btn-sm" onclick="showLeagueControlRoom(crLeagueId,\'info\')">Torna a Info</button></div>';
+      body.innerHTML = '<p style="color:#94A3B8;text-align:center;padding:24px">Nessun dato in classifica per questa lega.</p><div style="text-align:center"><button class="btn btn-outline btn-sm" onclick="showLeagueControlRoom(crLeagueId,\\'info\\')">Torna a Info</button></div>';
       return;
     }
     let html = '<h4 style="color:#F5A623;margin-bottom:12px">Classifica</h4>';
@@ -2924,7 +2928,7 @@ async function showLeagueStandings(leagueId) {
     html += `<div style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="showLeagueControlRoom(crLeagueId,'info')">Torna a Info</button></div>`;
     body.innerHTML = html;
   } catch(e) {
-    body.innerHTML = '<p style="color:#EF4444">Errore caricamento classifica: ' + e.message + '</p><div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="showLeagueControlRoom(crLeagueId,\'info\')">Torna a Info</button></div>';
+    body.innerHTML = '<p style="color:#EF4444">Errore caricamento classifica: ' + e.message + '</p><div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="showLeagueControlRoom(crLeagueId,\\'info\\')">Torna a Info</button></div>';
   }
 }
 
