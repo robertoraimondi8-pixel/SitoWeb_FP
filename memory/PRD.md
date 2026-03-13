@@ -61,11 +61,18 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] **Bug Fix: Match Import duplicated function** - Rinominata funzione duplicata `doImportFixtures`
 - [x] **Matchday Control Room parity** - Tab "Partite" con funzionalità complete (Edit, Delete, X3, Status, Score)
 
+## Completed (13/03/2026 - Trophy System)
+- [x] **Trophy System - Campione Lega** - Logica `award_league_trophies` con fallback da `score_summaries` quando `standings_cache` è vuoto. Assegna Campione, 2° e 3° classificato.
+- [x] **Trophy System - Campione Torneo** - Fix bug critici (field names errati: `round_name`→`label`, `round_order`→`round_number`, `round_id`→`round_number+round_type`). Protezione per tornei non completati.
+- [x] **Trophy Backfill Retroattivo** - Endpoint `POST /api/admin/trophies/backfill` che processa tutte le giornate completate (1524 processate, 48 trofei assegnati). Duplicati ignorati automaticamente.
+- [x] **Admin Pagina Trofei** - Nuova sezione "Trofei" nel pannello admin con statistiche, distribuzione per tipo, backfill, e tabella trofei recenti.
+- [x] **Award Trophies da Control Room** - Pulsanti "Assegna Trofei" in Zona Pericolo di League e Tournament Control Room.
+- [x] **Trophy Stats API** - Endpoint `GET /api/admin/trophies/stats` con totale, per tipo, e trofei recenti.
+- [x] **Season completion trophy integration** - `complete_season` ora chiama `award_tournament_trophies` per tornei completati.
+
 ## Prioritized Backlog
 
 ### P1 - Next Up
-- [ ] Trophy System - Backfill trofei retroattivi
-- [ ] Trophy - Campione Lega/Torneo
 - [ ] Tournament Scheduling Fix (torneo "RedBull")
 
 ### P2 - Future
