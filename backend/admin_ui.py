@@ -2129,11 +2129,12 @@ async function showMdControlRoom(mdId, tabOrTournId, maybeTab) {
   const tournId = tournamentOverrideId || md._tournament_id;
 
   // Use matchday's own league when viewing all leagues
-  const selectedLeagueId = document.getElementById('md-league').value;
+  const mdLeagueEl = document.getElementById('md-league');
+  const selectedLeagueId = mdLeagueEl ? mdLeagueEl.value : 'all';
   const league = isTournament ? null : (selectedLeagueId === 'all'
     ? allLeaguesCache.find(l => l.id === md.league_id)
     : allLeaguesCache.find(l => l.id === selectedLeagueId));
-  const canManage = isTournament || (league && (league.league_type === 'national' || league.match_source_type !== 'national'));
+  const canManage = isTournament || !league || (league.league_type === 'national' || league.match_source_type !== 'national');
 
   const tabs = [
     {id:'info', label:'Info & Stato'},
@@ -2658,12 +2659,16 @@ async function doImportFixtures(mdId) {
   const selected = Array.from(document.querySelectorAll('.fix-check:checked')).map(c => parseInt(c.value));
   if (selected.length === 0) { showToast('Seleziona almeno una partita', 'error'); return; }
 
-  // Get the league_id from the matchday context or the filter dropdown
+  // Get the league_id from the matchday context
   const md = (window._allMatchdays||[]).find(m => m.id === mdId);
   let leagueId = md ? md.league_id : null;
   if (!leagueId) {
-    const filterVal = document.getElementById('md-league').value;
-    leagueId = (filterVal && filterVal !== 'all') ? filterVal : null;
+    // Fallback: try the main page league filter dropdown
+    const mdLeagueEl = document.getElementById('md-league');
+    if (mdLeagueEl) {
+      const filterVal = mdLeagueEl.value;
+      leagueId = (filterVal && filterVal !== 'all') ? filterVal : null;
+    }
   }
   if (!leagueId) { showToast('Impossibile determinare la lega. Seleziona una lega specifica nel filtro.', 'error'); return; }
 
@@ -3724,7 +3729,7 @@ function showAddMatchesModal(tournId, roundId, roundLabel) {
       <h4 style="color:#F5A623;font-size:14px;margin-bottom:8px">Importa da API-Football</h4>
       <div class="form-row">
         <input id="am-fixtures" placeholder="Es: 1234567, 1234568, 1234569" style="flex:2">
-        <button class="btn" onclick="doImportFixtures('${tournId}','${roundId}')">Importa</button>
+        <button class="btn" onclick="doImportTournamentFixtures('${tournId}','${roundId}')">Importa</button>
       </div>
     </div>
 
@@ -3746,7 +3751,7 @@ function showAddMatchesModal(tournId, roundId, roundLabel) {
     </div>`);
 }
 
-async function doImportFixtures(tournId, roundId) {
+async function doImportTournamentFixtures(tournId, roundId) {
   const ids = document.getElementById('am-fixtures').value.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
   if (ids.length === 0) { showToast('Inserisci almeno un ID fixture', 'error'); return; }
   try {
