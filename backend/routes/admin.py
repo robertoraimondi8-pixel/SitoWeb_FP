@@ -6,7 +6,7 @@ import logging
 from database import (
     leagues_col, memberships_col, matchdays_col, matches_col,
     predictions_col, score_summaries_col, seasons_col, users_col,
-    payments_col, audit_logs_col
+    payments_col, audit_logs_col, tournaments_col
 )
 from database import joker_usages_col, standings_cache_col, champion_picks_col
 from models import (
@@ -234,24 +234,38 @@ async def admin_create_match(req: MatchCreate, admin=Depends(require_permission(
 
 
 @admin_router.put("/matches/{match_id}")
-async def admin_update_match(match_id: str, req: MatchUpdate, admin=Depends(require_permission("admin.matches.manage"))):
-    updates = {k: v for k, v in req.dict().items() if v is not None}
+async def admin_update_match(match_id: str, body: dict = {}, admin=Depends(require_permission("admin.matches.manage"))):
+    match = await matches_col.find_one({"id": match_id}, {"_id": 0})
+    if not match:
+        raise HTTPException(404, "Partita non trovata")
+    allowed_fields = {"home_score", "away_score", "status", "kickoff", "home_team", "away_team", "competition", "start_time", "market_type"}
+    updates = {k: v for k, v in body.items() if k in allowed_fields}
     if not updates:
-        raise HTTPException(400, "No updates")
+        raise HTTPException(400, "Nessun campo valido da aggiornare")
+    if "status" in updates and updates["status"] not in ("scheduled", "live", "finished"):
+        raise HTTPException(400, "Stato non valido. Valori ammessi: scheduled, live, finished")
+    if "home_score" in updates and updates["home_score"] is not None:
+        updates["home_score"] = int(updates["home_score"])
+    if "away_score" in updates and updates["away_score"] is not None:
+        updates["away_score"] = int(updates["away_score"])
     await matches_col.update_one({"id": match_id}, {"$set": updates})
     await log_audit(admin["id"], admin["username"], "UPDATE", "match", match_id, updates)
-    return await matches_col.find_one({"id": match_id}, {"_id": 0})
+    return {"ok": True, "match_id": match_id, "updates": updates}
 
 
 @admin_router.delete("/matches/{match_id}")
-async def admin_delete_match(match_id: str, admin=Depends(require_permission("admin.matches.manage"))):
-    match = await matches_col.find_one({"id": match_id})
+async def admin_delete_match(match_id: str, force: bool = False, admin=Depends(require_permission("admin.matches.manage"))):
+    match = await matches_col.find_one({"id": match_id}, {"_id": 0})
     if not match:
-        raise HTTPException(404, "Match not found")
-    deleted_predictions = await predictions_col.delete_many({"match_id": match_id})
+        raise HTTPException(404, "Partita non trovata")
+    pred_count = await predictions_col.count_documents({"match_id": match_id})
+    if pred_count > 0 and not force:
+        raise HTTPException(409, f"Questa partita ha {pred_count} pronostici. Usa force=true per eliminare comunque.")
+    if pred_count > 0 and force:
+        await predictions_col.delete_many({"match_id": match_id})
     await matches_col.delete_one({"id": match_id})
-    await log_audit(admin["id"], admin["username"], "DELETE", "match", match_id, {"teams": f"{match.get('home_team')} vs {match.get('away_team')}", "deleted_predictions": deleted_predictions.deleted_count})
-    return {"status": "deleted", "match_id": match_id, "deleted_predictions": deleted_predictions.deleted_count}
+    await log_audit(admin["id"], admin["username"], "DELETE", "match", match_id, {"teams": f"{match.get('home_team')} vs {match.get('away_team')}", "predictions_deleted": pred_count if force else 0})
+    return {"ok": True, "match_id": match_id, "predictions_deleted": pred_count if force else 0}
 
 
 @admin_router.post("/matches/{match_id}/special")
@@ -1042,119 +1056,3 @@ async def matches_overview(filter: str = "all", admin=Depends(get_current_user))
             })
 
     return {"filter": filter, "count": len(results), "matches": results}
-
-
-# ── Matches management: list with filters ──────────────────────────
-@admin_router.get("/matches")
-async def list_matches(
-    league_id: str = None,
-    matchday_id: str = None,
-    status: str = None,
-    filter: str = None,
-    admin=Depends(get_current_user)
-):
-    """List matches with optional filters for admin management page."""
-    query = {}
-    if league_id:
-        query["league_id"] = league_id
-    if matchday_id:
-        query["matchday_id"] = matchday_id
-    if status:
-        query["status"] = status
-
-    # Special filters
-    if filter == "inconsistent":
-        completed_mds = await matchdays_col.find({"status": "COMPLETED"}, {"_id": 0, "id": 1}).to_list(500)
-        completed_ids = [md["id"] for md in completed_mds]
-        query = {
-            "matchday_id": {"$in": completed_ids},
-            "status": {"$in": ["scheduled", "live"]}
-        }
-    elif filter == "no_result":
-        query = {
-            "status": "finished",
-            "$or": [{"home_score": None}, {"away_score": None}]
-        }
-
-    matches = await matches_col.find(query, {"_id": 0}).sort("kickoff", -1).to_list(300)
-
-    # Enrich with matchday label and league name
-    md_cache = {}
-    league_cache = {}
-    for m in matches:
-        mid = m.get("matchday_id")
-        if mid and mid not in md_cache:
-            md_doc = await matchdays_col.find_one({"id": mid}, {"_id": 0, "label": 1, "league_id": 1, "status": 1})
-            md_cache[mid] = md_doc or {}
-        md_info = md_cache.get(mid, {})
-        m["matchday_label"] = md_info.get("label", "?")
-        m["matchday_status"] = md_info.get("status", "?")
-
-        lid = m.get("league_id")
-        if lid and lid not in league_cache:
-            lg = await leagues_col.find_one({"id": lid}, {"_id": 0, "name": 1})
-            if not lg:
-                from database import tournaments_col
-                lg = await tournaments_col.find_one({"id": lid}, {"_id": 0, "name": 1})
-            league_cache[lid] = lg or {}
-        m["league_name"] = league_cache.get(lid, {}).get("name", lid[:12] if lid else "?")
-
-    return {"count": len(matches), "matches": matches}
-
-
-# ── Edit single match ──────────────────────────────────────────────
-@admin_router.put("/matches/{match_id}")
-async def update_match(match_id: str, body: dict, admin=Depends(get_current_user)):
-    """Update a single match: home_score, away_score, status, kickoff."""
-    match = await matches_col.find_one({"id": match_id}, {"_id": 0})
-    if not match:
-        raise HTTPException(404, "Partita non trovata")
-
-    allowed_fields = {"home_score", "away_score", "status", "kickoff"}
-    updates = {k: v for k, v in body.items() if k in allowed_fields}
-    if not updates:
-        raise HTTPException(400, "Nessun campo valido da aggiornare")
-
-    # Validate status
-    if "status" in updates and updates["status"] not in ("scheduled", "live", "finished"):
-        raise HTTPException(400, "Stato non valido. Valori ammessi: scheduled, live, finished")
-
-    # Cast scores to int if provided
-    if "home_score" in updates and updates["home_score"] is not None:
-        updates["home_score"] = int(updates["home_score"])
-    if "away_score" in updates and updates["away_score"] is not None:
-        updates["away_score"] = int(updates["away_score"])
-
-    await matches_col.update_one({"id": match_id}, {"$set": updates})
-    await log_audit(admin["id"], admin["username"], "UPDATE", "match", match_id, updates)
-
-    return {"ok": True, "match_id": match_id, "updates": updates}
-
-
-# ── Delete single match ────────────────────────────────────────────
-@admin_router.delete("/matches/{match_id}")
-async def delete_match(match_id: str, force: bool = False, admin=Depends(get_current_user)):
-    """Delete a single match. Blocks if predictions exist unless force=true."""
-    match = await matches_col.find_one({"id": match_id}, {"_id": 0})
-    if not match:
-        raise HTTPException(404, "Partita non trovata")
-
-    pred_count = await predictions_col.count_documents({"match_id": match_id})
-    if pred_count > 0 and not force:
-        raise HTTPException(
-            409,
-            f"Questa partita ha {pred_count} pronostici. Usa force=true per eliminare comunque."
-        )
-
-    # Delete predictions if force
-    if pred_count > 0 and force:
-        await predictions_col.delete_many({"match_id": match_id})
-
-    await matches_col.delete_one({"id": match_id})
-    await log_audit(admin["id"], admin["username"], "DELETE", "match", match_id, {
-        "home_team": match.get("home_team"),
-        "away_team": match.get("away_team"),
-        "predictions_deleted": pred_count if force else 0,
-    })
-
-    return {"ok": True, "match_id": match_id, "predictions_deleted": pred_count if force else 0}

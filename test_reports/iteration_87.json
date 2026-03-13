@@ -1,0 +1,98 @@
+{
+  "summary": "Tested Admin Matches Management (Partite) page. All backend APIs working correctly (19/19 tests passed). UI features verified: navigation to Partite via sidebar, table with all required columns, filter buttons (Tutte, Live, Programmate, Finite, Inconsistenti, Senza risultato), Edit modal with fields for Gol Casa, Gol Trasferta, Stato, Kickoff, Delete buttons. Fixed bug in Dashboard drill-down - 'Live ora' counter was using incorrect filter parameter (filter:live instead of status:live).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_admin_matches_management.py",
+    "/app/test_reports/pytest/admin_matches_management_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/admin_ui.py (fixed dashboard drill-down for Live matches)"
+  ],
+  "success_rate": {
+    "backend": "100% (19/19 tests passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "admin_email": "admin@fantapronostic.com",
+    "admin_password": "admin123",
+    "admin_panel_url": "https://context-aware-tabs.preview.emergentagent.com/api/admin-ui"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Partite page fully functional. All CRUD operations work. Dashboard drill-downs to matches page work correctly with pre-applied filters.",
+  "verified_features": {
+    "navigation": {
+      "sidebar_partite_nav": "PASS - data-testid='nav-matches' clickable, navigates to Partite page"
+    },
+    "partite_page_table": {
+      "columns_present": ["Partita", "Risultato", "Stato", "Giornata", "Competizione", "Kickoff", "Azioni"],
+      "data_testid": "matches-table",
+      "enriched_fields": "matchday_label and league_name present in API response"
+    },
+    "filter_buttons": {
+      "tutte": "PASS - data-testid='filter-all'",
+      "live": "PASS - data-testid='filter-live', status=live",
+      "programmate": "PASS - data-testid='filter-scheduled', status=scheduled",
+      "finite": "PASS - data-testid='filter-finished', status=finished",
+      "inconsistenti": "PASS - data-testid='filter-inconsistent', filter=inconsistent",
+      "senza_risultato": "PASS - data-testid='filter-no-result', filter=no_result"
+    },
+    "edit_modal": {
+      "opens_on_modifica_click": "PASS",
+      "fields_present": {
+        "gol_casa": "data-testid='edit-home-score'",
+        "gol_trasferta": "data-testid='edit-away-score'",
+        "stato": "data-testid='edit-match-status' (select: scheduled/live/finished)",
+        "kickoff": "data-testid='edit-match-kickoff' (datetime-local)"
+      },
+      "buttons": {
+        "annulla": "data-testid='edit-match-cancel'",
+        "salva": "data-testid='edit-match-save'"
+      },
+      "save_functionality": "PASS - Toast 'Partita aggiornata' shown on success"
+    },
+    "delete_functionality": {
+      "elimina_buttons": "PASS - Present for each match row",
+      "confirmation_dialog": "PASS - Browser confirm() dialog",
+      "force_delete": "PASS - If predictions exist, prompts for force=true"
+    },
+    "dashboard_drill_down": {
+      "live_ora_counter": "PASS - Fixed: now uses status:live instead of filter:live",
+      "inconsistenti_counter": "PASS - Navigates with filter:inconsistent",
+      "senza_risultato_counter": "PASS - Navigates with filter:no_result"
+    },
+    "backend_api_tests": {
+      "GET_admin_matches_no_filter": "PASS - Returns enriched matches with count",
+      "GET_admin_matches_status_live": "PASS - Only live matches returned",
+      "GET_admin_matches_status_scheduled": "PASS - Only scheduled matches returned",
+      "GET_admin_matches_status_finished": "PASS - Only finished matches returned",
+      "GET_admin_matches_filter_inconsistent": "PASS - Matches in COMPLETED matchdays with non-finished status",
+      "GET_admin_matches_filter_no_result": "PASS - Finished matches without scores",
+      "PUT_admin_matches_update_score": "PASS - home_score, away_score accepted",
+      "PUT_admin_matches_update_status": "PASS - status field accepted",
+      "PUT_admin_matches_update_kickoff": "PASS - kickoff field accepted",
+      "PUT_admin_matches_invalid_status": "PASS - Returns 400 for invalid status",
+      "PUT_admin_matches_not_found": "PASS - Returns 404 for non-existent match",
+      "DELETE_admin_matches_not_found": "PASS - Returns 404 for non-existent match",
+      "DELETE_admin_matches_force_param": "PASS - force=true parameter accepted",
+      "auth_required": "PASS - 401/403 returned without token"
+    }
+  },
+  "bug_fixed": {
+    "issue": "Dashboard 'Live ora' counter drill-down was not applying Live filter",
+    "root_cause": "Dashboard was using navigateWith('matches',{filter:'live'}) but backend expects status=live for live matches, not filter=live",
+    "fix": "Changed admin_ui.py line 529 from {filter:'live'} to {status:'live'}",
+    "verification": "After fix, clicking 'Live ora' in dashboard navigates to Partite with Live filter active, showing correct count (26 matches)"
+  }
+}

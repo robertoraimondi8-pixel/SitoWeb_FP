@@ -526,7 +526,7 @@ async function render_dashboard() {
       <h3 style="color:#F5A623;margin-bottom:12px;font-size:15px">Stato Partite</h3>
       <div class="counter-row">
         <div class="counter-box" data-testid="kpi-matches-today"><div class="num">${mt.today||0}</div><div class="label">Oggi</div></div>
-        <div class="counter-box" style="border-color:${mt.live > 0 ? '#10B981' : '#334155'};cursor:pointer" onclick="navigateWith('matches',{filter:'live'})" data-testid="kpi-matches-live"><div class="num" style="color:#10B981">${mt.live||0}</div><div class="label">Live ora</div></div>
+        <div class="counter-box" style="border-color:${mt.live > 0 ? '#10B981' : '#334155'};cursor:pointer" onclick="navigateWith('matches',{status:'live'})" data-testid="kpi-matches-live"><div class="num" style="color:#10B981">${mt.live||0}</div><div class="label">Live ora</div></div>
         <div class="counter-box" style="border-color:${mt.no_result > 0 ? '#F59E0B' : '#334155'};cursor:pointer" onclick="navigateWith('matches',{filter:'no_result'})" data-testid="kpi-matches-noresult"><div class="num" style="color:${mt.no_result > 0 ? '#F59E0B' : '#6B7280'}">${mt.no_result||0}</div><div class="label">Senza risultato</div></div>
         <div class="counter-box" style="border-color:${mt.inconsistent > 0 ? '#EF4444' : '#334155'};cursor:pointer" onclick="navigateWith('matches',{filter:'inconsistent'})" data-testid="kpi-matches-inconsistent"><div class="num" style="color:${mt.inconsistent > 0 ? '#EF4444' : '#6B7280'}">${mt.inconsistent||0}</div><div class="label">Inconsistenti</div></div>
       </div>
