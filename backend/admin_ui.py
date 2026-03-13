@@ -1526,9 +1526,10 @@ async function render_seasons() {
     const totalMd = s.total_matchdays || 38;
     const currentMd = s.current_matchday || 1;
     let actions = `<button class="btn btn-sm" style="background:#F59E0B;margin-right:4px" onclick="editSeason('${s.id}')">Modifica</button>`;
-    if (st === 'draft') actions += `<button class="btn btn-sm" onclick="activateSeason('${s.id}')">Attiva</button>`;
+    if (st === 'draft') actions += `<button class="btn btn-sm" onclick="activateSeason('${s.id}')">Attiva</button> <button class="btn btn-sm" style="background:#EF4444;margin-left:4px" onclick="deleteSeason('${s.id}','${s.name}')">Elimina</button>`;
     else if (st === 'active') actions += `<button class="btn btn-sm" style="background:#3B82F6" onclick="completeSeason('${s.id}')">Completa Stagione</button>`;
     else if (st === 'completed') actions += `<button class="btn btn-sm" style="background:#9CA3AF" onclick="archiveSeason('${s.id}')">Archivia</button>`;
+    else if (st === 'archived') actions += `<button class="btn btn-sm" style="background:#EF4444;margin-left:4px" onclick="deleteSeason('${s.id}','${s.name}')">Elimina</button>`;
     html += `<tr>
       <td>${s.name}</td>
       <td>${s.year}</td>
@@ -1633,6 +1634,14 @@ async function archiveSeason(id) {
   try {
     await apiCall('/admin/seasons/'+id+'/archive', 'POST');
     showToast('Stagione archiviata'); render_seasons();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deleteSeason(id, name) {
+  if (!confirm('ATTENZIONE: Eliminare definitivamente la stagione "' + name + '"? Questa azione non e reversibile.')) return;
+  try {
+    await apiCall('/admin/seasons/'+id, 'DELETE');
+    showToast('Stagione eliminata'); render_seasons();
   } catch(e) { showToast(e.message, 'error'); }
 }
 

@@ -119,6 +119,23 @@ async def admin_archive_season(season_id: str, admin=Depends(require_permission(
     return {"ok": True, "status": "archived"}
 
 
+@admin_router.delete("/seasons/{season_id}")
+async def admin_delete_season(season_id: str, admin=Depends(require_permission("admin.seasons.manage"))):
+    """Delete a season. Only draft/archived seasons without leagues can be deleted."""
+    season = await seasons_col.find_one({"id": season_id}, {"_id": 0})
+    if not season:
+        raise HTTPException(404, "Stagione non trovata")
+    current_status = season.get("status", "draft")
+    if current_status == "active":
+        raise HTTPException(400, "Non puoi eliminare una stagione attiva. Completala o disattivala prima.")
+    league_count = await leagues_col.count_documents({"season_id": season_id})
+    if league_count > 0:
+        raise HTTPException(400, f"Non puoi eliminare questa stagione: ha {league_count} leghe collegate.")
+    await seasons_col.delete_one({"id": season_id})
+    await log_audit(admin["id"], admin["username"], "DELETE", "season", season_id, {"name": season.get("name")})
+    return {"ok": True}
+
+
 @admin_router.get("/league-matchday-range")
 async def admin_league_matchday_range(season_id: str, admin=Depends(require_permission("admin.leagues.manage"))):
     """Get the valid selectable matchday range for league creation."""
