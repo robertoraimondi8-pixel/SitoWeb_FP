@@ -3756,7 +3756,7 @@ function renderTcrInfo(t, rounds) {
     </div>
     <h4 style="color:#F5A623;margin:16px 0 8px">Configurazione Eliminazione</h4>
     <div style="font-size:13px;color:#94A3B8">
-      <p>Qualificati totali: <strong style="color:#F5A623">${t.total_qualifiers || '-'}</strong></p>
+      <p>Qualificati totali: <strong style="color:#F5A623">${t.total_qualifiers || ((t.groups_count||0)*(t.advance_count||0)) || '-'}</strong> (${t.groups_count||0} gironi x ${t.advance_count||0} passano)</p>
       <p>Round eliminazione: <strong style="color:#F5A623">${t.knockout_rounds || '-'}</strong></p>
     </div>`;
 }
@@ -3913,16 +3913,37 @@ function renderTcrStructure(t, rounds, matchups) {
   // ── PHASE PROGRESSION BAR ──
   const phases = [];
   if (t.tournament_type === 'groups_knockout') phases.push({key:'groups',label:'Gironi'});
-  const koRoundNames = {quarterfinal:'Quarti di Finale',semifinal:'Semifinali',final:'Finale'};
-  // Determine which knockout phases exist from matchups or config
-  const knockoutTypes = ['quarterfinal','semifinal','final'];
+  const koRoundNames = {round_of_32:'Sedicesimi di Finale',round_of_16:'Ottavi di Finale',quarterfinal:'Quarti di Finale',semifinal:'Semifinali',final:'Finale'};
+  // Build the full knockout chain dynamically from total_qualifiers
+  const knockoutTypes = ['round_of_32','round_of_16','quarterfinal','semifinal','final'];
   const existingKoTypes = allMatchups.filter(r => knockoutTypes.includes(r.round_type)).map(r => r.round_type);
-  const expectedKo = [];
-  if (t.knockout_rounds >= 3) expectedKo.push('quarterfinal');
-  if (t.knockout_rounds >= 2) expectedKo.push('semifinal');
-  if (t.knockout_rounds >= 1) expectedKo.push('final');
-  const koPhases = expectedKo.length > 0 ? expectedKo : (existingKoTypes.length > 0 ? [...new Set(existingKoTypes)] : knockoutTypes.slice(1));
-  koPhases.forEach(k => phases.push({key:k, label:koRoundNames[k]||k}));
+
+  // Calculate expected elimination rounds from tournament config
+  const totalQualified = t.total_qualifiers || ((t.groups_count || 0) * (t.advance_count || 0));
+  let expectedKo = [];
+  if (totalQualified > 0) {
+    let n = totalQualified;
+    const chain = [];
+    while (n >= 2) {
+      if (n >= 64) chain.push('round_of_' + n);
+      else if (n >= 32) chain.push('round_of_32');
+      else if (n >= 16) chain.push('round_of_16');
+      else if (n >= 8) chain.push('quarterfinal');
+      else if (n >= 4) chain.push('semifinal');
+      else chain.push('final');
+      n = Math.floor(n / 2);
+    }
+    expectedKo = chain;
+  } else if (t.knockout_rounds > 0) {
+    // Fallback to knockout_rounds count
+    const allKo = ['round_of_32','round_of_16','quarterfinal','semifinal','final'];
+    expectedKo = allKo.slice(Math.max(0, allKo.length - t.knockout_rounds));
+  }
+  const koPhases = expectedKo.length > 0 ? expectedKo : (existingKoTypes.length > 0 ? [...new Set(existingKoTypes)] : ['semifinal','final']);
+  koPhases.forEach(k => {
+    const label = koRoundNames[k] || k.replace(/round_of_/,'Ottavi di ').replace(/_/g,' ');
+    phases.push({key:k, label:label});
+  });
 
   // Determine current phase
   let currentPhase = t.status === 'groups' ? 'groups' : t.status === 'completed' ? 'completed' : null;

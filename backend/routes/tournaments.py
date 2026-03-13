@@ -35,7 +35,7 @@ class UpdateTournamentReq(BaseModel):
     entry_fee: Optional[float] = None
 
 class CreateRoundReq(BaseModel):
-    round_type: str = "group"  # group | quarterfinal | semifinal | final
+    round_type: str = "group"  # group | round_of_32 | round_of_16 | quarterfinal | semifinal | final
     label: Optional[str] = None
 
 class ImportTournamentMatchesReq(BaseModel):
@@ -490,7 +490,7 @@ async def generate_knockout(tournament_id: str, req: AdvanceKnockoutReq, user=De
             if i + 1 < len(all_advanced):
                 knockout_matchups.append((all_advanced[i], all_advanced[i + 1]))
 
-    # Determine knockout round type
+    # Determine knockout round type based on number of matchups (= qualified / 2)
     n = len(knockout_matchups)
     if n <= 1:
         round_type = "final"
@@ -498,8 +498,12 @@ async def generate_knockout(tournament_id: str, req: AdvanceKnockoutReq, user=De
         round_type = "semifinal"
     elif n <= 4:
         round_type = "quarterfinal"
+    elif n <= 8:
+        round_type = "round_of_16"
+    elif n <= 16:
+        round_type = "round_of_32"
     else:
-        round_type = "quarterfinal"
+        round_type = f"round_of_{n * 2}"
 
     # Create matchup documents
     matchup_docs = []
@@ -897,7 +901,7 @@ async def get_all_matchups(tournament_id: str, user=Depends(get_current_user)):
     # Group by round_type + round_number, exclude pending knockout matchups
     from collections import OrderedDict
     rounds: dict = OrderedDict()
-    type_labels = {"group": "Girone", "quarterfinal": "Quarti di Finale", "semifinal": "Semifinale", "final": "Finale"}
+    type_labels = {"group": "Girone", "round_of_32": "Sedicesimi di Finale", "round_of_16": "Ottavi di Finale", "quarterfinal": "Quarti di Finale", "semifinal": "Semifinale", "final": "Finale"}
     for mu in matchups:
         rt = mu.get("round_type", "group")
         # Skip pending knockout matchups (not yet determined)
