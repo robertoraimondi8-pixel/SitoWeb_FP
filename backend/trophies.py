@@ -160,13 +160,29 @@ async def award_league_trophies(league_id: str):
         return
     league_name = league.get("name", "")
 
-    # Get standings sorted by total_points
+    # Get standings from cache first
     standings = await standings_cache_col.find(
         {"league_id": league_id, "type": "total"},
         {"_id": 0}
     ).sort("total_points", -1).to_list(500)
 
+    # Fallback: compute standings from score_summaries if cache is empty
+    if not standings:
+        logger.info(f"[TROPHY] standings_cache empty for league {league_id}, computing from score_summaries")
+        pipeline = [
+            {"$match": {"league_id": league_id}},
+            {"$group": {
+                "_id": "$user_id",
+                "total_points": {"$sum": "$total_points"},
+                "matchdays_played": {"$sum": 1},
+            }},
+            {"$sort": {"total_points": -1}},
+        ]
+        agg_results = await score_summaries_col.aggregate(pipeline).to_list(500)
+        standings = [{"user_id": r["_id"], "total_points": r["total_points"], "matchdays_played": r["matchdays_played"]} for r in agg_results]
+
     if len(standings) < 1:
+        logger.warning(f"[TROPHY] No standings data for league {league_id}, cannot award trophies")
         return
 
     trophy_map = [
@@ -206,24 +222,35 @@ async def award_tournament_trophies(tournament_id: str):
         return
     t_name = tournament.get("name", "")
 
-    # Find the final round
+    # Find the final round by round_type="final"
     final_round = await tournament_rounds_col.find_one(
-        {"tournament_id": tournament_id, "round_name": {"$regex": "final", "$options": "i"}, "status": "COMPLETED"},
+        {"tournament_id": tournament_id, "round_type": "final", "status": "COMPLETED"},
         {"_id": 0}
     )
     if not final_round:
-        # Try finding last completed round
+        # Fallback: try label regex
         final_round = await tournament_rounds_col.find_one(
-            {"tournament_id": tournament_id, "status": "COMPLETED"},
-            {"_id": 0},
-            sort=[("round_order", -1)]
+            {"tournament_id": tournament_id, "label": {"$regex": "finale", "$options": "i"}, "status": "COMPLETED"},
+            {"_id": 0}
         )
     if not final_round:
+        # Last fallback: only use highest round if tournament is actually completed
+        if tournament.get("status") == "completed":
+            final_round = await tournament_rounds_col.find_one(
+                {"tournament_id": tournament_id, "status": "COMPLETED"},
+                {"_id": 0},
+                sort=[("round_number", -1)]
+            )
+    if not final_round:
+        logger.warning(f"[TROPHY] No completed final round found for tournament {tournament_id} (status={tournament.get('status')})")
         return
 
-    # Get final matchup to find champion and finalist
+    # Get final matchups using round_number + round_type
     final_matchups = await tournament_matchups_col.find(
-        {"round_id": final_round["id"], "status": "completed"},
+        {"tournament_id": tournament_id,
+         "round_number": final_round["round_number"],
+         "round_type": final_round["round_type"],
+         "status": "completed"},
         {"_id": 0}
     ).to_list(10)
 
@@ -262,16 +289,25 @@ async def award_tournament_trophies(tournament_id: str):
                 "awarded_at": now_utc(),
             })
 
-    # Semifinalists: find the round before the final
+    # Semifinalists: find the semifinal round
     semifinal_round = await tournament_rounds_col.find_one(
-        {"tournament_id": tournament_id, "status": "COMPLETED",
-         "round_order": {"$lt": final_round.get("round_order", 999)}},
-        {"_id": 0},
-        sort=[("round_order", -1)]
+        {"tournament_id": tournament_id, "round_type": "semifinal", "status": "COMPLETED"},
+        {"_id": 0}
     )
+    if not semifinal_round:
+        # Fallback: round before the final by round_number
+        semifinal_round = await tournament_rounds_col.find_one(
+            {"tournament_id": tournament_id, "status": "COMPLETED",
+             "round_number": {"$lt": final_round.get("round_number", 999)}},
+            {"_id": 0},
+            sort=[("round_number", -1)]
+        )
     if semifinal_round:
         semi_matchups = await tournament_matchups_col.find(
-            {"round_id": semifinal_round["id"], "status": "completed"},
+            {"tournament_id": tournament_id,
+             "round_number": semifinal_round["round_number"],
+             "round_type": semifinal_round["round_type"],
+             "status": "completed"},
             {"_id": 0}
         ).to_list(10)
         for mu in semi_matchups:

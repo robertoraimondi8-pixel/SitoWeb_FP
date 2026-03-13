@@ -306,6 +306,7 @@ const MENU_ITEMS = [
   {section: 'MONITORAGGIO'},
   {id:'push', label:'Push Notifiche', perm:'admin.dashboard.view'},
   {id:'payments', label:'Pagamenti', perm:'admin.payments.view'},
+  {id:'trophies', label:'Trofei', perm:'admin.leagues.manage'},
   {id:'audit', label:'Audit Log', perm:'admin.audit.view'},
 ];
 
@@ -3157,9 +3158,18 @@ function renderCrDanger(l) {
   if (!isSuperAdmin) {
     return '<p style="color:#94A3B8;font-size:13px">Solo i Super Admin possono accedere a questa sezione.</p>';
   }
+
+  // Trophy section (always shown for super admin)
+  let trophyHtml = `<div style="padding:16px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.2);border-radius:8px;margin-bottom:16px">
+    <h4 style="color:#F5A623;margin-bottom:8px;font-size:14px">Trofei Campione</h4>
+    <p style="color:#94A3B8;font-size:12px;margin-bottom:12px">Assegna manualmente i trofei (Campione, 2° e 3° classificato) in base alla classifica attuale. I trofei duplicati vengono automaticamente ignorati.</p>
+    <button class="btn btn-sm" style="background:#F5A623;color:#0F172A" onclick="doAwardLeagueTrophies('${l.id}')" data-testid="league-award-trophies-btn">Assegna Trofei Lega</button>
+    <span id="league-trophy-status-${l.id}" style="margin-left:12px;font-size:12px"></span>
+  </div>`;
+
   const isNational = l.league_type === 'national';
   if (isNational) {
-    return `<div style="padding:16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px">
+    return trophyHtml + `<div style="padding:16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px">
       <h4 style="color:#EF4444;margin-bottom:8px;font-size:14px">Zona Pericolo</h4>
       <p style="color:#94A3B8;font-size:13px">La Lega Nazionale non puo essere eliminata. E la lega di sistema principale.</p>
     </div>`;
@@ -3167,13 +3177,13 @@ function renderCrDanger(l) {
   const members = l.member_count || 0;
   const hasData = members > 0;
   if (!hasData) {
-    return `<div style="padding:16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px">
+    return trophyHtml + `<div style="padding:16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px">
       <h4 style="color:#EF4444;margin-bottom:8px;font-size:14px">Zona Pericolo</h4>
       <p style="color:#94A3B8;font-size:12px;margin-bottom:12px">Questa lega non ha membri. Puoi eliminarla in sicurezza.</p>
       <button class="btn btn-sm btn-danger" onclick="doLeagueDelete('${l.id}',false)" data-testid="league-delete-btn">Elimina Lega</button>
     </div>`;
   }
-  return `<div style="padding:16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px">
+  return trophyHtml + `<div style="padding:16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px">
     <h4 style="color:#EF4444;margin-bottom:8px;font-size:14px">Zona Pericolo</h4>
     <p style="color:#F87171;font-size:12px;margin-bottom:8px">Questa lega ha <strong>${members}</strong> membri. La cancellazione distrugge TUTTI i dati associati: giornate, partite, pronostici, punteggi, classifiche e iscrizioni.</p>
     <div>
@@ -3204,9 +3214,45 @@ async function doLeagueDelete(leagueId, isOverride) {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-// ========================================
-// PAYMENTS (existing)
-// ========================================
+// ── Trophy JS functions ──
+async function doAwardLeagueTrophies(leagueId) {
+  if (!confirm('Assegnare i trofei Campione per questa lega? I duplicati verranno ignorati.')) return;
+  const statusEl = document.getElementById('league-trophy-status-' + leagueId);
+  if (statusEl) statusEl.innerHTML = '<span style="color:#F5A623">Assegnamento in corso...</span>';
+  try {
+    const r = await apiCall('/admin/leagues/' + leagueId + '/award-trophies', 'POST');
+    if (statusEl) statusEl.innerHTML = '<span style="color:#10B981">Trofei assegnati con successo!</span>';
+    showToast(r.message || 'Trofei assegnati');
+  } catch(e) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:#EF4444">Errore: ' + e.message + '</span>';
+    showToast(e.message, 'error');
+  }
+}
+
+async function doAwardTournamentTrophies(tournId) {
+  if (!confirm('Assegnare i trofei Campione per questo torneo? I duplicati verranno ignorati.')) return;
+  const statusEl = document.getElementById('tournament-trophy-status-' + tournId);
+  if (statusEl) statusEl.innerHTML = '<span style="color:#F5A623">Assegnamento in corso...</span>';
+  try {
+    const r = await apiCall('/admin/tournaments/' + tournId + '/award-trophies', 'POST');
+    if (statusEl) statusEl.innerHTML = '<span style="color:#10B981">Trofei assegnati con successo!</span>';
+    showToast(r.message || 'Trofei assegnati');
+  } catch(e) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:#EF4444">Errore: ' + e.message + '</span>';
+    showToast(e.message, 'error');
+  }
+}
+
+async function doBackfillAllTrophies() {
+  if (!confirm('BACKFILL: Assegnare retroattivamente TUTTI i trofei (settimanali + campioni) per tutte le competizioni completate? Questo processo potrebbe richiedere tempo.')) return;
+  showToast('Backfill in corso...', 'info');
+  try {
+    const r = await apiCall('/admin/trophies/backfill', 'POST');
+    let msg = 'Backfill completato: ' + (r.weekly_processed||0) + ' settimanali, ' + (r.league_champion_processed||0) + ' leghe, ' + (r.tournament_champion_processed||0) + ' tornei';
+    if (r.errors && r.errors.length > 0) msg += ' (' + r.errors.length + ' errori)';
+    showToast(msg);
+  } catch(e) { showToast(e.message, 'error'); }
+}
 async function render_payments() {
   if (!hasPerm('admin.payments.view')) { render_forbidden(); return; }
   const statusFilter = navFilter.status || '';
@@ -4211,7 +4257,17 @@ function renderTcrStructure(t, rounds, matchups) {
 }
 
 function renderTcrDanger(t) {
-  let html = '<h4 style="color:#EF4444;margin-bottom:16px">Zona Pericolo</h4>';
+  let html = '';
+
+  // Trophy section
+  html += `<div style="padding:16px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.2);border-radius:8px;margin-bottom:16px">
+    <h4 style="color:#F5A623;margin-bottom:8px;font-size:14px">Trofei Torneo</h4>
+    <p style="color:#94A3B8;font-size:12px;margin-bottom:12px">Assegna manualmente i trofei del torneo (Campione, Finalista, Semifinalista) in base ai risultati delle fasi ad eliminazione. I trofei duplicati vengono automaticamente ignorati.</p>
+    <button class="btn btn-sm" style="background:#F5A623;color:#0F172A" onclick="doAwardTournamentTrophies('${t.id}')" data-testid="tournament-award-trophies-btn">Assegna Trofei Torneo</button>
+    <span id="tournament-trophy-status-${t.id}" style="margin-left:12px;font-size:12px"></span>
+  </div>`;
+
+  html += '<h4 style="color:#EF4444;margin-bottom:16px">Zona Pericolo</h4>';
 
   if (['groups','knockout','registration'].includes(t.status)) {
     html += `<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:16px;margin-bottom:12px">
@@ -4390,6 +4446,90 @@ async function doDeleteTournament(tournId) {
 // ========================================
 // AUDIT (existing, enhanced)
 // ========================================
+// ========================================
+// TROPHIES PAGE
+// ========================================
+async function render_trophies() {
+  if (!hasPerm('admin.leagues.manage')) { render_forbidden(); return; }
+  const el = document.getElementById('content');
+  el.innerHTML = '<h2>Gestione Trofei</h2><div id="trophies-loading" style="color:#94A3B8">Caricamento...</div>';
+
+  try {
+    const stats = await apiCall('/admin/trophies/stats');
+    const typeLabels = {
+      'weekly_best': 'Miglior Punteggio Settimanale',
+      'weekly_perfect': 'Punteggio Perfetto',
+      'weekly_streak': 'Serie Positiva (5+)',
+      'league_champion': 'Campione di Lega',
+      'league_second': '2° Classificato Lega',
+      'league_third': '3° Classificato Lega',
+      'tournament_champion': 'Campione Torneo',
+      'tournament_finalist': 'Finalista Torneo',
+      'tournament_semifinalist': 'Semifinalista Torneo',
+    };
+    const typeColors = {
+      'weekly_best': '#8B5CF6', 'weekly_perfect': '#A855F7', 'weekly_streak': '#7C3AED',
+      'league_champion': '#F5A623', 'league_second': '#C4C4C4', 'league_third': '#CD7F32',
+      'tournament_champion': '#10B981', 'tournament_finalist': '#6EE7B7', 'tournament_semifinalist': '#34D399',
+    };
+
+    // Stats cards
+    let html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px">';
+    html += `<div class="card" style="text-align:center"><div style="font-size:28px;font-weight:800;color:#F5A623">${stats.total}</div><div style="font-size:12px;color:#94A3B8">Trofei Totali</div></div>`;
+    const leagueCount = (stats.by_type.league_champion||0) + (stats.by_type.league_second||0) + (stats.by_type.league_third||0);
+    const tournCount = (stats.by_type.tournament_champion||0) + (stats.by_type.tournament_finalist||0) + (stats.by_type.tournament_semifinalist||0);
+    const weeklyCount = (stats.by_type.weekly_best||0) + (stats.by_type.weekly_perfect||0) + (stats.by_type.weekly_streak||0);
+    html += `<div class="card" style="text-align:center"><div style="font-size:28px;font-weight:800;color:#F5A623">${leagueCount}</div><div style="font-size:12px;color:#94A3B8">Trofei Lega</div></div>`;
+    html += `<div class="card" style="text-align:center"><div style="font-size:28px;font-weight:800;color:#10B981">${tournCount}</div><div style="font-size:12px;color:#94A3B8">Trofei Torneo</div></div>`;
+    html += `<div class="card" style="text-align:center"><div style="font-size:28px;font-weight:800;color:#8B5CF6">${weeklyCount}</div><div style="font-size:12px;color:#94A3B8">Trofei Settimanali</div></div>`;
+    html += '</div>';
+
+    // Breakdown by type
+    html += '<div class="card"><h3 style="margin-bottom:12px">Distribuzione per Tipo</h3>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px">';
+    Object.entries(typeLabels).forEach(([key, label]) => {
+      const count = stats.by_type[key] || 0;
+      const color = typeColors[key] || '#94A3B8';
+      html += `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color}"></span>
+        <span style="flex:1;font-size:13px;color:#CBD5E1">${label}</span>
+        <strong style="color:${count > 0 ? color : '#475569'};font-size:14px">${count}</strong>
+      </div>`;
+    });
+    html += '</div></div>';
+
+    // Backfill action
+    html += `<div class="card" style="border:1px solid rgba(245,166,35,.2)">
+      <h3 style="color:#F5A623;margin-bottom:8px">Backfill Retroattivo</h3>
+      <p style="color:#94A3B8;font-size:13px;margin-bottom:12px">Ricalcola e assegna retroattivamente tutti i trofei (settimanali, campioni lega, campioni torneo) per tutte le competizioni completate. I trofei gia assegnati vengono ignorati automaticamente.</p>
+      <button class="btn btn-sm" style="background:#F5A623;color:#0F172A" onclick="doBackfillAllTrophies()" data-testid="backfill-trophies-btn">Esegui Backfill Trofei</button>
+    </div>`;
+
+    // Recent trophies
+    if (stats.recent && stats.recent.length > 0) {
+      html += '<div class="card"><h3 style="margin-bottom:12px">Trofei Recenti</h3><table class="table"><tr><th>Utente</th><th>Tipo</th><th>Competizione</th><th>Data</th></tr>';
+      stats.recent.forEach(t => {
+        const color = typeColors[t.type] || '#94A3B8';
+        const label = typeLabels[t.type] || t.type;
+        const compName = t.context?.league_name || t.context?.tournament_name || '-';
+        const mdLabel = t.context?.matchday_label ? ` (${t.context.matchday_label})` : '';
+        const date = t.awarded_at ? new Date(t.awarded_at).toLocaleString('it') : '-';
+        html += `<tr>
+          <td><strong>${t.context?.username || t.user_id?.substring(0,8) || '?'}</strong></td>
+          <td><span style="padding:2px 8px;border-radius:12px;font-size:11px;color:#fff;background:${color}">${label}</span></td>
+          <td>${compName}${mdLabel}</td>
+          <td style="font-size:12px;color:#94A3B8">${date}</td>
+        </tr>`;
+      });
+      html += '</table></div>';
+    }
+
+    el.innerHTML = '<h2>Gestione Trofei</h2>' + html;
+  } catch(e) {
+    el.innerHTML = '<h2>Gestione Trofei</h2><div class="card" style="color:#EF4444">Errore: ' + e.message + '</div>';
+  }
+}
+
 async function render_audit() {
   if (!hasPerm('admin.audit.view')) { render_forbidden(); return; }
   const el = document.getElementById('content');

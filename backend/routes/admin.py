@@ -1365,3 +1365,109 @@ async def admin_impersonate_user(user_id: str, admin=Depends(require_permission(
             "email": target.get("email"),
         }
     }
+
+
+# ── Trophy Management ──────────────────────────────────────────────
+
+@admin_router.post("/leagues/{league_id}/award-trophies")
+async def admin_award_league_trophies(league_id: str, admin=Depends(require_permission("admin.leagues.manage"))):
+    """Manually award champion trophies for a league."""
+    from trophies import award_league_trophies
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    await award_league_trophies(league_id)
+    await log_audit(admin["id"], admin["username"], "AWARD_TROPHIES", "league", league_id, {"name": league.get("name")}, ip=admin.get("_request_ip"))
+    return {"ok": True, "message": f"Trofei assegnati per la lega {league.get('name')}"}
+
+
+@admin_router.post("/tournaments/{tournament_id}/award-trophies")
+async def admin_award_tournament_trophies(tournament_id: str, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """Manually award champion trophies for a tournament."""
+    from trophies import award_tournament_trophies
+    from database import tournament_rounds_col
+    t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+    if not t:
+        raise HTTPException(404, "Torneo non trovato")
+    await award_tournament_trophies(tournament_id)
+    await log_audit(admin["id"], admin["username"], "AWARD_TROPHIES", "tournament", tournament_id, {"name": t.get("name")}, ip=admin.get("_request_ip"))
+    return {"ok": True, "message": f"Trofei assegnati per il torneo {t.get('name')}"}
+
+
+@admin_router.post("/trophies/backfill")
+async def admin_backfill_all_trophies(admin=Depends(require_permission("admin.leagues.manage"))):
+    """Retroactively award weekly + champion trophies for all completed matchdays and leagues."""
+    from trophies import award_weekly_trophies, award_league_trophies, award_tournament_trophies
+    from database import tournament_rounds_col
+
+    results = {"weekly_processed": 0, "league_champion_processed": 0, "tournament_champion_processed": 0, "errors": []}
+
+    # 1. Weekly trophies: iterate all completed matchdays per league
+    all_leagues = await leagues_col.find({}, {"_id": 0, "id": 1, "name": 1}).to_list(200)
+    for league in all_leagues:
+        lid = league["id"]
+        completed_mds = await matchdays_col.find(
+            {"status": "COMPLETED", "league_id": lid},
+            {"_id": 0, "id": 1}
+        ).to_list(200)
+        # Also check national matchdays if league uses national source
+        if not completed_mds:
+            completed_mds = await matchdays_col.find(
+                {"status": "COMPLETED", "league_id": NATIONAL_LEAGUE_ID},
+                {"_id": 0, "id": 1}
+            ).to_list(200)
+        for md in completed_mds:
+            try:
+                await award_weekly_trophies(md["id"], lid)
+                results["weekly_processed"] += 1
+            except Exception as e:
+                results["errors"].append(f"weekly {md['id']}/{lid}: {str(e)[:80]}")
+
+    # 2. League champion trophies for completed leagues
+    completed_leagues = await leagues_col.find({"status": "completed"}, {"_id": 0, "id": 1, "name": 1}).to_list(200)
+    for league in completed_leagues:
+        try:
+            await award_league_trophies(league["id"])
+            results["league_champion_processed"] += 1
+        except Exception as e:
+            results["errors"].append(f"league_champion {league['id']}: {str(e)[:80]}")
+
+    # 3. Tournament champion trophies for completed tournaments
+    completed_tournaments = await tournaments_col.find({"status": "completed"}, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+    for t in completed_tournaments:
+        try:
+            await award_tournament_trophies(t["id"])
+            results["tournament_champion_processed"] += 1
+        except Exception as e:
+            results["errors"].append(f"tournament_champion {t['id']}: {str(e)[:80]}")
+
+    await log_audit(admin["id"], admin["username"], "BACKFILL_TROPHIES", "system", "all", {
+        "weekly": results["weekly_processed"],
+        "league_champion": results["league_champion_processed"],
+        "tournament_champion": results["tournament_champion_processed"],
+    }, ip=admin.get("_request_ip"))
+
+    return {"ok": True, **results}
+
+
+@admin_router.get("/trophies/stats")
+async def admin_trophy_stats(admin=Depends(require_permission("admin.leagues.manage"))):
+    """Get trophy statistics for admin dashboard."""
+    from database import trophies_col
+    pipeline = [
+        {"$group": {"_id": "$type", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    type_counts = await trophies_col.aggregate(pipeline).to_list(20)
+
+    total = sum(t["count"] for t in type_counts)
+    by_type = {t["_id"]: t["count"] for t in type_counts}
+
+    # Recent trophies
+    recent = await trophies_col.find({}, {"_id": 0}).sort("awarded_at", -1).to_list(20)
+
+    return {
+        "total": total,
+        "by_type": by_type,
+        "recent": recent,
+    }

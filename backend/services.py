@@ -744,6 +744,12 @@ async def complete_season(season_id: str, admin_user: dict):
             "status": "completed",
             "completed_at": now_utc()
         }})
+        # Award tournament trophies
+        try:
+            from trophies import award_tournament_trophies
+            await award_tournament_trophies(tournament["id"])
+        except Exception as e:
+            logger.error(f"[LIFECYCLE] Error awarding tournament trophies for {tournament['id']}: {e}")
         results["tournaments_completed"] += 1
 
     # Mark season as completed
