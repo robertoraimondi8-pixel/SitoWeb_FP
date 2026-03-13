@@ -447,7 +447,10 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
         const completed = myMatchups.filter((m: any) => m.status === 'completed');
         const isA = (m: any) => m.user_a_id === user?.id;
         const wins = completed.filter((m: any) => m.result === (isA(m) ? 'user_a_win' : 'user_b_win')).length;
-        const totalPts = completed.reduce((acc: number, m: any) => acc + (isA(m) ? m.user_a_points : m.user_b_points), 0);
+        const totalPts = completed.reduce((acc: number, m: any) => {
+          const pts = isA(m) ? (m.user_a_prediction_total ?? m.user_a_points) : (m.user_b_prediction_total ?? m.user_b_points);
+          return acc + pts;
+        }, 0);
         const avg = completed.length > 0 ? Math.round(totalPts / completed.length).toString() : '-';
         return (
           <View>

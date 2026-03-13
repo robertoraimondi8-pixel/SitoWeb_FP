@@ -820,8 +820,57 @@ async def get_my_matchups(tournament_id: str, user=Depends(get_current_user)):
          "$or": [{"user_a_id": user["id"]}, {"user_b_id": user["id"]}]},
         {"_id": 0}
     ).to_list(50)
-    # Sort by round_number
     matchups.sort(key=lambda x: (x.get("round_number", 0), x.get("round_type", "")))
+
+    # For completed matchups, calculate real prediction totals
+    completed = [m for m in matchups if m.get("status") == "completed"]
+    if completed:
+        from scoring import calculate_match_points
+        # Get all round_numbers for completed matchups
+        rounds_map = {}
+        for m in completed:
+            rn = m["round_number"]
+            rt = m.get("round_type", "group")
+            rounds_map[(rn, rt)] = None
+        # Fetch rounds to get round_ids
+        for (rn, rt) in list(rounds_map.keys()):
+            rnd = await tournament_rounds_col.find_one(
+                {"tournament_id": tournament_id, "round_number": rn, "round_type": rt},
+                {"_id": 0, "id": 1}
+            )
+            if rnd:
+                rounds_map[(rn, rt)] = rnd["id"]
+
+        for m in completed:
+            round_id = rounds_map.get((m["round_number"], m.get("round_type", "group")))
+            if not round_id:
+                continue
+            round_matches = await matches_col.find(
+                {"matchday_id": round_id, "league_id": tournament_id}, {"_id": 0}
+            ).to_list(50)
+            a_preds = await predictions_col.find(
+                {"user_id": m["user_a_id"], "matchday_id": round_id, "league_id": tournament_id}, {"_id": 0}
+            ).to_list(50)
+            b_preds = await predictions_col.find(
+                {"user_id": m["user_b_id"], "matchday_id": round_id, "league_id": tournament_id}, {"_id": 0}
+            ).to_list(50)
+            a_by = {p["match_id"]: p for p in a_preds}
+            b_by = {p["match_id"]: p for p in b_preds}
+            a_total = 0
+            b_total = 0
+            for rm in round_matches:
+                if rm.get("status") in ("finished", "live"):
+                    ap = a_by.get(rm["id"])
+                    bp = b_by.get(rm["id"])
+                    if ap:
+                        pts, _ = calculate_match_points(ap["prediction_value"], ap["market_type"], rm.get("home_score"), rm.get("away_score"), rm.get("status"), ap.get("multiplier", 1.0))
+                        a_total += pts
+                    if bp:
+                        pts, _ = calculate_match_points(bp["prediction_value"], bp["market_type"], rm.get("home_score"), rm.get("away_score"), rm.get("status"), bp.get("multiplier", 1.0))
+                        b_total += pts
+            m["user_a_prediction_total"] = int(a_total)
+            m["user_b_prediction_total"] = int(b_total)
+
     return matchups
 
 
