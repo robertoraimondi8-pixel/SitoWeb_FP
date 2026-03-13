@@ -2770,37 +2770,46 @@ function renderLeaguesTable(leagues) {
   const sh = (col) => sortArrow('leagues', col);
   const leagueStatusColors = {draft:'#6B7280',active:'#10B981',completed:'#3B82F6',cancelled:'#EF4444'};
   const leagueStatusLabels = {draft:'Bozza',active:'Attiva',completed:'Completata',cancelled:'Annullata'};
+  // Get current matchday from active season
+  const activeSeason = (window._mdSeasons||[]).find(s => s.is_active || s.status === 'active');
+  const currentMd = activeSeason ? (activeSeason.current_matchday || 0) : 0;
   let html = `<table><tr>
     <th style="cursor:pointer" onclick="sortBy('leagues','name')">Nome ${sh('name')}</th>
     <th>Tipo</th>
     <th>Stato</th>
+    <th>Progressione</th>
     <th>Codice</th>
     <th>Owner</th>
-    <th>Admin Lega</th>
     <th style="cursor:pointer" onclick="sortBy('leagues','member_count')">Membri ${sh('member_count')}</th>
     <th style="cursor:pointer" onclick="sortBy('leagues','created_at')">Creata ${sh('created_at')}</th>
-    <th>Regole</th>
     <th>Azioni</th></tr>`;
   leagues.forEach(l => {
     const lst = l.status || 'active';
     const statusBadge = `<span style="padding:2px 8px;border-radius:12px;font-size:11px;color:#fff;background:${leagueStatusColors[lst]||'#6B7280'}">${leagueStatusLabels[lst]||lst}</span>`;
     const ownerName = l.owner ? `<strong>${l.owner.username}</strong>` : (l.league_type === 'national' ? '<span style="color:#94A3B8">Sistema</span>' : '<span style="color:#EF4444">Nessuno</span>');
-    const adminCount = l.admins ? l.admins.length : 0;
     const typeBadge = getLeagueTypeBadge(l);
-    const rulesSummary = getRulesSummary(l);
-    const lockedIcon = l.rules_locked ? '<span title="Regole bloccate" style="color:#F59E0B;cursor:help">&#128274;</span>' : '';
     const createdAt = l.created_at ? new Date(l.created_at).toLocaleDateString('it') : '-';
+
+    // Progress: clamp current_matchday within league's range
+    const startMd = l.start_matchday || 1;
+    const endMd = l.end_matchday || 38;
+    let progressMd = Math.min(Math.max(currentMd, startMd), endMd);
+    if (currentMd < startMd) progressMd = 0;
+    if (lst === 'completed') progressMd = endMd;
+    const progressPct = endMd > 0 ? Math.round(((progressMd - startMd + 1) / (endMd - startMd + 1)) * 100) : 0;
+    const progressColor = lst === 'completed' ? '#3B82F6' : (progressPct > 70 ? '#F59E0B' : '#10B981');
+    const progressDisplay = `<div style="font-size:12px"><strong style="color:${progressColor}">G${progressMd}</strong> <span style="color:#64748B">/ G${endMd}</span></div>
+      <div style="width:60px;height:4px;background:#1E293B;border-radius:2px;margin-top:3px"><div style="width:${Math.min(progressPct,100)}%;height:100%;background:${progressColor};border-radius:2px"></div></div>`;
 
     html += `<tr data-testid="league-row-${l.id}">
       <td><strong>${l.name}</strong></td>
       <td>${typeBadge}</td>
       <td>${statusBadge}</td>
+      <td>${progressDisplay}</td>
       <td style="font-size:12px;color:#94A3B8">${l.invite_code||'-'}</td>
       <td>${ownerName}</td>
-      <td><span style="cursor:pointer;color:#F5A623" onclick="showLeagueAdmins('${l.id}')">${adminCount} admin</span></td>
       <td>${l.member_count}</td>
       <td style="font-size:12px;color:#94A3B8">${createdAt}</td>
-      <td style="font-size:11px;color:#94A3B8;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${rulesSummary}">${lockedIcon} ${rulesSummary}</td>
       <td>
         <button class="btn btn-sm btn-outline" onclick="showLeagueControlRoom('${l.id}')" data-testid="control-league-${l.id}">Control Room</button>
       </td></tr>`;
@@ -2866,6 +2875,9 @@ function renderCrInfo(l) {
   });
 
   return `
+    <div style="margin-bottom:16px">
+      <button class="btn" style="background:#3B82F6" onclick="showLeagueStandings('${l.id}')" data-testid="open-standings-btn">Apri Classifica</button>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:13px">
       <div><span style="color:#94A3B8">ID:</span> <code style="color:#F5A623;font-size:11px">${l.id.substring(0,16)}...</code></div>
       <div><span style="color:#94A3B8">Stagione:</span> ${l.season_id || '-'}</div>
@@ -2880,6 +2892,40 @@ function renderCrInfo(l) {
     </div>
     <h4 style="color:#F5A623;margin:16px 0 8px">Mercati e Punteggi</h4>
     <table style="font-size:13px"><tr><th>Mercato</th><th>Stato</th><th>Punti</th></tr>${marketsHtml}</table>`;
+}
+
+async function showLeagueStandings(leagueId) {
+  const body = document.getElementById('cr-body');
+  body.innerHTML = '<p style="color:#94A3B8">Caricamento classifica...</p>';
+  try {
+    const data = await apiCall('/standings/total?league_id=' + leagueId);
+    const entries = data.entries || [];
+    if (entries.length === 0) {
+      body.innerHTML = '<p style="color:#94A3B8;text-align:center;padding:24px">Nessun dato in classifica per questa lega.</p><div style="text-align:center"><button class="btn btn-outline btn-sm" onclick="showLeagueControlRoom(crLeagueId,\'info\')">Torna a Info</button></div>';
+      return;
+    }
+    let html = '<h4 style="color:#F5A623;margin-bottom:12px">Classifica</h4>';
+    html += '<table style="font-size:13px"><tr><th>#</th><th>Giocatore</th><th>Punti</th><th>G. Giocate</th><th>Media</th></tr>';
+    entries.forEach((e, i) => {
+      const pos = i + 1;
+      const posStyle = pos <= 3 ? 'color:#F5A623;font-weight:bold' : 'color:#94A3B8';
+      const pts = e.total_points || 0;
+      const played = e.matchdays_played || 0;
+      const avg = played > 0 ? (pts / played).toFixed(1) : '-';
+      html += `<tr>
+        <td style="${posStyle}">${pos}</td>
+        <td><strong>${e.username || e.user_id}</strong></td>
+        <td style="color:#F5A623;font-weight:bold">${pts}</td>
+        <td style="color:#94A3B8">${played}</td>
+        <td style="color:#94A3B8">${avg}</td>
+      </tr>`;
+    });
+    html += '</table>';
+    html += `<div style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="showLeagueControlRoom(crLeagueId,'info')">Torna a Info</button></div>`;
+    body.innerHTML = html;
+  } catch(e) {
+    body.innerHTML = '<p style="color:#EF4444">Errore caricamento classifica: ' + e.message + '</p><div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="showLeagueControlRoom(crLeagueId,\'info\')">Torna a Info</button></div>';
+  }
 }
 
 function renderCrEdit(l) {
