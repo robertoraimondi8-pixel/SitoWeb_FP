@@ -493,9 +493,8 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
         const completed = myMatchups.filter((m: any) => m.status === 'completed');
         const isA = (m: any) => m.user_a_id === user?.id;
         const last5 = completed.slice(-5).map((m: any) => {
-          const myPts = isA(m) ? m.user_a_points : m.user_b_points;
-          const oppPts = isA(m) ? m.user_b_points : m.user_a_points;
-          const result = myPts > oppPts ? 'V' : myPts < oppPts ? 'S' : 'P';
+          const ia = isA(m);
+          const result = m.result === 'draw' ? 'P' : (m.result === 'user_a_win' ? (ia ? 'V' : 'S') : (ia ? 'S' : 'V'));
           return { result, matchday_number: m.round_number };
         });
         if (last5.length === 0) return null;

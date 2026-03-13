@@ -666,28 +666,35 @@ async def get_tournament(tournament_id: str, user=Depends(get_current_user)):
             matchup_id = my_matchup["id"]
             is_a = my_matchup["user_a_id"] == user["id"]
             opponent_name = my_matchup["user_b_username"] if is_a else my_matchup["user_a_username"]
-            my_points = my_matchup["user_a_points"] if is_a else my_matchup["user_b_points"]
-            opp_points = my_matchup["user_b_points"] if is_a else my_matchup["user_a_points"]
+            opp_id = my_matchup["user_b_id"] if is_a else my_matchup["user_a_id"]
 
-        # Live points if LIVE
-        live_total = None
-        if effective_status == "LIVE" and my_matchup:
-            from scoring import calculate_match_points
-            lt = 0
-            my_preds = await predictions_col.find(
-                {"user_id": user["id"], "matchday_id": round_id, "league_id": tournament_id}, {"_id": 0}
-            ).to_list(50)
-            preds_by_match = {p["match_id"]: p for p in my_preds}
-            for m in round_matches:
-                p = preds_by_match.get(m["id"])
-                if p and m.get("status") in ("live", "finished"):
-                    pts, _ = calculate_match_points(
-                        p["prediction_value"], p["market_type"],
-                        m.get("home_score"), m.get("away_score"),
-                        m.get("status"), p.get("multiplier", 1.0)
-                    )
-                    lt += pts
-            live_total = int(lt)
+            # Calculate REAL prediction scores (not group points) for LIVE/COMPLETED
+            if effective_status in ("LIVE", "COMPLETED"):
+                from scoring import calculate_match_points
+                my_preds = await predictions_col.find(
+                    {"user_id": user["id"], "matchday_id": round_id, "league_id": tournament_id}, {"_id": 0}
+                ).to_list(50)
+                opp_preds = await predictions_col.find(
+                    {"user_id": opp_id, "matchday_id": round_id, "league_id": tournament_id}, {"_id": 0}
+                ).to_list(50)
+                my_by_match = {p["match_id"]: p for p in my_preds}
+                opp_by_match = {p["match_id"]: p for p in opp_preds}
+                my_total = 0
+                opp_total = 0
+                for m in round_matches:
+                    if m.get("status") in ("live", "finished"):
+                        mp = my_by_match.get(m["id"])
+                        op = opp_by_match.get(m["id"])
+                        if mp:
+                            pts, _ = calculate_match_points(mp["prediction_value"], mp["market_type"], m.get("home_score"), m.get("away_score"), m.get("status"), mp.get("multiplier", 1.0))
+                            my_total += pts
+                        if op:
+                            pts, _ = calculate_match_points(op["prediction_value"], op["market_type"], m.get("home_score"), m.get("away_score"), m.get("status"), op.get("multiplier", 1.0))
+                            opp_total += pts
+                my_points = my_total
+                opp_points = opp_total
+
+        live_total = int(my_points) if effective_status == "LIVE" and my_matchup else None
 
         t["current_round_info"] = {
             "round_id": round_id,
