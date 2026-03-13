@@ -1258,3 +1258,29 @@ async def matches_overview(filter: str = "all", admin=Depends(get_current_user))
             })
 
     return {"filter": filter, "count": len(results), "matches": results}
+
+
+@admin_router.post("/impersonate/{user_id}")
+async def admin_impersonate_user(user_id: str, admin=Depends(require_permission("admin.users.manage"))):
+    """Generate an access token for the target user (super admin only)."""
+    if not admin.get("is_super_admin"):
+        raise HTTPException(403, "Solo i Super Admin possono impersonare utenti")
+    target = await users_col.find_one({"id": user_id}, {"_id": 0})
+    if not target:
+        raise HTTPException(404, "Utente non trovato")
+    if target.get("is_super_admin"):
+        raise HTTPException(400, "Non puoi impersonare un altro Super Admin")
+    from auth import create_access_token
+    token = create_access_token(target["id"], target.get("role", "user"))
+    await log_audit(admin["id"], admin["username"], "IMPERSONATE", "user", user_id, {
+        "target_username": target.get("username", "?"),
+        "target_email": target.get("email", "?"),
+    })
+    return {
+        "access_token": token,
+        "user": {
+            "id": target["id"],
+            "username": target.get("username"),
+            "email": target.get("email"),
+        }
+    }

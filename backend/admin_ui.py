@@ -274,6 +274,8 @@ async function doLogin() {
     const permsData = await apiCall('/rbac/my-permissions');
     userPerms = permsData.permissions || [];
     isSuperAdmin = permsData.is_super_admin || false;
+    window._adminIsSuperAdmin = isSuperAdmin;
+    window._adminUsername = permsData.username || 'admin';
     localStorage.setItem('admin_perms', JSON.stringify(userPerms));
     localStorage.setItem('admin_is_super', isSuperAdmin.toString());
     if (!hasPerm('admin.dashboard.view')) {
@@ -904,6 +906,7 @@ function renderUsersTable(users) {
     <th style="cursor:pointer" onclick="sortBy('users','username')">Username ${sh('username')}</th>
     <th style="cursor:pointer" onclick="sortBy('users','email')">Email ${sh('email')}</th>
     <th>Ruoli</th>
+    <th>Auth</th>
     <th>Leghe</th>
     <th style="cursor:pointer" onclick="sortBy('users','created_at')">Iscrizione ${sh('created_at')}</th>
     <th style="cursor:pointer" onclick="sortBy('users','last_login')">Ultimo Login ${sh('last_login')}</th>
@@ -930,6 +933,7 @@ function renderUsersTable(users) {
       <td><strong>${u.username}</strong></td>
       <td style="color:#94A3B8;font-size:12px">${u.email}</td>
       <td>${tags}</td>
+      <td>${renderAuthBadge(u.auth_provider)}</td>
       <td>${leagueHtml}</td>
       <td style="font-size:12px;color:#94A3B8">${createdAt}</td>
       <td style="font-size:12px">${lastLogin}</td>
@@ -974,6 +978,9 @@ async function showUserControlRoom(userId, tab) {
       ${u.is_super_admin ? '<span class="tag tag-super">SUPER ADMIN</span>' : ''}
       ${statusTag}
       ${u.auth_provider === 'google' ? '<span class="tag tag-role">GOOGLE</span>' : ''}
+      ${u.auth_provider === 'apple' ? '<span class="tag" style="background:rgba(255,255,255,.1);color:#F1F5F9;border:1px solid rgba(255,255,255,.2)">APPLE</span>' : ''}
+      ${u.auth_provider === 'facebook' ? '<span class="tag" style="background:rgba(59,130,246,.15);color:#3B82F6;border:1px solid rgba(59,130,246,.3)">FACEBOOK</span>' : ''}
+      ${(!u.auth_provider || u.auth_provider === 'email') ? '<span class="tag" style="background:rgba(148,163,184,.1);color:#94A3B8;border:1px solid rgba(148,163,184,.2)">EMAIL</span>' : ''}
     </div>
     <button class="btn btn-outline btn-sm" onclick="closeModal()">X</button>
   </div>
@@ -994,12 +1001,18 @@ function renderUcrInfo(u) {
   const onlineIndicator = isOnline ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;margin-right:6px;animation:pulse 1.5s infinite"></span><span style="color:#10B981">Online</span>' : '<span style="color:#64748B">Offline</span>';
   const rolesHtml = (u.roles||[]).length > 0 ? u.roles.map(r => `<span class="tag tag-role">${r.name}</span>`).join(' ') : '<span style="color:#475569">Nessun ruolo RBAC</span>';
 
+  // Impersonate button (only for super admin, not self, not deleted/disabled)
+  const canImpersonate = window._adminIsSuperAdmin && !u.is_super_admin && !u.is_deleted && !u.is_disabled;
+  const impersonateBtn = canImpersonate
+    ? `<div style="margin-top:16px;padding-top:12px;border-top:1px solid #334155"><button class="btn btn-sm" style="background:rgba(59,130,246,.15);color:#3B82F6;border:1px solid rgba(59,130,246,.3)" onclick="doImpersonateUser('${u.id}','${u.username.replace(/'/g,"\\\\'")}')" data-testid="impersonate-btn">Accedi come ${u.username}</button><span style="color:#64748B;font-size:11px;margin-left:8px">Apre l\\'app come questo utente</span></div>`
+    : '';
+
   return `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
       <div><span style="color:#94A3B8">ID:</span> <code style="color:#F5A623;font-size:11px">${u.id.substring(0,20)}...</code></div>
       <div><span style="color:#94A3B8">Email:</span> <strong>${u.email}</strong></div>
       <div><span style="color:#94A3B8">Username:</span> <strong>${u.username}</strong></div>
-      <div><span style="color:#94A3B8">Auth Provider:</span> <strong>${u.auth_provider || 'email'}</strong></div>
+      <div><span style="color:#94A3B8">Auth Provider:</span> ${renderAuthBadge(u.auth_provider)}</div>
       <div><span style="color:#94A3B8">Registrato:</span> ${u.created_at ? new Date(u.created_at).toLocaleString('it') : '-'}</div>
       <div><span style="color:#94A3B8">Ultimo Login:</span> ${u.last_login ? new Date(u.last_login).toLocaleString('it') : 'Mai'}</div>
       <div><span style="color:#94A3B8">Ultima Attivita:</span> ${u.last_activity ? new Date(u.last_activity).toLocaleString('it') : 'Mai'}</div>
@@ -1012,7 +1025,38 @@ function renderUcrInfo(u) {
       <div class="counter-box" style="text-align:center"><div class="num" style="font-size:20px;color:#F5A623">${u.leagues_created||0}</div><div class="label">Leghe Create</div></div>
       <div class="counter-box" style="text-align:center"><div class="num" style="font-size:20px;color:#3B82F6">${u.leagues_admin||0}</div><div class="label">Admin Lega</div></div>
       <div class="counter-box" style="text-align:center"><div class="num" style="font-size:20px;color:#10B981">${u.leagues_member||0}</div><div class="label">Membro</div></div>
-    </div>`;
+    </div>
+    ${impersonateBtn}`;
+}
+
+function renderAuthBadge(provider) {
+  const p = (provider || 'email').toLowerCase();
+  const styles = {
+    email:    'background:rgba(148,163,184,.12);color:#CBD5E1;border:1px solid rgba(148,163,184,.25)',
+    google:   'background:rgba(234,67,53,.1);color:#EA4335;border:1px solid rgba(234,67,53,.3)',
+    apple:    'background:rgba(255,255,255,.08);color:#F1F5F9;border:1px solid rgba(255,255,255,.2)',
+    facebook: 'background:rgba(24,119,242,.1);color:#1877F2;border:1px solid rgba(24,119,242,.3)',
+  };
+  const s = styles[p] || styles.email;
+  return `<span class="tag" style="${s};font-weight:600" data-testid="auth-badge-${p}">${p.toUpperCase()}</span>`;
+}
+
+async function doImpersonateUser(userId, username) {
+  if (!confirm('Stai per accedere all\\'app come "' + username + '".\\n\\nVerrai reindirizzato alla web app.\\nContinuare?')) return;
+  try {
+    const res = await apiCall('/admin/impersonate/' + userId, 'POST');
+    // Store original admin token for later restore
+    const currentToken = localStorage.getItem('admin_token');
+    sessionStorage.setItem('impersonate_original_token', currentToken);
+    sessionStorage.setItem('impersonate_admin_username', window._adminUsername || 'admin');
+    sessionStorage.setItem('impersonate_target', username);
+    // Open the app in a new tab with the impersonated token
+    const appUrl = window.location.origin;
+    const impersonateUrl = appUrl + '/?impersonate_token=' + encodeURIComponent(res.access_token) + '&impersonate_user=' + encodeURIComponent(username);
+    window.open(impersonateUrl, '_blank');
+    showToast('Impersonazione avviata: aperta nuova scheda come "' + username + '"');
+    closeModal();
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
 function renderUcrEdit(u) {
@@ -4294,6 +4338,8 @@ if(token) {
   apiCall('/rbac/my-permissions').then(data => {
     userPerms = data.permissions || [];
     isSuperAdmin = data.is_super_admin || false;
+    window._adminIsSuperAdmin = isSuperAdmin;
+    window._adminUsername = data.username || 'admin';
     localStorage.setItem('admin_perms', JSON.stringify(userPerms));
     localStorage.setItem('admin_is_super', isSuperAdmin.toString());
     if (!hasPerm('admin.dashboard.view')) { doLogout(); return; }

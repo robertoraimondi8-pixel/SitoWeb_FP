@@ -40,6 +40,7 @@ async def my_permissions(user=Depends(get_current_user)):
     perms = await get_user_permissions(user)
     return {
         "user_id": user["id"],
+        "username": user.get("username", "admin"),
         "is_super_admin": user.get("is_super_admin", False),
         "permissions": perms,
         "role_ids": user.get("role_ids", []),
