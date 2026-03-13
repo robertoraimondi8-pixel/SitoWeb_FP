@@ -4392,17 +4392,117 @@ async function doDeleteTournament(tournId) {
 // ========================================
 async function render_audit() {
   if (!hasPerm('admin.audit.view')) { render_forbidden(); return; }
-  const logs = await apiCall('/admin/audit-logs?limit=200');
-  let html = '<h2>Audit Log</h2><table><tr><th>Data</th><th>Admin</th><th>Azione</th><th>Entita</th><th>IP</th><th>Dettagli</th></tr>';
+  const el = document.getElementById('content');
+  el.innerHTML = '<h2>Audit Log</h2><div id="audit-filters" class="card"></div><div id="audit-table"></div>';
+  const filtersHtml = `<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+    <div>
+      <label style="font-size:11px;color:#94A3B8;display:block;margin-bottom:4px">Tipo Entita</label>
+      <select id="audit-entity-filter" onchange="loadAuditLogs()" data-testid="audit-entity-filter">
+        <option value="">Tutti</option>
+        <option value="user">Utenti</option>
+        <option value="league">Leghe</option>
+        <option value="tournament">Tornei</option>
+        <option value="payment">Pagamenti</option>
+        <option value="season">Stagioni</option>
+        <option value="matchday">Giornate</option>
+        <option value="notification">Notifiche</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-size:11px;color:#94A3B8;display:block;margin-bottom:4px">Azione</label>
+      <select id="audit-action-filter" onchange="loadAuditLogs()" data-testid="audit-action-filter">
+        <option value="">Tutte</option>
+        <option value="CREATE">CREATE</option>
+        <option value="UPDATE">UPDATE</option>
+        <option value="DELETE">DELETE</option>
+        <option value="IMPERSONATE">IMPERSONATE</option>
+        <option value="FORCE_START">FORCE_START</option>
+        <option value="RESET_GROUPS">RESET_GROUPS</option>
+        <option value="PUSH_BROADCAST">PUSH_BROADCAST</option>
+        <option value="PUSH_USER">PUSH_USER</option>
+        <option value="TRANSITION">TRANSITION</option>
+      </select>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <label style="font-size:11px;color:#94A3B8;display:block;margin-bottom:4px">Cerca (ID, username, nome)</label>
+      <input id="audit-search" placeholder="es. a0a60a06 oppure admin" onkeyup="if(event.key==='Enter')loadAuditLogs()" data-testid="audit-search" style="width:100%">
+    </div>
+    <div style="align-self:flex-end">
+      <button class="btn btn-sm" onclick="loadAuditLogs()" data-testid="audit-search-btn">Cerca</button>
+    </div>
+  </div>`;
+  document.getElementById('audit-filters').innerHTML = filtersHtml;
+  loadAuditLogs();
+}
+
+async function loadAuditLogs() {
+  const entity = document.getElementById('audit-entity-filter').value;
+  const action = document.getElementById('audit-action-filter').value;
+  const search = document.getElementById('audit-search').value.trim();
+  let url = '/admin/audit-logs?limit=200';
+  if (entity) url += '&entity_type=' + encodeURIComponent(entity);
+  if (action) url += '&action=' + encodeURIComponent(action);
+  if (search) url += '&search=' + encodeURIComponent(search);
+  try {
+    const logs = await apiCall(url);
+    renderAuditTable(logs);
+  } catch(e) { document.getElementById('audit-table').innerHTML = '<p style="color:#EF4444">' + e.message + '</p>'; }
+}
+
+function getActionBadge(action) {
+  const map = {
+    CREATE:     {bg:'rgba(16,185,129,.12)', color:'#10B981', border:'rgba(16,185,129,.3)'},
+    UPDATE:     {bg:'rgba(59,130,246,.12)', color:'#3B82F6', border:'rgba(59,130,246,.3)'},
+    DELETE:     {bg:'rgba(239,68,68,.12)',  color:'#EF4444', border:'rgba(239,68,68,.3)'},
+    IMPERSONATE:{bg:'rgba(245,166,35,.12)', color:'#F5A623', border:'rgba(245,166,35,.3)'},
+    FORCE_START:{bg:'rgba(139,92,246,.12)', color:'#8B5CF6', border:'rgba(139,92,246,.3)'},
+    RESET_GROUPS:{bg:'rgba(239,68,68,.12)', color:'#EF4444', border:'rgba(239,68,68,.3)'},
+    TRANSITION: {bg:'rgba(59,130,246,.12)', color:'#3B82F6', border:'rgba(59,130,246,.3)'},
+    PUSH_BROADCAST:{bg:'rgba(245,158,11,.12)',color:'#F59E0B',border:'rgba(245,158,11,.3)'},
+    PUSH_USER:  {bg:'rgba(245,158,11,.12)', color:'#F59E0B', border:'rgba(245,158,11,.3)'},
+    ADD_MATCH:  {bg:'rgba(16,185,129,.12)', color:'#10B981', border:'rgba(16,185,129,.3)'},
+  };
+  const s = map[action] || {bg:'rgba(148,163,184,.1)',color:'#94A3B8',border:'rgba(148,163,184,.2)'};
+  return `<span style="background:${s.bg};color:${s.color};border:1px solid ${s.border};padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px">${action}</span>`;
+}
+
+function formatAuditDetails(details) {
+  if (!details || Object.keys(details).length === 0) return '<span style="color:#475569">-</span>';
+  const entries = Object.entries(details);
+  if (entries.length <= 3) {
+    return entries.map(([k, v]) => {
+      const val = typeof v === 'object' ? JSON.stringify(v) : String(v);
+      return `<span style="color:#94A3B8;font-size:11px">${k}:</span> <span style="color:#F1F5F9;font-size:11px">${val.length > 40 ? val.substring(0,40)+'...' : val}</span>`;
+    }).join('<br>');
+  }
+  const preview = entries.slice(0,2).map(([k,v]) => `${k}: ${String(v).substring(0,30)}`).join(', ');
+  const detailId = 'ad-' + Math.random().toString(36).substring(7);
+  const jsonStr = JSON.stringify(details, null, 2).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<span style="color:#94A3B8;font-size:11px">${preview}...</span>
+    <button class="btn btn-sm btn-outline" style="font-size:10px;padding:1px 6px;margin-left:4px" onclick="document.getElementById('${detailId}').style.display=document.getElementById('${detailId}').style.display==='none'?'block':'none'">JSON</button>
+    <pre id="${detailId}" style="display:none;background:#0F172A;border:1px solid #334155;border-radius:6px;padding:8px;margin-top:6px;font-size:11px;color:#F5A623;max-height:200px;overflow:auto;white-space:pre-wrap">${jsonStr}</pre>`;
+}
+
+function renderAuditTable(logs) {
+  let html = `<div style="margin:12px 0;font-size:12px;color:#94A3B8">${logs.length} risultati</div>`;
+  html += '<table style="font-size:13px" data-testid="audit-table"><tr><th>Data</th><th>Admin</th><th>Azione</th><th>Entita</th><th>ID Entita</th><th>IP</th><th>Dettagli</th></tr>';
   logs.forEach(l => {
-    const ip = l.ip ? l.ip.split(',')[0] : '-';
-    html += `<tr><td style="white-space:nowrap">${new Date(l.created_at).toLocaleString('it')}</td><td>${l.admin_username}</td>
-    <td><span class="status-badge status-OPEN">${l.action}</span></td><td>${l.entity_type}/${(l.entity_id||'').substring(0,8)}</td>
-    <td style="font-size:11px">${ip}</td>
-    <td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis">${JSON.stringify(l.details||{}).substring(0,100)}</td></tr>`;
+    const date = l.created_at ? new Date(l.created_at).toLocaleString('it-IT', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '-';
+    const ipCell = l.ip ? `<code style="font-size:11px;color:#64748B">${l.ip}</code>` : '<span style="color:#334155">-</span>';
+    const entityId = l.entity_id ? `<code style="font-size:10px;color:#F5A623">${l.entity_id.substring(0,12)}...</code>` : '-';
+    html += `<tr>
+      <td style="white-space:nowrap">${date}</td>
+      <td><strong>${l.admin_username || '?'}</strong></td>
+      <td>${getActionBadge(l.action)}</td>
+      <td style="color:#94A3B8">${l.entity_type || '-'}</td>
+      <td>${entityId}</td>
+      <td>${ipCell}</td>
+      <td style="max-width:280px">${formatAuditDetails(l.details)}</td>
+    </tr>`;
   });
+  if (logs.length === 0) html += '<tr><td colspan="7" style="text-align:center;color:#94A3B8;padding:24px">Nessun risultato trovato.</td></tr>';
   html += '</table>';
-  document.getElementById('content').innerHTML = html;
+  document.getElementById('audit-table').innerHTML = html;
 }
 
 // Init

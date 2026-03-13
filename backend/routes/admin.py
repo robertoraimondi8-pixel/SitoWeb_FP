@@ -42,7 +42,7 @@ async def admin_create_season(req: SeasonCreate, admin=Depends(require_permissio
     season_id = new_id()
     season = {"id": season_id, "name": req.name, "year": req.year, "start_date": req.start_date, "end_date": req.end_date, "is_active": req.is_active, "status": "draft", "total_matchdays": req.total_matchdays, "current_matchday": req.current_matchday, "created_at": now_utc()}
     await seasons_col.insert_one(season)
-    await log_audit(admin["id"], admin["username"], "CREATE", "season", season_id, {"name": req.name})
+    await log_audit(admin["id"], admin["username"], "CREATE", "season", season_id, {"name": req.name}, ip=admin.get("_request_ip"))
     season.pop("_id", None)
     return season
 
@@ -53,7 +53,7 @@ async def admin_update_season(season_id: str, req: AdminSeasonUpdate, admin=Depe
     if not updates:
         raise HTTPException(400, "No updates provided")
     await seasons_col.update_one({"id": season_id}, {"$set": updates})
-    await log_audit(admin["id"], admin["username"], "UPDATE", "season", season_id, updates)
+    await log_audit(admin["id"], admin["username"], "UPDATE", "season", season_id, updates, ip=admin.get("_request_ip"))
     return await seasons_col.find_one({"id": season_id}, {"_id": 0})
 
 
@@ -68,7 +68,7 @@ async def admin_set_current_matchday(season_id: str, matchday_id: str, admin=Dep
     if matchday.get("league_id") != NATIONAL_LEAGUE_ID:
         raise HTTPException(400, "Solo le giornate della Lega Nazionale possono essere impostate come giornata corrente della stagione.")
     await seasons_col.update_one({"id": season_id}, {"$set": {"current_matchday_id": matchday_id}})
-    await log_audit(admin["id"], admin["username"], "SET_CURRENT_MATCHDAY", "season", season_id, {"matchday_id": matchday_id, "matchday_number": matchday["number"]})
+    await log_audit(admin["id"], admin["username"], "SET_CURRENT_MATCHDAY", "season", season_id, {"matchday_id": matchday_id, "matchday_number": matchday["number"]}, ip=admin.get("_request_ip"))
     return {"status": "success", "season_id": season_id, "current_matchday_id": matchday_id, "matchday_number": matchday["number"], "matchday_label": matchday.get("label", f"Giornata {matchday['number']}")}
 
 
@@ -84,7 +84,7 @@ async def admin_activate_season(season_id: str, admin=Depends(require_permission
     # Deactivate other active seasons
     await seasons_col.update_many({"id": {"$ne": season_id}}, {"$set": {"is_active": False, "status": "draft"}})
     await seasons_col.update_one({"id": season_id}, {"$set": {"status": "active", "is_active": True}})
-    await log_audit(admin["id"], admin["username"], "ACTIVATE_SEASON", "season", season_id, {"name": season.get("name")})
+    await log_audit(admin["id"], admin["username"], "ACTIVATE_SEASON", "season", season_id, {"name": season.get("name")}, ip=admin.get("_request_ip"))
     return {"ok": True, "status": "active"}
 
 
@@ -115,7 +115,7 @@ async def admin_archive_season(season_id: str, admin=Depends(require_permission(
     if current_status != "completed":
         raise HTTPException(400, f"Solo le stagioni completate possono essere archiviate. Stato attuale: {current_status}")
     await seasons_col.update_one({"id": season_id}, {"$set": {"status": "archived"}})
-    await log_audit(admin["id"], admin["username"], "ARCHIVE_SEASON", "season", season_id, {"name": season.get("name")})
+    await log_audit(admin["id"], admin["username"], "ARCHIVE_SEASON", "season", season_id, {"name": season.get("name")}, ip=admin.get("_request_ip"))
     return {"ok": True, "status": "archived"}
 
 
@@ -132,7 +132,7 @@ async def admin_delete_season(season_id: str, admin=Depends(require_permission("
     if league_count > 0:
         raise HTTPException(400, f"Non puoi eliminare questa stagione: ha {league_count} leghe collegate.")
     await seasons_col.delete_one({"id": season_id})
-    await log_audit(admin["id"], admin["username"], "DELETE", "season", season_id, {"name": season.get("name")})
+    await log_audit(admin["id"], admin["username"], "DELETE", "season", season_id, {"name": season.get("name")}, ip=admin.get("_request_ip"))
     return {"ok": True}
 
 
@@ -152,7 +152,7 @@ async def admin_complete_league(league_id: str, admin=Depends(require_permission
     if league.get("status") == "completed":
         raise HTTPException(400, "Lega già completata")
     await complete_league(league_id)
-    await log_audit(admin["id"], admin["username"], "COMPLETE_LEAGUE", "league", league_id, {"name": league.get("name")})
+    await log_audit(admin["id"], admin["username"], "COMPLETE_LEAGUE", "league", league_id, {"name": league.get("name")}, ip=admin.get("_request_ip"))
     return {"ok": True, "status": "completed"}
 
 
@@ -178,7 +178,7 @@ async def admin_create_matchday(req: MatchdayCreate, admin=Depends(require_permi
     target_league = req.league_id or NATIONAL_LEAGUE_ID
     md = {"id": md_id, "season_id": req.season_id, "number": req.number, "label": req.label or f"Giornata {req.number}", "half": req.half, "first_kickoff": req.first_kickoff, "status": req.status, "league_id": target_league, "created_at": now_utc()}
     await matchdays_col.insert_one(md)
-    await log_audit(admin["id"], admin["username"], "CREATE", "matchday", md_id, {"number": req.number})
+    await log_audit(admin["id"], admin["username"], "CREATE", "matchday", md_id, {"number": req.number}, ip=admin.get("_request_ip"))
     md.pop("_id", None)
     return md
 
@@ -194,9 +194,9 @@ async def admin_update_matchday(matchday_id: str, req: AdminMatchdayUpdate, admi
             season_id = matchday["season_id"]
             result = await matchdays_col.update_many({"season_id": season_id, "id": {"$ne": matchday_id}, "status": "OPEN"}, {"$set": {"status": "LOCKED"}})
             if result.modified_count > 0:
-                await log_audit(admin["id"], admin["username"], "AUTO_LOCK", "matchday", season_id, {"locked_count": result.modified_count, "reason": f"New OPEN matchday {matchday_id}"})
+                await log_audit(admin["id"], admin["username"], "AUTO_LOCK", "matchday", season_id, {"locked_count": result.modified_count, "reason": f"New OPEN matchday {matchday_id}"}, ip=admin.get("_request_ip"))
     await matchdays_col.update_one({"id": matchday_id}, {"$set": updates})
-    await log_audit(admin["id"], admin["username"], "UPDATE", "matchday", matchday_id, updates)
+    await log_audit(admin["id"], admin["username"], "UPDATE", "matchday", matchday_id, updates, ip=admin.get("_request_ip"))
 
     if updates.get("status") == "OPEN":
         matchday = matchday or await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
@@ -243,7 +243,7 @@ async def admin_delete_league(league_id: str, admin=Depends(require_permission("
     del_matchdays = await matchdays_col.delete_many({"league_id": league_id})
     del_memberships = await memberships_col.delete_many({"league_id": league_id})
     await leagues_col.delete_one({"id": league_id})
-    await log_audit(admin["id"], admin["username"], "DELETE", "league", league_id, {"league_name": league.get("name", ""), "deleted_matchdays": del_matchdays.deleted_count, "deleted_matches": del_matches.deleted_count, "deleted_predictions": del_predictions.deleted_count, "deleted_memberships": del_memberships.deleted_count, "deleted_scores": del_scores.deleted_count})
+    await log_audit(admin["id"], admin["username"], "DELETE", "league", league_id, {"league_name": league.get("name", ""), "deleted_matchdays": del_matchdays.deleted_count, "deleted_matches": del_matches.deleted_count, "deleted_predictions": del_predictions.deleted_count, "deleted_memberships": del_memberships.deleted_count, "deleted_scores": del_scores.deleted_count}, ip=admin.get("_request_ip"))
     return {"status": "deleted", "league_id": league_id, "deleted_matchdays": del_matchdays.deleted_count, "deleted_matches": del_matches.deleted_count, "deleted_predictions": del_predictions.deleted_count, "deleted_memberships": del_memberships.deleted_count}
 
 
@@ -257,7 +257,7 @@ async def admin_delete_matchday(matchday_id: str, admin=Depends(require_permissi
     await score_summaries_col.delete_many({"matchday_id": matchday_id})
     await joker_usages_col.delete_many({"matchday_id": matchday_id})
     await matchdays_col.delete_one({"id": matchday_id})
-    await log_audit(admin["id"], admin["username"], "DELETE", "matchday", matchday_id, {})
+    await log_audit(admin["id"], admin["username"], "DELETE", "matchday", matchday_id, {}, ip=admin.get("_request_ip"))
     return {"status": "deleted", "matchday_id": matchday_id}
 
 
@@ -320,7 +320,7 @@ async def admin_create_match(req: MatchCreate, admin=Depends(require_permission(
     match_id = new_id()
     match = {"id": match_id, "matchday_id": req.matchday_id, "league_id": match_league_id, "home_team": req.home_team, "away_team": req.away_team, "competition": req.competition, "start_time": req.start_time, "market_type": req.market_type, "status": req.status, "home_score": None, "away_score": None, "created_at": now_utc()}
     await matches_col.insert_one(match)
-    await log_audit(admin["id"], admin["username"], "CREATE", "match", match_id, {"teams": f"{req.home_team} vs {req.away_team}"})
+    await log_audit(admin["id"], admin["username"], "CREATE", "match", match_id, {"teams": f"{req.home_team} vs {req.away_team}"}, ip=admin.get("_request_ip"))
     match.pop("_id", None)
     return match
 
@@ -344,7 +344,7 @@ async def admin_update_match(match_id: str, body: dict = {}, admin=Depends(requi
     if "away_score" in updates and updates["away_score"] is not None:
         updates["away_score"] = int(updates["away_score"])
     await matches_col.update_one({"id": match_id}, {"$set": updates})
-    await log_audit(admin["id"], admin["username"], "UPDATE", "match", match_id, updates)
+    await log_audit(admin["id"], admin["username"], "UPDATE", "match", match_id, updates, ip=admin.get("_request_ip"))
     return {"ok": True, "match_id": match_id, "updates": updates}
 
 
@@ -359,7 +359,7 @@ async def admin_delete_match(match_id: str, force: bool = False, admin=Depends(r
     if pred_count > 0 and force:
         await predictions_col.delete_many({"match_id": match_id})
     await matches_col.delete_one({"id": match_id})
-    await log_audit(admin["id"], admin["username"], "DELETE", "match", match_id, {"teams": f"{match.get('home_team')} vs {match.get('away_team')}", "predictions_deleted": pred_count if force else 0})
+    await log_audit(admin["id"], admin["username"], "DELETE", "match", match_id, {"teams": f"{match.get('home_team')} vs {match.get('away_team')}", "predictions_deleted": pred_count if force else 0}, ip=admin.get("_request_ip"))
     return {"ok": True, "match_id": match_id, "predictions_deleted": pred_count if force else 0}
 
 
@@ -402,7 +402,7 @@ async def admin_live_update(match_id: str, req: LiveUpdateRequest, admin=Depends
         raise HTTPException(404, "Match not found")
     updates = {"home_score": req.home_score, "away_score": req.away_score, "status": req.status}
     await matches_col.update_one({"id": match_id}, {"$set": updates})
-    await log_audit(admin["id"], admin["username"], "LIVE_UPDATE", "match", match_id, updates)
+    await log_audit(admin["id"], admin["username"], "LIVE_UPDATE", "match", match_id, updates, ip=admin.get("_request_ip"))
     return await matches_col.find_one({"id": match_id}, {"_id": 0})
 
 
@@ -413,7 +413,7 @@ async def admin_confirm_matchday(matchday_id: str, admin=Depends(require_permiss
         raise HTTPException(404, "Matchday not found")
     users_scored = await calculate_matchday_scores_full(matchday_id, admin)
     await matchdays_col.update_one({"id": matchday_id}, {"$set": {"status": "COMPLETED"}})
-    await log_audit(admin["id"], admin["username"], "CONFIRM", "matchday", matchday_id, {"users_scored": users_scored})
+    await log_audit(admin["id"], admin["username"], "CONFIRM", "matchday", matchday_id, {"users_scored": users_scored}, ip=admin.get("_request_ip"))
     return {"message": "Matchday confirmed", "users_scored": users_scored}
 
 
@@ -509,7 +509,7 @@ async def admin_v3_transition(matchday_id: str, body: dict, user=Depends(get_cur
             logger.info(f"[ADMIN_V3] Season {season_id} current_matchday_id -> {matchday_id}")
     await matchdays_col.update_one({"id": matchday_id}, {"$set": {"status": target_status}, "$unset": {"status_override": ""}})
     admin_username = user.get("username", user.get("email", "unknown"))
-    await log_audit(user["id"], admin_username, "TRANSITION", "matchday", matchday_id, {"from": current_status, "to": target_status, "league_id": league_id})
+    await log_audit(user["id"], admin_username, "TRANSITION", "matchday", matchday_id, {"from": current_status, "to": target_status, "league_id": league_id}, ip=user.get("_request_ip"))
     return {"status": "ok", "matchday_id": matchday_id, "previous_status": current_status, "new_status": target_status, "league_id": league_id}
 
 
@@ -528,7 +528,7 @@ async def admin_v3_override(matchday_id: str, body: dict, user=Depends(get_curre
     admin_username = user.get("username", user.get("email", "unknown"))
     if target_status is None:
         await matchdays_col.update_one({"id": matchday_id}, {"$unset": {"status_override": ""}})
-        await log_audit(user["id"], admin_username, "OVERRIDE_CLEAR", "matchday", matchday_id, {"league_id": league_id})
+        await log_audit(user["id"], admin_username, "OVERRIDE_CLEAR", "matchday", matchday_id, {"league_id": league_id}, ip=user.get("_request_ip"))
         return {"status": "ok", "message": "Override rimosso", "matchday_id": matchday_id}
     if target_status not in ("DRAFT", "OPEN", "LIVE", "COMPLETED"):
         raise HTTPException(400, f"target_status non valido: {target_status}")
@@ -536,7 +536,7 @@ async def admin_v3_override(matchday_id: str, body: dict, user=Depends(get_curre
     if target_status == "COMPLETED":
         logger.info(f"[SUPER_ADMIN] Force COMPLETED matchday {matchday_id} — calculating scores")
         await recalculate_matchday_scores(matchday_id, league_id)
-    await log_audit(user["id"], admin_username, "OVERRIDE", "matchday", matchday_id, {"target_status": target_status, "league_id": league_id})
+    await log_audit(user["id"], admin_username, "OVERRIDE", "matchday", matchday_id, {"target_status": target_status, "league_id": league_id}, ip=user.get("_request_ip"))
     return {"status": "ok", "message": f"Override forzato a {target_status}", "matchday_id": matchday_id, "new_status": target_status}
 
 
@@ -555,13 +555,32 @@ async def admin_v3_recalculate(matchday_id: str, body: dict, user=Depends(get_cu
         raise HTTPException(400, "Il ricalcolo è possibile solo per giornate COMPLETATE")
     await recalculate_matchday_scores(matchday_id, league_id)
     admin_username = user.get("username", user.get("email", "unknown"))
-    await log_audit(user["id"], admin_username, "RECALCULATE", "matchday", matchday_id, {"league_id": league_id})
+    await log_audit(user["id"], admin_username, "RECALCULATE", "matchday", matchday_id, {"league_id": league_id}, ip=user.get("_request_ip"))
     return {"status": "ok", "message": "Ricalcolo completato", "matchday_id": matchday_id}
 
 
 @admin_router.get("/audit-logs")
-async def admin_get_audit_logs(limit: int = 50, admin=Depends(require_permission("admin.audit.view"))):
-    logs = await audit_logs_col.find({}, {"_id": 0}).sort("created_at", -1).to_list(limit)
+async def admin_get_audit_logs(
+    limit: int = 200,
+    entity_type: str = "",
+    action: str = "",
+    search: str = "",
+    admin=Depends(require_permission("admin.audit.view"))
+):
+    query = {}
+    if entity_type:
+        query["entity_type"] = entity_type
+    if action:
+        query["action"] = action
+    if search:
+        query["$or"] = [
+            {"entity_id": {"$regex": search, "$options": "i"}},
+            {"admin_username": {"$regex": search, "$options": "i"}},
+            {"details.name": {"$regex": search, "$options": "i"}},
+            {"details.target_username": {"$regex": search, "$options": "i"}},
+            {"details.league_name": {"$regex": search, "$options": "i"}},
+        ]
+    logs = await audit_logs_col.find(query, {"_id": 0}).sort("created_at", -1).to_list(limit)
     return logs
 
 
@@ -663,6 +682,7 @@ async def admin_push_broadcast(request_body: dict, admin=Depends(require_permiss
     await log_audit(
         admin["id"], admin["username"], "PUSH_BROADCAST", "notification", "",
         {"title": title, "target": target, "sent_count": sent_count, "image_url": image_url or None},
+        ip=admin.get("_request_ip"),
     )
     return {"sent_count": sent_count, "target": target}
 
@@ -690,6 +710,7 @@ async def admin_push_to_user(user_id: str, request_body: dict, admin=Depends(req
     await log_audit(
         admin["id"], admin["username"], "PUSH_USER", "notification", user_id,
         {"title": title, "target_username": target_user["username"], "image_url": image_url or None},
+        ip=admin.get("_request_ip"),
     )
     return {"sent": True, "user_id": user_id}
 
@@ -810,7 +831,7 @@ async def admin_delete_tournament(tournament_id: str, admin=Depends(require_perm
     await tournament_groups_col.delete_many({"tournament_id": tournament_id})
     await tournament_registrations_col.delete_many({"tournament_id": tournament_id})
     await tournaments_col.delete_one({"id": tournament_id})
-    await log_audit(admin["id"], admin["username"], "DELETE", "tournament", tournament_id, {"name": t.get("name")})
+    await log_audit(admin["id"], admin["username"], "DELETE", "tournament", tournament_id, {"name": t.get("name")}, ip=admin.get("_request_ip"))
     return {"ok": True, "deleted": tournament_id}
 
 
@@ -933,7 +954,7 @@ async def admin_force_start_tournament(tournament_id: str, admin=Depends(require
 
     await log_audit(admin["id"], admin["username"], "FORCE_START", "tournament", tournament_id, {
         "name": t.get("name"), "participants": actual_count, "groups": groups_count
-    })
+    }, ip=admin.get("_request_ip"))
 
     return {
         "ok": True,
@@ -1003,7 +1024,7 @@ async def admin_create_tournament(req: AdminCreateTournamentReq, admin=Depends(r
     }
     await tournaments_col.insert_one(doc)
     doc.pop("_id", None)
-    await log_audit(admin["id"], admin["username"], "CREATE", "tournament", doc["id"], {"name": req.name})
+    await log_audit(admin["id"], admin["username"], "CREATE", "tournament", doc["id"], {"name": req.name}, ip=admin.get("_request_ip"))
     return doc
 
 
@@ -1025,7 +1046,7 @@ async def admin_update_tournament(tournament_id: str, body: dict = {}, admin=Dep
         if not updates:
             raise HTTPException(400, "Torneo gia avviato: solo nome e prezzo modificabili")
     await tournaments_col.update_one({"id": tournament_id}, {"$set": updates})
-    await log_audit(admin["id"], admin["username"], "UPDATE", "tournament", tournament_id, updates)
+    await log_audit(admin["id"], admin["username"], "UPDATE", "tournament", tournament_id, updates, ip=admin.get("_request_ip"))
     updated = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
     return updated
 
@@ -1065,7 +1086,7 @@ async def admin_remove_tournament_participant(tournament_id: str, user_id: str, 
     res = await tournament_registrations_col.delete_one({"tournament_id": tournament_id, "user_id": user_id, "status": "active"})
     if res.deleted_count == 0:
         raise HTTPException(404, "Partecipante non trovato")
-    await log_audit(admin["id"], admin["username"], "REMOVE_PARTICIPANT", "tournament", tournament_id, {"user_id": user_id})
+    await log_audit(admin["id"], admin["username"], "REMOVE_PARTICIPANT", "tournament", tournament_id, {"user_id": user_id}, ip=admin.get("_request_ip"))
     return {"ok": True}
 
 
@@ -1104,7 +1125,7 @@ async def admin_add_tournament_participant(tournament_id: str, body: dict = {}, 
     }
     await tournament_registrations_col.insert_one(reg)
     reg.pop("_id", None)
-    await log_audit(admin["id"], admin["username"], "ADD_PARTICIPANT", "tournament", tournament_id, {"user_id": user_id})
+    await log_audit(admin["id"], admin["username"], "ADD_PARTICIPANT", "tournament", tournament_id, {"user_id": user_id}, ip=admin.get("_request_ip"))
     return reg
 
 
@@ -1120,7 +1141,7 @@ async def admin_reset_tournament_groups(tournament_id: str, admin=Depends(requir
     await tournament_groups_col.delete_many({"tournament_id": tournament_id})
     await matches_col.delete_many({"league_id": tournament_id})
     await tournaments_col.update_one({"id": tournament_id}, {"$set": {"status": "registration", "current_round": 0, "started_at": None}})
-    await log_audit(admin["id"], admin["username"], "RESET_GROUPS", "tournament", tournament_id, {"name": t.get("name")})
+    await log_audit(admin["id"], admin["username"], "RESET_GROUPS", "tournament", tournament_id, {"name": t.get("name")}, ip=admin.get("_request_ip"))
     return {"ok": True}
 
 
@@ -1134,7 +1155,7 @@ async def admin_open_registration(tournament_id: str, admin=Depends(require_perm
     if t["status"] != "draft":
         raise HTTPException(400, f"Stato attuale: {t['status']}. Deve essere draft.")
     await tournaments_col.update_one({"id": tournament_id}, {"$set": {"status": "registration"}})
-    await log_audit(admin["id"], admin["username"], "OPEN_REGISTRATION", "tournament", tournament_id, {"name": t.get("name")})
+    await log_audit(admin["id"], admin["username"], "OPEN_REGISTRATION", "tournament", tournament_id, {"name": t.get("name")}, ip=admin.get("_request_ip"))
     return {"ok": True, "status": "registration"}
 
 
@@ -1195,7 +1216,7 @@ async def admin_add_manual_match(req: AdminAddManualMatchReq, admin=Depends(requ
     match_doc.pop("_id", None)
     await log_audit(admin["id"], admin["username"], "ADD_MATCH", "tournament_round", req.round_id, {
         "match": f"{req.home_team} vs {req.away_team}", "tournament": req.tournament_id
-    })
+    }, ip=admin.get("_request_ip"))
     return match_doc
 
 
@@ -1211,7 +1232,7 @@ async def admin_update_tournament_round_status(round_id: str, body: dict = {}, a
     if not rnd:
         raise HTTPException(404, "Round non trovato")
     await tournament_rounds_col.update_one({"id": round_id}, {"$set": {"status": new_status}})
-    await log_audit(admin["id"], admin["username"], "UPDATE_STATUS", "tournament_round", round_id, {"old_status": rnd["status"], "new_status": new_status})
+    await log_audit(admin["id"], admin["username"], "UPDATE_STATUS", "tournament_round", round_id, {"old_status": rnd["status"], "new_status": new_status}, ip=admin.get("_request_ip"))
     return {"ok": True, "status": new_status}
 
 
@@ -1335,7 +1356,7 @@ async def admin_impersonate_user(user_id: str, admin=Depends(require_permission(
     await log_audit(admin["id"], admin["username"], "IMPERSONATE", "user", user_id, {
         "target_username": target.get("username", "?"),
         "target_email": target.get("email", "?"),
-    })
+    }, ip=admin.get("_request_ip"))
     return {
         "access_token": token,
         "user": {

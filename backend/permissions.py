@@ -63,14 +63,15 @@ DEFAULT_ROLES = {
 
 
 def require_permission(*perms: str):
-    """Factory that creates a FastAPI dependency checking for specific permissions.
+    """Factory that creates a FastAPI dependency checking for specific permissions."""
+    from fastapi import Request as _Req
+    async def _check(request: _Req, user: dict = Depends(get_current_user)) -> dict:
+        # Attach request IP to user dict for audit logging
+        client_ip = request.headers.get("x-forwarded-for", request.headers.get("x-real-ip", ""))
+        if not client_ip and request.client:
+            client_ip = request.client.host
+        user["_request_ip"] = client_ip.split(",")[0].strip() if client_ip else ""
 
-    Usage:
-        @router.get("/endpoint")
-        async def my_endpoint(user=Depends(require_permission("admin.users.manage"))):
-            ...
-    """
-    async def _check(user: dict = Depends(get_current_user)) -> dict:
         # Super admin bypasses all permission checks
         if user.get("is_super_admin"):
             return user
