@@ -575,7 +575,42 @@ async def admin_list_leagues(admin=Depends(require_permission("admin.leagues.man
 
 @admin_router.get("/payments")
 async def admin_list_payments(admin=Depends(require_permission("admin.payments.view"))):
-    return await payments_col.find({}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    payments = await payments_col.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    # Enrich with user info and payment object
+    user_ids = list(set(p.get("user_id", "") for p in payments if p.get("user_id")))
+    league_ids = list(set(p.get("league_id", "") for p in payments if p.get("league_id")))
+    tourn_ids = list(set(p.get("tournament_id", "") for p in payments if p.get("tournament_id")))
+    users_map, leagues_map, tourns_map = {}, {}, {}
+    if user_ids:
+        users_list = await users_col.find({"id": {"$in": user_ids}}, {"_id": 0, "id": 1, "username": 1, "email": 1}).to_list(len(user_ids))
+        users_map = {u["id"]: u for u in users_list}
+    if league_ids:
+        from database import leagues_col
+        leagues_list = await leagues_col.find({"id": {"$in": league_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(len(league_ids))
+        leagues_map = {l["id"]: l for l in leagues_list}
+    if tourn_ids:
+        tourns_list = await tournaments_col.find({"id": {"$in": tourn_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(len(tourn_ids))
+        tourns_map = {t["id"]: t for t in tourns_list}
+    for p in payments:
+        u = users_map.get(p.get("user_id", ""))
+        p["username"] = u["username"] if u else ""
+        p["user_email"] = u["email"] if u else ""
+        lid = p.get("league_id", "")
+        tid = p.get("tournament_id", "")
+        meta_type = (p.get("metadata") or {}).get("type", "")
+        if lid and lid in leagues_map:
+            p["object_type"] = "League"
+            p["object_name"] = leagues_map[lid]["name"]
+        elif tid and tid in tourns_map:
+            p["object_type"] = "Tournament"
+            p["object_name"] = tourns_map[tid]["name"]
+        elif meta_type:
+            p["object_type"] = meta_type.replace("_", " ").title()
+            p["object_name"] = ""
+        else:
+            p["object_type"] = ""
+            p["object_name"] = ""
+    return payments
 
 
 @admin_router.get("/score-summaries/{matchday_id}")

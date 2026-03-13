@@ -573,12 +573,13 @@ async function render_dashboard() {
     if (pay.recent && pay.recent.length > 0) {
       html += '<table><tr><th>Data</th><th>Utente</th><th>Importo</th><th>Stato</th></tr>';
       pay.recent.forEach(p => {
-        const statusCls = p.payment_status === 'paid' ? 'status-live' : p.payment_status === 'pending' ? 'status-LOCKED' : 'status-void';
+        const statusBadgeMap = {pending:'#3B82F6',paid:'#10B981',failed:'#EF4444',expired:'#6B7280',refunded:'#8B5CF6'};
+        const sc = statusBadgeMap[p.payment_status] || '#94A3B8';
         html += `<tr style="cursor:pointer" onclick="navigateWith('payments',{})">
           <td style="font-size:12px">${p.created_at ? new Date(p.created_at).toLocaleString('it') : '-'}</td>
-          <td style="font-size:12px">${p.user_id ? p.user_id.substring(0,8) : '-'}...</td>
-          <td>${p.amount||0} ${p.currency||'EUR'}</td>
-          <td><span class="status-badge ${statusCls}">${p.payment_status||'-'}</span></td></tr>`;
+          <td style="font-size:12px">${p.username || (p.user_id ? p.user_id.substring(0,8)+'...' : '-')}</td>
+          <td>${p.amount||0} ${(p.currency||'EUR').toUpperCase()}</td>
+          <td><span style="color:${sc};font-weight:700;font-size:11px">${(p.payment_status||'-').toUpperCase()}</span></td></tr>`;
       });
       html += '</table>';
     } else {
@@ -3211,16 +3212,21 @@ async function render_payments() {
   const statusFilter = navFilter.status || '';
   navFilter = {};
   const payments = await apiCall('/admin/payments');
-  let filtered = payments;
-  if (statusFilter === 'pending') filtered = payments.filter(p => p.payment_status !== 'paid');
 
-  let filterHtml = `<div class="card"><div class="form-row">
-    <select id="pay-filter" onchange="filterPayments()" data-testid="pay-status-filter">
-      <option value="">Tutti</option>
-      <option value="pending" ${statusFilter==='pending'?'selected':''}>Pending</option>
-      <option value="paid">Pagati</option>
+  let filterHtml = `<div class="card"><div class="form-row" style="display:flex;gap:12px;align-items:center">
+    <label style="white-space:nowrap">Filtra per stato:</label>
+    <select id="pay-filter" onchange="filterPayments()" data-testid="pay-status-filter" style="min-width:140px">
+      <option value="">Tutti (${payments.length})</option>
+      <option value="paid" ${statusFilter==='paid'?'selected':''}>Pagati (${payments.filter(p=>p.payment_status==='paid').length})</option>
+      <option value="pending" ${statusFilter==='pending'?'selected':''}>Pending (${payments.filter(p=>p.payment_status==='pending').length})</option>
+      <option value="failed" ${statusFilter==='failed'?'selected':''}>Falliti (${payments.filter(p=>p.payment_status==='failed').length})</option>
+      <option value="expired" ${statusFilter==='expired'?'selected':''}>Scaduti (${payments.filter(p=>p.payment_status==='expired').length})</option>
+      <option value="refunded" ${statusFilter==='refunded'?'selected':''}>Rimborsati (${payments.filter(p=>p.payment_status==='refunded').length})</option>
     </select>
   </div></div>`;
+
+  let filtered = payments;
+  if (statusFilter) filtered = payments.filter(p => p.payment_status === statusFilter);
 
   let html = '<h2>Pagamenti Stripe</h2>' + filterHtml + '<div id="payments-table"></div>';
   document.getElementById('content').innerHTML = html;
@@ -3231,18 +3237,45 @@ async function render_payments() {
 function filterPayments() {
   const sf = document.getElementById('pay-filter').value;
   let filtered = window._allPayments || [];
-  if (sf === 'pending') filtered = filtered.filter(p => p.payment_status !== 'paid');
-  else if (sf === 'paid') filtered = filtered.filter(p => p.payment_status === 'paid');
+  if (sf) filtered = filtered.filter(p => p.payment_status === sf);
   renderPaymentsTable(filtered);
 }
 
+function getPaymentStatusBadge(status) {
+  const map = {
+    pending:  {bg:'rgba(59,130,246,.12)', color:'#3B82F6', border:'rgba(59,130,246,.3)', label:'PENDING'},
+    paid:     {bg:'rgba(16,185,129,.12)', color:'#10B981', border:'rgba(16,185,129,.3)', label:'PAGATO'},
+    failed:   {bg:'rgba(239,68,68,.12)',  color:'#EF4444', border:'rgba(239,68,68,.3)',  label:'FALLITO'},
+    expired:  {bg:'rgba(107,114,128,.12)',color:'#6B7280', border:'rgba(107,114,128,.3)',label:'SCADUTO'},
+    refunded: {bg:'rgba(139,92,246,.12)', color:'#8B5CF6', border:'rgba(139,92,246,.3)', label:'RIMBORSATO'},
+  };
+  const s = map[status] || map.pending;
+  return `<span style="background:${s.bg};color:${s.color};border:1px solid ${s.border};padding:3px 10px;border-radius:5px;font-size:11px;font-weight:700" data-testid="pay-badge-${status}">${s.label}</span>`;
+}
+
 function renderPaymentsTable(payments) {
-  let html = '<table><tr><th>Data</th><th>Utente</th><th>Importo</th><th>Stato</th><th>Session</th></tr>';
+  let html = `<table style="font-size:13px" data-testid="payments-table">
+    <tr><th>Data</th><th>Utente</th><th>Oggetto</th><th>Importo</th><th>Stato</th><th>Azioni</th></tr>`;
   payments.forEach(p => {
-    html += `<tr><td>${new Date(p.created_at).toLocaleString('it')}</td><td>${p.user_id}</td>
-    <td>${p.amount} ${p.currency}</td><td><span class="status-badge status-${p.payment_status=='paid'?'finished':'scheduled'}">${p.payment_status}</span></td>
-    <td style="font-size:11px">${p.session_id||''}</td></tr>`;
+    const date = new Date(p.created_at).toLocaleString('it-IT', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const userCell = p.username
+      ? `<a href="#" onclick="event.preventDefault();showUserControlRoom('${p.user_id}','info')" style="color:#F5A623;text-decoration:none;font-weight:600" data-testid="pay-user-${p.user_id}">${p.username}</a><div style="font-size:11px;color:#94A3B8">${p.user_email||''}</div>`
+      : `<code style="font-size:10px;color:#64748B">${p.user_id.substring(0,12)}...</code>`;
+    let objCell = '-';
+    if (p.object_type && p.object_name) objCell = `<span style="color:#94A3B8;font-size:11px">${p.object_type}:</span> <strong style="font-size:12px">${p.object_name}</strong>`;
+    else if (p.object_type) objCell = `<span style="font-size:12px">${p.object_type}</span>`;
+    const stripeUrl = p.session_id ? 'https://dashboard.stripe.com/test/checkout/sessions/' + p.session_id : '';
+    const stripeBtn = stripeUrl ? `<a href="${stripeUrl}" target="_blank" rel="noopener" style="color:#6366F1;font-size:11px;text-decoration:none;display:inline-flex;align-items:center;gap:4px" data-testid="pay-stripe-${p.id}">Stripe &rarr;</a>` : '';
+    html += `<tr data-testid="pay-row-${p.id}">
+      <td style="white-space:nowrap">${date}</td>
+      <td>${userCell}</td>
+      <td>${objCell}</td>
+      <td><strong>${p.amount} ${(p.currency||'eur').toUpperCase()}</strong></td>
+      <td>${getPaymentStatusBadge(p.payment_status)}</td>
+      <td>${stripeBtn}</td>
+    </tr>`;
   });
+  if (payments.length === 0) html += '<tr><td colspan="6" style="text-align:center;color:#94A3B8;padding:24px">Nessun pagamento trovato.</td></tr>';
   html += '</table>';
   document.getElementById('payments-table').innerHTML = html;
 }
