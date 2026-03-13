@@ -3472,7 +3472,7 @@ function renderTournamentsTable(tournaments) {
     if (t.status === 'registration') {
       actions += `<button class="btn btn-sm" onclick="adminForceStartTournament('${t.id}','${t.name}')" data-testid="force-start-${t.id}">Avvia</button> `;
     }
-    actions += `<button class="btn btn-sm btn-outline" onclick="showTournamentManager('${t.id}')" data-testid="manage-tourn-${t.id}">Gestisci</button> `;
+    actions += `<button class="btn btn-sm btn-outline" onclick="showTournamentControlRoom('${t.id}')" data-testid="manage-tourn-${t.id}">Control Room</button> `;
     actions += `<button class="btn btn-sm btn-danger" onclick="showDeleteTournamentModal('${t.id}','${t.name}')" data-testid="delete-tourn-${t.id}">Elimina</button>`;
 
     html += `<tr data-testid="tourn-row-${t.id}">
@@ -3659,96 +3659,356 @@ async function doCreateTournament() {
 
 
 // ========================================
-// TOURNAMENT MANAGEMENT (rounds & matches)
+// TOURNAMENT CONTROL ROOM (same architecture as League Control Room)
 // ========================================
-async function showTournamentManager(tournId) {
-  const el = document.getElementById('content');
-  el.innerHTML = '<h2>Gestione Torneo</h2><div id="tm-loading" style="color:#94A3B8">Caricamento...</div>';
+let tcrTab = 'info';
+let tcrTournId = null;
+let tcrTourn = null;
+let tcrRounds = null;
+let tcrParticipants = null;
+
+async function showTournamentControlRoom(tournId, tab) {
+  tcrTournId = tournId;
+  tcrTab = tab || 'info';
 
   try {
     const [tourn, rounds] = await Promise.all([
-      apiCall('/tournaments/' + tournId + '?include_drafts=true').catch(() => null),
+      apiCall('/tournaments/' + tournId + '?include_drafts=true'),
       apiCall('/admin/tournament-rounds/' + tournId).catch(() => [])
     ]);
+    if (!tourn) { showToast('Torneo non trovato', 'error'); return; }
+    tcrTourn = tourn;
+    tcrRounds = rounds;
 
-    if (!tourn) {
-      el.innerHTML = '<h2>Gestione Torneo</h2><p style="color:#EF4444">Torneo non trovato</p>';
-      return;
+    if (tcrTab === 'participants' && !tcrParticipants) {
+      try { tcrParticipants = await apiCall('/admin/tournaments/' + tournId + '/participants'); } catch(e) { tcrParticipants = []; }
     }
 
-    let html = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">';
-    html += '<button class="btn btn-sm btn-outline" onclick="render_tournaments()">&larr; Torna ai Tornei</button>';
-    html += '<h2 style="margin:0;flex:1">' + tourn.name + '</h2>';
-    const statusMap = {draft:'DRAFT',registration:'ISCRIZIONI',groups:'GIRONI',knockout:'ELIMINAZIONE',completed:'COMPLETATO'};
+    const statusMap = {draft:'BOZZA',registration:'ISCRIZIONI',groups:'GIRONI',knockout:'ELIMINAZIONE',semifinal:'SEMIFINALE',final:'FINALE',completed:'COMPLETATO'};
     const statusLabel = statusMap[tourn.status] || tourn.status;
     const statusCls = tourn.status === 'draft' ? 'status-DRAFT' : tourn.status === 'registration' ? 'status-OPEN' : tourn.status === 'completed' ? 'status-COMPLETED' : 'status-LIVE';
-    html += '<span class="status-badge ' + statusCls + '">' + statusLabel + '</span>';
-    html += '</div>';
 
-    // Tournament info card
-    html += '<div class="card"><div class="counter-row">';
-    html += '<div class="counter-box"><div class="num">' + (tourn.registered_count || 0) + '/' + tourn.max_participants + '</div><div class="label">Iscritti</div></div>';
-    html += '<div class="counter-box"><div class="num" style="color:#3B82F6">' + (tourn.groups_count || 0) + '</div><div class="label">Gironi</div></div>';
-    html += '<div class="counter-box"><div class="num" style="color:#F5A623">' + (tourn.duration_rounds || 0) + '</div><div class="label">Giornate Gironi</div></div>';
-    html += '<div class="counter-box"><div class="num" style="color:#10B981">' + (rounds.length || 0) + '</div><div class="label">Round Creati</div></div>';
-    html += '</div>';
+    const tabs = [
+      {id:'info', label:'Info & Regole'},
+      {id:'edit', label:'Modifica'},
+      {id:'participants', label:'Partecipanti'},
+      {id:'structure', label:'Struttura Torneo'},
+      {id:'danger', label:'Zona Pericolo'},
+    ];
+    const tabsHtml = tabs.map(t => `<button class="btn btn-sm ${tcrTab===t.id?'':'btn-outline'}" onclick="showTournamentControlRoom('${tournId}','${t.id}')" data-testid="tcr-tab-${t.id}" style="${tcrTab===t.id?'':'opacity:.6'}">${t.label}</button>`).join(' ');
 
-    // Actions based on status
-    if (tourn.status === 'draft') {
-      html += '<button class="btn btn-success" onclick="adminOpenTournamentReg(&quot;' + tournId + '&quot;);setTimeout(function(){showTournamentManager(&quot;' + tournId + '&quot;)},1000)">Apri Iscrizioni</button> ';
-    }
-    if (tourn.status === 'registration') {
-      html += '<button class="btn" onclick="adminForceStartTournament(&quot;' + tournId + '&quot;,&quot;' + tourn.name + '&quot;);setTimeout(function(){showTournamentManager(&quot;' + tournId + '&quot;)},1500)">Avvia Torneo (anche senza pieni)</button> ';
-    }
-    html += '</div>';
+    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <h3 style="margin:0">${tourn.name}</h3>
+        <span class="status-badge ${statusCls}">${statusLabel}</span>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal()">X</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid #334155;padding-bottom:12px">${tabsHtml}</div>
+    <div id="tcr-body"></div>`;
+    showModal(html);
 
-    // Rounds section
-    html += '<div class="card" style="margin-top:16px">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
-    html += '<h3 style="color:#F5A623;margin:0">Giornate del Torneo</h3>';
-    if (['groups','knockout'].includes(tourn.status)) {
-      html += '<button class="btn btn-sm" onclick="createTournamentRound(&quot;' + tournId + '&quot;)" data-testid="create-round-btn">+ Nuova Giornata</button>';
-    } else {
-      html += '<span style="color:#94A3B8;font-size:12px">Avvia il torneo per creare giornate</span>';
-    }
-    html += '</div>';
+    const body = document.getElementById('tcr-body');
+    if (tcrTab === 'info') body.innerHTML = renderTcrInfo(tourn, rounds);
+    else if (tcrTab === 'edit') body.innerHTML = renderTcrEdit(tourn);
+    else if (tcrTab === 'participants') body.innerHTML = await renderTcrParticipants(tourn);
+    else if (tcrTab === 'structure') body.innerHTML = renderTcrStructure(tourn, rounds);
+    else if (tcrTab === 'danger') body.innerHTML = renderTcrDanger(tourn);
+  } catch(e) { showToast(e.message, 'error'); }
+}
 
-    if (rounds.length === 0) {
-      html += '<p style="color:#94A3B8">Nessuna giornata creata.</p>';
-    } else {
-      html += '<table><tr><th>#</th><th>Etichetta</th><th>Tipo</th><th>Stato</th><th>Partite</th><th>Azioni</th></tr>';
-      rounds.forEach(r => {
-        const rStatusCls = r.status === 'OPEN' ? 'status-OPEN' : r.status === 'COMPLETED' ? 'status-COMPLETED' : 'status-DRAFT';
-        let rActions = '';
-        if (r.status === 'PENDING') {
-          rActions += '<button class="btn btn-sm" onclick="showAddMatchesModal(&quot;' + tournId + '&quot;,&quot;' + r.id + '&quot;,&quot;' + r.label + '&quot;)">+ Partite</button> ';
-          rActions += '<button class="btn btn-sm btn-success" onclick="openTournamentRound(&quot;' + tournId + '&quot;,&quot;' + r.id + '&quot;)">Apri</button> ';
-        }
-        if (r.status === 'OPEN') {
-          rActions += '<button class="btn btn-sm" onclick="showAddMatchesModal(&quot;' + tournId + '&quot;,&quot;' + r.id + '&quot;,&quot;' + r.label + '&quot;)">+ Partite</button> ';
-          rActions += '<button class="btn btn-sm btn-danger" onclick="completeTournamentRound(&quot;' + tournId + '&quot;,&quot;' + r.id + '&quot;)">Completa</button> ';
-        }
-        if (r.status === 'COMPLETED') {
-          rActions += '<span style="color:#10B981;font-size:12px">Completato</span>';
-        }
-        html += '<tr><td>' + r.round_number + '</td><td><strong>' + r.label + '</strong></td><td>' + r.round_type + '</td>';
-        html += '<td><span class="status-badge ' + rStatusCls + '">' + r.status + '</span></td>';
-        html += '<td>' + (r.match_count || 0) + '</td>';
-        html += '<td>' + rActions + '</td></tr>';
+function renderTcrInfo(t, rounds) {
+  const typeLabels = {groups_knockout:'Gironi + Eliminazione Diretta', knockout_only:'Solo Eliminazione Diretta'};
+  const rrLabels = {single:'Solo Andata', double:'Andata e Ritorno'};
+  const bracketLabels = {champions_league:'Champions League', random:'Random'};
+
+  let actionsHtml = '';
+  if (t.status === 'draft') {
+    actionsHtml += `<button class="btn btn-success btn-sm" onclick="adminOpenTournamentReg('${t.id}');setTimeout(()=>showTournamentControlRoom('${t.id}','info'),1000)" data-testid="tcr-open-reg">Apri Iscrizioni</button> `;
+  }
+  if (t.status === 'registration') {
+    actionsHtml += `<button class="btn btn-sm" onclick="adminForceStartTournament('${t.id}','${t.name.replace(/'/g,"\\'")}');setTimeout(()=>showTournamentControlRoom('${t.id}','info'),1500)" data-testid="tcr-force-start">Avvia Torneo</button> `;
+  }
+
+  return `
+    ${actionsHtml ? '<div style="margin-bottom:16px">' + actionsHtml + '</div>' : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:13px">
+      <div><span style="color:#94A3B8">ID:</span> <code style="color:#F5A623;font-size:11px">${t.id.substring(0,16)}...</code></div>
+      <div><span style="color:#94A3B8">Stato:</span> <strong>${t.status}</strong></div>
+      <div><span style="color:#94A3B8">Formato:</span> <strong>${typeLabels[t.tournament_type] || t.tournament_type}</strong></div>
+      <div><span style="color:#94A3B8">Tipo Gironi:</span> <strong>${rrLabels[t.round_robin_type] || t.round_robin_type || '-'}</strong></div>
+      <div><span style="color:#94A3B8">Max Partecipanti:</span> <strong>${t.max_participants}</strong></div>
+      <div><span style="color:#94A3B8">Iscritti:</span> <strong style="color:#10B981">${t.registered_count || 0}</strong> / ${t.max_participants}</div>
+      <div><span style="color:#94A3B8">Gironi:</span> <strong>${t.groups_count || '-'}</strong> (${t.players_per_group || '-'} per girone)</div>
+      <div><span style="color:#94A3B8">Passano:</span> <strong>${t.advance_count || '-'}</strong> per girone</div>
+      <div><span style="color:#94A3B8">Giornate Gironi:</span> <strong>${t.duration_rounds || '-'}</strong></div>
+      <div><span style="color:#94A3B8">Round Eliminazione:</span> <strong>${t.knockout_rounds || '-'}</strong></div>
+      <div><span style="color:#94A3B8">Stile Tabellone:</span> <strong>${bracketLabels[t.bracket_style] || t.bracket_style || '-'}</strong></div>
+      <div><span style="color:#94A3B8">Prezzo:</span> <strong>${t.entry_fee > 0 ? t.entry_fee.toFixed(2) + ' EUR' : 'Gratis'}</strong></div>
+      <div><span style="color:#94A3B8">Round Corrente:</span> <strong>${t.current_round || 0}</strong></div>
+      <div><span style="color:#94A3B8">Round Creati:</span> <strong>${(tcrRounds||[]).length}</strong></div>
+      <div><span style="color:#94A3B8">Creato:</span> ${t.created_at ? new Date(t.created_at).toLocaleString('it') : '-'}</div>
+      <div><span style="color:#94A3B8">Avviato:</span> ${t.started_at ? new Date(t.started_at).toLocaleString('it') : '-'}</div>
+    </div>
+    <h4 style="color:#F5A623;margin:16px 0 8px">Configurazione Eliminazione</h4>
+    <div style="font-size:13px;color:#94A3B8">
+      <p>Qualificati totali: <strong style="color:#F5A623">${t.total_qualifiers || '-'}</strong></p>
+      <p>Round eliminazione: <strong style="color:#F5A623">${t.knockout_rounds || '-'}</strong></p>
+    </div>`;
+}
+
+function renderTcrEdit(t) {
+  const isLocked = !['draft','registration'].includes(t.status);
+  const disabledAttr = isLocked ? 'disabled style="opacity:.5"' : '';
+
+  return `
+    <div style="margin-bottom:12px;font-size:12px;color:${isLocked ? '#F59E0B' : '#10B981'}">
+      ${isLocked ? 'Torneo avviato: solo nome e prezzo modificabili.' : 'Tutti i campi sono modificabili.'}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="grid-column:span 2">
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Nome Torneo</label>
+        <input id="tcr-edit-name" value="${t.name}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="tcr-edit-name">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Prezzo (EUR)</label>
+        <input id="tcr-edit-fee" type="number" step="0.01" min="0" value="${t.entry_fee || 0}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="tcr-edit-fee">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Max Partecipanti</label>
+        <select id="tcr-edit-max" ${disabledAttr} style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="tcr-edit-max">
+          ${[8,16,32,64].map(n => `<option value="${n}" ${t.max_participants===n?'selected':''}>${n}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Tipologia</label>
+        <select id="tcr-edit-type" ${disabledAttr} style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="tcr-edit-type">
+          <option value="groups_knockout" ${t.tournament_type==='groups_knockout'?'selected':''}>Gironi + Eliminazione</option>
+          <option value="knockout_only" ${t.tournament_type==='knockout_only'?'selected':''}>Solo Eliminazione</option>
+        </select>
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Formato Gironi</label>
+        <select id="tcr-edit-rr" ${disabledAttr} style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="tcr-edit-rr">
+          <option value="single" ${t.round_robin_type==='single'?'selected':''}>Solo Andata</option>
+          <option value="double" ${t.round_robin_type==='double'?'selected':''}>Andata e Ritorno</option>
+        </select>
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Num. Gironi</label>
+        <input id="tcr-edit-groups" type="number" min="1" max="16" value="${t.groups_count || 4}" ${disabledAttr} style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="tcr-edit-groups">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Giocatori/Girone</label>
+        <input id="tcr-edit-ppg" type="number" min="2" max="16" value="${t.players_per_group || 4}" ${disabledAttr} style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="tcr-edit-ppg">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Passano alla Elim.</label>
+        <input id="tcr-edit-advance" type="number" min="1" max="8" value="${t.advance_count || 2}" ${disabledAttr} style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="tcr-edit-advance">
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn" onclick="doSaveTournament()" data-testid="tcr-save-btn">Salva Modifiche</button>
+    </div>`;
+}
+
+async function doSaveTournament() {
+  const id = tcrTournId;
+  const body = {
+    name: document.getElementById('tcr-edit-name').value.trim(),
+    entry_fee: parseFloat(document.getElementById('tcr-edit-fee').value) || 0,
+  };
+  const maxEl = document.getElementById('tcr-edit-max');
+  if (!maxEl.disabled) {
+    body.max_participants = parseInt(maxEl.value);
+    body.tournament_type = document.getElementById('tcr-edit-type').value;
+    body.round_robin_type = document.getElementById('tcr-edit-rr').value;
+    body.groups_count = parseInt(document.getElementById('tcr-edit-groups').value);
+    body.players_per_group = parseInt(document.getElementById('tcr-edit-ppg').value);
+    body.advance_count = parseInt(document.getElementById('tcr-edit-advance').value);
+  }
+  if (!body.name || body.name.length < 3) { showToast('Nome minimo 3 caratteri', 'error'); return; }
+  try {
+    await apiCall('/admin/tournaments/' + id, 'PUT', body);
+    showToast('Torneo aggiornato');
+    // Refresh cache
+    const idx = allTournamentsCache.findIndex(t => t.id === id);
+    if (idx >= 0) Object.assign(allTournamentsCache[idx], body);
+    showTournamentControlRoom(id, 'edit');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function renderTcrParticipants(t) {
+  if (!tcrParticipants) {
+    try { tcrParticipants = await apiCall('/admin/tournaments/' + t.id + '/participants'); } catch(e) { tcrParticipants = []; }
+  }
+  const canModify = ['draft','registration'].includes(t.status);
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <span style="color:#94A3B8;font-size:13px">${tcrParticipants.length} / ${t.max_participants} iscritti</span>
+    ${canModify ? '<button class="btn btn-sm" onclick="showAddParticipantModal()" data-testid="tcr-add-participant">+ Aggiungi</button>' : ''}
+  </div>`;
+  if (tcrParticipants.length === 0) {
+    html += '<p style="color:#94A3B8;text-align:center;padding:24px">Nessun partecipante iscritto.</p>';
+  } else {
+    html += '<table style="font-size:13px"><tr><th>#</th><th>Username</th><th>Email</th><th>Iscritto il</th>';
+    if (canModify) html += '<th>Azioni</th>';
+    html += '</tr>';
+    tcrParticipants.forEach((p, i) => {
+      html += `<tr data-testid="participant-row-${p.user_id}">
+        <td style="color:#94A3B8">${i+1}</td>
+        <td><strong>${p.username}</strong></td>
+        <td style="color:#94A3B8;font-size:12px">${p.email}</td>
+        <td style="color:#94A3B8;font-size:12px">${p.registered_at ? new Date(p.registered_at).toLocaleString('it') : '-'}</td>`;
+      if (canModify) {
+        html += `<td><button class="btn btn-sm btn-danger" onclick="removeParticipant('${p.user_id}','${p.username}')" data-testid="remove-participant-${p.user_id}">Rimuovi</button></td>`;
+      }
+      html += '</tr>';
+    });
+    html += '</table>';
+  }
+  return html;
+}
+
+function showAddParticipantModal() {
+  const body = document.getElementById('tcr-body');
+  body.innerHTML = `
+    <h4 style="color:#F5A623;margin-bottom:12px">Aggiungi Partecipante</h4>
+    <div class="form-row">
+      <input id="tcr-add-email" placeholder="Email utente" style="flex:2" data-testid="tcr-add-email">
+      <button class="btn" onclick="doAddParticipant()" data-testid="tcr-add-participant-btn">Aggiungi</button>
+    </div>
+    <div id="tcr-add-result" style="margin-top:8px"></div>
+    <div style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="showTournamentControlRoom(tcrTournId,'participants')">Torna alla Lista</button></div>`;
+}
+
+async function doAddParticipant() {
+  const email = document.getElementById('tcr-add-email').value.trim();
+  if (!email) { showToast('Inserisci email', 'error'); return; }
+  try {
+    await apiCall('/admin/tournaments/' + tcrTournId + '/participants', 'POST', {email});
+    tcrParticipants = null;
+    showToast('Partecipante aggiunto');
+    showTournamentControlRoom(tcrTournId, 'participants');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function removeParticipant(userId, username) {
+  if (!confirm('Rimuovere ' + username + ' dal torneo?')) return;
+  try {
+    await apiCall('/admin/tournaments/' + tcrTournId + '/participants/' + userId, 'DELETE');
+    tcrParticipants = null;
+    showToast('Partecipante rimosso');
+    showTournamentControlRoom(tcrTournId, 'participants');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function renderTcrStructure(t, rounds) {
+  let html = '';
+
+  // Groups section
+  if (t.groups && t.groups.length > 0) {
+    html += '<h4 style="color:#F5A623;margin-bottom:12px">Gironi</h4>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px">';
+    t.groups.forEach(g => {
+      html += `<div style="background:#0F172A;border:1px solid #334155;border-radius:8px;padding:12px" data-testid="group-${g.group_name}">
+        <h5 style="color:#F5A623;margin-bottom:8px;font-size:14px">Gruppo ${g.group_name}</h5>`;
+      (g.members||[]).forEach((m, i) => {
+        html += `<div style="padding:4px 0;font-size:12px;color:${i<(t.advance_count||2)?'#F1F5F9':'#64748B'};border-bottom:1px solid #1E293B">${i+1}. ${m.username}</div>`;
       });
-      html += '</table>';
-    }
+      html += '</div>';
+    });
     html += '</div>';
+  }
 
-    el.innerHTML = html;
-  } catch(e) { showToast(e.message, 'error'); el.innerHTML = '<h2>Gestione Torneo</h2><p style="color:#EF4444">Errore: ' + e.message + '</p>'; }
+  // Rounds section
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+  html += '<h4 style="color:#F5A623;margin:0">Giornate del Torneo</h4>';
+  if (['groups','knockout'].includes(t.status)) {
+    html += `<button class="btn btn-sm" onclick="createTournamentRound('${t.id}')" data-testid="tcr-create-round">+ Nuova Giornata</button>`;
+  }
+  html += '</div>';
+
+  if (rounds.length === 0) {
+    html += '<p style="color:#94A3B8;font-size:13px">Nessuna giornata creata.</p>';
+  } else {
+    html += '<table style="font-size:13px"><tr><th>#</th><th>Etichetta</th><th>Tipo</th><th>Stato</th><th>Partite</th><th>Azioni</th></tr>';
+    rounds.forEach(r => {
+      const rStatusCls = r.status === 'OPEN' ? 'status-OPEN' : r.status === 'COMPLETED' ? 'status-COMPLETED' : r.status === 'LIVE' ? 'status-LIVE' : 'status-DRAFT';
+      let rActions = '';
+      if (r.status === 'PENDING') {
+        rActions += `<button class="btn btn-sm" onclick="showAddMatchesModal('${t.id}','${r.id}','${r.label}')">+ Partite</button> `;
+        rActions += `<button class="btn btn-sm btn-success" onclick="openTournamentRound('${t.id}','${r.id}')">Apri</button> `;
+      }
+      if (r.status === 'OPEN') {
+        rActions += `<button class="btn btn-sm" onclick="showAddMatchesModal('${t.id}','${r.id}','${r.label}')">+ Partite</button> `;
+        rActions += `<button class="btn btn-sm btn-danger" onclick="completeTournamentRound('${t.id}','${r.id}')">Completa</button> `;
+      }
+      if (r.status === 'COMPLETED') {
+        rActions += '<span style="color:#10B981;font-size:12px">Completato</span>';
+      }
+      html += `<tr><td>${r.round_number}</td><td><strong>${r.label}</strong></td><td>${r.round_type}</td>
+        <td><span class="status-badge ${rStatusCls}">${r.status}</span></td>
+        <td>${r.match_count || 0}</td><td>${rActions}</td></tr>`;
+    });
+    html += '</table>';
+  }
+
+  return html;
+}
+
+function renderTcrDanger(t) {
+  let html = '<h4 style="color:#EF4444;margin-bottom:16px">Zona Pericolo</h4>';
+
+  if (['groups','knockout','registration'].includes(t.status)) {
+    html += `<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:16px;margin-bottom:12px">
+      <h5 style="color:#F59E0B;margin-bottom:8px">Reset Gironi e Tabellone</h5>
+      <p style="color:#94A3B8;font-size:13px;margin-bottom:12px">Elimina tutti i gironi, le sfide, le giornate e riporta il torneo in stato "Iscrizioni". I partecipanti iscritti vengono mantenuti.</p>
+      <button class="btn btn-sm" style="background:#F59E0B;color:#0F172A" onclick="doResetTournament('${t.id}','${t.name.replace(/'/g,"\\\\'")}')" data-testid="tcr-reset-groups">Reset Gironi</button>
+    </div>`;
+  }
+
+  html += `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:16px">
+    <h5 style="color:#EF4444;margin-bottom:8px">Elimina Torneo</h5>
+    <p style="color:#94A3B8;font-size:13px;margin-bottom:12px">Elimina permanentemente il torneo, tutti i dati correlati (iscrizioni, gironi, sfide, giornate). Questa azione e irreversibile.</p>
+    <p style="font-size:12px;margin-bottom:8px">Digita <strong style="color:#EF4444">DELETE</strong> per confermare:</p>
+    <div class="form-row"><input id="tcr-delete-confirm" placeholder="Digita DELETE" data-testid="tcr-delete-confirm"></div>
+    <button class="btn btn-sm btn-danger" onclick="doDeleteTournamentFromCr('${t.id}')" data-testid="tcr-delete-btn">Elimina Torneo</button>
+  </div>`;
+  return html;
+}
+
+async function doResetTournament(tournId, tournName) {
+  if (!confirm('ATTENZIONE: Vuoi resettare tutti i gironi e le giornate del torneo "' + tournName + '"? I partecipanti iscritti verranno mantenuti.')) return;
+  try {
+    await apiCall('/admin/tournaments/' + tournId + '/reset-groups', 'POST');
+    showToast('Torneo resettato allo stato Iscrizioni');
+    tcrParticipants = null;
+    closeModal();
+    render_tournaments();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function doDeleteTournamentFromCr(tournId) {
+  if ((document.getElementById('tcr-delete-confirm').value || '').trim() !== 'DELETE') {
+    showToast('Devi digitare DELETE per confermare', 'error'); return;
+  }
+  try {
+    await apiCall('/admin/tournaments/' + tournId, 'DELETE');
+    closeModal(); showToast('Torneo eliminato');
+    render_tournaments();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// Legacy redirect: old showTournamentManager calls → new Control Room
+async function showTournamentManager(tournId) {
+  showTournamentControlRoom(tournId);
 }
 
 async function createTournamentRound(tournId) {
   try {
     const res = await apiCall('/tournaments/' + tournId + '/rounds', 'POST', {round_type: 'group'});
     showToast('Giornata ' + res.round_number + ' creata');
-    showTournamentManager(tournId);
+    showTournamentControlRoom(tournId, 'structure');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -3757,7 +4017,7 @@ async function openTournamentRound(tournId, roundId) {
   try {
     await apiCall('/tournaments/' + tournId + '/rounds/' + roundId + '/open', 'POST');
     showToast('Giornata aperta per i pronostici');
-    showTournamentManager(tournId);
+    showTournamentControlRoom(tournId, 'structure');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -3766,7 +4026,7 @@ async function completeTournamentRound(tournId, roundId) {
   try {
     await apiCall('/tournaments/' + tournId + '/rounds/' + roundId + '/complete', 'POST');
     showToast('Giornata completata, punteggi calcolati');
-    showTournamentManager(tournId);
+    showTournamentControlRoom(tournId, 'structure');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -3797,7 +4057,7 @@ function showAddMatchesModal(tournId, roundId, roundLabel) {
 
     <div id="am-result" style="margin-top:12px"></div>
     <div class="modal-actions" style="margin-top:16px">
-      <button class="btn btn-outline" onclick="closeModal();showTournamentManager('${tournId}')">Chiudi</button>
+      <button class="btn btn-outline" onclick="closeModal();showTournamentControlRoom('${tournId}','structure')">Chiudi</button>
     </div>`);
 }
 

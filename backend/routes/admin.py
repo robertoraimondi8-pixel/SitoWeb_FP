@@ -948,13 +948,120 @@ async def admin_create_tournament(req: AdminCreateTournamentReq, admin=Depends(r
 
 
 @admin_router.put("/tournaments/{tournament_id}")
-async def admin_update_tournament(tournament_id: str, admin=Depends(require_permission("admin.tournaments.manage"))):
-    """Update tournament basic info (placeholder for future fields)."""
+async def admin_update_tournament(tournament_id: str, body: dict = {}, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """Update tournament configuration."""
     from database import tournaments_col
     t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
     if not t:
         raise HTTPException(404, "Torneo non trovato")
-    return t
+    allowed = {"name", "entry_fee", "max_participants", "groups_count", "players_per_group",
+               "advance_count", "round_robin_type", "tournament_type"}
+    updates = {k: body[k] for k in allowed if k in body}
+    if not updates:
+        return t
+    if t["status"] not in ("draft", "registration"):
+        editable_live = {"name", "entry_fee"}
+        updates = {k: v for k, v in updates.items() if k in editable_live}
+        if not updates:
+            raise HTTPException(400, "Torneo gia avviato: solo nome e prezzo modificabili")
+    await tournaments_col.update_one({"id": tournament_id}, {"$set": updates})
+    await log_audit(admin["id"], admin["username"], "UPDATE", "tournament", tournament_id, updates)
+    updated = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+    return updated
+
+
+@admin_router.get("/tournaments/{tournament_id}/participants")
+async def admin_list_tournament_participants(tournament_id: str, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """List all registered participants for a tournament."""
+    from database import tournament_registrations_col, users_col
+    regs = await tournament_registrations_col.find(
+        {"tournament_id": tournament_id, "status": "active"}, {"_id": 0}
+    ).to_list(200)
+    user_ids = [r["user_id"] for r in regs]
+    users = await users_col.find({"id": {"$in": user_ids}}, {"_id": 0, "id": 1, "username": 1, "email": 1}).to_list(200)
+    user_map = {u["id"]: u for u in users}
+    result = []
+    for r in regs:
+        u = user_map.get(r["user_id"], {})
+        result.append({
+            "reg_id": r["id"],
+            "user_id": r["user_id"],
+            "username": u.get("username", "???"),
+            "email": u.get("email", ""),
+            "registered_at": r.get("registered_at", r.get("created_at", "")),
+        })
+    return result
+
+
+@admin_router.delete("/tournaments/{tournament_id}/participants/{user_id}")
+async def admin_remove_tournament_participant(tournament_id: str, user_id: str, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """Remove a participant from a tournament."""
+    from database import tournament_registrations_col, tournaments_col
+    t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+    if not t:
+        raise HTTPException(404, "Torneo non trovato")
+    if t["status"] not in ("draft", "registration"):
+        raise HTTPException(400, "Non si possono rimuovere partecipanti a torneo avviato")
+    res = await tournament_registrations_col.delete_one({"tournament_id": tournament_id, "user_id": user_id, "status": "active"})
+    if res.deleted_count == 0:
+        raise HTTPException(404, "Partecipante non trovato")
+    await log_audit(admin["id"], admin["username"], "REMOVE_PARTICIPANT", "tournament", tournament_id, {"user_id": user_id})
+    return {"ok": True}
+
+
+@admin_router.post("/tournaments/{tournament_id}/participants")
+async def admin_add_tournament_participant(tournament_id: str, body: dict = {}, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """Add a participant to a tournament by email or user_id."""
+    import uuid
+    from datetime import datetime, timezone
+    from database import tournament_registrations_col, tournaments_col, users_col
+    t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+    if not t:
+        raise HTTPException(404, "Torneo non trovato")
+    if t["status"] not in ("draft", "registration"):
+        raise HTTPException(400, "Non si possono aggiungere partecipanti a torneo avviato")
+    count = await tournament_registrations_col.count_documents({"tournament_id": tournament_id, "status": "active"})
+    if count >= t["max_participants"]:
+        raise HTTPException(400, "Torneo pieno")
+    user_id = body.get("user_id")
+    email = body.get("email", "").strip()
+    if not user_id and email:
+        u = await users_col.find_one({"email": email}, {"_id": 0, "id": 1})
+        if not u:
+            raise HTTPException(404, f"Utente non trovato con email: {email}")
+        user_id = u["id"]
+    if not user_id:
+        raise HTTPException(400, "Specifica user_id o email")
+    existing = await tournament_registrations_col.find_one({"tournament_id": tournament_id, "user_id": user_id, "status": "active"})
+    if existing:
+        raise HTTPException(400, "Utente gia iscritto")
+    reg = {
+        "id": str(uuid.uuid4()),
+        "tournament_id": tournament_id,
+        "user_id": user_id,
+        "status": "active",
+        "registered_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await tournament_registrations_col.insert_one(reg)
+    reg.pop("_id", None)
+    await log_audit(admin["id"], admin["username"], "ADD_PARTICIPANT", "tournament", tournament_id, {"user_id": user_id})
+    return reg
+
+
+@admin_router.post("/tournaments/{tournament_id}/reset-groups")
+async def admin_reset_tournament_groups(tournament_id: str, admin=Depends(require_permission("admin.tournaments.manage"))):
+    """Reset tournament groups, matchups, and rounds (back to registration)."""
+    from database import tournaments_col, tournament_groups_col, tournament_rounds_col, tournament_matchups_col, matches_col
+    t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
+    if not t:
+        raise HTTPException(404, "Torneo non trovato")
+    await tournament_matchups_col.delete_many({"tournament_id": tournament_id})
+    await tournament_rounds_col.delete_many({"tournament_id": tournament_id})
+    await tournament_groups_col.delete_many({"tournament_id": tournament_id})
+    await matches_col.delete_many({"league_id": tournament_id})
+    await tournaments_col.update_one({"id": tournament_id}, {"$set": {"status": "registration", "current_round": 0, "started_at": None}})
+    await log_audit(admin["id"], admin["username"], "RESET_GROUPS", "tournament", tournament_id, {"name": t.get("name")})
+    return {"ok": True}
 
 
 @admin_router.post("/tournaments/{tournament_id}/open-registration")

@@ -1,0 +1,62 @@
+{
+  "summary": "Comprehensive testing of Tournament Control Room feature completed. Backend: 13/13 tests passed. Frontend/UI: 100% success - all 5 tabs verified. The Control Room modal correctly replaces the old Modifica page and follows the same architecture as the League Control Room.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_tournament_control_room.py",
+    "/app/test_reports/pytest/tournament_control_room_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_tournament_control_room.py"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "100% (all Control Room features verified)"
+  },
+  "test_credentials": {
+    "admin_email": "admin@fantapronostic.com",
+    "admin_password": "admin123",
+    "admin_panel_url": "https://context-aware-tabs.preview.emergentagent.com/api/admin-ui",
+    "test_tournament_id": "a0a60a06-65a3-4707-aa42-545a7da08dff"
+  },
+  "seed_data_creation": "None - used existing Torneo Redubull with 32 participants in 'groups' status",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Tournament Control Room feature is fully functional. The modal opens from 'Control Room' button in Tornei list. All 5 tabs work correctly: Info & Regole (tournament details), Modifica (form with name/fee editable, structural fields disabled for started tournaments), Partecipanti (participant table with username, email, registration date), Struttura Torneo (4 group cards + rounds table with actions), Zona Pericolo (Reset Gironi + Elimina Torneo with DELETE confirmation). Backend APIs tested: GET /tournaments/{id}, GET /admin/tournament-rounds/{id}, PUT /admin/tournaments/{id}, GET /admin/tournaments/{id}/participants, POST /admin/tournaments/{id}/reset-groups, DELETE /admin/tournaments/{id}.",
+  "verified_features": {
+    "control_room_button": {
+      "exists_in_tornei_list": "PASS - 'Control Room' button present for each tournament",
+      "opens_modal": "PASS - clicking button opens modal with tournament name and status badge"
+    },
+    "tabs": {
+      "total_count": "5/5 tabs verified",
+      "info_regole": "PASS - shows ID, formato, max participants, groups count, advance count, etc.",
+      "modifica": "PASS - form with name (editable), fee (editable), structural fields (disabled for started tournaments)",
+      "partecipanti": "PASS - participant list with username, email, registration date, and count (32/32)",
+      "struttura_torneo": "PASS - group cards (A, B, C, D) with members and rounds table with action buttons",
+      "zona_pericolo": "PASS - Reset Gironi section and Elimina Torneo section with DELETE confirmation"
+    },
+    "backend_apis": {
+      "GET_tournaments_id": "PASS - returns tournament details with all Control Room required fields",
+      "GET_admin_tournament_rounds": "PASS - returns list of rounds with match counts",
+      "PUT_admin_tournaments_id": "PASS - updates name and entry_fee for started tournaments (400 for structural fields)",
+      "GET_admin_tournaments_participants": "PASS - returns 32 participants with user_id, username, email, registered_at",
+      "POST_admin_tournaments_reset_groups": "PASS - endpoint exists and returns 404 for non-existent tournament",
+      "DELETE_admin_tournaments": "PASS - endpoint exists and returns 404 for non-existent tournament",
+      "POST_admin_tournaments_participants": "PASS - correctly returns 400 for started tournament",
+      "DELETE_admin_tournaments_participants": "PASS - correctly returns 400 for started tournament"
+    },
+    "tab_switching": "PASS - all 5 tabs switch correctly without JS errors",
+    "structural_field_locking": "PASS - for started tournaments (status='groups'), structural fields are visibly disabled with warning message",
+    "status_badge": "PASS - modal header shows tournament name + status badge (GIRONI)"
+  }
+}
