@@ -492,10 +492,12 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
       {hasGroups && myMatchups.length > 0 && (() => {
         const completed = myMatchups.filter((m: any) => m.status === 'completed');
         const isA = (m: any) => m.user_a_id === user?.id;
-        const last5 = completed.slice(-5).map((m: any) => ({
-          points: isA(m) ? m.user_a_points : m.user_b_points,
-          matchday_number: m.round_number,
-        }));
+        const last5 = completed.slice(-5).map((m: any) => {
+          const myPts = isA(m) ? m.user_a_points : m.user_b_points;
+          const oppPts = isA(m) ? m.user_b_points : m.user_a_points;
+          const result = myPts > oppPts ? 'V' : myPts < oppPts ? 'S' : 'P';
+          return { result, matchday_number: m.round_number };
+        });
         if (last5.length === 0) return null;
         return (
           <LinearGradient
@@ -509,8 +511,8 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
             <View style={s.last5Row}>
               {last5.map((item: any, i: number) => (
                 <View key={i} style={s.last5PillWrap}>
-                  <View style={[s.last5Pill, item.points > 0 && s.last5PillActive]}>
-                    <Text style={[s.last5PillPts, item.points > 0 && s.last5PillPtsActive]}>{Math.round(item.points).toString()}</Text>
+                  <View style={[s.last5Pill, item.result === 'V' && s.last5PillWin, item.result === 'S' && s.last5PillLoss, item.result === 'P' && s.last5PillDraw]}>
+                    <Text style={[s.last5PillPts, item.result === 'V' && s.last5PillPtsWin, item.result === 'S' && s.last5PillPtsLoss]}>{item.result}</Text>
                   </View>
                   <Text style={s.last5PillMd}>{item.matchday_number}</Text>
                 </View>
@@ -552,8 +554,13 @@ const s = StyleSheet.create({
   last5Row: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   last5PillWrap: { flex: 1, alignItems: 'center', gap: 6 },
   last5Pill: { width: '100%', paddingVertical: 10, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.06)', alignItems: 'center' },
-  last5PillActive: { backgroundColor: 'rgba(247, 162, 27, 0.15)' },
+  last5PillActive: { backgroundColor: 'rgba(16, 185, 113, 0.2)' },
+  last5PillWin: { backgroundColor: 'rgba(16, 185, 113, 0.2)' },
+  last5PillLoss: { backgroundColor: 'rgba(239, 68, 68, 0.15)' },
+  last5PillDraw: { backgroundColor: 'rgba(255, 255, 255, 0.08)' },
   last5PillPts: { fontSize: 18, fontWeight: '800', color: 'rgba(255,255,255,0.4)' },
+  last5PillPtsWin: { color: '#10B981' },
+  last5PillPtsLoss: { color: '#EF4444' },
   last5PillPtsActive: { color: '#F7A21B' },
   last5PillMd: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.35)' },
 
