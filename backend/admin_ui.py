@@ -297,6 +297,7 @@ const MENU_ITEMS = [
   {id:'matchdays', label:'Giornate', perm:'admin.matchdays.manage'},
   {id:'leagues', label:'Leghe', perm:'admin.leagues.manage'},
   {id:'tournaments', label:'Tornei', perm:'admin.tournaments.manage'},
+  {id:'matches', label:'Partite', perm:'admin.matchdays.manage'},
   {section: 'AMMINISTRAZIONE'},
   {id:'roles', label:'Ruoli & Permessi', perm:'admin.roles.manage'},
   {id:'users', label:'Utenti', perm:'admin.users.manage'},
@@ -1500,53 +1501,138 @@ async function toggleSeason(id, active) {
 }
 
 // ========================================
-// MATCHES DRILL-DOWN (from dashboard)
+// MATCHES MANAGEMENT PAGE
 // ========================================
 async function render_matches() {
-  const filterType = navFilter.filter || 'live';
-  navFilter = {};
   const el = document.getElementById('content');
-  const titleMap = { live: 'Partite Live', inconsistent: 'Partite Inconsistenti', no_result: 'Partite Senza Risultato' };
-  el.innerHTML = `<h2>${titleMap[filterType] || 'Partite'}</h2><p style="color:#94A3B8;font-size:13px">Caricamento...</p>`;
+  const f = navFilter || {};
+  navFilter = {};
+
+  const currentFilter = f.filter || '';
+  const currentStatus = f.status || '';
+
+  el.innerHTML = '<h2>Partite</h2><p style="color:#94A3B8">Caricamento...</p>';
 
   try {
-    const d = await apiCall('/admin/matches-overview?filter=' + filterType);
-    let html = `<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-      <button class="btn btn-sm btn-outline" onclick="navigate('dashboard')">&larr; Dashboard</button>
-      <span style="color:#F5A623;font-weight:600">${d.count} partite trovate</span>
-      <div style="display:flex;gap:8px;margin-left:auto">
-        <button class="btn btn-sm ${filterType==='live'?'':'btn-outline'}" onclick="navigateWith('matches',{filter:'live'})">Live</button>
-        <button class="btn btn-sm ${filterType==='inconsistent'?'':'btn-outline'}" onclick="navigateWith('matches',{filter:'inconsistent'})">Inconsistenti</button>
-        <button class="btn btn-sm ${filterType==='no_result'?'':'btn-outline'}" onclick="navigateWith('matches',{filter:'no_result'})">Senza risultato</button>
-      </div>
+    let qs = '';
+    if (currentFilter) qs = '?filter=' + currentFilter;
+    else if (currentStatus) qs = '?status=' + currentStatus;
+
+    const d = await apiCall('/admin/matches' + qs);
+    const matches = d.matches || [];
+
+    let html = `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px">
+      <button class="btn btn-sm ${!currentFilter && !currentStatus ? '' : 'btn-outline'}" onclick="navigateWith('matches',{})" data-testid="filter-all">Tutte</button>
+      <button class="btn btn-sm ${currentStatus==='live' ? '' : 'btn-outline'}" onclick="navigateWith('matches',{status:'live'})" data-testid="filter-live">Live</button>
+      <button class="btn btn-sm ${currentStatus==='scheduled' ? '' : 'btn-outline'}" onclick="navigateWith('matches',{status:'scheduled'})" data-testid="filter-scheduled">Programmate</button>
+      <button class="btn btn-sm ${currentStatus==='finished' ? '' : 'btn-outline'}" onclick="navigateWith('matches',{status:'finished'})" data-testid="filter-finished">Finite</button>
+      <span style="width:1px;height:24px;background:#334155"></span>
+      <button class="btn btn-sm ${currentFilter==='inconsistent' ? '' : 'btn-outline'}" style="${currentFilter==='inconsistent' ? 'background:#EF4444;border-color:#EF4444' : 'color:#EF4444;border-color:#EF4444'}" onclick="navigateWith('matches',{filter:'inconsistent'})" data-testid="filter-inconsistent">Inconsistenti</button>
+      <button class="btn btn-sm ${currentFilter==='no_result' ? '' : 'btn-outline'}" style="${currentFilter==='no_result' ? 'background:#F59E0B;border-color:#F59E0B' : 'color:#F59E0B;border-color:#F59E0B'}" onclick="navigateWith('matches',{filter:'no_result'})" data-testid="filter-no-result">Senza risultato</button>
+      <span style="margin-left:auto;color:#F5A623;font-weight:600;font-size:14px">${d.count} partite</span>
     </div>`;
 
-    if (d.matches.length === 0) {
-      html += '<div class="card"><p style="color:#10B981;font-size:14px">Nessuna partita trovata per questo filtro.</p></div>';
+    if (matches.length === 0) {
+      html += '<div class="card"><p style="color:#10B981">Nessuna partita trovata per questo filtro.</p></div>';
     } else {
-      html += '<div class="card"><table><tr><th>Partita</th><th>Risultato</th><th>Stato</th><th>Giornata</th><th>Lega</th>';
-      if (filterType === 'inconsistent') html += '<th>Problema</th>';
-      html += '</tr>';
-      d.matches.forEach(m => {
-        const score = (m.home_score !== null && m.away_score !== null) ? `${m.home_score} - ${m.away_score}` : '- vs -';
+      html += '<div class="card" style="overflow-x:auto"><table data-testid="matches-table"><tr><th>Partita</th><th>Risultato</th><th>Stato</th><th>Giornata</th><th>Competizione</th><th>Kickoff</th><th>Azioni</th></tr>';
+      matches.forEach(m => {
+        const score = (m.home_score !== null && m.home_score !== undefined && m.away_score !== null && m.away_score !== undefined) ? m.home_score + ' - ' + m.away_score : '<span style="color:#64748B">N/A</span>';
         const statusCls = m.status === 'live' ? 'status-live' : m.status === 'finished' ? 'status-COMPLETED' : 'status-LOCKED';
-        html += `<tr>
-          <td style="font-weight:600;font-size:13px">${m.home_team} vs ${m.away_team}</td>
-          <td style="text-align:center;font-weight:700">${score}</td>
-          <td><span class="status-badge ${statusCls}">${m.status}</span></td>
-          <td style="font-size:12px">${m.matchday_label}</td>
-          <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${m.league_name}</td>`;
-        if (filterType === 'inconsistent') {
-          html += `<td style="font-size:12px;color:#EF4444">${m.issue || '-'}</td>`;
-        }
-        html += '</tr>';
+        const ko = m.kickoff ? new Date(m.kickoff).toLocaleString('it', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-';
+        const ht = (m.home_team||'?').replace(/'/g,"\\\\'");
+        const at_ = (m.away_team||'?').replace(/'/g,"\\\\'");
+        html += '<tr data-testid="match-row-' + m.id + '">' +
+          '<td style="font-weight:600;font-size:13px;white-space:nowrap">' + (m.home_team||'?') + ' vs ' + (m.away_team||'?') + '</td>' +
+          '<td style="text-align:center;font-weight:700">' + score + '</td>' +
+          '<td><span class="status-badge ' + statusCls + '">' + (m.status||'?') + '</span></td>' +
+          '<td style="font-size:12px">' + (m.matchday_label||'?') + '</td>' +
+          '<td style="font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis">' + (m.league_name||'?') + '</td>' +
+          '<td style="font-size:12px;white-space:nowrap">' + ko + '</td>' +
+          '<td style="white-space:nowrap">' +
+            '<button class="btn btn-sm" onclick="openEditMatch(\\'' + m.id + '\\',\\'' + ht + '\\',\\'' + at_ + '\\',' + (m.home_score ?? 'null') + ',' + (m.away_score ?? 'null') + ',\\'' + (m.status||'') + '\\',\\'' + (m.kickoff||'') + '\\')" data-testid="edit-match-' + m.id + '">Modifica</button>' +
+            ' <button class="btn btn-sm btn-outline" style="color:#EF4444;border-color:#EF4444" onclick="confirmDeleteMatch(\\'' + m.id + '\\',\\'' + ht + ' vs ' + at_ + '\\')" data-testid="delete-match-' + m.id + '">Elimina</button>' +
+          '</td></tr>';
       });
       html += '</table></div>';
     }
 
-    el.innerHTML = `<h2>${titleMap[filterType] || 'Partite'}</h2>` + html;
+    el.innerHTML = '<h2>Partite</h2>' + html;
+
+    // Edit modal
+    if (!document.getElementById('edit-match-modal')) {
+      const modal = document.createElement('div');
+      modal.id = 'edit-match-modal';
+      modal.style.cssText = 'display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:100;align-items:center;justify-content:center';
+      modal.innerHTML = '<div style="background:#1E293B;border:1px solid #334155;border-radius:16px;padding:24px;width:400px;max-width:90vw">' +
+        '<h3 style="color:#F5A623;margin-bottom:16px" id="edit-match-title">Modifica Partita</h3>' +
+        '<input type="hidden" id="edit-match-id">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">' +
+          '<div><label style="font-size:12px;color:#94A3B8;display:block;margin-bottom:4px">Gol Casa</label><input type="number" id="edit-home-score" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:8px;color:#fff" data-testid="edit-home-score"></div>' +
+          '<div><label style="font-size:12px;color:#94A3B8;display:block;margin-bottom:4px">Gol Trasferta</label><input type="number" id="edit-away-score" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:8px;color:#fff" data-testid="edit-away-score"></div>' +
+        '</div>' +
+        '<div style="margin-bottom:12px"><label style="font-size:12px;color:#94A3B8;display:block;margin-bottom:4px">Stato</label><select id="edit-match-status" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:8px;color:#fff" data-testid="edit-match-status"><option value="scheduled">scheduled</option><option value="live">live</option><option value="finished">finished</option></select></div>' +
+        '<div style="margin-bottom:16px"><label style="font-size:12px;color:#94A3B8;display:block;margin-bottom:4px">Kickoff</label><input type="datetime-local" id="edit-match-kickoff" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:8px;color:#fff" data-testid="edit-match-kickoff"></div>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+          '<button class="btn btn-sm btn-outline" onclick="closeEditMatch()" data-testid="edit-match-cancel">Annulla</button>' +
+          '<button class="btn btn-sm" onclick="saveEditMatch()" data-testid="edit-match-save">Salva</button>' +
+        '</div></div>';
+      document.body.appendChild(modal);
+    }
+
   } catch(e) {
-    el.innerHTML = `<h2>Partite</h2><p style="color:#EF4444">Errore: ${e.message}</p><button class="btn btn-sm btn-outline" onclick="navigate('dashboard')">&larr; Dashboard</button>`;
+    el.innerHTML = '<h2>Partite</h2><p style="color:#EF4444">Errore: ' + e.message + '</p>';
+  }
+}
+
+function openEditMatch(id, home, away, homeScore, awayScore, status, kickoff) {
+  document.getElementById('edit-match-id').value = id;
+  document.getElementById('edit-match-title').textContent = 'Modifica: ' + home + ' vs ' + away;
+  document.getElementById('edit-home-score').value = homeScore !== null ? homeScore : '';
+  document.getElementById('edit-away-score').value = awayScore !== null ? awayScore : '';
+  document.getElementById('edit-match-status').value = status || 'scheduled';
+  if (kickoff) { try { document.getElementById('edit-match-kickoff').value = new Date(kickoff).toISOString().slice(0,16); } catch(e) {} }
+  document.getElementById('edit-match-modal').style.display = 'flex';
+}
+
+function closeEditMatch() {
+  document.getElementById('edit-match-modal').style.display = 'none';
+}
+
+async function saveEditMatch() {
+  const id = document.getElementById('edit-match-id').value;
+  const body = {};
+  const hs = document.getElementById('edit-home-score').value;
+  const as_ = document.getElementById('edit-away-score').value;
+  if (hs !== '') body.home_score = parseInt(hs);
+  if (as_ !== '') body.away_score = parseInt(as_);
+  body.status = document.getElementById('edit-match-status').value;
+  const ko = document.getElementById('edit-match-kickoff').value;
+  if (ko) body.kickoff = new Date(ko).toISOString();
+  try {
+    await apiCall('/admin/matches/' + id, 'PUT', body);
+    showToast('Partita aggiornata', 'success');
+    closeEditMatch();
+    navigate('matches');
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+async function confirmDeleteMatch(id, label) {
+  if (!confirm('Eliminare "' + label + '"?')) return;
+  try {
+    await apiCall('/admin/matches/' + id, 'DELETE');
+    showToast('Partita eliminata', 'success');
+    navigate('matches');
+  } catch(e) {
+    if (e.message && (e.message.includes('pronostici') || e.message.includes('force'))) {
+      if (confirm(e.message + '\\nVuoi forzare l\\'eliminazione?')) {
+        try {
+          await apiCall('/admin/matches/' + id + '?force=true', 'DELETE');
+          showToast('Partita e pronostici eliminati', 'success');
+          navigate('matches');
+        } catch(e2) { showToast('Errore: ' + e2.message, 'error'); }
+      }
+    } else { showToast('Errore: ' + e.message, 'error'); }
   }
 }
 
