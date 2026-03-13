@@ -88,6 +88,12 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] **Punti rimangono elemento primario** - I punti restano l'elemento visivo principale a destra.
 - [x] **Weekly standings con exact_correct** - Aggiunto il campo `exact_correct` anche alla classifica settimanale.
 
+## Completed (14/03/2026 - Standings UI Refinement)
+- [x] **Lista principale semplificata** - Mostra solo "Indovinati X" sotto il nome (rimossi Esatti e 1X2 dalla lista)
+- [x] **Vista dettaglio utente con stats tiebreak** - Sezione "Statistiche Spareggio" con Indovinati, Risultati esatti, 1X2 indovinati e nota ordine spareggio
+- [x] **Labels in italiano** - Indovinati, Risultati esatti, 1X2 indovinati
+- [x] **Stessa regola per Totale e Settimanale** - Entrambe le viste mostrano solo "Indovinati" nella lista
+
 ## Prioritized Backlog
 
 ### P1 - Next Up
