@@ -1,7 +1,54 @@
 import { Tabs, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../../src/contexts/AuthContext';
 import { CompetitionProvider, useCompetition } from '../../src/contexts/CompetitionContext';
+
+function ImpersonationBanner() {
+  const [active, setActive] = useState(false);
+  const [username, setUsername] = useState('');
+  const { logout } = useAuth();
+
+  useEffect(() => {
+    AsyncStorage.getItem('impersonation_active').then(v => {
+      if (v === 'true') {
+        setActive(true);
+        AsyncStorage.getItem('impersonation_username').then(u => setUsername(u || ''));
+      }
+    });
+  }, []);
+
+  if (!active) return null;
+
+  const exitImpersonation = async () => {
+    await AsyncStorage.removeItem('impersonation_active');
+    await AsyncStorage.removeItem('impersonation_username');
+    await logout();
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.close();
+    }
+  };
+
+  return (
+    <View style={ib.banner} data-testid="impersonation-banner">
+      <Text style={ib.text}>Stai navigando come: <Text style={ib.name}>{username}</Text> (Impersonazione Admin)</Text>
+      <TouchableOpacity onPress={exitImpersonation} style={ib.btn} data-testid="exit-impersonation-btn">
+        <Text style={ib.btnText}>Esci</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const ib = StyleSheet.create({
+  banner: { backgroundColor: '#D97706', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 8, paddingHorizontal: 16, gap: 12 },
+  text: { color: '#0F172A', fontSize: 13, fontWeight: '500', flexShrink: 1 },
+  name: { fontWeight: '800' },
+  btn: { backgroundColor: '#0F172A', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 6 },
+  btnText: { color: '#F5A623', fontSize: 12, fontWeight: '700' },
+});
 
 function TabContent() {
   const { t } = useTranslation();
@@ -68,6 +115,7 @@ function TabContent() {
 export default function TabLayout() {
   return (
     <CompetitionProvider>
+      <ImpersonationBanner />
       <TabContent />
     </CompetitionProvider>
   );

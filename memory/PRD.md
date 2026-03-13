@@ -49,7 +49,7 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] **Tournament Control Room** - Sostituzione completa della pagina "Modifica" con Control Room a 5 tab
 - [x] **Elimination Bracket Visualization** - Barra progressione fasi con bracket eliminazione e matchup cards
 - [x] **Dynamic Round Naming** - Round eliminazione calcolati dinamicamente dal numero di qualificati (groups × advance). Es: 16 qualificati → Ottavi → Quarti → Semi → Finale
-- [x] **Impersonate User** - Pulsante "Accedi come utente" nella User Control Room (solo Super Admin), con endpoint POST /api/admin/impersonate/{user_id}, audit log, e protezione contro impersonazione di Super Admin
+- [x] **Impersonate User** - Pulsante "Accedi come utente" nella User Control Room (solo Super Admin), con endpoint POST /api/admin/impersonate/{user_id}, audit log, sessione autenticata completa con banner arancione e pulsante "Esci"
 - [x] **Auth Provider Badges** - Badge colorati (EMAIL, GOOGLE, APPLE, FACEBOOK) nella lista utenti e nella User Control Room, supporto provider futuri
 - [x] **Backend API tornei** - Nuovi endpoint: PUT update, GET/POST/DELETE participants, POST reset-groups
 - [x] **Bug Fix: Admin UI JS Parse Error** - Fixed quote escaping in showLeagueStandings

@@ -22,6 +22,7 @@ export default function SplashScreen() {
   const { isAuthenticated, isLoading, token, user, loginWithToken } = useAuth();
   const router = useRouter();
   const [splashDone, setSplashDone] = useState(false);
+  const [impersonating, setImpersonating] = useState(false);
   const opacity = new Animated.Value(0);
 
   // Animate logo in
@@ -38,6 +39,16 @@ export default function SplashScreen() {
   // Google OAuth callback handling (web)
   useEffect(() => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      // Check for impersonation token first
+      const urlParams = new URLSearchParams(window.location.search);
+      const impersonateToken = urlParams.get('impersonate_token');
+      const impersonateUser = urlParams.get('impersonate_user');
+      if (impersonateToken) {
+        setImpersonating(true);
+        processImpersonation(impersonateToken, impersonateUser || '');
+        return;
+      }
+
       const hash = window.location.hash;
       if (hash && hash.includes('session_id=')) {
         const sessionId = hash.split('session_id=')[1]?.split('&')[0];
@@ -55,13 +66,15 @@ export default function SplashScreen() {
     console.log('[DEBUG-3] index.tsx useEffect fired:',
       'isLoading=', isLoading,
       'isAuthenticated=', isAuthenticated,
-      'splashDone=', splashDone
+      'splashDone=', splashDone,
+      'impersonating=', impersonating
     );
     if (isLoading) { console.log('[DEBUG-3] SKIP: isLoading=true'); return; }
+    if (impersonating) { console.log('[DEBUG-3] SKIP: impersonation in progress'); return; }
     if (!splashDone && !isAuthenticated) { console.log('[DEBUG-3] SKIP: splash not done + not auth'); return; }
     console.log('[DEBUG-3] => chiamo route()');
     route();
-  }, [splashDone, isLoading, isAuthenticated]);
+  }, [splashDone, isLoading, isAuthenticated, impersonating]);
 
   const route = async () => {
     const accessToken = await AsyncStorage.getItem('access_token');
@@ -112,6 +125,34 @@ export default function SplashScreen() {
       }
       // Don't navigate — the route() useEffect will fire when isAuthenticated changes
     } catch (e) {
+      router.replace('/(auth)/');
+    }
+  };
+
+  const processImpersonation = async (impToken: string, impUsername: string) => {
+    try {
+      console.log('[Impersonate] Starting impersonation for:', impUsername);
+      // Fetch user data using the impersonated token
+      const userData = await apiCall('/auth/me', { token: impToken });
+      console.log('[Impersonate] User data fetched:', userData?.username);
+      // Save impersonation state
+      await AsyncStorage.setItem('impersonation_active', 'true');
+      await AsyncStorage.setItem('impersonation_username', impUsername || userData.username || '');
+      // Establish the session
+      await loginWithToken(impToken, impToken, userData);
+      console.log('[Impersonate] Session established');
+      // Clean URL
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+      // Allow routing to proceed (isAuthenticated is now true)
+      setImpersonating(false);
+    } catch (e) {
+      console.error('[Impersonate] Failed:', e);
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+      setImpersonating(false);
       router.replace('/(auth)/');
     }
   };
