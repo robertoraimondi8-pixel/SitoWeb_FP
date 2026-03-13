@@ -2070,17 +2070,30 @@ async function createMatchday() {
       ? document.getElementById('md-create-league').value
       : mainLeagueId;
     if (!leagueId || leagueId === 'all') { showToast('Seleziona una lega', 'error'); return; }
+    const numVal = document.getElementById('md-num').value;
+    if (!numVal) { showToast('Seleziona un numero di giornata', 'error'); return; }
+    const num = parseInt(numVal);
+    if (isNaN(num) || num < 1) { showToast('Numero giornata non valido', 'error'); return; }
+    const label = document.getElementById('md-label').value || ('Giornata ' + num);
     const kickoff = document.getElementById('md-kickoff').value;
-    await apiCall('/admin/matchdays', 'POST', {
+    const payload = {
       season_id: document.getElementById('md-season').value,
-      number: parseInt(document.getElementById('md-num').value),
-      label: document.getElementById('md-label').value,
-      half: parseInt(document.getElementById('md-half').value),
-      first_kickoff: new Date(kickoff).toISOString(),
+      number: num,
+      label: label,
+      half: parseInt(document.getElementById('md-half').value) || 1,
       status: 'DRAFT',
       league_id: leagueId
-    });
+    };
+    if (kickoff) {
+      try { payload.first_kickoff = new Date(kickoff).toISOString(); } catch(e) {}
+    }
+    if (!payload.season_id) { showToast('Seleziona una stagione', 'error'); return; }
+    await apiCall('/admin/matchdays', 'POST', payload);
     showToast('Giornata creata'); loadMatchdays();
+    // Reset fields
+    document.getElementById('md-label').value = '';
+    document.getElementById('md-kickoff').value = '';
+    updateAvailableNumbers();
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -2108,9 +2121,9 @@ async function showMdControlRoom(mdId, tabOrTournId, maybeTab) {
 
   mdcrId = mdId;
   mdcrTab = tab;
-  mdcrTournId = tournamentOverrideId || (md && md._tournament_id) || null;
   const md = (window._allMatchdays||[]).find(m => m.id === mdId);
-  if (!md) return;
+  if (!md) { showToast('Giornata non trovata in cache. Ricarica la pagina.', 'error'); return; }
+  mdcrTournId = tournamentOverrideId || md._tournament_id || null;
 
   const isTournament = md._is_tournament || !!tournamentOverrideId;
   const tournId = tournamentOverrideId || md._tournament_id;
@@ -2153,7 +2166,8 @@ async function renderMdcrInfo(md, canManage) {
   // Count matches, predictions, results
   let matchCount = 0, resultCount = 0, predCount = 0;
   try {
-    const matches = await apiCall('/admin/matches?matchday_id=' + md.id);
+    const resp = await apiCall('/admin/matches?matchday_id=' + md.id);
+    const matches = resp.matches || resp;
     mdcrMatches = matches;
     matchCount = matches.length;
     resultCount = matches.filter(m => m.home_score !== null && m.home_score !== undefined).length;
