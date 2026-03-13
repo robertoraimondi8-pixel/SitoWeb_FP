@@ -11,6 +11,7 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - **Simplified Last 5**: Pills semplici (punti per leghe, V/P/S per tornei)
 - **Unified Tournament/League Layout**: Home screen identica per struttura e spaziature
 - **Real Prediction Scores**: Punteggi pronostico reali (non punti girone) su hero card e performance
+- **Admin Dashboard Control Center**: Dashboard operativa con tutte le metriche
 
 ## Completed Features
 - [x] Auth (JWT + Google OAuth), Leghe, Tornei, Pronostici, Live scores, Classifiche
@@ -18,15 +19,18 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] P0 Navigation fix, Global scoring refactor, Data migration, Decimal formatting
 - [x] Gerarchia visiva matchday card + messaggi contestuali
 - [x] Fix classifica punti bianchi 4+, dropdown settimanale, TREND torneo
-- [x] Mini Classifica Home (12/03/2026)
-- [x] Ultime 5 Giornate Pills (12/03/2026)
-- [x] Unificazione Layout Tournament/League Home (13/03/2026)
-- [x] **Ultime 5 Sfide V/P/S** (13/03/2026) - Pills mostrano Vittoria/Pareggio/Sconfitta con colori verde/grigio/rosso
-- [x] **Fix punteggi reali torneo** (13/03/2026)
-  - Hero card ora mostra punteggi pronostico reali (es. 5-1) invece dei punti girone (2-0)
-  - Performance cards usano `user_a/b_prediction_total` dal backend
-  - Backend `/my-matchups` calcola i totali pronostico per matchup completati
-  - Backend `current_round_info` calcola punteggi reali con `calculate_match_points`
+- [x] Mini Classifica Home + Ultime 5 Giornate Pills
+- [x] Unificazione Layout Tournament/League Home
+- [x] Ultime 5 Sfide V/P/S per tornei
+- [x] Fix punteggi reali torneo (hero card + performance)
+- [x] Messaggio "Hai fatto X punti su 10 partite" nella hero card lega
+- [x] **Admin Dashboard Overhaul** (13/03/2026) - Testato 100%
+  - Allarmi Critici: ora include tornei + partite inconsistenti
+  - Tornei: 6 KPI (Totale, Attivi, Round Live, Completati, Pending, A Rischio)
+  - Stato Partite: 4 KPI (Oggi, Live ora, Senza risultato, Inconsistenti)
+  - Attivita Pronostici: 5 KPI (Totale, Oggi, Giornate attive, Leghe, Tornei)
+  - Pagamenti: 5 KPI + tabella (Pending, Oggi, 7gg, Totale incassato, Falliti)
+  - Attivita Recente: badge azione colorati + link "Vedi tutto"
 
 ## Prioritized Backlog
 
