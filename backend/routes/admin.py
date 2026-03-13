@@ -22,7 +22,9 @@ from services import (
     VALID_TRANSITIONS, STATUS_ORDER,
     log_audit, _match_source_query, compute_matchday_status,
     recompute_matchday_kickoff, calculate_matchday_scores_full,
-    create_notification_for_league, recalculate_matchday_scores
+    create_notification_for_league, recalculate_matchday_scores,
+    get_league_matchday_range, check_league_auto_completion, complete_season,
+    complete_league, SEASON_STATES, LEAGUE_STATES
 )
 
 logger = logging.getLogger(__name__)
@@ -38,7 +40,7 @@ async def admin_list_seasons(admin=Depends(require_permission("admin.seasons.man
 @admin_router.post("/seasons")
 async def admin_create_season(req: SeasonCreate, admin=Depends(require_permission("admin.seasons.manage"))):
     season_id = new_id()
-    season = {"id": season_id, "name": req.name, "year": req.year, "start_date": req.start_date, "end_date": req.end_date, "is_active": req.is_active, "created_at": now_utc()}
+    season = {"id": season_id, "name": req.name, "year": req.year, "start_date": req.start_date, "end_date": req.end_date, "is_active": req.is_active, "status": "draft", "created_at": now_utc()}
     await seasons_col.insert_one(season)
     await log_audit(admin["id"], admin["username"], "CREATE", "season", season_id, {"name": req.name})
     season.pop("_id", None)
@@ -68,6 +70,73 @@ async def admin_set_current_matchday(season_id: str, matchday_id: str, admin=Dep
     await seasons_col.update_one({"id": season_id}, {"$set": {"current_matchday_id": matchday_id}})
     await log_audit(admin["id"], admin["username"], "SET_CURRENT_MATCHDAY", "season", season_id, {"matchday_id": matchday_id, "matchday_number": matchday["number"]})
     return {"status": "success", "season_id": season_id, "current_matchday_id": matchday_id, "matchday_number": matchday["number"], "matchday_label": matchday.get("label", f"Giornata {matchday['number']}")}
+
+
+@admin_router.post("/seasons/{season_id}/activate")
+async def admin_activate_season(season_id: str, admin=Depends(require_permission("admin.seasons.manage"))):
+    """Activate a season (draft -> active). Deactivates all other seasons."""
+    season = await seasons_col.find_one({"id": season_id}, {"_id": 0})
+    if not season:
+        raise HTTPException(404, "Stagione non trovata")
+    current_status = season.get("status", "draft")
+    if current_status not in ("draft",):
+        raise HTTPException(400, f"Solo le stagioni in draft possono essere attivate. Stato attuale: {current_status}")
+    # Deactivate other active seasons
+    await seasons_col.update_many({"id": {"$ne": season_id}}, {"$set": {"is_active": False, "status": "draft"}})
+    await seasons_col.update_one({"id": season_id}, {"$set": {"status": "active", "is_active": True}})
+    await log_audit(admin["id"], admin["username"], "ACTIVATE_SEASON", "season", season_id, {"name": season.get("name")})
+    return {"ok": True, "status": "active"}
+
+
+@admin_router.post("/seasons/{season_id}/complete")
+async def admin_complete_season(season_id: str, admin=Depends(require_permission("admin.seasons.manage"))):
+    """Complete a season: close all competitions, freeze standings, update palmares."""
+    season = await seasons_col.find_one({"id": season_id}, {"_id": 0})
+    if not season:
+        raise HTTPException(404, "Stagione non trovata")
+    current_status = season.get("status", "active")
+    if current_status == "completed":
+        raise HTTPException(400, "Stagione già completata")
+    if current_status == "archived":
+        raise HTTPException(400, "Stagione già archiviata")
+    results = await complete_season(season_id, admin)
+    if "error" in results:
+        raise HTTPException(400, results["error"])
+    return {"ok": True, "status": "completed", **results}
+
+
+@admin_router.post("/seasons/{season_id}/archive")
+async def admin_archive_season(season_id: str, admin=Depends(require_permission("admin.seasons.manage"))):
+    """Archive a completed season (completed -> archived)."""
+    season = await seasons_col.find_one({"id": season_id}, {"_id": 0})
+    if not season:
+        raise HTTPException(404, "Stagione non trovata")
+    current_status = season.get("status", "draft")
+    if current_status != "completed":
+        raise HTTPException(400, f"Solo le stagioni completate possono essere archiviate. Stato attuale: {current_status}")
+    await seasons_col.update_one({"id": season_id}, {"$set": {"status": "archived"}})
+    await log_audit(admin["id"], admin["username"], "ARCHIVE_SEASON", "season", season_id, {"name": season.get("name")})
+    return {"ok": True, "status": "archived"}
+
+
+@admin_router.get("/league-matchday-range")
+async def admin_league_matchday_range(season_id: str, admin=Depends(require_permission("admin.leagues.manage"))):
+    """Get the valid selectable matchday range for league creation."""
+    first_selectable, last_matchday = await get_league_matchday_range(season_id)
+    return {"first_selectable": first_selectable, "last_matchday": last_matchday}
+
+
+@admin_router.post("/leagues/{league_id}/complete")
+async def admin_complete_league(league_id: str, admin=Depends(require_permission("admin.leagues.manage"))):
+    """Manually complete a league."""
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        raise HTTPException(404, "Lega non trovata")
+    if league.get("status") == "completed":
+        raise HTTPException(400, "Lega già completata")
+    await complete_league(league_id)
+    await log_audit(admin["id"], admin["username"], "COMPLETE_LEAGUE", "league", league_id, {"name": league.get("name")})
+    return {"ok": True, "status": "completed"}
 
 
 @admin_router.get("/matchdays")
@@ -131,6 +200,12 @@ async def admin_update_matchday(matchday_id: str, req: AdminMatchdayUpdate, admi
             leagues_using = await leagues_col.find({"$or": [{"id": league_id_for_notif}, {"league_type": "national"}]}, {"_id": 0, "id": 1}).to_list(50)
             for lg in leagues_using:
                 await create_notification_for_league(lg["id"], "standings_updated", f"Classifica aggiornata!", f"I risultati della Giornata {md_num} sono stati calcolati. Controlla la classifica!", link="/rankings")
+
+        # Auto-complete leagues whose end_matchday matches this matchday
+        try:
+            await check_league_auto_completion(matchday_id, league_id_for_notif)
+        except Exception as e:
+            logger.error(f"[LIFECYCLE] Error checking auto-completion: {e}")
 
     return await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
 

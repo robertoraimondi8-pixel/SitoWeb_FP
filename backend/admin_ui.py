@@ -1299,6 +1299,22 @@ async function showCreateLeagueModal() {
 
   const seasonOpts = seasons.map(s => `<option value="${s.id}">${s.name} (${s.year})</option>`).join('');
 
+  // Fetch matchday range for the first (active) season
+  let firstSelectable = 1, lastMatchday = 38;
+  if (seasons.length > 0) {
+    try {
+      const range = await apiCall('/admin/league-matchday-range?season_id=' + seasons[0].id);
+      firstSelectable = range.first_selectable;
+      lastMatchday = range.last_matchday;
+    } catch(e) { console.warn('Could not fetch matchday range', e); }
+  }
+
+  let startOpts = '', endOpts = '';
+  for (let i = firstSelectable; i <= lastMatchday; i++) {
+    startOpts += `<option value="${i}">Giornata ${i}</option>`;
+    endOpts += `<option value="${i}" ${i===lastMatchday?'selected':''}>Giornata ${i}</option>`;
+  }
+
   const marketFields = [
     {key:'1x2', label:'1X2', defEnabled:true, defPts:2},
     {key:'over_under', label:'Over/Under', defEnabled:true, defPts:1},
@@ -1315,7 +1331,12 @@ async function showCreateLeagueModal() {
     </div>`;
   });
 
+  const rangeInfo = firstSelectable > lastMatchday
+    ? '<p style="color:#EF4444;font-size:12px;margin-bottom:8px">Nessuna giornata disponibile per creare nuove leghe in questa stagione.</p>'
+    : `<p style="color:#10B981;font-size:12px;margin-bottom:8px">Range giornate disponibili: G${firstSelectable} → G${lastMatchday}</p>`;
+
   const html = `<h3>Nuova Lega</h3>
+    ${rangeInfo}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div>
         <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Nome Lega * (3-40 caratteri)</label>
@@ -1323,7 +1344,7 @@ async function showCreateLeagueModal() {
       </div>
       <div>
         <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Stagione *</label>
-        <select id="nl-season" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-season">
+        <select id="nl-season" onchange="refreshMatchdayRange()" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-season">
           ${seasonOpts}
         </select>
       </div>
@@ -1340,11 +1361,15 @@ async function showCreateLeagueModal() {
       </div>
       <div>
         <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Giornata Inizio</label>
-        <input id="nl-start" type="number" min="1" max="38" value="1" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-start">
+        <select id="nl-start" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-start">
+          ${startOpts}
+        </select>
       </div>
       <div>
         <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Giornata Fine</label>
-        <input id="nl-end" type="number" min="1" max="38" value="38" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-end">
+        <select id="nl-end" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-end">
+          ${endOpts}
+        </select>
       </div>
       <div style="grid-column:span 2">
         <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Pronostici Campionato</label>
@@ -1362,9 +1387,26 @@ async function showCreateLeagueModal() {
 
     <div class="modal-actions" style="margin-top:16px">
       <button class="btn btn-outline" onclick="closeModal()">Annulla</button>
-      <button class="btn" onclick="doCreateLeague()" data-testid="confirm-create-league-btn">Crea Lega</button>
+      <button class="btn" onclick="doCreateLeague()" data-testid="confirm-create-league-btn" ${firstSelectable > lastMatchday ? 'disabled' : ''}>Crea Lega</button>
     </div>`;
   showModal(html);
+}
+
+async function refreshMatchdayRange() {
+  const seasonId = document.getElementById('nl-season').value;
+  if (!seasonId) return;
+  try {
+    const range = await apiCall('/admin/league-matchday-range?season_id=' + seasonId);
+    const startSel = document.getElementById('nl-start');
+    const endSel = document.getElementById('nl-end');
+    let startOpts = '', endOpts = '';
+    for (let i = range.first_selectable; i <= range.last_matchday; i++) {
+      startOpts += `<option value="${i}">Giornata ${i}</option>`;
+      endOpts += `<option value="${i}" ${i===range.last_matchday?'selected':''}>Giornata ${i}</option>`;
+    }
+    startSel.innerHTML = startOpts;
+    endSel.innerHTML = endOpts;
+  } catch(e) { console.warn('Refresh range failed', e); }
 }
 
 async function doCreateLeague() {
@@ -1382,8 +1424,8 @@ async function doCreateLeague() {
     season_id: document.getElementById('nl-season').value,
     match_source_type: document.getElementById('nl-source').value,
     bet_deadline_minutes: parseInt(document.getElementById('nl-deadline').value) || 5,
-    start_matchday: parseInt(document.getElementById('nl-start').value) || 1,
-    end_matchday: parseInt(document.getElementById('nl-end').value) || 38,
+    start_matchday: parseInt(document.getElementById('nl-start').value),
+    end_matchday: parseInt(document.getElementById('nl-end').value),
     include_championship_predictions: document.getElementById('nl-champ').value === 'true',
     scoring_config: scoring_config,
   };
@@ -1467,16 +1509,23 @@ async function render_seasons() {
   document.getElementById('season-form').innerHTML = `
     <div class="form-row">
       <input id="s-name" placeholder="Nome stagione">
-      <input id="s-year" placeholder="Anno (es. 2024-2025)">
+      <input id="s-year" placeholder="Anno (es. 2025-2026)">
       <input id="s-start" type="date" placeholder="Inizio">
       <input id="s-end" type="date" placeholder="Fine">
       <button class="btn" onclick="createSeason()">Crea</button>
     </div>`;
   const seasons = await apiCall('/admin/seasons');
-  let html = '<table><tr><th>Nome</th><th>Anno</th><th>Attiva</th><th>Azioni</th></tr>';
+  const statusColors = {draft:'#6B7280',active:'#10B981',completed:'#3B82F6',archived:'#9CA3AF'};
+  const statusLabels = {draft:'Bozza',active:'Attiva',completed:'Completata',archived:'Archiviata'};
+  let html = '<table><tr><th>Nome</th><th>Anno</th><th>Stato</th><th>Azioni</th></tr>';
   seasons.forEach(s => {
-    html += `<tr><td>${s.name}</td><td>${s.year}</td><td>${s.is_active?'Si':'No'}</td>
-    <td><button class="btn btn-sm" onclick="toggleSeason('${s.id}',${!s.is_active})">${s.is_active?'Disattiva':'Attiva'}</button></td></tr>`;
+    const st = s.status || (s.is_active ? 'active' : 'draft');
+    const badge = `<span style="padding:2px 8px;border-radius:12px;font-size:11px;color:#fff;background:${statusColors[st]||'#6B7280'}">${statusLabels[st]||st}</span>`;
+    let actions = '';
+    if (st === 'draft') actions = `<button class="btn btn-sm" onclick="activateSeason('${s.id}')">Attiva</button>`;
+    else if (st === 'active') actions = `<button class="btn btn-sm" style="background:#3B82F6" onclick="completeSeason('${s.id}')">Completa Stagione</button>`;
+    else if (st === 'completed') actions = `<button class="btn btn-sm" style="background:#9CA3AF" onclick="archiveSeason('${s.id}')">Archivia</button>`;
+    html += `<tr><td>${s.name}</td><td>${s.year}</td><td>${badge}</td><td>${actions}</td></tr>`;
   });
   html += '</table>';
   document.getElementById('season-list').innerHTML = html;
@@ -1489,15 +1538,35 @@ async function createSeason() {
       year: document.getElementById('s-year').value,
       start_date: document.getElementById('s-start').value,
       end_date: document.getElementById('s-end').value,
-      is_active: true
+      is_active: false
     });
-    showToast('Stagione creata'); render_seasons();
+    showToast('Stagione creata in stato Bozza'); render_seasons();
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-async function toggleSeason(id, active) {
-  await apiCall('/admin/seasons/'+id, 'PUT', {is_active: active});
-  showToast('Stagione aggiornata'); render_seasons();
+async function activateSeason(id) {
+  if (!confirm('Attivare questa stagione? Le altre stagioni verranno disattivate.')) return;
+  try {
+    await apiCall('/admin/seasons/'+id+'/activate', 'POST');
+    showToast('Stagione attivata'); render_seasons();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function completeSeason(id) {
+  if (!confirm('ATTENZIONE: Completare la stagione chiudera TUTTE le competizioni attive, congelera le classifiche e aggiornera il palmares. Questa azione non e reversibile. Continuare?')) return;
+  try {
+    const res = await apiCall('/admin/seasons/'+id+'/complete', 'POST');
+    showToast(`Stagione completata! Leghe: ${res.leagues_completed}, Tornei: ${res.tournaments_completed}`);
+    render_seasons();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function archiveSeason(id) {
+  if (!confirm('Archiviare questa stagione? Sara visibile solo nello storico/palmares.')) return;
+  try {
+    await apiCall('/admin/seasons/'+id+'/archive', 'POST');
+    showToast('Stagione archiviata'); render_seasons();
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
 // ========================================
@@ -2480,9 +2549,12 @@ function filterLeagues() {
 
 function renderLeaguesTable(leagues) {
   const sh = (col) => sortArrow('leagues', col);
+  const leagueStatusColors = {draft:'#6B7280',active:'#10B981',completed:'#3B82F6',cancelled:'#EF4444'};
+  const leagueStatusLabels = {draft:'Bozza',active:'Attiva',completed:'Completata',cancelled:'Annullata'};
   let html = `<table><tr>
     <th style="cursor:pointer" onclick="sortBy('leagues','name')">Nome ${sh('name')}</th>
     <th>Tipo</th>
+    <th>Stato</th>
     <th>Codice</th>
     <th>Owner</th>
     <th>Admin Lega</th>
@@ -2491,6 +2563,8 @@ function renderLeaguesTable(leagues) {
     <th>Regole</th>
     <th>Azioni</th></tr>`;
   leagues.forEach(l => {
+    const lst = l.status || 'active';
+    const statusBadge = `<span style="padding:2px 8px;border-radius:12px;font-size:11px;color:#fff;background:${leagueStatusColors[lst]||'#6B7280'}">${leagueStatusLabels[lst]||lst}</span>`;
     const ownerName = l.owner ? `<strong>${l.owner.username}</strong>` : (l.league_type === 'national' ? '<span style="color:#94A3B8">Sistema</span>' : '<span style="color:#EF4444">Nessuno</span>');
     const adminCount = l.admins ? l.admins.length : 0;
     const typeBadge = getLeagueTypeBadge(l);
@@ -2501,6 +2575,7 @@ function renderLeaguesTable(leagues) {
     html += `<tr data-testid="league-row-${l.id}">
       <td><strong>${l.name}</strong></td>
       <td>${typeBadge}</td>
+      <td>${statusBadge}</td>
       <td style="font-size:12px;color:#94A3B8">${l.invite_code||'-'}</td>
       <td>${ownerName}</td>
       <td><span style="cursor:pointer;color:#F5A623" onclick="showLeagueAdmins('${l.id}')">${adminCount} admin</span></td>

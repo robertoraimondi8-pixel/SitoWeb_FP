@@ -653,6 +653,7 @@ async def rbac_list_leagues(user=Depends(require_permission("admin.leagues.manag
             "include_championship_predictions": lg.get("include_championship_predictions", False),
             "rules_locked": lg.get("rules_locked", False),
             "season_id": lg.get("season_id"),
+            "status": lg.get("status", "active"),
             "competition_name": lg.get("competition_name", ""),
         })
     return result
@@ -934,6 +935,14 @@ async def admin_create_league(request: Request, user=Depends(require_permission(
     if end_md < start_md:
         raise HTTPException(400, "La giornata finale deve essere >= giornata iniziale")
 
+    # Validate matchday range against active season progression
+    from services import get_league_matchday_range
+    first_selectable, last_matchday = await get_league_matchday_range(season_id)
+    if start_md < first_selectable:
+        raise HTTPException(400, f"La giornata iniziale deve essere >= {first_selectable} (prima giornata ancora giocabile)")
+    if end_md > last_matchday:
+        raise HTTPException(400, f"La giornata finale deve essere <= {last_matchday} (ultima giornata della stagione)")
+
     owner_id = body.get("owner_id") or user["id"]
     owner_user = await users_col.find_one({"id": owner_id}, {"_id": 0, "id": 1, "username": 1})
     if not owner_user:
@@ -957,6 +966,7 @@ async def admin_create_league(request: Request, user=Depends(require_permission(
         "match_source_type": match_source_type,
         "scoring_config": scoring,
         "include_championship_predictions": body.get("include_championship_predictions", False),
+        "status": "active",
         "rules_locked": False,
         "created_at": now_utc(),
     }

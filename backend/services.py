@@ -566,3 +566,221 @@ async def bootstrap_rbac():
             {"$set": {"is_super_admin": True, "role_ids": role_ids}}
         )
         logger.info(f"[RBAC] Bootstrapped {super_admin_email} as SUPER_ADMIN")
+
+
+
+# ============================================================
+# LIFECYCLE: AUTO-COMPLETION LOGIC
+# ============================================================
+
+SEASON_STATES = ["draft", "active", "completed", "archived"]
+LEAGUE_STATES = ["draft", "active", "completed", "cancelled"]
+
+
+async def get_league_matchday_range(season_id: str):
+    """Calculate the valid selectable matchday range for league creation.
+    Returns (first_selectable, last_matchday) based on National League progression.
+    """
+    national_league = await leagues_col.find_one({"league_type": "national"}, {"_id": 0, "id": 1})
+    if not national_league:
+        return (1, 38)
+
+    nl_id = national_league["id"]
+    matchdays = await matchdays_col.find(
+        {"season_id": season_id, "league_id": nl_id},
+        {"_id": 0, "id": 1, "number": 1, "status": 1}
+    ).sort("number", 1).to_list(100)
+
+    if not matchdays:
+        return (1, 38)
+
+    last_matchday = matchdays[-1]["number"]
+
+    # Find first matchday that is still playable
+    # DRAFT or OPEN = still selectable (not yet started)
+    # LIVE or COMPLETED = already past, not selectable
+    first_selectable = last_matchday  # fallback: last one
+    for md in matchdays:
+        status = md.get("status", "DRAFT")
+        if status in ("DRAFT", "OPEN"):
+            first_selectable = md["number"]
+            break
+        elif status == "LIVE":
+            # LIVE means it's in progress, next one is selectable
+            continue
+        elif status == "COMPLETED":
+            continue
+
+    # If all matchdays are COMPLETED or LIVE, the first selectable is after the last non-DRAFT
+    # Re-check: find the first non-completed/non-live
+    first_selectable = None
+    for md in matchdays:
+        status = md.get("status", "DRAFT")
+        if status in ("DRAFT", "OPEN"):
+            first_selectable = md["number"]
+            break
+    if first_selectable is None:
+        # All matchdays are LIVE or COMPLETED, no league can be created
+        first_selectable = last_matchday + 1  # invalid range
+
+    return (first_selectable, last_matchday)
+
+
+async def check_league_auto_completion(matchday_id: str, league_id: str):
+    """Check if a league should auto-complete after a matchday is completed.
+    Called after matchday status moves to COMPLETED.
+    """
+    from database import palmares_col
+
+    matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
+    if not matchday:
+        return
+
+    md_number = matchday.get("number")
+
+    # Find all leagues that use this season and have end_matchday == md_number
+    season_id = matchday.get("season_id")
+    if not season_id:
+        return
+
+    leagues = await leagues_col.find({
+        "season_id": season_id,
+        "end_matchday": md_number,
+        "status": {"$nin": ["completed", "cancelled"]}
+    }, {"_id": 0}).to_list(100)
+
+    for league in leagues:
+        lid = league["id"]
+        # Verify all matches in this matchday for this league are finished
+        total_matches = await matches_col.count_documents({"matchday_id": matchday_id, "league_id": lid})
+        if total_matches == 0:
+            # National source leagues might use the national league's matches
+            source_lid = league.get("source_league_id", NATIONAL_LEAGUE_ID)
+            total_matches = await matches_col.count_documents({"matchday_id": matchday_id, "league_id": source_lid})
+            finished = await matches_col.count_documents({"matchday_id": matchday_id, "league_id": source_lid, "status": "finished"})
+        else:
+            finished = await matches_col.count_documents({"matchday_id": matchday_id, "league_id": lid, "status": "finished"})
+
+        if total_matches > 0 and finished == total_matches:
+            await complete_league(lid)
+
+
+async def complete_league(league_id: str):
+    """Complete a league: freeze standings, determine winner, save to palmares, award trophies."""
+    from database import palmares_col
+    from trophies import award_league_trophies
+
+    league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
+    if not league:
+        return
+
+    logger.info(f"[LIFECYCLE] Auto-completing league {league.get('name')} ({league_id})")
+
+    # Mark league as completed
+    await leagues_col.update_one({"id": league_id}, {"$set": {
+        "status": "completed",
+        "completed_at": now_utc()
+    }})
+
+    # Get final standings
+    standings = await standings_cache_col.find(
+        {"league_id": league_id, "type": "total"},
+        {"_id": 0}
+    ).sort("total_points", -1).to_list(500)
+
+    winner_id = standings[0]["user_id"] if standings else None
+    winner_user = await users_col.find_one({"id": winner_id}, {"_id": 0, "username": 1}) if winner_id else None
+
+    # Build top 3 for palmares
+    top_3 = []
+    for i, s in enumerate(standings[:3]):
+        u = await users_col.find_one({"id": s["user_id"]}, {"_id": 0, "username": 1})
+        top_3.append({
+            "position": i + 1,
+            "user_id": s["user_id"],
+            "username": u.get("username", "?") if u else "?",
+            "total_points": s.get("total_points", 0),
+        })
+
+    # Save to palmares
+    palmares_doc = {
+        "id": new_id(),
+        "season_id": league.get("season_id"),
+        "competition_id": league_id,
+        "competition_type": "league",
+        "competition_name": league.get("name", ""),
+        "winner_id": winner_id,
+        "winner_username": winner_user.get("username", "?") if winner_user else None,
+        "top_3": top_3,
+        "total_participants": len(standings),
+        "start_matchday": league.get("start_matchday"),
+        "end_matchday": league.get("end_matchday"),
+        "completed_at": now_utc(),
+    }
+    try:
+        await palmares_col.insert_one(palmares_doc)
+    except Exception as e:
+        if "duplicate" not in str(e).lower():
+            raise
+        logger.info(f"[LIFECYCLE] Palmares already exists for league {league_id}")
+
+    # Award trophies
+    try:
+        await award_league_trophies(league_id)
+    except Exception as e:
+        logger.error(f"[LIFECYCLE] Error awarding league trophies: {e}")
+
+    logger.info(f"[LIFECYCLE] League {league.get('name')} completed. Winner: {winner_user.get('username') if winner_user else 'N/A'}")
+
+
+async def complete_season(season_id: str, admin_user: dict):
+    """Complete a season: close all active competitions, freeze standings, update palmares."""
+    from database import palmares_col, tournaments_col
+
+    season = await seasons_col.find_one({"id": season_id}, {"_id": 0})
+    if not season:
+        return {"error": "Stagione non trovata"}
+
+    if season.get("status") == "completed":
+        return {"error": "Stagione già completata"}
+
+    results = {"leagues_completed": 0, "tournaments_completed": 0}
+
+    # Complete all active leagues for this season
+    active_leagues = await leagues_col.find({
+        "season_id": season_id,
+        "status": {"$nin": ["completed", "cancelled"]}
+    }, {"_id": 0, "id": 1, "name": 1}).to_list(200)
+
+    for league in active_leagues:
+        await complete_league(league["id"])
+        results["leagues_completed"] += 1
+
+    # Complete all active tournaments for this season
+    active_tournaments = await tournaments_col.find({
+        "season_id": season_id,
+        "status": {"$nin": ["completed", "cancelled"]}
+    }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+
+    for tournament in active_tournaments:
+        await tournaments_col.update_one({"id": tournament["id"]}, {"$set": {
+            "status": "completed",
+            "completed_at": now_utc()
+        }})
+        results["tournaments_completed"] += 1
+
+    # Mark season as completed
+    await seasons_col.update_one({"id": season_id}, {"$set": {
+        "status": "completed",
+        "is_active": False,
+        "completed_at": now_utc()
+    }})
+
+    await log_audit(
+        admin_user["id"], admin_user.get("username", "admin"),
+        "COMPLETE_SEASON", "season", season_id,
+        {"leagues_completed": results["leagues_completed"], "tournaments_completed": results["tournaments_completed"]}
+    )
+
+    logger.info(f"[LIFECYCLE] Season {season.get('name')} completed: {results}")
+    return results

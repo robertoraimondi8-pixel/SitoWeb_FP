@@ -359,6 +359,7 @@ class AdminSeasonUpdate(BaseModel):
     start_date: Optional[str] = None
     end_date: Optional[str] = None
     is_active: Optional[bool] = None
+    status: Optional[str] = None
 
 
 class AdminMatchdayUpdate(BaseModel):

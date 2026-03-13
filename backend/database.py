@@ -45,6 +45,9 @@ tournament_matchups_col = db.tournament_matchups
 # Trophies collection
 trophies_col = db.trophies
 
+# Palmares collection (persisted historical results)
+palmares_col = db.palmares
+
 
 async def create_indexes():
     """Create all required indexes for the database."""
@@ -135,6 +138,10 @@ async def create_indexes():
         # Roles (RBAC)
         await roles_col.create_index("id", unique=True)
         await roles_col.create_index("name", unique=True)
+
+        # Palmares
+        await palmares_col.create_index("id", unique=True)
+        await palmares_col.create_index([("season_id", 1), ("competition_id", 1)], unique=True, sparse=True, name="palmares_season_comp_unique")
 
         # Tournaments
         await tournaments_col.create_index("id", unique=True)
