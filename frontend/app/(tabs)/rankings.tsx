@@ -192,15 +192,13 @@ export default function RankingsScreen() {
               {tab === 'total' && entry.matchdays_played ? ` · ${entry.matchdays_played} giornate` : ''}
             </Text>
           )}
+          {/* Stats row under player name */}
+          <Text style={styles.statsRow} data-testid={`stats-${entry.user_id}`}>
+            {tab === 'total'
+              ? `Correct ${entry.total_correct_predictions ?? 0} · Exact ${entry.exact_score_hits ?? 0} · 1X2 ${entry.one_x_two_hits ?? 0}`
+              : `Correct ${entry.total_correct ?? 0} · Exact ${entry.exact_correct ?? 0} · 1X2 ${entry['1x2_correct'] ?? 0}`}
+          </Text>
         </View>
-        
-        {/* Indovinati column - only in total tab */}
-        {tab === 'total' && (
-          <View style={styles.correctCol} data-testid={`correct-${entry.user_id}`}>
-            <Text style={styles.correctValue}>{entry.total_correct_predictions ?? 0}</Text>
-            <Text style={styles.correctLabel}>Ind.</Text>
-          </View>
-        )}
 
         <View style={styles.pointsContainer}>
           <Text style={[
@@ -1019,25 +1017,16 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.45)',
     marginTop: spacing.xs,
   },
+  statsRow: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.4)',
+    marginTop: 3,
+  },
   
   pointsContainer: { 
     alignItems: 'flex-end',
     marginRight: spacing.xs,
-  },
-  correctCol: {
-    alignItems: 'center',
-    minWidth: 32,
-    marginRight: spacing.sm,
-  },
-  correctValue: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.8)',
-  },
-  correctLabel: {
-    fontSize: 9,
-    color: 'rgba(255,255,255,0.35)',
-    marginTop: 1,
   },
   pointsText: { 
     ...typography.statMedium,

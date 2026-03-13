@@ -154,27 +154,29 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
     for p in all_preds:
         uid = p["user_id"]
         if uid not in user_pred_stats:
-            user_pred_stats[uid] = {"total_correct": 0, "1x2_correct": 0}
+            user_pred_stats[uid] = {"total_correct": 0, "exact_correct": 0, "1x2_correct": 0}
         if p.get("is_correct"):
             user_pred_stats[uid]["total_correct"] += 1
             market = p.get("market_type", "1X2")
             if market == "1X2":
                 user_pred_stats[uid]["1x2_correct"] += 1
+            elif market == "EXACT_SCORE":
+                user_pred_stats[uid]["exact_correct"] += 1
 
     entries = []
     for uid in member_user_ids:
         u = await users_col.find_one({"id": uid}, {"_id": 0, "password": 0})
         points_data = await compute_matchday_points(uid, matchday_id, league_id=league_id)
-        stats = user_pred_stats.get(uid, {"total_correct": 0, "1x2_correct": 0})
+        stats = user_pred_stats.get(uid, {"total_correct": 0, "exact_correct": 0, "1x2_correct": 0})
         entries.append({
             "user_id": uid, "username": u["username"] if u else "Unknown",
             "matchday_points": int(points_data["total_points"]),
             "base_points": int(points_data["base_points"]), "joker_bonus": int(points_data["joker_bonus"]),
-            "total_correct": stats["total_correct"], "1x2_correct": stats["1x2_correct"],
+            "total_correct": stats["total_correct"], "exact_correct": stats["exact_correct"], "1x2_correct": stats["1x2_correct"],
             "jolly_active": points_data["joker_active"], "is_current_user": uid == user["id"],
         })
 
-    entries.sort(key=lambda x: (-x["matchday_points"], -x["total_correct"], -x["1x2_correct"]))
+    entries.sort(key=lambda x: (-x["matchday_points"], -x["total_correct"], -x["exact_correct"], -x["1x2_correct"]))
     for i, e in enumerate(entries):
         e["rank"] = i + 1
 
