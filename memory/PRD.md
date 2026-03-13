@@ -70,6 +70,17 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] **Trophy Stats API** - Endpoint `GET /api/admin/trophies/stats` con totale, per tipo, e trofei recenti.
 - [x] **Season completion trophy integration** - `complete_season` ora chiama `award_tournament_trophies` per tornei completati.
 
+## Completed (13/03/2026 - Tiebreak System)
+- [x] **League Tiebreak Rules** - Ordinamento classifica: Punti → Indovinati → Esatti → 1X2 → Random. Implementato nell'endpoint `/standings/total` e nella `standings_cache`.
+- [x] **Tournament Knockout Tiebreak** - Risoluzione matchup 1v1 con stessa logica tiebreak. Quando i punti sono pari: confronto indovinati → esatti → 1X2 → random. Salva `tiebreak_reason` sul matchup.
+- [x] **Nuovi campi per-giornata** - `total_correct_predictions`, `exact_score_hits`, `one_x_two_hits`, `over_under_hits`, `goal_nogol_hits` salvati in `score_summaries` e aggregati in `standings_cache`.
+- [x] **Colonna "Indovinati" Classifica Mobile** - Colonna "Ind." nel tab Totale della classifica dell'app.
+- [x] **Colonna "Indovinati/Esatti/1X2" Admin** - Classifica admin con tutte e 3 le colonne aggiuntive per spiegare spareggi.
+- [x] **UI Tiebreak Torneo** - Indicatore "Vince per tiebreak: [motivo]" nella hero card del matchup 1v1 e nelle righe matchup della classifica torneo.
+- [x] **Backfill Tiebreak Stats** - Endpoint `POST /api/admin/backfill-tiebreak-stats` ricalcola statistiche da predictions esistenti (90 summaries, 50 cache aggiornate).
+- [x] **Admin Backfill Button** - Pulsante "Esegui Backfill Tiebreak" nella pagina Trofei admin.
+- [x] **`total_correct_predictions`** = 1X2 + Over/Under + Goal/NoGoal + Esatti corretti (somma di TUTTI i mercati corretti)
+
 ## Prioritized Backlog
 
 ### P1 - Next Up
