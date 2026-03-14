@@ -219,8 +219,9 @@ export default function RankingsScreen() {
   };
 
   // ══ TOURNAMENT RANKINGS ══
-  const [trkTab, setTrkTab] = useState<'gironi' | 'tabellone' | 'partite'>('gironi');
+  const [trkTab, setTrkTab] = useState<'gironi' | 'tabellone' | 'partite' | 'regolamento'>('gironi');
   const [trkGroups, setTrkGroups] = useState<any[]>([]);
+  const [trkAdvanceCount, setTrkAdvanceCount] = useState(2);
   const [trkBracket, setTrkBracket] = useState<any[]>([]);
   const [trkLoading, setTrkLoading] = useState(true);
   const [trkTournament, setTrkTournament] = useState<any>(null);
@@ -233,13 +234,14 @@ export default function RankingsScreen() {
     setTrkLoading(true);
     Promise.all([
       apiCall(`/tournaments/${tournamentId}`, { token }),
-      apiCall(`/tournaments/${tournamentId}/groups`, { token }).catch(() => []),
+      apiCall(`/tournaments/${tournamentId}/groups`, { token }).catch(() => ({ groups: [] })),
       apiCall(`/tournaments/${tournamentId}/bracket`, { token }).catch(() => ({})),
       apiCall(`/tournaments/${tournamentId}/all-matchups`, { token }).catch(() => []),
       apiCall(`/tournaments/${tournamentId}/fixtures`, { token }).catch(() => ({ matchdays: [] })),
     ]).then(([detail, groups, bracketRes, allMatchups, fixturesRes]) => {
       setTrkTournament(detail);
-      setTrkGroups(groups || []);
+      setTrkGroups(groups?.groups || []);
+      setTrkAdvanceCount(groups?.advance_count || 2);
       setTrkAllMatchups(allMatchups || []);
       // Store fixtures for live scores
       (window as any).__trkFixtures = fixturesRes?.matchdays || [];
@@ -258,7 +260,7 @@ export default function RankingsScreen() {
   }, [competitionMode, tournamentId, token]);
 
   if (competitionMode === 'tournament' && tournamentId) {
-    const hasGroups = trkTournament && ['groups', 'knockout', 'completed'].includes(trkTournament.status);
+    const hasGroups = trkTournament && ['groups', 'knockout', 'completed'].includes(trkTournament.status) && Array.isArray(trkGroups) && trkGroups.length > 0;
     const bracketReady = trkTournament && ['knockout', 'completed'].includes(trkTournament.status);
 
     return (
@@ -284,6 +286,9 @@ export default function RankingsScreen() {
             <TouchableOpacity onPress={() => setTrkTab('partite')} style={[styles.tabBtn, trkTab === 'partite' && styles.tabBtnActive]} data-testid="trk-tab-partite">
               <Text style={[styles.tabText, trkTab === 'partite' && styles.tabTextActive]}>Partite</Text>
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => setTrkTab('regolamento')} style={[styles.tabBtn, trkTab === 'regolamento' && styles.tabBtnActive]} data-testid="trk-tab-regolamento">
+              <Text style={[styles.tabText, trkTab === 'regolamento' && styles.tabTextActive]}>Regolamento</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -301,37 +306,46 @@ export default function RankingsScreen() {
                 <Ionicons name="time-outline" size={40} color={colors.textMuted} />
                 <Text style={{ marginTop: 12, fontSize: 14, color: colors.textMuted, textAlign: 'center' }}>I gironi saranno disponibili dopo la fase di iscrizione</Text>
               </View>
-            ) : trkGroups.map((g: any) => (
-              <View key={g.group_name} style={{ marginBottom: 20, backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}>
-                <LinearGradient colors={['#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingHorizontal: 16, paddingVertical: 10 }}>
-                  <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14, letterSpacing: 1 }}>GIRONE {g.group_name}</Text>
-                </LinearGradient>
-                {/* Table header */}
-                <View style={{ flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
-                  <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted }}>#</Text>
-                  <Text style={{ flex: 4, fontSize: 11, fontWeight: '700', color: colors.textMuted }}>Giocatore</Text>
-                  <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>G</Text>
-                  <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>V</Text>
-                  <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>P</Text>
-                  <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>S</Text>
-                  <Text style={{ flex: 1.5, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'right' }}>Pts</Text>
+            ) : (
+              <>
+                <View style={{ paddingHorizontal: 16, paddingVertical: 10, backgroundColor: 'rgba(34,197,94,0.06)', borderRadius: 8, marginBottom: 12 }} data-testid="qualification-rule">
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#22c55e', textAlign: 'center' }}>
+                    {`I primi ${trkAdvanceCount} giocatori di ogni girone si qualificano per la fase a eliminazione diretta`}
+                  </Text>
                 </View>
-                {(g.standings || []).map((s: any, i: number) => {
-                  const isMe = s.user_id === user?.id;
-                  return (
-                    <View key={s.user_id} style={{ flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f8f8f8', backgroundColor: isMe ? 'rgba(245,166,35,0.06)' : (i < (g.qualifies || 2) ? 'rgba(34,197,94,0.04)' : 'transparent') }}>
-                      <Text style={{ flex: 1, fontSize: 13, fontWeight: isMe ? '800' : '600', color: i < (g.qualifies || 2) ? '#22c55e' : colors.textSecondary }}>{i + 1}</Text>
-                      <Text style={{ flex: 4, fontSize: 13, fontWeight: isMe ? '800' : '500', color: isMe ? colors.primary : colors.textPrimary }} numberOfLines={1}>{s.username}{isMe ? ' (tu)' : ''}</Text>
-                      <Text style={{ flex: 1, fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>{s.played ?? 0}</Text>
-                      <Text style={{ flex: 1, fontSize: 12, color: '#22c55e', textAlign: 'center', fontWeight: '600' }}>{s.wins ?? 0}</Text>
-                      <Text style={{ flex: 1, fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>{s.draws ?? 0}</Text>
-                      <Text style={{ flex: 1, fontSize: 12, color: '#ef4444', textAlign: 'center' }}>{s.losses ?? 0}</Text>
-                      <Text style={{ flex: 1.5, fontSize: 13, fontWeight: '800', color: colors.primary, textAlign: 'right' }}>{Math.round(s.group_points ?? s.points ?? 0)}</Text>
+                {trkGroups.map((g: any) => (
+                  <View key={g.group_name} style={{ marginBottom: 20, backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}>
+                    <LinearGradient colors={['#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingHorizontal: 16, paddingVertical: 10 }}>
+                      <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14, letterSpacing: 1 }}>GIRONE {g.group_name}</Text>
+                    </LinearGradient>
+                    {/* Table header */}
+                    <View style={{ flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
+                      <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted }}>#</Text>
+                      <Text style={{ flex: 4, fontSize: 11, fontWeight: '700', color: colors.textMuted }}>Giocatore</Text>
+                      <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>G</Text>
+                      <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>V</Text>
+                      <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>P</Text>
+                      <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>S</Text>
+                      <Text style={{ flex: 1.5, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'right' }}>Pts</Text>
                     </View>
-                  );
-                })}
-              </View>
-            ))}
+                    {(g.standings || []).map((s: any, i: number) => {
+                      const isMe = s.user_id === user?.id;
+                      return (
+                        <View key={s.user_id} style={{ flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f8f8f8', backgroundColor: isMe ? 'rgba(245,166,35,0.06)' : (i < (g.qualifies || 2) ? 'rgba(34,197,94,0.04)' : 'transparent') }}>
+                          <Text style={{ flex: 1, fontSize: 13, fontWeight: isMe ? '800' : '600', color: i < (g.qualifies || 2) ? '#22c55e' : colors.textSecondary }}>{i + 1}</Text>
+                          <Text style={{ flex: 4, fontSize: 13, fontWeight: isMe ? '800' : '500', color: isMe ? colors.primary : colors.textPrimary }} numberOfLines={1}>{s.username}{isMe ? ' (tu)' : ''}</Text>
+                          <Text style={{ flex: 1, fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>{s.played ?? 0}</Text>
+                          <Text style={{ flex: 1, fontSize: 12, color: '#22c55e', textAlign: 'center', fontWeight: '600' }}>{s.wins ?? 0}</Text>
+                          <Text style={{ flex: 1, fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>{s.draws ?? 0}</Text>
+                          <Text style={{ flex: 1, fontSize: 12, color: '#ef4444', textAlign: 'center' }}>{s.losses ?? 0}</Text>
+                          <Text style={{ flex: 1.5, fontSize: 13, fontWeight: '800', color: colors.primary, textAlign: 'right' }}>{Math.round(s.group_points ?? s.points ?? 0)}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                ))}
+              </>
+            )}
           </ScrollView>
         )}
 
@@ -526,6 +540,95 @@ export default function RankingsScreen() {
             </ScrollView>
           );
         })()}
+
+        {/* REGOLAMENTO TAB */}
+        {!trkLoading && trkTab === 'regolamento' && (
+          <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }} data-testid="tournament-rules">
+            {/* Struttura Torneo */}
+            <View style={{ backgroundColor: 'rgba(31,76,143,0.06)', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(31,76,143,0.15)' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Ionicons name="grid-outline" size={18} color={colors.primary} />
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>Struttura del torneo</Text>
+              </View>
+              <View style={{ gap: 6 }}>
+                <Text style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 22 }}>
+                  {`${Array.isArray(trkGroups) ? trkGroups.length : 0} gironi da ${(Array.isArray(trkGroups) && trkGroups[0]?.standings?.length) || '?'} giocatori`}
+                </Text>
+                <Text style={{ fontSize: 14, color: '#22c55e', fontWeight: '600', lineHeight: 22 }}>
+                  {`I primi ${trkAdvanceCount} giocatori di ogni girone si qualificano per la fase a eliminazione diretta`}
+                </Text>
+              </View>
+            </View>
+
+            {/* Formato Knockout */}
+            <View style={{ backgroundColor: 'rgba(245,166,35,0.06)', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(245,166,35,0.15)' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Ionicons name="trophy-outline" size={18} color="#F5A623" />
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>Fase a eliminazione diretta</Text>
+              </View>
+              <View style={{ gap: 4 }}>
+                {(() => {
+                  const totalQualified = (Array.isArray(trkGroups) ? trkGroups.length : 0) * trkAdvanceCount;
+                  const rounds: string[] = [];
+                  if (totalQualified >= 32) rounds.push('Trentaduesimi di finale');
+                  if (totalQualified >= 16) rounds.push('Ottavi di finale');
+                  if (totalQualified >= 8) rounds.push('Quarti di finale');
+                  if (totalQualified >= 4) rounds.push('Semifinale');
+                  rounds.push('Finale');
+                  return rounds.map((r, i) => (
+                    <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}>
+                      <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: i === rounds.length - 1 ? '#F5A623' : 'rgba(245,166,35,0.15)', alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontSize: 10, fontWeight: '800', color: i === rounds.length - 1 ? '#fff' : '#F5A623' }}>{i + 1}</Text>
+                      </View>
+                      <Text style={{ fontSize: 14, color: colors.textPrimary, fontWeight: i === rounds.length - 1 ? '700' : '400' }}>{r}</Text>
+                    </View>
+                  ));
+                })()}
+              </View>
+            </View>
+
+            {/* Regole Tiebreak */}
+            <View style={{ backgroundColor: 'rgba(139,92,246,0.06)', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(139,92,246,0.15)' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Ionicons name="swap-vertical-outline" size={18} color="#8B5CF6" />
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>Regole di spareggio</Text>
+              </View>
+              <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 10, lineHeight: 20 }}>
+                Se due giocatori sono in parita di punti in uno scontro diretto, il vincitore viene determinato in quest'ordine:
+              </Text>
+              <View style={{ gap: 6 }}>
+                {[
+                  { num: '1', text: 'Piu pronostici indovinati', color: '#3B82F6' },
+                  { num: '2', text: 'Piu risultati esatti indovinati', color: '#8B5CF6' },
+                  { num: '3', text: 'Piu 1X2 indovinati', color: '#10B981' },
+                  { num: '4', text: 'Sorteggio automatico (ultimo fallback)', color: '#94A3B8' },
+                ].map(rule => (
+                  <View key={rule.num} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 }}>
+                    <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: rule.color, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontSize: 12, fontWeight: '800', color: '#fff' }}>{rule.num}</Text>
+                    </View>
+                    <Text style={{ fontSize: 14, color: colors.textPrimary }}>{rule.text}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Regole Gironi */}
+            <View style={{ backgroundColor: 'rgba(34,197,94,0.06)', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: 'rgba(34,197,94,0.15)' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Ionicons name="people-outline" size={18} color="#22c55e" />
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>Fase a gironi</Text>
+              </View>
+              <View style={{ gap: 4 }}>
+                <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 20 }}>Vittoria: 3 punti girone</Text>
+                <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 20 }}>Pareggio: 1 punto girone</Text>
+                <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 20 }}>Sconfitta: 0 punti girone</Text>
+                <Text style={{ fontSize: 13, color: colors.textMuted, lineHeight: 20, marginTop: 4, fontStyle: 'italic' }}>In caso di parita, si usano i punti pronostici come criterio secondario.</Text>
+              </View>
+            </View>
+          </ScrollView>
+        )}
+
       </SafeAreaView>
     );
   }

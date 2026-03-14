@@ -982,6 +982,8 @@ async def get_group_standings(tournament_id: str, user=Depends(get_current_user)
         {"tournament_id": tournament_id}, {"_id": 0}
     ).to_list(20)
 
+    advance_count = t.get("advance_count", 2)
+
     result = []
     for g in groups:
         standings = []
@@ -995,12 +997,18 @@ async def get_group_standings(tournament_id: str, user=Depends(get_current_user)
 
             wins = draws = losses = group_pts = 0
             total_pred_pts = 0
+            total_correct = 0
+            exact_hits = 0
+            onextwo_hits = 0
             for mu in matchups:
                 if mu["status"] != "completed":
                     continue
                 is_a = mu["user_a_id"] == uid
                 my_pts = mu["user_a_points"] if is_a else mu["user_b_points"]
                 total_pred_pts += my_pts
+                total_correct += (mu.get("user_a_correct", 0) if is_a else mu.get("user_b_correct", 0))
+                exact_hits += (mu.get("user_a_exact", 0) if is_a else mu.get("user_b_exact", 0))
+                onextwo_hits += (mu.get("user_a_1x2", 0) if is_a else mu.get("user_b_1x2", 0))
                 if mu["result"] == "draw":
                     draws += 1
                     group_pts += 1
@@ -1019,16 +1027,27 @@ async def get_group_standings(tournament_id: str, user=Depends(get_current_user)
                 "losses": losses,
                 "group_points": group_pts,
                 "prediction_points": int(total_pred_pts),
+                "total_correct": total_correct,
+                "exact_hits": exact_hits,
+                "onextwo_hits": onextwo_hits,
             })
 
-        standings.sort(key=lambda x: (-x["group_points"], -x["prediction_points"]))
+        # Sort with tiebreak: group_points → prediction_points → total_correct → exact_hits → onextwo_hits
+        standings.sort(key=lambda x: (-x["group_points"], -x["prediction_points"], -x["total_correct"], -x["exact_hits"], -x["onextwo_hits"]))
         result.append({
             "group_name": g["group_name"],
             "group_id": g["id"],
+            "qualifies": advance_count,
             "standings": standings,
         })
 
-    return result
+    return {
+        "groups": result,
+        "advance_count": advance_count,
+        "players_per_group": t.get("players_per_group", 0),
+        "groups_count": t.get("groups_count", 0),
+        "tournament_name": t.get("name", ""),
+    }
 
 
 # ── Knockout bracket ──
