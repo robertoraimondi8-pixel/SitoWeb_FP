@@ -94,6 +94,13 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] **Labels in italiano** - Indovinati, Risultati esatti, 1X2 indovinati
 - [x] **Stessa regola per Totale e Settimanale** - Entrambe le viste mostrano solo "Indovinati" nella lista
 
+## Completed (14/03/2026 - Tournament Groups UI + Regolamento)
+- [x] **Qualification highlight dinamico** - Il numero di righe evidenziate in verde corrisponde a `qualified_per_group` dalla configurazione torneo (non più fisso a 2)
+- [x] **Messaggio qualificazione** - "I primi X giocatori di ogni girone si qualificano per la fase a eliminazione diretta" sopra ogni tabella girone
+- [x] **Tab Regolamento** - Quarto tab nel torneo con: struttura torneo, formato knockout (dinamico), regole tiebreak (4 livelli), regole gironi (3/1/0 punti)
+- [x] **API gruppi migliorata** - Ritorna `qualifies`, `advance_count`, `players_per_group`, `groups_count` + statistiche tiebreak per giocatore
+- [x] **Tiebreak classifica gironi** - Ordinamento: punti girone → punti pronostici → indovinati → esatti → 1X2
+
 ## Prioritized Backlog
 
 ### P1 - Next Up
