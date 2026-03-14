@@ -116,8 +116,9 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] **BOOST X3 badge compatto** - Badge spostato SOPRA il match header (era sotto, copriva orario). Font ridotto a 11px, paddingVertical: 3, solo icona flash + "BOOST X3". Applicato sia in `predictions.tsx` che in `TournamentView.tsx`.
 - [x] **Card Lega unificata** - Aggiunto countdown timer ("Scadenza tra HH:MM:SS") + progress bar arancione ("0/10 pronostici") nella hero card della lega OPEN.
 - [x] **Card Torneo unificata** - Aggiunto countdown timer nella hero card torneo OPEN (backend `countdown_seconds` + frontend).
-- [x] **CTA Button dinamico** - "INSERISCI PRONOSTICI" (0 predictions) / "MODIFICA PRONOSTICI" (>0 predictions) in italiano, identico per leghe e tornei.
+- [x] **CTA Button dinamico** - "INSERISCI PRONOSTICI" (0 predictions) / "MODIFICA PRONOSTICI" (>0 predictions) in italiano, stile identico torneo (centrato, icona cerchio semi-trasparente, gradiente arancione). Applicato sia in lega che torneo.
 - [x] **Backend: countdown_seconds per tornei** - Aggiunto `countdown_seconds` e `first_kickoff` a `current_round_info` (da `start_time` delle partite del round).
+- [x] **Progress bar fix** - Usa `matches_loaded` (non `total_matches`) per conteggio corretto (10, non 11).
 
 ## Prioritized Backlog
 

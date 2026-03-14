@@ -457,25 +457,18 @@ export default function HomeScreen() {
                         </>
                       )}
 
-                      {/* CTA Button — premium with highlight */}
+                      {/* CTA Button — unified with tournament style */}
                       {ctaConfig && (
-                        <View style={s.ctaBtnWrap}>
+                        <View data-testid="league-hero-cta">
                           <LinearGradient
                             colors={data.matchday.status?.toUpperCase() === 'LIVE' ? ['#10B981', '#059669'] : ['#F7A21B', '#E88E00']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
-                            style={s.ctaBtn}
+                            style={s.ctaGrad}
                           >
-                            <LinearGradient
-                              colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.05)', 'transparent']}
-                              start={{ x: 0, y: 0 }}
-                              end={{ x: 1, y: 1 }}
-                              style={[StyleSheet.absoluteFill, { borderRadius: 22 }]}
-                            />
-                            <View style={s.ctaTopLine} />
-                            <Text style={s.ctaText}>{ctaConfig.label}</Text>
-                            <View style={s.ctaIconCircle}>
-                              <Ionicons name={ctaConfig.icon} size={18} color="#FFFFFF" />
+                            <Text style={s.ctaGradText}>{ctaConfig.label}</Text>
+                            <View style={s.ctaGradIcon}>
+                              <Ionicons name={ctaConfig.icon} size={18} color="#fff" />
                             </View>
                           </LinearGradient>
                         </View>
@@ -939,45 +932,25 @@ const s = StyleSheet.create({
   },
 
   // CTA Button (premium with highlight + top line)
-  ctaBtnWrap: {
-    marginTop: 8,
-    borderRadius: 22,
-    overflow: 'hidden',
-    shadowColor: '#F7A21B',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 6,
-  },
-  ctaBtn: {
+  ctaGrad: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    gap: 10,
     paddingVertical: 14,
-    paddingLeft: 24,
-    paddingRight: 8,
+    paddingHorizontal: 24,
     borderRadius: 22,
-    overflow: 'hidden',
   },
-  ctaTopLine: {
-    position: 'absolute',
-    top: 1,
-    left: 20,
-    right: 20,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+  ctaGradText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#fff',
   },
-  ctaText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.3,
-  },
-  ctaIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: DARK.navyDeep,
+  ctaGradIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
