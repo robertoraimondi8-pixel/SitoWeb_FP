@@ -30,7 +30,7 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
     if not league_doc:
         raise HTTPException(404, "League not found")
 
-    members = await memberships_col.find({"league_id": league_id, "status": "active"}).to_list(1000)
+    members = await memberships_col.find({"league_id": league_id, "status": "active"}, {"_id": 0, "user_id": 1}).to_list(1000)
     member_user_ids = [m["user_id"] for m in members]
 
     season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
@@ -40,6 +40,10 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
             {"season_id": season["id"], "status": {"$in": ["OPEN", "LOCKED", "LIVE"]}}, {"_id": 0}, sort=[("number", -1)]
         )
 
+    # Batch fetch all users
+    users_data = await users_col.find({"id": {"$in": member_user_ids}}, {"_id": 0, "id": 1, "username": 1, "display_name": 1, "email": 1}).to_list(1000)
+    users_dict = {u["id"]: u for u in users_data}
+
     is_national_type = league_doc.get("match_source_type") not in ("manual", "custom", "api")
     if is_national_type:
         completed_mds = await matchdays_col.find({"league_id": NATIONAL_LEAGUE_ID, "status": "COMPLETED"}, {"_id": 0, "id": 1}).to_list(200)
@@ -47,7 +51,7 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
         if not league_played_md_ids:
             entries = []
             for uid in member_user_ids:
-                u = await users_col.find_one({"id": uid}, {"_id": 0, "password": 0})
+                u = users_dict.get(uid)
                 entries.append({"user_id": uid, "username": u["username"] if u else "Unknown", "total_points": 0, "current_week_points": 0, "matchdays_played": 0, "jolly_used": 0, "created_at": "", "is_current_user": uid == user["id"], "rank": None})
             for i, e in enumerate(entries):
                 e["rank"] = i + 1
@@ -82,7 +86,7 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
 
     entries = []
     for uid in member_user_ids:
-        u = await users_col.find_one({"id": uid}, {"_id": 0, "password": 0})
+        u = users_dict.get(uid)
         t = totals_dict.get(uid, {"total_points": 0, "matchdays_played": 0, "created_at": "", "total_correct_predictions": 0, "exact_score_hits": 0, "one_x_two_hits": 0})
         random_seed = hash(uid) & 0xFFFFFFFF  # deterministic random fallback
         entries.append({
