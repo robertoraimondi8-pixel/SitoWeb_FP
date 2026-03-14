@@ -342,7 +342,7 @@ export default function LoginScreen() {
             style={styles.registerRow}
           >
             <Text style={styles.registerLabel}>{t('no_account')} </Text>
-            <Text style={styles.registerLink}>{t('register')}</Text>
+            <Text style={styles.registerLink}>{t('register_action')}</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

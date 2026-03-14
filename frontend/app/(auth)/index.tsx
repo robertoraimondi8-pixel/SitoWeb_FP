@@ -119,7 +119,7 @@ export default function AuthLanding() {
             activeOpacity={0.85}
           >
             <Ionicons name="person-add" size={20} color={colors.textInverse} />
-            <Text style={s.primaryBtnText}>{t('register')}</Text>
+            <Text style={s.primaryBtnText}>{t('register_action')}</Text>
           </TouchableOpacity>
 
           {/* Accedi */}

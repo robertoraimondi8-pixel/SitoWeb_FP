@@ -32,6 +32,7 @@
   "session_id": "ID Sessione",
   "app_name": "FantaPronostic",
   "login": "Accedi",
+  "register_action": "Registrati",
   "register": {
     "page_title": "Crea il tuo account",
     "page_subtitle": "Completa tutti i campi per registrarti",
