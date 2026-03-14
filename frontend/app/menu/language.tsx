@@ -17,7 +17,7 @@ const LANG_LABELS: Record<string, { label: string; flag: string }> = {
 
 export default function LanguageScreen() {
   const router = useRouter();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const currentLang = i18n.language;
 
   const handleSelect = async (lang: SupportedLang) => {
@@ -32,7 +32,7 @@ export default function LanguageScreen() {
         <TouchableOpacity onPress={() => router.back()} data-testid="back-btn">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Lingua</Text>
+        <Text style={s.headerTitle}>{t('side_menu.language')}</Text>
         <View style={{ width: 24 }} />
       </View>
       <View style={s.content}>

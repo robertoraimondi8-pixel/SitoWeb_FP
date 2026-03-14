@@ -194,7 +194,7 @@ export default function HomeScreen() {
       return `${totalMatches} ${t('matches')} \u00B7 ${t('home.deadline_in')} ${formatCountdown(countdown)}`;
     }
     if (status === 'OPEN') {
-      return `${data.matchday.my_predictions_count}/${totalMatches} partite`;
+      return t('home.matches_count', { count: data.matchday.my_predictions_count, total: totalMatches });
     }
     if (status === 'LIVE') {
       const pts = data.live?.total_provisional;
@@ -433,7 +433,7 @@ export default function HomeScreen() {
                                 ? (data.live?.total_provisional ?? 0)
                                 : (data.matchday.my_points ?? data.live?.total_provisional ?? 0);
                               const val = Math.round(Number(pts));
-                              if (val > 0) return `Hai fatto ${val} punti su 10 partite`;
+                              if (val > 0) return t('home.scored_on_matches', { points: val, matches: 10 });
                               return t('home.no_points_matchday');
                             })()}
                           </Text>
@@ -446,7 +446,7 @@ export default function HomeScreen() {
                           )}
                           {/* Matchday title — SECONDARY */}
                           <Text style={s.heroTitleSecondary}>
-                            {data.matchday.label || `Giornata ${data.matchday.number}`}
+                            {data.matchday.label || `${t('home.matchday_label')} ${data.matchday.number}`}
                           </Text>
                           {/* Prediction progress bar */}
                           <View style={s.predProgressRow}>
@@ -479,7 +479,7 @@ export default function HomeScreen() {
                     <View style={s.emptyHero}>
                       <Ionicons name="football-outline" size={40} color={DARK.textMuted} />
                       <Text style={s.emptyHeroTitle}>{t('home.no_matchday')}</Text>
-                      <Text style={s.emptyHeroSub}>Nessuna giornata in programma</Text>
+                      <Text style={s.emptyHeroSub}>{t('home.no_matchday_scheduled')}</Text>
                     </View>
                   )}
                 </LinearGradient>
