@@ -440,13 +440,14 @@ export default function HomeScreen() {
                         </View>
                       ) : (
                         <>
-                          <Text style={s.heroTitle}>
+                          {/* Countdown timer — PRIMARY info for leagues */}
+                          {countdown > 0 && (
+                            <Text style={s.heroCountdownPrimary}>Scadenza tra {formatCountdown(countdown)}</Text>
+                          )}
+                          {/* Matchday title — SECONDARY */}
+                          <Text style={s.heroTitleSecondary}>
                             {data.matchday.label || `Giornata ${data.matchday.number}`}
                           </Text>
-                          {/* Countdown timer */}
-                          {countdown > 0 && (
-                            <Text style={s.heroSub}>Scadenza tra {formatCountdown(countdown)}</Text>
-                          )}
                           {/* Prediction progress bar */}
                           <View style={s.predProgressRow}>
                             <View style={s.predProgressBarBg}>
@@ -896,6 +897,20 @@ const s = StyleSheet.create({
     letterSpacing: -0.5,
     lineHeight: 38,
     marginBottom: 8,
+  },
+  heroCountdownPrimary: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+    lineHeight: 32,
+    marginBottom: 6,
+  },
+  heroTitleSecondary: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.6)',
+    marginBottom: 14,
   },
   heroSub: {
     fontSize: 15,

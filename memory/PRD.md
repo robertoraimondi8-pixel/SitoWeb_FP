@@ -117,8 +117,8 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] **Card Lega unificata** - Aggiunto countdown timer ("Scadenza tra HH:MM:SS") + progress bar arancione ("0/10 pronostici") nella hero card della lega OPEN.
 - [x] **Card Torneo unificata** - Aggiunto countdown timer nella hero card torneo OPEN (backend `countdown_seconds` + frontend).
 - [x] **CTA Button dinamico** - "INSERISCI PRONOSTICI" (0 predictions) / "MODIFICA PRONOSTICI" (>0 predictions) in italiano, stile identico torneo (centrato, icona cerchio semi-trasparente, gradiente arancione). Applicato sia in lega che torneo.
-- [x] **Backend: countdown_seconds per tornei** - Aggiunto `countdown_seconds` e `first_kickoff` a `current_round_info` (da `start_time` delle partite del round).
-- [x] **Progress bar fix** - Usa `matches_loaded` (non `total_matches`) per conteggio corretto (10, non 11).
+- [x] **Gerarchia testi card Lega** - Countdown PRIMARIO (fontSize 26, bold, bianco), titolo giornata SECONDARIO (fontSize 18, 600, attenuato). Ordine: Countdown → Giornata → Progress → CTA.
+- [x] **Gerarchia testi card Torneo** - Avversario PRIMARIO (fontSize 24, 800, bianco), countdown SECONDARIO (fontSize 15, 600, 70% opacità), giornata TERZIARIA (fontSize 13, 500, 45% opacità). Ordine: Avversario → Countdown → Giornata → Progress → CTA.
 
 ## Prioritized Backlog
 

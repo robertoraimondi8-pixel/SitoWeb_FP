@@ -356,19 +356,20 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
             </>
           ) : (
             <>
-              {/* OPEN/PENDING: keep title + countdown + opponent + progress */}
-              <Text style={s.heroTitle}>{cri.label}</Text>
-
-              {/* Countdown timer (same as league) */}
-              {cri.status === 'OPEN' && countdown > 0 && (
-                <Text style={s.heroSub}>Scadenza tra {formatCountdown(countdown)}</Text>
-              )}
-
+              {/* OPEN/PENDING: opponent PRIMARY, countdown secondary, title tertiary */}
               {cri.opponent_name ? (
-                <Text style={s.heroSub}>VS {cri.opponent_name}</Text>
+                <Text style={s.heroOpponentPrimary}>VS {cri.opponent_name.toUpperCase()}</Text>
               ) : (
-                <Text style={s.heroSub}>{t.registered_count}/{t.max_participants} partecipanti</Text>
+                <Text style={s.heroOpponentPrimary}>{t.registered_count}/{t.max_participants} partecipanti</Text>
               )}
+
+              {/* Countdown timer — secondary */}
+              {cri.status === 'OPEN' && countdown > 0 && (
+                <Text style={s.heroCountdownSec}>Scadenza tra {formatCountdown(countdown)}</Text>
+              )}
+
+              {/* Matchday label — tertiary */}
+              <Text style={s.heroTitleTertiary}>{cri.label}</Text>
 
               {/* Prediction progress */}
               {cri.status === 'OPEN' && (
@@ -572,6 +573,25 @@ const s = StyleSheet.create({
   heroLabel: { fontSize: 10, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: 1.5 },
   heroTitle: { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: 6 },
   heroSub: { fontSize: 13, color: 'rgba(255,255,255,0.55)', marginBottom: spacing.md },
+  heroOpponentPrimary: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  heroCountdownSec: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
+    marginBottom: 4,
+  },
+  heroTitleTertiary: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.45)',
+    marginBottom: 12,
+  },
 
   // Primary metric (match score for tournament)
   heroPrimaryWrap: { alignItems: 'center', marginVertical: 16 },
