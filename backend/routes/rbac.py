@@ -906,6 +906,24 @@ async def admin_create_user(request: Request, user=Depends(require_permission("a
     return {"user_id": user_id, "username": username, "email": email}
 
 
+
+# ========================================
+# ADMIN: FORCE VERIFY EMAIL
+# ========================================
+@rbac_router.post("/users/{user_id}/force-verify-email")
+async def admin_force_verify_email(user_id: str, user=Depends(get_current_user)):
+    """Force verify a user's email (super admin only)."""
+    if not user.get("is_super_admin"):
+        raise HTTPException(status_code=403, detail="Super admin only")
+    result = await users_col.update_one(
+        {"id": user_id},
+        {"$set": {"email_verified": True, "email_verification_token": None}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found or already verified")
+    return {"status": "ok", "user_id": user_id, "email_verified": True}
+
+
 # ========================================
 # ADMIN: CREATE NEW LEAGUE
 # ========================================
