@@ -239,6 +239,12 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                 {mLive && m.elapsed != null && <View style={s.elapsedBadge}><Text style={s.elapsedText}>{m.elapsed}'</Text></View>}
                 {mLive && <View style={s.liveBadgeMatch}><View style={s.liveDotSm} /><Text style={s.liveTextMatch}>LIVE</Text></View>}
                 {mDone && <View style={[s.liveBadgeMatch, { backgroundColor: 'rgba(255,255,255,0.15)' }]}><Text style={[s.liveTextMatch, { color: 'rgba(255,255,255,0.6)' }]}>FT</Text></View>}
+                {!mLive && !mDone && m.start_time && (
+                  <Text style={s.kickoffTime}>{new Date(m.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</Text>
+                )}
+                {!mLive && !mDone && (
+                  <View style={[s.liveBadgeMatch, { backgroundColor: 'rgba(59,130,246,0.2)' }]}><Text style={[s.liveTextMatch, { color: '#60A5FA' }]}>SCH</Text></View>
+                )}
               </View>
               {/* Teams + Score */}
               <View style={s.teamsRow}>
@@ -249,7 +255,9 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   </View>
                 </View>
                 <View style={s.scoreCol}>
-                  {m.home_score !== null ? <Text style={[s.score, mLive && { color: '#10B981', fontSize: 24 }]}>{m.home_score} - {m.away_score}</Text> : <Text style={s.vs}>vs</Text>}
+                  {m.home_score !== null ? <Text style={[s.score, mLive && { color: '#10B981', fontSize: 24 }]}>{m.home_score} - {m.away_score}</Text>
+                    : !mLive && !mDone && m.start_time ? <Text style={s.schedTime}>{new Date(m.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</Text>
+                    : <Text style={s.vs}>vs</Text>}
                 </View>
                 <View style={s.teamCol}>
                   <View style={[s.teamNameRow, { justifyContent: 'flex-end' }]}>
@@ -720,6 +728,8 @@ const s = StyleSheet.create({
   teamName: { fontSize: 15, color: '#FFFFFF', fontWeight: '700', flex: 1, flexShrink: 1 },
   scoreCol: { width: 80, alignItems: 'center', flexShrink: 0 },
   score: { fontSize: 22, fontWeight: '900', color: '#FFFFFF' },
+  schedTime: { fontSize: 14, fontWeight: '700', color: '#60A5FA' },
+  kickoffTime: { fontSize: 11, fontWeight: '600', color: '#60A5FA', marginLeft: 'auto' },
   vs: { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
 
   // Predictions row

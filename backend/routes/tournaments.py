@@ -1205,6 +1205,9 @@ async def get_matchup_live(tournament_id: str, matchup_id: str, user=Depends(get
             "user_b_points": b_pts,
         })
 
+    # Sort matches chronologically by start_time
+    match_details.sort(key=lambda x: x["match"].get("start_time") or "9999")
+
     return {
         "matchup": mu,
         "round": rnd,
