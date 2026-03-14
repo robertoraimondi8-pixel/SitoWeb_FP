@@ -656,6 +656,8 @@ async def rbac_list_leagues(user=Depends(require_permission("admin.leagues.manag
             "season_id": lg.get("season_id"),
             "status": lg.get("status", "active"),
             "competition_name": lg.get("competition_name", ""),
+            "entry_fee": lg.get("entry_fee", 0),
+            "is_system": lg.get("is_system", False),
         })
     return result
 

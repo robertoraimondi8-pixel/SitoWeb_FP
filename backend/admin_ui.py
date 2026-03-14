@@ -1422,14 +1422,35 @@ async function showCreateLeagueModal() {
           ${endOpts}
         </select>
       </div>
-      <div style="grid-column:span 2">
+      <div>
         <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Pronostici Campionato</label>
         <select id="nl-champ" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-champ">
           <option value="false">No</option>
           <option value="true">Si</option>
         </select>
       </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Entry Fee (EUR)</label>
+        <input id="nl-fee" type="number" step="0.01" min="0" value="0" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-fee">
+      </div>
     </div>
+
+    ${isSuperAdmin ? `<div style="margin-top:16px;padding:12px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.2);border-radius:8px">
+      <h4 style="color:#F5A623;margin-bottom:8px;font-size:14px">Impostazioni di Sistema (Super Admin)</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Tipo Lega</label>
+          <select id="nl-league-type" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="new-league-type">
+            <option value="private">Privata</option>
+            <option value="national">Nazionale</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding-top:18px">
+          <input type="checkbox" id="nl-is-system" data-testid="new-league-is-system">
+          <label for="nl-is-system" style="color:#94A3B8;font-size:13px">Lega di Sistema</label>
+        </div>
+      </div>
+    </div>` : ''}
 
     <h4 style="color:#F5A623;margin:16px 0 8px;font-size:14px">Mercati e Punteggi</h4>
     ${marketsInputs}
@@ -1479,7 +1500,13 @@ async function doCreateLeague() {
     end_matchday: parseInt(document.getElementById('nl-end').value),
     include_championship_predictions: document.getElementById('nl-champ').value === 'true',
     scoring_config: scoring_config,
+    entry_fee: parseFloat(document.getElementById('nl-fee').value) || 0,
   };
+  // Super Admin system fields
+  const nlLeagueType = document.getElementById('nl-league-type');
+  if (nlLeagueType) body.league_type = nlLeagueType.value;
+  const nlIsSystem = document.getElementById('nl-is-system');
+  if (nlIsSystem) body.is_system = nlIsSystem.checked;
 
   if (!body.name || body.name.length < 3) {
     showToast('Il nome deve avere almeno 3 caratteri', 'error'); return;
@@ -2941,6 +2968,8 @@ function renderCrInfo(l) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:13px">
       <div><span style="color:#94A3B8">ID:</span> <code style="color:#F5A623;font-size:11px">${l.id.substring(0,16)}...</code></div>
       <div><span style="color:#94A3B8">Stagione:</span> ${l.season_id || '-'}</div>
+      <div><span style="color:#94A3B8">Tipo Lega:</span> <strong>${l.league_type === 'national' ? '<span style="color:#F59E0B">Nazionale</span>' : 'Privata'}</strong> ${l.is_system ? '<span class="tag tag-system">SISTEMA</span>' : ''}</div>
+      <div><span style="color:#94A3B8">Entry Fee:</span> <strong>${l.entry_fee > 0 ? l.entry_fee.toFixed(2) + ' EUR' : '<span style="color:#10B981">Gratis</span>'}</strong></div>
       <div><span style="color:#94A3B8">Giornate:</span> <strong>${l.start_matchday || '?'} - ${l.end_matchday || '?'}</strong></div>
       <div><span style="color:#94A3B8">Scadenza pronostici:</span> <strong>${l.bet_deadline_minutes || '?'} min</strong> prima del calcio d'inizio</div>
       <div><span style="color:#94A3B8">Sorgente match:</span> <strong>${l.match_source_type || '-'}</strong></div>
@@ -3049,7 +3078,35 @@ function renderCrEdit(l) {
           <option value="true" ${l.include_championship_predictions?'selected':''}>Si</option>
         </select>
       </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Entry Fee (EUR)</label>
+        <input id="rule-fee" type="number" step="0.01" min="0" value="${l.entry_fee||0}" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="edit-entry-fee">
+      </div>
+      <div>
+        <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Sorgente Match</label>
+        <select id="rule-source" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="edit-match-source">
+          <option value="national" ${l.match_source_type==='national'?'selected':''}>Nazionale</option>
+          <option value="custom" ${l.match_source_type==='custom'?'selected':''}>Personalizzata</option>
+        </select>
+      </div>
     </div>
+
+    ${isSuperAdmin ? `<div style="margin-top:16px;padding:12px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.2);border-radius:8px;margin-bottom:16px">
+      <h4 style="color:#F5A623;margin-bottom:8px;font-size:14px">Impostazioni di Sistema (Super Admin)</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label style="color:#94A3B8;font-size:12px;display:block;margin-bottom:4px">Tipo Lega</label>
+          <select id="rule-league-type" style="width:100%;padding:8px;background:#0F172A;border:1px solid #334155;border-radius:6px;color:#F1F5F9;font-size:13px" data-testid="edit-league-type">
+            <option value="private" ${l.league_type!=='national'?'selected':''}>Privata</option>
+            <option value="national" ${l.league_type==='national'?'selected':''}>Nazionale</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding-top:18px">
+          <input type="checkbox" id="rule-is-system" ${l.is_system?'checked':''} data-testid="edit-is-system">
+          <label for="rule-is-system" style="color:#94A3B8;font-size:13px">Lega di Sistema</label>
+        </div>
+      </div>
+    </div>` : ''}
 
     <div style="text-align:right;margin-top:16px">
       <button class="btn btn-danger" onclick="doEditRules('${l.id}')" data-testid="confirm-edit-rules-btn">Salva Tutte le Modifiche</button>
@@ -3124,8 +3181,15 @@ async function doEditRules(leagueId) {
     start_matchday: parseInt(document.getElementById('rule-start-md').value) || 1,
     end_matchday: parseInt(document.getElementById('rule-end-md').value) || 38,
     bet_deadline_minutes: parseInt(document.getElementById('rule-deadline').value) || 5,
-    include_championship_predictions: document.getElementById('rule-champ').value === 'true'
+    include_championship_predictions: document.getElementById('rule-champ').value === 'true',
+    entry_fee: parseFloat(document.getElementById('rule-fee').value) || 0,
+    match_source_type: document.getElementById('rule-source').value,
   };
+  // Super Admin system fields
+  const ruleLeagueType = document.getElementById('rule-league-type');
+  if (ruleLeagueType) body.league_type = ruleLeagueType.value;
+  const ruleIsSystem = document.getElementById('rule-is-system');
+  if (ruleIsSystem) body.is_system = ruleIsSystem.checked;
 
   try {
     await apiCall('/rbac/leagues/' + leagueId + '/rules', 'PUT', body);
