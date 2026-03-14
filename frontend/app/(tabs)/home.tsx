@@ -450,9 +450,9 @@ export default function HomeScreen() {
                           {/* Prediction progress bar */}
                           <View style={s.predProgressRow}>
                             <View style={s.predProgressBarBg}>
-                              <View style={[s.predProgressBarFill, { width: `${(data.matchday.my_predictions_count / Math.max(data.matchday.total_matches || 10, 1)) * 100}%` }]} />
+                              <View style={[s.predProgressBarFill, { width: `${(data.matchday.my_predictions_count / Math.max(data.matchday.matches_loaded || data.matchday.total_matches || 10, 1)) * 100}%` }]} />
                             </View>
-                            <Text style={s.predProgressText}>{data.matchday.my_predictions_count}/{data.matchday.total_matches || 10} pronostici</Text>
+                            <Text style={s.predProgressText}>{data.matchday.my_predictions_count}/{data.matchday.matches_loaded || data.matchday.total_matches || 10} pronostici</Text>
                           </View>
                         </>
                       )}
