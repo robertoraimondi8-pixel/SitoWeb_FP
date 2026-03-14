@@ -99,7 +99,12 @@ if (!getTokenFromUrl()) {
 
 
 def get_admin_html():
-    return """<!DOCTYPE html>
+    import os
+    admin_api_base = os.environ.get('ADMIN_API_BASE_URL', '/api')
+    html = _ADMIN_HTML_TEMPLATE.replace('__ADMIN_API_BASE__', admin_api_base)
+    return html
+
+_ADMIN_HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -215,7 +220,7 @@ tr:hover{background:rgba(245,166,35,0.05)}
 <div id="toast" class="toast"></div>
 <div id="modal-root"></div>
 <script>
-const API = '/api';
+const API = '__ADMIN_API_BASE__';
 let token = localStorage.getItem('admin_token');
 let userPerms = JSON.parse(localStorage.getItem('admin_perms') || '[]');
 let isSuperAdmin = localStorage.getItem('admin_is_super') === 'true';
