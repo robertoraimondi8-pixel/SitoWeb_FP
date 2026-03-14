@@ -84,6 +84,10 @@ async def register(req: RegisterRequest):
 
     logger.info(f"[EMAIL-VERIFY] token={vtoken} for {req.email[:3]}*** — link: myapp://verify-email?token={vtoken}")
 
+    # Send verification email
+    from email_service import send_verification_email
+    await send_verification_email(req.email, vtoken, username)
+
     access = create_access_token(user_id, "user")
     refresh = create_refresh_token(user_id)
     return TokenResponse(
@@ -156,6 +160,11 @@ async def resend_verification(body: dict):
         {"$set": {"email_verification_token": vtoken, "token_expiry": expiry}}
     )
     logger.info(f"[EMAIL-VERIFY-RESEND] token={vtoken} for {email[:3]}*** — link: myapp://verify-email?token={vtoken}")
+
+    # Send verification email
+    from email_service import send_verification_email
+    await send_verification_email(email, vtoken, user.get("username", ""))
+
     return {"message": "Nuovo link inviato. Controlla la tua email."}
 
 

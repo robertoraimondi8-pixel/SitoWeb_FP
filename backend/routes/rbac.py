@@ -925,6 +925,29 @@ async def admin_force_verify_email(user_id: str, user=Depends(get_current_user))
 
 
 # ========================================
+# ADMIN: UPDATE USER EMAIL
+# ========================================
+@rbac_router.put("/users/{user_id}/email")
+async def admin_update_user_email(user_id: str, request: Request, user=Depends(get_current_user)):
+    """Update a user's email (super admin only)."""
+    if not user.get("is_super_admin"):
+        raise HTTPException(status_code=403, detail="Super admin only")
+    body = await request.json()
+    new_email = body.get("email", "").strip().lower()
+    if not new_email or "@" not in new_email:
+        raise HTTPException(status_code=400, detail="Invalid email")
+    existing = await users_col.find_one({"email": new_email, "id": {"$ne": user_id}})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already in use")
+    await users_col.update_one(
+        {"id": user_id},
+        {"$set": {"email": new_email}}
+    )
+    return {"status": "ok", "user_id": user_id, "email": new_email}
+
+
+
+# ========================================
 # ADMIN: CREATE NEW LEAGUE
 # ========================================
 @rbac_router.post("/leagues/create")
