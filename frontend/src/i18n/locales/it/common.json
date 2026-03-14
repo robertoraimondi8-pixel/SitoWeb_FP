@@ -683,5 +683,87 @@
     "no_h2h": "Nessuno scontro diretto recente",
     "no_data": "Nessun dato",
     "stats_unavailable": "Statistiche non disponibili"
+  },
+  "profile_edit": {
+    "title": "Profilo",
+    "email_label": "Email",
+    "change_email": "Cambia Email",
+    "new_email_placeholder": "Nuova email",
+    "confirm_with_password": "Conferma con password",
+    "update_email_btn": "Aggiorna Email",
+    "username_label": "Nome utente",
+    "change_password": "Cambia Password",
+    "current_password_placeholder": "Password attuale",
+    "new_password_placeholder": "Nuova password",
+    "change_password_btn": "Cambia Password",
+    "delete_account": "Elimina Account",
+    "delete_confirm_msg": "Sei sicuro? Tutti i tuoi dati verranno eliminati permanentemente.",
+    "saved_title": "Salvato",
+    "saved_email": "Email aggiornata con successo",
+    "saved_username": "Nome utente aggiornato",
+    "saved_password": "Password aggiornata con successo",
+    "error_email": "Errore nel cambio email",
+    "error_username": "Errore nel salvataggio",
+    "error_password": "Password non corretta"
+  },
+  "my_leagues_screen": {
+    "title": "Le mie leghe",
+    "participants_count": "partecipanti",
+    "empty": "Non partecipi a nessuna lega"
+  },
+  "members_screen": {
+    "title": "Partecipanti",
+    "role_creator": "Creatore",
+    "empty": "Nessun partecipante"
+  },
+  "invites_screen": {
+    "title": "I miei inviti",
+    "have_code": "Hai un codice invito?",
+    "desc": "Inserisci il codice per unirti a una lega privata",
+    "code_placeholder": "Inserisci codice invito",
+    "joining": "Entrando...",
+    "join_btn": "Unisciti",
+    "success_title": "Fatto",
+    "success_msg": "Ti sei unito alla lega!",
+    "error_title": "Errore",
+    "error_msg": "Codice invito non valido"
+  },
+  "my_tournaments_screen": {
+    "title": "I miei tornei",
+    "status_registration": "Iscrizioni aperte",
+    "status_groups": "Fase a gironi",
+    "status_knockout": "Eliminazione",
+    "status_completed": "Concluso",
+    "empty_title": "Nessun torneo",
+    "empty_text": "Non sei iscritto a nessun torneo",
+    "search_btn": "Cerca tornei",
+    "matchday_label": "Giornata",
+    "eliminated": "Eliminato"
+  },
+  "browse_tournaments": {
+    "title": "Tornei disponibili",
+    "empty_title": "Nessun torneo disponibile",
+    "empty_text": "I tornei verranno creati dall'amministratore",
+    "participants_label": "partecipanti",
+    "groups_label": "gironi",
+    "matchdays_label": "giornate",
+    "registration_label": "iscrizione",
+    "free": "Gratis",
+    "registered_label": "Iscritto",
+    "registered_text": "Sei iscritto",
+    "register_btn": "Iscriviti",
+    "full_text": "Torneo al completo",
+    "spots_remaining_one": "posto rimasto",
+    "spots_remaining_other": "posti rimasti",
+    "error_register": "Errore durante l'iscrizione"
+  },
+  "news_screen": {
+    "title": "News",
+    "empty_title": "Nessuna news al momento",
+    "empty_desc": "Le novita appariranno qui"
+  },
+  "notifications_screen": {
+    "title": "Notifiche",
+    "empty": "Nessuna notifica"
   }
 }

@@ -4,11 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { colors, typography, spacing, borderRadius, brandGradients } from '../../src/theme/designSystem';
 
 export default function MyLeaguesScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { leagues, activeLeague, setActiveLeague } = useLeague();
 
   return (
@@ -18,7 +20,7 @@ export default function MyLeaguesScreen() {
         <TouchableOpacity onPress={() => router.back()} data-testid="back-btn">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Le mie leghe</Text>
+        <Text style={s.headerTitle}>{t('my_leagues_screen.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
       <FlatList
@@ -38,13 +40,13 @@ export default function MyLeaguesScreen() {
                   <Ionicons name="trophy" size={18} color={isActive ? colors.accent : 'rgba(255,255,255,0.5)'} />
                   <Text style={[s.leagueName, isActive && s.leagueNameActive]}>{item.name}</Text>
                 </View>
-                <Text style={s.leagueMeta}>{item.member_count} partecipanti</Text>
+                <Text style={s.leagueMeta}>{item.member_count} {t('my_leagues_screen.participants_count')}</Text>
               </View>
               {isActive && <Ionicons name="checkmark-circle" size={22} color={colors.accent} />}
             </TouchableOpacity>
           );
         }}
-        ListEmptyComponent={<Text style={s.empty}>Non partecipi a nessuna lega</Text>}
+        ListEmptyComponent={<Text style={s.empty}>{t('my_leagues_screen.empty')}</Text>}
       />
     </SafeAreaView>
   );
