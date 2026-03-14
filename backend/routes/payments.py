@@ -1,5 +1,6 @@
 """Payment routes: Stripe checkout and status."""
 import os
+import stripe
 from fastapi import APIRouter, HTTPException, Depends, Request
 import logging
 
@@ -27,26 +28,36 @@ async def create_checkout(req: CheckoutRequest, request: Request, user=Depends(g
     if not stripe_api_key:
         raise HTTPException(500, "Stripe not configured")
 
-    from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
-
-    host_url = str(request.base_url).rstrip("/")
-    webhook_url = f"{host_url}api/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
+    stripe.api_key = stripe_api_key
 
     origin = req.origin_url.rstrip("/")
     success_url = f"{origin}/league/payment-success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{origin}/league/join"
 
     metadata = {"user_id": user["id"], "league_id": req.league_id, "type": "national_league_membership"}
-    checkout_req = CheckoutSessionRequest(amount=NATIONAL_LEAGUE_PRICE, currency="eur", success_url=success_url, cancel_url=cancel_url, metadata=metadata)
-    session = await stripe_checkout.create_checkout_session(checkout_req)
+
+    session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[{
+            "price_data": {
+                "currency": "eur",
+                "product_data": {"name": "Iscrizione Lega Nazionale"},
+                "unit_amount": int(NATIONAL_LEAGUE_PRICE * 100),
+            },
+            "quantity": 1,
+        }],
+        mode="payment",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata=metadata,
+    )
 
     await payments_col.insert_one({
         "id": new_id(), "user_id": user["id"], "league_id": req.league_id,
-        "session_id": session.session_id, "amount": NATIONAL_LEAGUE_PRICE,
+        "session_id": session.id, "amount": NATIONAL_LEAGUE_PRICE,
         "currency": "eur", "payment_status": "pending", "metadata": metadata, "created_at": now_utc(),
     })
-    return CheckoutResponse(url=session.url, session_id=session.session_id)
+    return CheckoutResponse(url=session.url, session_id=session.id)
 
 
 @payment_router.get("/status/{session_id}")
@@ -56,20 +67,21 @@ async def get_payment_status(session_id: str, request: Request, user=Depends(get
         raise HTTPException(404, "Payment not found")
 
     stripe_api_key = os.environ.get("STRIPE_API_KEY")
-    from emergentintegrations.payments.stripe.checkout import StripeCheckout
+    if not stripe_api_key:
+        raise HTTPException(500, "Stripe not configured")
 
-    host_url = str(request.base_url).rstrip("/")
-    webhook_url = f"{host_url}api/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
+    stripe.api_key = stripe_api_key
+    session = stripe.checkout.Session.retrieve(session_id)
 
-    status = await stripe_checkout.get_checkout_status(session_id)
+    payment_status = session.payment_status or "unpaid"
+    session_status = session.status or "open"
 
-    if status.payment_status == "paid" and payment["payment_status"] != "paid":
-        await payments_col.update_one({"session_id": session_id}, {"$set": {"payment_status": "paid", "status": status.status}})
+    if payment_status == "paid" and payment["payment_status"] != "paid":
+        await payments_col.update_one({"session_id": session_id}, {"$set": {"payment_status": "paid", "status": session_status}})
         existing = await memberships_col.find_one({"user_id": payment["user_id"], "league_id": payment["league_id"]})
         if not existing:
             await memberships_col.insert_one({"id": new_id(), "user_id": payment["user_id"], "league_id": payment["league_id"], "status": "active", "joined_at": now_utc(), "payment_id": payment["id"]})
-    elif status.status == "expired":
+    elif session_status == "expired":
         await payments_col.update_one({"session_id": session_id}, {"$set": {"payment_status": "expired", "status": "expired"}})
 
-    return {"payment_status": status.payment_status, "status": status.status, "amount": payment["amount"], "currency": payment["currency"]}
+    return {"payment_status": payment_status, "status": session_status, "amount": payment["amount"], "currency": payment["currency"]}
