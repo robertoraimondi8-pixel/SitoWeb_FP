@@ -62,25 +62,15 @@ export default function SplashScreen() {
 
   // Route once both splash and auth are ready
   useEffect(() => {
-    // ── LOG PUNTO 3 ──────────────────────────────────────────────────────────
-    console.log('[DEBUG-3] index.tsx useEffect fired:',
-      'isLoading=', isLoading,
-      'isAuthenticated=', isAuthenticated,
-      'splashDone=', splashDone,
-      'impersonating=', impersonating
-    );
-    if (isLoading) { console.log('[DEBUG-3] SKIP: isLoading=true'); return; }
-    if (impersonating) { console.log('[DEBUG-3] SKIP: impersonation in progress'); return; }
-    if (!splashDone && !isAuthenticated) { console.log('[DEBUG-3] SKIP: splash not done + not auth'); return; }
-    console.log('[DEBUG-3] => chiamo route()');
+    if (isLoading) return;
+    if (impersonating) return;
+    if (!splashDone && !isAuthenticated) return;
     route();
   }, [splashDone, isLoading, isAuthenticated, impersonating]);
 
   const route = async () => {
     const accessToken = await AsyncStorage.getItem('access_token');
-    console.log('[DEBUG-3] route(): storedTokenExists=', !!accessToken);
     if (!accessToken) {
-      console.log('[DEBUG-4] NAVIGATE -> /(auth)/ (no token in AsyncStorage)');
       router.replace('/(auth)/');
       return;
     }
@@ -90,25 +80,25 @@ export default function SplashScreen() {
 
     // GATE 1: Profile completeness (Google users missing required fields)
     if (storedUser?.profile_completed === false) {
-      console.log('[DEBUG-4] NAVIGATE -> /complete-profile (profile_completed=false)');
       router.replace('/complete-profile');
       return;
     }
 
-    // GATE 2: Email verification — disabilitato per beta
-    // if (storedUser?.email_verified === false) { ... }
+    // GATE 2: Email verification
+    if (storedUser?.email_verified === false) {
+      router.replace('/verify-email');
+      return;
+    }
 
     // GATE 3: First access — no leagues → onboarding
     try {
       const leagues = await apiCall('/leagues', { token: accessToken });
       if (!leagues || leagues.length === 0) {
-        console.log('[DEBUG-4] NAVIGATE -> /onboarding (nessuna lega da index.tsx)');
         router.replace('/onboarding');
         return;
       }
     } catch (_) {}
 
-    console.log('[DEBUG-4] NAVIGATE -> /(tabs)/home (da index.tsx)');
     router.replace('/(tabs)/home');
   };
 
@@ -118,12 +108,10 @@ export default function SplashScreen() {
         method: 'POST',
         body: { session_id: sessionId },
       });
-      // Use loginWithToken — updates BOTH AsyncStorage AND in-memory context state
       await loginWithToken(res.access_token, res.refresh_token, res.user);
       if (typeof window !== 'undefined') {
         window.history.replaceState(null, '', window.location.pathname);
       }
-      // Don't navigate — the route() useEffect will fire when isAuthenticated changes
     } catch (e) {
       router.replace('/(auth)/');
     }
@@ -131,24 +119,15 @@ export default function SplashScreen() {
 
   const processImpersonation = async (impToken: string, impUsername: string) => {
     try {
-      console.log('[Impersonate] Starting impersonation for:', impUsername);
-      // Fetch user data using the impersonated token
       const userData = await apiCall('/auth/me', { token: impToken });
-      console.log('[Impersonate] User data fetched:', userData?.username);
-      // Save impersonation state
       await AsyncStorage.setItem('impersonation_active', 'true');
       await AsyncStorage.setItem('impersonation_username', impUsername || userData.username || '');
-      // Establish the session
       await loginWithToken(impToken, impToken, userData);
-      console.log('[Impersonate] Session established');
-      // Clean URL
       if (typeof window !== 'undefined') {
         window.history.replaceState(null, '', window.location.pathname);
       }
-      // Allow routing to proceed (isAuthenticated is now true)
       setImpersonating(false);
     } catch (e) {
-      console.error('[Impersonate] Failed:', e);
       if (typeof window !== 'undefined') {
         window.history.replaceState(null, '', window.location.pathname);
       }

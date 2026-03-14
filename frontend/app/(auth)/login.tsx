@@ -75,52 +75,36 @@ export default function LoginScreen() {
     setLoading(true);
     setError('');
     try {
-      // ── LOG PUNTO 1: risposta login ──────────────────────────────────────
-      console.log('[DEBUG-1] Chiamata login...');
       const res = await login(email.trim().toLowerCase(), password);
-      console.log('[DEBUG-1] status: OK (200)');
-      console.log('[DEBUG-1] access_token presente:', !!res.access_token);
-      console.log('[DEBUG-1] user.id presente:', !!res.user?.id);
-
       const accessToken = res.access_token;
       const storedUser = res.user;
 
-      // ── LOG PUNTO 2: verifica AsyncStorage dopo salvataggio ──────────────
-      const storedToken = await AsyncStorage.getItem('access_token');
-      console.log('[DEBUG-2] AsyncStorage.getItem("access_token") -> presente:', !!storedToken);
-      console.log('[DEBUG-2] key usata: "access_token"');
-      if (storedToken && accessToken) {
-        console.log('[DEBUG-2] token match (primi 15 char):', storedToken.substring(0,15) === accessToken.substring(0,15));
-      }
-
       // GATE 1: profilo incompleto (utenti Google)
       if (storedUser?.profile_completed === false) {
-        console.log('[DEBUG-4] NAVIGATE -> /complete-profile (profile_completed=false)');
         router.replace('/complete-profile');
         return;
       }
 
-      // GATE 2: email verification (disabilitato per beta)
-      // if (storedUser?.email_verified === false) { router.replace('/verify-email'); return; }
+      // GATE 2: email verification
+      if (storedUser?.email_verified === false) {
+        router.replace('/verify-email');
+        return;
+      }
 
       // GATE 3: nessuna lega → onboarding
       try {
         const leagues = await apiCall('/leagues', { token: accessToken });
         if (!leagues || leagues.length === 0) {
-          console.log('[DEBUG-4] NAVIGATE -> /onboarding (nessuna lega)');
           router.replace('/onboarding');
           return;
         }
       } catch (leagueErr: unknown) {
-        console.log('[DEBUG-4] NAVIGATE -> /onboarding (errore /leagues:', leagueErr?.message, ')');
         router.replace('/onboarding');
         return;
       }
 
-      console.log('[DEBUG-4] NAVIGATE -> /(tabs)/home (tutto ok)');
       router.replace('/(tabs)/home');
     } catch (e: unknown) {
-      console.log('[DEBUG-1] ERRORE login:', e?.message);
       setError(mapLoginError(e));
     } finally {
       setLoading(false);
@@ -137,121 +121,71 @@ export default function LoginScreen() {
   };
 
   const handleGoogleLogin = async () => {
-    console.log(`${LOG_PREFIX} === GOOGLE LOGIN STARTED ===`);
-    console.log(`${LOG_PREFIX} Platform: ${Platform.OS}`);
-    
     setGoogleLoading(true);
     setGoogleError('');
     setError('');
 
     try {
-      // Generate redirect URI using expo-auth-session
       const redirectUri = AuthSession.makeRedirectUri({
         scheme: 'fantapronostic',
         path: 'auth/callback',
       });
-      console.log(`${LOG_PREFIX} Generated redirectUri: ${redirectUri}`);
 
-      // Build Emergent Auth URL
       const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUri)}`;
-      console.log(`${LOG_PREFIX} Opening auth URL (without sensitive params)`);
 
-      // Set timeout for Google login
       timeoutRef.current = setTimeout(() => {
-        console.log(`${LOG_PREFIX} TIMEOUT: Login did not complete within ${GOOGLE_LOGIN_TIMEOUT/1000}s`);
         setGoogleError('Login non completato. Riprova.');
         setGoogleLoading(false);
       }, GOOGLE_LOGIN_TIMEOUT);
 
-      // Open browser for OAuth
-      console.log(`${LOG_PREFIX} Opening WebBrowser...`);
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
-      console.log(`${LOG_PREFIX} WebBrowser result type: ${result.type}`);
 
-      // Clear timeout since we got a response
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
 
       if (result.type === 'success' && result.url) {
-        console.log(`${LOG_PREFIX} SUCCESS: Received callback URL`);
-        
-        // Extract session_id from URL
         let sessionId: string | null = null;
-        
-        // Try hash fragment first (#session_id=...)
         const hashMatch = result.url.match(/#.*session_id=([^&]+)/);
-        if (hashMatch) {
-          sessionId = hashMatch[1];
-          console.log(`${LOG_PREFIX} Found session_id in hash fragment`);
-        }
-        
-        // Try query params (?session_id=...)
+        if (hashMatch) sessionId = hashMatch[1];
         if (!sessionId) {
           const queryMatch = result.url.match(/[?&]session_id=([^&#]+)/);
-          if (queryMatch) {
-            sessionId = queryMatch[1];
-            console.log(`${LOG_PREFIX} Found session_id in query params`);
-          }
+          if (queryMatch) sessionId = queryMatch[1];
         }
 
         if (!sessionId) {
-          console.log(`${LOG_PREFIX} ERROR: No session_id found in callback URL`);
           setGoogleError('Sessione non valida. Riprova.');
           setGoogleLoading(false);
           return;
         }
 
-        console.log(`${LOG_PREFIX} Calling backend /api/auth/google/session...`);
-        
-        // Call backend to verify session and get tokens
         try {
           const res = await apiCall('/auth/google/session', {
             method: 'POST',
             body: { session_id: sessionId },
             skipAuth: true,
           });
-          
-          console.log(`${LOG_PREFIX} Backend response: success, user: ${res.user?.username}`);
-          
-          // Use loginWithToken to update BOTH AsyncStorage AND in-memory context state
           await loginWithToken(res.access_token, res.refresh_token, res.user);
-          
-          console.log(`${LOG_PREFIX} Auth saved, navigating to root for gate checks...`);
-          
-          // Navigate to root — let index.tsx apply all gates:
-          // profile_completed == false → /complete-profile
-          // email_verified == false → /verify-email (Google emails are always verified)
-          // no leagues → /onboarding
-          // else → /(tabs)/home
           router.replace('/');
         } catch (backendError: unknown) {
-          console.log(`${LOG_PREFIX} Backend error: ${backendError.message}`);
           setGoogleError(backendError.message || 'Autenticazione fallita');
           setGoogleLoading(false);
         }
       } else if (result.type === 'cancel') {
-        console.log(`${LOG_PREFIX} User cancelled login`);
         setGoogleError('Login annullato');
         setGoogleLoading(false);
       } else if (result.type === 'dismiss') {
-        console.log(`${LOG_PREFIX} Browser dismissed`);
         setGoogleLoading(false);
       } else {
-        console.log(`${LOG_PREFIX} Unexpected result type: ${result.type}`);
         setGoogleError('Errore durante il login. Riprova.');
         setGoogleLoading(false);
       }
     } catch (e: unknown) {
-      console.log(`${LOG_PREFIX} Exception: ${e.message}`);
-      
-      // Clear timeout
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
-      
       setGoogleError(e.message || 'Errore di connessione');
       setGoogleLoading(false);
     }
