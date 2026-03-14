@@ -43,8 +43,8 @@ export default function BrowseTournaments() {
     try {
       const data = await apiCall<Tournament[]>('/tournaments', { token });
       setTournaments(data);
-    } catch (e) {
-      console.error('Error fetching tournaments:', e);
+    } catch (_) {
+      // silent
     } finally {
       setLoading(false);
       setRefreshing(false);

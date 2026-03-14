@@ -56,7 +56,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
       setGroups(groupsData);
       // Sync current round info to context for Pronostici tab routing
       if (detail?.current_round_info) setCurrentRoundInfo(detail.current_round_info);
-    } catch (e) { console.error(e); }
+    } catch (_) { /* silent */ }
     finally { setLoading(false); setRefreshing(false); }
   }, [token, tournamentId]);
 
@@ -84,7 +84,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
     try {
       const res = await apiCall<any>(`/tournaments/${tournamentId}/matchup/${matchupId}/live`, { token });
       setMatchupLiveData(res);
-    } catch (e) { console.error(e); }
+    } catch (_) { /* silent */ }
     finally { setMatchupLoading(false); }
   }, [token, tournamentId]);
 
@@ -118,7 +118,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
     if (!token) return;
     setJoining(true);
     try { await apiCall(`/tournaments/${tournamentId}/register`, { method: 'POST', token }); fetchData(); }
-    catch (e) { console.error(e); }
+    catch (_) { /* silent */ }
     finally { setJoining(false); }
   };
 

@@ -88,8 +88,8 @@ export default function AdminTournaments() {
       // For now, use the user endpoint which returns all non-draft tournaments
       const data = await apiCall<Tournament[]>('/tournaments?include_drafts=true', { token });
       setTournaments(data);
-    } catch (e: any) {
-      console.error(e);
+    } catch (_) {
+      // silent
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -119,8 +119,8 @@ export default function AdminTournaments() {
     try {
       const data = await apiCall<any>(`/tournaments/${selected.id}/rounds/${roundId}`, { token });
       setRoundMatches(data.matches || []);
-    } catch (e: any) {
-      console.error(e);
+    } catch (_) {
+      // silent
     }
   };
 

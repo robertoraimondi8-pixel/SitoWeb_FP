@@ -51,8 +51,8 @@ export function LeagueProvider({ children }: { children: React.ReactNode }) {
       } else {
         setActiveLeagueState(null);
       }
-    } catch (e) {
-      console.error('Failed to load leagues:', e);
+    } catch (_) {
+      // silent
     } finally {
       setLoading(false);
     }

@@ -40,8 +40,8 @@ export default function MyTournaments() {
     try {
       const all = await apiCall<Tournament[]>('/tournaments', { token });
       setTournaments(all.filter(t => t.is_registered));
-    } catch (e) {
-      console.error(e);
+    } catch (_) {
+      // silent
     } finally {
       setLoading(false);
       setRefreshing(false);

@@ -274,7 +274,7 @@ export default function CompleteProfileScreen() {
             <View style={[s.checkbox, acceptedPrivacy && s.checkboxChecked]}>
               {acceptedPrivacy && <Ionicons name="checkmark" size={14} color="#fff" />}
             </View>
-            <Text style={s.checkboxLabel}>Accetto la <Text style={s.checkboxLink} onPress={() => router.push('/menu/privacy')}>Privacy Policy</Text></Text>
+            <Text style={s.checkboxLabel}>Accetto la <Text style={s.checkboxLink} onPress={() => router.push('/privacy-policy')}>Privacy Policy</Text></Text>
           </TouchableOpacity>
           {errors.privacy ? <Text style={s.fieldError}>{errors.privacy}</Text> : null}
 

@@ -43,7 +43,7 @@ export default function RulesScreen() {
     if (!activeLeague || !token) return;
     (async () => {
       try { setLeague(await apiCall(`/leagues/${activeLeague.id}`, { token })); }
-      catch (e) { console.error(e); }
+      catch (_) { /* silent */ }
       finally { setLoading(false); }
     })();
   }, [activeLeague, token]);

@@ -22,7 +22,7 @@ export default function NotificationsScreen() {
       try {
         setNotifs(await apiCall<Notification[]>('/notifications', { token }));
         await apiCall('/notifications/read-all', { token, method: 'PATCH' }).catch(() => {});
-      } catch (e) { console.error(e); }
+      } catch (_) { /* silent */ }
       finally { setLoading(false); }
     })();
   }, [token]);
@@ -31,7 +31,7 @@ export default function NotificationsScreen() {
     try {
       await apiCall(`/notifications/${id}/read`, { token, method: 'PATCH' });
       setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-    } catch (e) { console.error(e); }
+    } catch (_) { /* silent */ }
   };
 
   const formatDate = (iso: string) => new Date(iso).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });

@@ -82,9 +82,7 @@ export default function LiveScreen() {
         if (didLogout) router.replace('/(auth)/login');
         return;
       }
-      }
-    }
-    finally { 
+    } finally { 
       setLoading(false); 
       setRefreshing(false);
     }

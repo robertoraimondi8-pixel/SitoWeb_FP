@@ -19,7 +19,7 @@ export default function NewsScreen() {
   useEffect(() => {
     if (!token) return;
     (async () => {
-      try { setNews(await apiCall<NewsItem[]>('/news', { token })); } catch (e) { console.error(e); }
+      try { setNews(await apiCall<NewsItem[]>('/news', { token })); } catch (_) { /* silent */ }
       finally { setLoading(false); }
     })();
   }, [token]);

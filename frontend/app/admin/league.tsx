@@ -190,7 +190,6 @@ export default function LeagueAdminConsole() {
         if (didLogout) router.replace('/(auth)/login');
         return;
       }
-      console.error(e);
     }
   };
 
@@ -214,7 +213,6 @@ export default function LeagueAdminConsole() {
         if (didLogout) router.replace('/(auth)/login');
         return;
       }
-      console.error(e);
     }
   };
 
@@ -431,7 +429,6 @@ export default function LeagueAdminConsole() {
         savedCount++;
       } catch (e: unknown) {
         errorCount++;
-        console.error(`Error saving match ${matchId}:`, e);
       }
     }
     

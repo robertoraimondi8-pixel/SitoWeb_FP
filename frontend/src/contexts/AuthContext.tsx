@@ -68,8 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setRefreshToken(storedRefresh);
         setUser(JSON.parse(storedUser));
       }
-    } catch (e) {
-      console.error('Failed to load auth:', e);
+    } catch (_) {
+      // silent
     } finally {
       setIsLoading(false);
     }
@@ -136,7 +136,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(accessToken);
     setRefreshToken(refreshToken);
     setUser(userData);
-    console.log('[Auth] loginWithToken: state updated, user:', userData.email, 'profile_completed:', userData.profile_completed);
   }, []);
 
   const logout = useCallback(async () => {

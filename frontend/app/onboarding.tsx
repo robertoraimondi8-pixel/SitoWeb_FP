@@ -45,7 +45,7 @@ export default function OnboardingScreen() {
           if (didLogout) router.replace('/(auth)/login');
           return;
         }
-        console.error(e); 
+        // silent
       }
       finally { setLoading(false); }
     })();

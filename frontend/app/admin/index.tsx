@@ -155,7 +155,6 @@ export default function AdminConsoleV3() {
       });
     } catch (e: unknown) {
       if (await authErr(e)) return;
-      console.error(e);
     }
   };
 
@@ -178,7 +177,6 @@ export default function AdminConsoleV3() {
       setModifiedMatches(new Set());
     } catch (e: unknown) {
       if (await authErr(e)) return;
-      console.error(e);
     }
   };
 

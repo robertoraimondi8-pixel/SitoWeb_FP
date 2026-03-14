@@ -112,7 +112,7 @@ export function SideMenu({ visible, onClose }: Props) {
 
   const legalItems: MenuItem[] = [
     { icon: 'document-text-outline', label: 'Termini di Servizio', route: '/menu/terms', testId: 'menu-terms' },
-    { icon: 'shield-checkmark-outline', label: 'Privacy Policy', route: '/menu/privacy', testId: 'menu-privacy' },
+    { icon: 'shield-checkmark-outline', label: 'Privacy Policy', route: '/privacy-policy', testId: 'menu-privacy' },
   ];
 
   const renderSection = (title: string, icon: keyof typeof Ionicons.glyphMap, items: MenuItem[]) => (

@@ -32,8 +32,8 @@ export default function MembersScreen() {
         const data = await apiCall(`/leagues/${activeLeague.id}/members`, { token });
         setMembers(data.members || []);
         setLeagueName(data.league_name || activeLeague.name);
-      } catch (e) {
-        console.error(e);
+      } catch (_) {
+        // silent
       } finally {
         setLoading(false);
       }
