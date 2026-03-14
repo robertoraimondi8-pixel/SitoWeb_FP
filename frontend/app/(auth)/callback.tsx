@@ -19,44 +19,34 @@ export default function AuthCallbackScreen() {
   }, []);
 
   const processGoogleCallback = async () => {
-    console.log(`${LOG_PREFIX} === CALLBACK SCREEN LOADED ===`);
-    console.log(`${LOG_PREFIX} Platform: ${Platform.OS}`);
-    
     try {
       let sessionId: string | null = null;
 
       // Method 1: Check URL params (for deep links)
       if (params.session_id) {
         sessionId = params.session_id as string;
-        console.log(`${LOG_PREFIX} Found session_id in route params`);
       }
 
       // Method 2: Extract session_id from URL hash fragment (web)
       if (!sessionId && Platform.OS === 'web' && typeof window !== 'undefined') {
         const hash = window.location.hash;
-        console.log(`${LOG_PREFIX} Web hash fragment present: ${!!hash}`);
         if (hash && hash.includes('session_id=')) {
           sessionId = hash.split('session_id=')[1]?.split('&')[0];
-          console.log(`${LOG_PREFIX} Extracted session_id from hash`);
         }
         
         // Also check query params
         const urlParams = new URLSearchParams(window.location.search);
         if (!sessionId && urlParams.has('session_id')) {
           sessionId = urlParams.get('session_id');
-          console.log(`${LOG_PREFIX} Extracted session_id from query params`);
         }
       }
 
       if (!sessionId) {
-        console.log(`${LOG_PREFIX} ERROR: No session_id found in callback`);
         setError('Sessione non trovata. Riprova il login.');
         setProcessing(false);
         setTimeout(() => router.replace('/(auth)/login'), 3000);
         return;
       }
-
-      console.log(`${LOG_PREFIX} Calling backend /api/auth/google/session...`);
 
       // Send session_id to backend for verification
       const res = await apiCall('/auth/google/session', {
@@ -65,19 +55,14 @@ export default function AuthCallbackScreen() {
         skipAuth: true,
       });
 
-      console.log(`${LOG_PREFIX} Backend response received, user: ${res.user?.username}`);
-
       // Save auth data
       await AsyncStorage.setItem('access_token', res.access_token);
       await AsyncStorage.setItem('refresh_token', res.refresh_token);
       await AsyncStorage.setItem('user', JSON.stringify(res.user));
 
-      console.log(`${LOG_PREFIX} Auth data saved, redirecting to home...`);
-
       // Redirect to home
       router.replace('/(tabs)/home');
     } catch (e: unknown) {
-      console.error(`${LOG_PREFIX} Error: ${e.message}`);
       setError(e.message || 'Autenticazione fallita');
       setProcessing(false);
     }

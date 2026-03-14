@@ -142,7 +142,7 @@ export default function HomeScreen() {
         if (didLogout) router.replace('/(auth)/login');
         return;
       }
-      console.error('Home fetch error:', (e as any).message);
+      // Error handled silently in production
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -247,14 +247,14 @@ export default function HomeScreen() {
       <View style={s.ambientOverlay} />
       {/* ═══ HEADER (light premium) ═══ */}
       <View style={s.header}>
-        <TouchableOpacity style={s.headerIcon} onPress={() => setMenuOpen(true)} testID="hamburger-menu-btn">
+        <TouchableOpacity style={s.headerIcon} onPress={() => setMenuOpen(true)} testID="hamburger-menu-btn" accessibilityLabel="Apri menu" accessibilityRole="button">
           <Ionicons name="menu" size={24} color={LIGHT.text} />
         </TouchableOpacity>
         <View style={s.headerCenter}>
           <BrandLogo variant="wordmark" size="lg" />
         </View>
         <View style={s.headerRight}>
-          <TouchableOpacity style={s.headerIcon} onPress={() => router.push('/menu/notifications')} testID="notification-bell-btn">
+          <TouchableOpacity style={s.headerIcon} onPress={() => router.push('/menu/notifications')} testID="notification-bell-btn" accessibilityLabel="Notifiche" accessibilityRole="button">
             <Ionicons name="notifications-outline" size={22} color={LIGHT.text} />
             {unreadCount > 0 && (
               <View style={s.bellBadge} testID="notification-badge">
@@ -262,7 +262,7 @@ export default function HomeScreen() {
               </View>
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={s.headerIcon} onPress={() => router.push('/palmares')} data-testid="palmares-btn">
+          <TouchableOpacity style={s.headerIcon} onPress={() => router.push('/palmares')} data-testid="palmares-btn" accessibilityLabel="Palmares" accessibilityRole="button">
             <Ionicons name="medal-outline" size={22} color={LIGHT.text} />
           </TouchableOpacity>
         </View>

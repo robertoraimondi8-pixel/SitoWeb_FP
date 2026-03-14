@@ -113,15 +113,6 @@ export default function PredictionsScreen() {
       } else {
         const home = await apiCall('/home', { token });
       
-        // === DIAGNOSTIC LOG 3: Frontend Predictions ===
-        console.log('='.repeat(60));
-        console.log('[DIAG-3] PREDICTIONS SCREEN');
-        console.log('  home.league =', home.league);
-        console.log('  home.league.id =', home.league?.id);
-        console.log('  home.league.match_source_type =', home.league?.match_source_type);
-        console.log('  home.league.is_owner =', home.league?.is_owner);
-        console.log('  home.league.my_role =', home.league?.my_role);
-      
         // Salva info lega per empty state
         const isManualLeague = home.league?.match_source_type === 'manual' || home.league?.match_source_type === 'custom';
         const isOwnerOrAdmin = home.league?.is_owner || ['owner', 'admin'].includes(home.league?.my_role);
@@ -132,14 +123,11 @@ export default function PredictionsScreen() {
         });
       
         if (!home.league?.id) { 
-          console.log('  ERROR: No league.id, exiting');
           setLoading(false); 
           return; 
         }
 
         leagueId = home.league.id;
-        console.log('  Using leagueId =', leagueId);
-        console.log('  paramMatchdayId =', paramMatchdayId);
 
         // Carica scoring_config dalla lega attiva
         try {
@@ -160,14 +148,12 @@ export default function PredictionsScreen() {
         ? `/tournaments/${tournamentId}/fixtures`
         : `/leagues/${leagueId}/fixtures`;
       const fixturesRes = await apiCall(fixturesEndpoint, { token });
-      console.log('  fixturesRes.matchdays count =', fixturesRes.matchdays?.length);
       const matchdays = fixturesRes.matchdays || [];
       let activeMatchday = null;
 
       // Se passato matchday_id via route params, usalo direttamente
       if (paramMatchdayId) {
         activeMatchday = matchdays.find((md: Matchday) => md.id === paramMatchdayId);
-        console.log('  Using paramMatchdayId:', paramMatchdayId, '-> found:', !!activeMatchday);
       }
 
       // Fallback: preferisci l'ultima OPEN per numero (la più recente),
@@ -195,16 +181,7 @@ export default function PredictionsScreen() {
         }
       }
 
-      console.log('  activeMatchday =', activeMatchday?.id, activeMatchday?.label);
-      console.log('  activeMatchday.matches count =', activeMatchday?.matches?.length);
-      if (activeMatchday?.matches) {
-        activeMatchday.matches.forEach((m: MatchItem, i: number) => {
-          console.log(`    Match ${i}: ${m.home_team} vs ${m.away_team}, league_id=${m.league_id}`);
-        });
-      }
-
       if (!activeMatchday) {
-        console.log('  ERROR: No activeMatchday found');
         setLoading(false);
         return;
       }
@@ -225,10 +202,7 @@ export default function PredictionsScreen() {
       }
 
       // Carica predictions per questa giornata
-      console.log('  Calling: /api/predictions/' + activeMatchday.id + '?league_id=' + leagueId);
       const predsRes = await apiCall(`/predictions/${activeMatchday.id}?league_id=${leagueId}`, { token });
-      console.log('  predsRes.predictions count =', predsRes.predictions?.length);
-      console.log('='.repeat(60));
       
       // Combina matchday info con matches dalla fixtures response
       const matchesForMatchday = activeMatchday.matches || [];
@@ -279,7 +253,6 @@ export default function PredictionsScreen() {
         if (didLogout) router.replace('/(auth)/login');
         return;
       }
-      console.error(e); 
     }
     finally { setLoading(false); }
   }, [token, handleAuthError, router, paramMatchdayId, competitionMode, tournamentId]);

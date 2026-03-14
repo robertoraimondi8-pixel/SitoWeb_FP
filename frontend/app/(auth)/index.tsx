@@ -29,17 +29,15 @@ export default function AuthLanding() {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleGoogleLogin = async () => {
-    console.log('GOOGLE: start'); // LOG A
     setGoogleLoading(true);
     setGoogleError('');
     try {
       // ── WEB: redirect diretto del browser, callback gestito da app/index.tsx ──
       if (Platform.OS === 'web') {
         const redirectUri = typeof window !== 'undefined' ? window.location.origin : '';
-        console.log('GOOGLE: web branch — redirect to auth, origin:', redirectUri);
         const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUri)}`;
         window.location.href = authUrl;
-        return; // pagina navigherà via, loading resta visibile
+        return;
       }
 
       // ── NATIVE (iOS/Android): flow esistente con WebBrowser ──
@@ -52,14 +50,6 @@ export default function AuthLanding() {
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
       clearTimeout(timeoutRef.current);
 
-      // LOG B
-      console.log('GOOGLE: result', {
-        type: result.type,
-        hasUrl: result.type === 'success' ? !!result.url : false,
-        urlPreview: result.type === 'success' ? result.url?.slice(0, 80) : null,
-        error: (result as { error?: string }).error ?? null,
-      });
-
       if (result.type === 'success' && result.url) {
         let sessionId: string | null = null;
         const hashMatch = result.url.match(/#.*session_id=([^&]+)/);
@@ -68,48 +58,31 @@ export default function AuthLanding() {
           const queryMatch = result.url.match(/[?&]session_id=([^&#]+)/);
           if (queryMatch) sessionId = queryMatch[1];
         }
-        console.log('GOOGLE: sessionId extracted?', !!sessionId); // LOG B extra
         if (!sessionId) { setGoogleError('Sessione non valida. Riprova.'); setGoogleLoading(false); return; }
 
-        console.log('GOOGLE: calling backend /api/auth/google'); // LOG C
         const res = await apiCall('/auth/google/session', { method: 'POST', body: { session_id: sessionId }, skipAuth: true });
 
-        // LOG D
-        console.log('GOOGLE: backend status ok (no exception thrown)');
-        console.log('GOOGLE: has access_token', !!res?.access_token);
-
-        // 1. Salva auth state (AsyncStorage + React state in-memory)
+        // Salva auth state
         await loginWithToken(res.access_token, res.refresh_token, res.user);
 
-        // LOG E
-        const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
-        const savedToken = await AsyncStorage.getItem('access_token');
-        console.log('GOOGLE: token saved?', savedToken != null);
-
-        // 2. Determina destinazione direttamente — NO router.replace('/')
+        // Determina destinazione
         let targetRoute: string;
-        let reason: string;
 
         if (!res.user?.username) {
           targetRoute = '/complete-profile';
-          reason = 'no_username';
         } else {
           try {
             const leagues = await apiCall('/leagues', { token: res.access_token });
             if (!leagues || leagues.length === 0) {
               targetRoute = '/onboarding';
-              reason = 'no_leagues';
             } else {
               targetRoute = '/(tabs)/home';
-              reason = 'has_leagues';
             }
           } catch (_) {
             targetRoute = '/onboarding';
-            reason = 'leagues_check_failed';
           }
         }
 
-        console.log('GOOGLE: navigate to', targetRoute, 'reason:', reason); // LOG F
         router.replace(targetRoute as Href);
       } else if (result.type === 'cancel' || result.type === 'dismiss') {
         setGoogleError(result.type === 'cancel' ? 'Login annullato' : '');
@@ -118,7 +91,6 @@ export default function AuthLanding() {
       }
     } catch (e: unknown) {
       clearTimeout(timeoutRef.current);
-      console.log('GOOGLE: CATCH error', e?.message); // LOG extra catch
       setGoogleError(e.message || 'Errore di connessione');
     } finally {
       setGoogleLoading(false);

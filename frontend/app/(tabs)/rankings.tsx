@@ -92,7 +92,6 @@ export default function RankingsScreen() {
           if (didLogout) router.replace('/(auth)/login');
           return;
         }
-        console.error(e); 
       }
     })();
   }, [activeLeague?.id, token, handleAuthError]);
@@ -118,7 +117,6 @@ export default function RankingsScreen() {
         if (didLogout) router.replace('/(auth)/login');
         return;
       }
-      console.error(e); 
     }
     finally { setLoading(false); }
   }, [token, tab, activeLeague?.id, selectedMatchday, handleAuthError]);
@@ -256,7 +254,7 @@ export default function RankingsScreen() {
       const order = ['quarterfinal', 'semifinal', 'final'];
       rounds.sort((a, b) => order.indexOf(a.round_type) - order.indexOf(b.round_type));
       setTrkBracket(rounds);
-    }).catch(console.error).finally(() => setTrkLoading(false));
+    }).catch(() => {}).finally(() => setTrkLoading(false));
   }, [competitionMode, tournamentId, token]);
 
   if (competitionMode === 'tournament' && tournamentId) {

@@ -93,7 +93,7 @@ export default function StatisticsScreen() {
         setSelectedLeague(data[0]);
       }
     } catch (e) {
-      console.error('Stats leagues error:', e);
+      // Silenced for production
     } finally {
       setLoading(false);
     }
@@ -121,7 +121,7 @@ export default function StatisticsScreen() {
         setUpcoming(data.fixtures || []);
       }
     } catch (e) {
-      console.error(`Stats ${tab} error:`, e);
+      // Silenced for production
     } finally {
       setTabLoading(false);
     }

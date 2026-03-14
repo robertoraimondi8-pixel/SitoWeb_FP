@@ -64,7 +64,6 @@ export default function ProfileScreen() {
           if (didLogout) router.replace('/(auth)/login');
           return;
         }
-        console.error(e); 
       }
     })();
   }, [token, handleAuthError, router, user?.id]);
@@ -183,7 +182,7 @@ export default function ProfileScreen() {
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>{t('profile.my_leagues')}</Text>
 
-          <TouchableOpacity testID="create-league-profile-btn" style={styles.settingRow} onPress={() => router.push('/league/create')}>
+          <TouchableOpacity testID="create-league-profile-btn" style={styles.settingRow} onPress={() => router.push('/league/create')} accessibilityLabel="Crea una lega" accessibilityRole="button">
             <View style={[styles.settingIcon, { backgroundColor: colors.successLight }]}>
               <Ionicons name="add-circle-outline" size={18} color={colors.success} />
             </View>
@@ -193,7 +192,7 @@ export default function ProfileScreen() {
 
           <View style={styles.settingDivider} />
 
-          <TouchableOpacity testID="join-league-profile-btn" style={styles.settingRow} onPress={() => router.push('/league/join')}>
+          <TouchableOpacity testID="join-league-profile-btn" style={styles.settingRow} onPress={() => router.push('/league/join')} accessibilityLabel="Entra in una lega" accessibilityRole="button">
             <View style={[styles.settingIcon, { backgroundColor: colors.accentLight }]}>
               <Ionicons name="enter-outline" size={18} color={colors.accent} />
             </View>
@@ -239,7 +238,7 @@ export default function ProfileScreen() {
         )}
 
         {/* Logout - tono secondario, non prominente */}
-        <TouchableOpacity testID="logout-btn" style={styles.logoutBtn} onPress={handleLogout}>
+        <TouchableOpacity testID="logout-btn" style={styles.logoutBtn} onPress={handleLogout} accessibilityLabel="Esci dall'account" accessibilityRole="button">
           <Ionicons name="log-out-outline" size={18} color="rgba(255,255,255,0.4)" />
           <Text style={styles.logoutText}>{t('profile.logout')}</Text>
         </TouchableOpacity>
