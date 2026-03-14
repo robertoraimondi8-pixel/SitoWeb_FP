@@ -1167,6 +1167,10 @@ async def get_matchup_live(tournament_id: str, matchup_id: str, user=Depends(get
     a_by_match = {p["match_id"]: p for p in user_a_preds}
     b_by_match = {p["match_id"]: p for p in user_b_preds}
 
+    # Check if any match in the round has started (predictions are effectively locked)
+    any_match_started = any(m.get("status") in ("live", "finished") for m in round_matches)
+    round_locked = rnd.get("status", "").upper() in ("LIVE", "COMPLETED", "CLOSED") or any_match_started
+
     # Calculate live scores
     from scoring import calculate_match_points
     a_total = 0
@@ -1193,8 +1197,7 @@ async def get_matchup_live(tournament_id: str, matchup_id: str, user=Depends(get
         a_total += a_pts
         b_total += b_pts
 
-        # Show predictions when match started OR when round is LIVE/COMPLETED (predictions locked)
-        round_locked = rnd.get("status", "").upper() in ("LIVE", "COMPLETED", "CLOSED")
+        # Show predictions when round is locked (any match started or round status is LIVE/COMPLETED)
         show_predictions = m.get("status") in ("live", "finished") or round_locked
         match_details.append({
             "match": m,

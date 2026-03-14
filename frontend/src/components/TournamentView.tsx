@@ -219,7 +219,8 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
           const m = md.match;
           const mLive = m.status === 'live';
           const mDone = m.status === 'finished';
-          const show = mDone || mLive;
+          // Show predictions if match started OR if backend returned them (round locked)
+          const show = mDone || mLive || (md.user_a_prediction != null || md.user_b_prediction != null);
           const aPts = md.user_a_points || 0;
           const bPts = md.user_b_points || 0;
           return (
