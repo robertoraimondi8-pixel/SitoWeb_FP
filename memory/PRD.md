@@ -106,6 +106,12 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] **Fix frontend doImportFixtures** - Per i matchday torneo (`_is_tournament: true`), usa `_tournament_id` come `league_id` nel payload.
 - [x] **Fix permission check** - Il check owner/match_source_type è ora skippato per i tornei (solo per le leghe).
 
+## Completed (14/03/2026 - UI Bug Fixes)
+- [x] **Rules Label Fix** - La schermata Regolamento mostra "Lega Nazionale (partite ufficiali)" per leghe con partite ufficiali, non più "Partite personalizzate"
+- [x] **Points Label** - Le prediction card mostrano "2 punti", "1 punto", "5 punti" accanto a ogni market
+- [x] **Selection Color** - Il colore di selezione dei pronostici è arancione (#F5A623) invece di blu
+- [x] **BOOST X3 Banner Refinement** - Banner BOOST X3 più compatto (paddingVertical: 5), non sovrappone date/orari
+
 ## Prioritized Backlog
 
 ### P1 - Next Up
@@ -118,7 +124,7 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 
 ## Key Data State
 - Season: "Serie A 2025-2026" (status=active, total_matchdays=38, current_matchday=26)
-- Matchdays: G1-G25 COMPLETED, G26 DRAFT
+- Matchdays: G1-G25 COMPLETED, G26 OPEN
 - Selectable range: 26-38
 
 ## Credentials
