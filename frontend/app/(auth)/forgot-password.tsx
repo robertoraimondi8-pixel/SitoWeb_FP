@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { apiCall } from '../../src/api/client';
 import { colors, spacing, borderRadius, shadows, typography } from '../../src/theme/designSystem';
 
@@ -16,6 +17,7 @@ const { width } = Dimensions.get('window');
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -24,7 +26,7 @@ export default function ForgotPasswordScreen() {
   const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 
   const handleSubmit = async () => {
-    if (!isValidEmail(email)) { setError('Inserisci un indirizzo email valido'); return; }
+    if (!isValidEmail(email)) { setError(t('forgot_password_screen.err_invalid_email')); return; }
     setLoading(true);
     setError('');
     try {
@@ -35,7 +37,6 @@ export default function ForgotPasswordScreen() {
       });
       setSent(true);
     } catch (e: unknown) {
-      // Always show generic message for security
       setSent(true);
     } finally {
       setLoading(false);
@@ -46,7 +47,6 @@ export default function ForgotPasswordScreen() {
     <SafeAreaView style={s.container} edges={['top', 'bottom']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
-          {/* Back */}
           <TouchableOpacity
             onPress={() => router.back()}
             style={s.backBtn}
@@ -55,7 +55,6 @@ export default function ForgotPasswordScreen() {
             <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
 
-          {/* Logo */}
           <View style={s.logoSection}>
             <Image
               source={require('../../assets/logo-full.png')}
@@ -68,17 +67,13 @@ export default function ForgotPasswordScreen() {
             <View style={s.iconWrap}>
               <Ionicons name="mail" size={32} color={colors.accent} />
             </View>
-            <Text style={s.title}>Password dimenticata?</Text>
-            <Text style={s.subtitle}>
-              Inserisci la tua email e ti invieremo le istruzioni per reimpostare la password.
-            </Text>
+            <Text style={s.title}>{t('forgot_password_screen.title')}</Text>
+            <Text style={s.subtitle}>{t('forgot_password_screen.subtitle')}</Text>
 
             {sent ? (
               <View style={s.successBox}>
                 <Ionicons name="checkmark-circle" size={24} color={colors.success} />
-                <Text style={s.successText}>
-                  Se l'email è registrata, riceverai le istruzioni entro pochi minuti.
-                </Text>
+                <Text style={s.successText}>{t('forgot_password_screen.success_message')}</Text>
               </View>
             ) : (
               <>
@@ -93,10 +88,10 @@ export default function ForgotPasswordScreen() {
                   <Ionicons name="mail-outline" size={20} color={colors.textSecondary} />
                   <TextInput
                     style={s.input}
-                    placeholder="Email"
+                    placeholder={t('email')}
                     placeholderTextColor={colors.textMuted}
                     value={email}
-                    onChangeText={t => { setEmail(t); setError(''); }}
+                    onChangeText={v => { setEmail(v); setError(''); }}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -112,14 +107,14 @@ export default function ForgotPasswordScreen() {
                   {loading ? (
                     <ActivityIndicator color={colors.textInverse} />
                   ) : (
-                    <Text style={s.btnText}>INVIA ISTRUZIONI</Text>
+                    <Text style={s.btnText}>{t('forgot_password_screen.submit_btn')}</Text>
                   )}
                 </TouchableOpacity>
               </>
             )}
 
             <TouchableOpacity onPress={() => router.back()} style={s.backLink}>
-              <Text style={s.backLinkText}>Torna al login</Text>
+              <Text style={s.backLinkText}>{t('forgot_password_screen.back_to_login')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

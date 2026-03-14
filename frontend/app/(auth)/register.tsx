@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
 import { colors, spacing, borderRadius, shadows, typography } from '../../src/theme/designSystem';
@@ -30,6 +31,7 @@ interface FieldError { [key: string]: string; }
 export default function RegisterScreen() {
   const router = useRouter();
   const { register } = useAuth();
+  const { t } = useTranslation();
 
   const [form, setForm] = useState({
     email: '', username: '', firstName: '', lastName: '',
@@ -61,7 +63,7 @@ export default function RegisterScreen() {
     setErrors(p => ({ ...p, username: '' }));
     if (usernameDebounce.current) clearTimeout(usernameDebounce.current);
     if (clean.length < 3) {
-      if (clean.length > 0) setErrors(p => ({ ...p, username: 'Min. 3 caratteri' }));
+      if (clean.length > 0) setErrors(p => ({ ...p, username: t('register.err_username_min') }));
       return;
     }
     setUsernameChecking(true);
@@ -69,7 +71,7 @@ export default function RegisterScreen() {
       try {
         const data = await apiCall(`/auth/username-available?username=${clean}`, { skipAuth: true });
         if (!data.available) {
-          setErrors(p => ({ ...p, username: 'Username già in uso' }));
+          setErrors(p => ({ ...p, username: t('register.err_username_taken') }));
         } else {
           setErrors(p => ({ ...p, username: '' }));
         }
@@ -98,7 +100,6 @@ export default function RegisterScreen() {
   };
 
   const confirmDob = () => {
-    // Clamp day to valid range for the selected month/year
     const maxDay = new Date(pickerYear, pickerMonth, 0).getDate();
     const safeDay = Math.min(pickerDay, maxDay);
     const d = new Date(pickerYear, pickerMonth - 1, safeDay);
@@ -109,29 +110,29 @@ export default function RegisterScreen() {
 
   const validate = () => {
     const e: FieldError = {};
-    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = 'Email non valida';
-    if (!form.username || form.username.length < 3) e.username = 'Username obbligatorio (min. 3 caratteri)';
-    else if (!/^[a-zA-Z0-9_]+$/.test(form.username)) e.username = 'Solo lettere, numeri e underscore';
-    else if (errors.username === 'Username già in uso') e.username = 'Username già in uso';
-    if (!form.firstName.trim()) e.firstName = 'Nome obbligatorio';
-    if (!form.lastName.trim()) e.lastName = 'Cognome obbligatorio';
+    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = t('register.err_email');
+    if (!form.username || form.username.length < 3) e.username = t('register.err_username_required');
+    else if (!/^[a-zA-Z0-9_]+$/.test(form.username)) e.username = t('register.err_username_format');
+    else if (errors.username === t('register.err_username_taken')) e.username = t('register.err_username_taken');
+    if (!form.firstName.trim()) e.firstName = t('register.err_first_name');
+    if (!form.lastName.trim()) e.lastName = t('register.err_last_name');
     if (!dob) {
-      e.dob = 'Data di nascita obbligatoria';
+      e.dob = t('register.err_dob_required');
     } else {
       const today = new Date();
       const age = today.getFullYear() - dob.getFullYear() - ((today.getMonth() * 100 + today.getDate()) < (dob.getMonth() * 100 + dob.getDate()) ? 1 : 0);
-      if (age < 18) e.dob = 'Devi avere almeno 18 anni';
+      if (age < 18) e.dob = t('register.err_dob_age');
     }
-    if (!form.address.trim()) e.address = 'Indirizzo obbligatorio';
-    if (!form.city.trim()) e.city = 'Città obbligatoria';
-    if (!form.country) e.country = 'Paese obbligatorio';
-    if (!form.postalCode.trim()) e.postalCode = 'CAP obbligatorio';
-    if (!form.password || form.password.length < 8) e.password = 'Min. 8 caratteri';
-    else if (!/[A-Z]/.test(form.password)) e.password = 'Almeno una lettera maiuscola';
-    else if (!/[0-9]/.test(form.password)) e.password = 'Almeno un numero';
-    if (form.password !== form.confirmPassword) e.confirmPassword = 'Le password non coincidono';
-    if (!acceptedPrivacy) e.privacy = 'Accetta la Privacy Policy per continuare';
-    if (!acceptedTerms) e.terms = 'Accetta i Termini e Condizioni per continuare';
+    if (!form.address.trim()) e.address = t('register.err_address');
+    if (!form.city.trim()) e.city = t('register.err_city');
+    if (!form.country) e.country = t('register.err_country');
+    if (!form.postalCode.trim()) e.postalCode = t('register.err_cap');
+    if (!form.password || form.password.length < 8) e.password = t('register.err_password_min');
+    else if (!/[A-Z]/.test(form.password)) e.password = t('register.err_password_upper');
+    else if (!/[0-9]/.test(form.password)) e.password = t('register.err_password_number');
+    if (form.password !== form.confirmPassword) e.confirmPassword = t('register.err_confirm_password');
+    if (!acceptedPrivacy) e.privacy = t('register.err_privacy');
+    if (!acceptedTerms) e.terms = t('register.err_terms');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -157,11 +158,9 @@ export default function RegisterScreen() {
         acceptedPrivacy: true,
         acceptedTerms: true,
       });
-      // TODO: Quando si integra email reale, rimandare a /verify-email
-      // router.replace({ pathname: '/verify-email', params: { email: form.email.trim().toLowerCase() } });
       router.replace('/');
     } catch (e: unknown) {
-      setSubmitError(e.message || 'Registrazione fallita. Riprova.');
+      setSubmitError(e.message || t('register.submit_error'));
     } finally {
       setLoading(false);
     }
@@ -184,8 +183,8 @@ export default function RegisterScreen() {
             <View style={{ width: 24 }} />
           </View>
 
-          <Text style={s.pageTitle}>Crea il tuo account</Text>
-          <Text style={s.pageSubtitle}>Completa tutti i campi per registrarti</Text>
+          <Text style={s.pageTitle}>{t('register.page_title')}</Text>
+          <Text style={s.pageSubtitle}>{t('register.page_subtitle')}</Text>
 
           {submitError ? (
             <View style={s.errorBanner}>
@@ -194,10 +193,10 @@ export default function RegisterScreen() {
             </View>
           ) : null}
 
-          {/* ── DATI PERSONALI ── */}
-          <Text style={s.sectionLabel}>Dati personali</Text>
+          {/* DATI PERSONALI */}
+          <Text style={s.sectionLabel}>{t('register.section_personal')}</Text>
 
-          <Field label="Email *" error={errors.email}>
+          <Field label={t('register.email_label')} error={errors.email}>
             <Row icon="mail-outline">
               <TextInput
                 style={s.input}
@@ -212,7 +211,7 @@ export default function RegisterScreen() {
             </Row>
           </Field>
 
-          <Field label="Username *" error={errors.username}>
+          <Field label={t('register.username_label')} error={errors.username}>
             <Row icon="at">
               <TextInput
                 style={s.input}
@@ -230,7 +229,7 @@ export default function RegisterScreen() {
 
           <View style={s.row2}>
             <View style={{ flex: 1 }}>
-              <Field label="Nome *" error={errors.firstName}>
+              <Field label={t('register.first_name_label')} error={errors.firstName}>
                 <Row icon="person-outline">
                   <TextInput
                     style={s.input}
@@ -243,7 +242,7 @@ export default function RegisterScreen() {
               </Field>
             </View>
             <View style={{ flex: 1 }}>
-              <Field label="Cognome *" error={errors.lastName}>
+              <Field label={t('register.last_name_label')} error={errors.lastName}>
                 <Row icon="person">
                   <TextInput
                     style={s.input}
@@ -257,7 +256,7 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          <Field label="Data di nascita *" error={errors.dob}>
+          <Field label={t('register.dob_label')} error={errors.dob}>
             <TouchableOpacity
               style={[s.inputRow, { justifyContent: 'space-between' }, errors.dob && { borderColor: colors.error }]}
               onPress={openDobPicker}
@@ -266,22 +265,21 @@ export default function RegisterScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                 <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
                 <Text style={[s.input, { color: dob ? colors.textPrimary : colors.textMuted }]}>
-                  {dob ? formatDob(dob) : 'GG/MM/AAAA'}
+                  {dob ? formatDob(dob) : t('register.dob_placeholder')}
                 </Text>
               </View>
               <Ionicons name={showDobPicker ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textSecondary} />
             </TouchableOpacity>
           </Field>
 
-          {/* Inline DOB Picker — cross-platform, no Modal issues on web */}
+          {/* Inline DOB Picker */}
           {showDobPicker && (
             <View style={s.pickerSheet}>
-              <Text style={s.pickerTitle}>Seleziona data di nascita</Text>
+              <Text style={s.pickerTitle}>{t('register.select_dob')}</Text>
 
               <View style={s.pickerColumns}>
-                {/* ── Giorno ── */}
                 <View style={s.pickerColWrap}>
-                  <Text style={s.pickerColLabel}>Giorno</Text>
+                  <Text style={s.pickerColLabel}>{t('register.picker_day')}</Text>
                   <ScrollView style={s.pickerCol} nestedScrollEnabled showsVerticalScrollIndicator={false}>
                     {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
                       <TouchableOpacity
@@ -297,9 +295,8 @@ export default function RegisterScreen() {
                   </ScrollView>
                 </View>
 
-                {/* ── Mese ── */}
                 <View style={[s.pickerColWrap, { flex: 1.4 }]}>
-                  <Text style={s.pickerColLabel}>Mese</Text>
+                  <Text style={s.pickerColLabel}>{t('register.picker_month')}</Text>
                   <ScrollView style={s.pickerCol} nestedScrollEnabled showsVerticalScrollIndicator={false}>
                     {['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'].map((m, i) => (
                       <TouchableOpacity
@@ -313,9 +310,8 @@ export default function RegisterScreen() {
                   </ScrollView>
                 </View>
 
-                {/* ── Anno ── */}
                 <View style={[s.pickerColWrap, { flex: 1.3 }]}>
-                  <Text style={s.pickerColLabel}>Anno</Text>
+                  <Text style={s.pickerColLabel}>{t('register.picker_year')}</Text>
                   <ScrollView style={s.pickerCol} nestedScrollEnabled showsVerticalScrollIndicator={false}>
                     {Array.from({ length: 90 }, (_, i) => new Date().getFullYear() - 18 - i).map(y => (
                       <TouchableOpacity
@@ -333,19 +329,19 @@ export default function RegisterScreen() {
               {/* Actions */}
               <View style={s.pickerActions}>
                 <TouchableOpacity style={s.pickerCancelBtn} onPress={() => setShowDobPicker(false)}>
-                  <Text style={s.pickerCancelTxt}>Annulla</Text>
+                  <Text style={s.pickerCancelTxt}>{t('cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={s.pickerConfirmBtn} onPress={confirmDob}>
-                  <Text style={s.pickerConfirmTxt}>Conferma</Text>
+                  <Text style={s.pickerConfirmTxt}>{t('confirm')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
           )}
 
-          {/* ── INDIRIZZO ── */}
-          <Text style={s.sectionLabel}>Indirizzo</Text>
+          {/* INDIRIZZO */}
+          <Text style={s.sectionLabel}>{t('register.section_address')}</Text>
 
-          <Field label="Indirizzo *" error={errors.address}>
+          <Field label={t('register.address_label')} error={errors.address}>
             <Row icon="home-outline">
               <TextInput
                 style={s.input}
@@ -359,7 +355,7 @@ export default function RegisterScreen() {
 
           <View style={s.row2}>
             <View style={{ flex: 1 }}>
-              <Field label="Città *" error={errors.city}>
+              <Field label={t('register.city_label')} error={errors.city}>
                 <Row icon="location-outline">
                   <TextInput
                     style={s.input}
@@ -372,7 +368,7 @@ export default function RegisterScreen() {
               </Field>
             </View>
             <View style={{ flex: 1 }}>
-              <Field label="CAP *" error={errors.postalCode}>
+              <Field label={t('register.cap_label')} error={errors.postalCode}>
                 <Row icon="mail">
                   <TextInput
                     style={s.input}
@@ -387,7 +383,7 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          <Field label="Paese *" error={errors.country}>
+          <Field label={t('register.country_label')} error={errors.country}>
             <TouchableOpacity
               style={[s.inputRow, { justifyContent: 'space-between' }, errors.country && { borderColor: colors.error }]}
               onPress={() => setShowCountryPicker(true)}
@@ -396,21 +392,21 @@ export default function RegisterScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                 <Ionicons name="globe-outline" size={20} color={colors.textSecondary} />
                 <Text style={[s.input, { color: form.country ? colors.textPrimary : colors.textMuted }]}>
-                  {form.country || 'Seleziona paese'}
+                  {form.country || t('register.select_country_placeholder')}
                 </Text>
               </View>
               <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
             </TouchableOpacity>
           </Field>
 
-          {/* ── PASSWORD ── */}
-          <Text style={s.sectionLabel}>Sicurezza</Text>
+          {/* PASSWORD */}
+          <Text style={s.sectionLabel}>{t('register.section_security')}</Text>
 
-          <Field label="Password *" error={errors.password}>
+          <Field label={t('register.password_label')} error={errors.password}>
             <Row icon="lock-closed-outline">
               <TextInput
                 style={s.input}
-                placeholder="Min. 8 car., 1 maiusc., 1 numero"
+                placeholder={t('register.password_placeholder')}
                 placeholderTextColor={colors.textMuted}
                 value={form.password}
                 onChangeText={v => { set('password')(v); setErrors(p => ({ ...p, password: '' })); }}
@@ -422,11 +418,11 @@ export default function RegisterScreen() {
             </Row>
           </Field>
 
-          <Field label="Ripeti password *" error={errors.confirmPassword}>
+          <Field label={t('register.confirm_password_label')} error={errors.confirmPassword}>
             <Row icon="lock-closed">
               <TextInput
                 style={s.input}
-                placeholder="Ripeti la password"
+                placeholder={t('register.confirm_placeholder')}
                 placeholderTextColor={colors.textMuted}
                 value={form.confirmPassword}
                 onChangeText={v => { set('confirmPassword')(v); setErrors(p => ({ ...p, confirmPassword: '' })); }}
@@ -438,15 +434,15 @@ export default function RegisterScreen() {
             </Row>
           </Field>
 
-          {/* ── CONSENSI ── */}
-          <Text style={s.sectionLabel}>Consensi obbligatori</Text>
+          {/* CONSENSI */}
+          <Text style={s.sectionLabel}>{t('register.section_consent')}</Text>
 
           <TouchableOpacity style={s.checkboxRow} onPress={() => setAcceptedPrivacy(v => !v)} activeOpacity={0.7}>
             <View style={[s.checkbox, acceptedPrivacy && s.checkboxChecked]}>
               {acceptedPrivacy && <Ionicons name="checkmark" size={14} color="#fff" />}
             </View>
             <Text style={s.checkboxLabel}>
-              Accetto la{' '}<Text style={s.checkboxLink} onPress={() => router.push('/privacy-policy')}>Privacy Policy</Text>
+              {t('register.accept_privacy')}{' '}<Text style={s.checkboxLink} onPress={() => router.push('/privacy-policy')}>{t('register.privacy_link')}</Text>
             </Text>
           </TouchableOpacity>
           {errors.privacy ? <Text style={s.fieldError}>{errors.privacy}</Text> : null}
@@ -456,12 +452,12 @@ export default function RegisterScreen() {
               {acceptedTerms && <Ionicons name="checkmark" size={14} color="#fff" />}
             </View>
             <Text style={s.checkboxLabel}>
-              Accetto i{' '}<Text style={s.checkboxLink} onPress={() => router.push('/menu/terms')}>Termini e Condizioni</Text>
+              {t('register.accept_terms')}{' '}<Text style={s.checkboxLink} onPress={() => router.push('/menu/terms')}>{t('register.terms_link')}</Text>
             </Text>
           </TouchableOpacity>
           {errors.terms ? <Text style={s.fieldError}>{errors.terms}</Text> : null}
 
-          {/* ── SUBMIT ── */}
+          {/* SUBMIT */}
           <TouchableOpacity
             style={[s.submitBtn, (!canSubmit || loading) && { opacity: 0.5 }]}
             onPress={handleSubmit}
@@ -471,12 +467,12 @@ export default function RegisterScreen() {
             {loading ? (
               <ActivityIndicator color={colors.textInverse} />
             ) : (
-              <Text style={s.submitBtnText}>CREA ACCOUNT</Text>
+              <Text style={s.submitBtnText}>{t('register.submit_btn')}</Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => router.back()} style={s.loginLink}>
-            <Text style={s.loginLinkText}>Hai già un account? <Text style={s.loginLinkAccent}>Accedi</Text></Text>
+            <Text style={s.loginLinkText}>{t('register.login_link')} <Text style={s.loginLinkAccent}>{t('register.login_link_accent')}</Text></Text>
           </TouchableOpacity>
 
         </ScrollView>
@@ -487,7 +483,7 @@ export default function RegisterScreen() {
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowCountryPicker(false)}>
           <View style={[s.modalSheet, { backgroundColor: colors.card }]}>
             <View style={s.modalHandle} />
-            <Text style={[s.modalTitle, { color: colors.textPrimary }]}>Seleziona Paese</Text>
+            <Text style={[s.modalTitle, { color: colors.textPrimary }]}>{t('register.select_country')}</Text>
             <FlatList
               data={COUNTRIES}
               keyExtractor={item => item}
@@ -508,8 +504,7 @@ export default function RegisterScreen() {
   );
 }
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
-
+// Helpers
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <View style={s.fieldWrap}>
