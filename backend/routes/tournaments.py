@@ -749,6 +749,26 @@ async def get_tournament(tournament_id: str, user=Depends(get_current_user)):
 
         live_total = int(my_points) if effective_status == "LIVE" and my_matchup else None
 
+        # Compute countdown seconds from first kickoff
+        countdown_seconds = 0
+        first_kickoff_str = None
+        if round_matches and effective_status == "OPEN":
+            kickoff_times = []
+            for rm in round_matches:
+                ko = rm.get("start_time") or rm.get("kickoff")
+                if ko:
+                    kickoff_times.append(str(ko))
+            if kickoff_times:
+                kickoff_times.sort()
+                first_kickoff_str = kickoff_times[0]
+                try:
+                    from datetime import datetime as _dt, timezone as _tz
+                    fk = _dt.fromisoformat(first_kickoff_str.replace("Z", "+00:00"))
+                    now = _dt.now(_tz.utc)
+                    countdown_seconds = max(0, int((fk - now).total_seconds()))
+                except (ValueError, TypeError):
+                    pass
+
         t["current_round_info"] = {
             "round_id": round_id,
             "round_number": active_round["round_number"],
@@ -762,6 +782,8 @@ async def get_tournament(tournament_id: str, user=Depends(get_current_user)):
             "my_points": int(my_points),
             "opp_points": int(opp_points),
             "live_total": live_total,
+            "countdown_seconds": countdown_seconds,
+            "first_kickoff": first_kickoff_str,
         }
     else:
         t["current_round_info"] = None

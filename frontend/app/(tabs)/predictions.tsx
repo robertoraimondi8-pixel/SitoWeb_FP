@@ -519,6 +519,13 @@ export default function PredictionsScreen() {
                 ]}
               >
                 <AnimatedSweep />
+                {/* BOOST X3 compact banner — above match header */}
+                {m.is_special && (
+                  <View style={styles.boostHeader}>
+                    <Ionicons name="flash" size={12} color="#0D2240" />
+                    <Text style={styles.boostMainLabel}>BOOST X3</Text>
+                  </View>
+                )}
                 {/* Match Header */}
                 <View style={styles.matchHeader}>
                   <View style={[styles.matchNumBadge, m.is_special && { backgroundColor: colors.accent }]}>
@@ -542,19 +549,6 @@ export default function PredictionsScreen() {
                     </View>
                   )}
                 </View>
-
-                {/* BOOST X3 premium header */}
-                {m.is_special && (
-                  <View style={styles.boostHeader}>
-                    <View style={styles.boostLabelCol}>
-                      <Text style={styles.boostMainLabel}>BOOST X3</Text>
-                      <Text style={styles.boostSubLabel}>Moltiplica X3 i punti</Text>
-                    </View>
-                    <View style={styles.boostIcon}>
-                      <Ionicons name="flash" size={20} color="#0D2240" />
-                    </View>
-                  </View>
-                )}
 
                 {/* Teams - clickable if has external fixture */}
                 <TouchableOpacity
@@ -869,38 +863,22 @@ const styles = StyleSheet.create({
   boostHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 5,
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 3,
     paddingHorizontal: 14,
     marginHorizontal: -16,
     marginTop: -16,
-    marginBottom: 8,
+    marginBottom: 6,
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
     backgroundColor: '#F5A623',
   },
-  boostLabelCol: {
-    flexDirection: 'column',
-    gap: 1,
-  },
   boostMainLabel: {
-    fontSize: 16,
+    fontSize: 11,
     fontWeight: '900',
     color: '#0D2240',
     letterSpacing: 1.5,
-  },
-  boostSubLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(13,34,64,0.7)',
-  },
-  boostIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(13,34,64,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   specialX3Badge: {
     backgroundColor: colors.accent,

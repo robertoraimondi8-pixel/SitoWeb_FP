@@ -33,6 +33,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   // Matchup live state — renders INLINE, not in a separate page
   const [activeMatchup, setActiveMatchup] = useState<any>(null);
@@ -60,6 +61,15 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
   }, [token, tournamentId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Countdown timer for OPEN rounds
+  useEffect(() => {
+    const cri = tournament?.current_round_info;
+    if (!cri || cri.status !== 'OPEN' || !cri.countdown_seconds) return;
+    setCountdown(cri.countdown_seconds);
+    const interval = setInterval(() => setCountdown(prev => Math.max(0, prev - 1)), 1000);
+    return () => clearInterval(interval);
+  }, [tournament?.current_round_info?.countdown_seconds, tournament?.current_round_info?.status]);
 
   // Auto-open matchup live if initialMatchupId is passed (from rankings)
   useEffect(() => {
@@ -125,6 +135,13 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
     if (!m) return '';
     const map: Record<string, string> = { '1X2': '1X2', 'GOAL_NOGOL': 'GNG', 'OVER_UNDER_25': 'O/U', 'EXACT_SCORE': 'ES' };
     return map[m] || m;
+  };
+
+  const formatCountdown = (secs: number) => {
+    const h = Math.floor(secs / 3600).toString().padStart(2, '0');
+    const m = Math.floor((secs % 3600) / 60).toString().padStart(2, '0');
+    const sec = (secs % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${sec}`;
   };
 
   // ══════════════════════════════════════
@@ -201,16 +218,11 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
           return (
             <TouchableOpacity key={m.id || idx} style={[s.matchCard, mLive && s.matchCardLive, m.is_special && s.matchCardSpecial]} activeOpacity={m.external_fixture_id ? 0.7 : 1} onPress={() => m.external_fixture_id && setDetailFixtureId(m.external_fixture_id)} data-testid={`match-${idx}`}>
               <AnimatedSweep />
-              {/* BOOST X3 premium header */}
+              {/* BOOST X3 compact banner */}
               {m.is_special && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, marginHorizontal: -16, marginTop: -16, marginBottom: 12, borderTopLeftRadius: 18, borderTopRightRadius: 18, backgroundColor: '#F5A623' }}>
-                  <View>
-                    <Text style={{ fontSize: 16, fontWeight: '900', color: '#0D2240', letterSpacing: 1.5 }}>BOOST X3</Text>
-                    <Text style={{ fontSize: 11, fontWeight: '600', color: 'rgba(13,34,64,0.7)' }}>Moltiplica X3 i punti</Text>
-                  </View>
-                  <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(13,34,64,0.15)', alignItems: 'center', justifyContent: 'center' }}>
-                    <Ionicons name="flash" size={20} color="#0D2240" />
-                  </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 3, paddingHorizontal: 14, marginHorizontal: -16, marginTop: -16, marginBottom: 6, borderTopLeftRadius: 18, borderTopRightRadius: 18, backgroundColor: '#F5A623' }}>
+                  <Ionicons name="flash" size={12} color="#0D2240" />
+                  <Text style={{ fontSize: 11, fontWeight: '900', color: '#0D2240', letterSpacing: 1.5 }}>BOOST X3</Text>
                 </View>
               )}
               {/* Match header */}
@@ -344,8 +356,13 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
             </>
           ) : (
             <>
-              {/* OPEN/PENDING: keep title + opponent + progress */}
+              {/* OPEN/PENDING: keep title + countdown + opponent + progress */}
               <Text style={s.heroTitle}>{cri.label}</Text>
+
+              {/* Countdown timer (same as league) */}
+              {cri.status === 'OPEN' && countdown > 0 && (
+                <Text style={s.heroSub}>Scadenza tra {formatCountdown(countdown)}</Text>
+              )}
 
               {cri.opponent_name ? (
                 <Text style={s.heroSub}>VS {cri.opponent_name}</Text>

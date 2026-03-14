@@ -177,8 +177,9 @@ export default function HomeScreen() {
   const getStatusLabel = (status: string) => t(`status.${status?.toUpperCase()}`, { defaultValue: status });
 
   const getCtaConfig = (status: string) => {
+    const hasPredictions = (data?.matchday?.my_predictions_count || 0) > 0;
     switch (status?.toUpperCase()) {
-      case 'OPEN': return { icon: 'create-outline' as const, label: t('home.insert_predictions') };
+      case 'OPEN': return { icon: 'create-outline' as const, label: hasPredictions ? 'MODIFICA PRONOSTICI' : 'INSERISCI PRONOSTICI' };
       case 'LIVE': return { icon: 'pulse' as const, label: t('home.follow_live') };
       case 'COMPLETED': return { icon: 'checkmark-circle' as const, label: t('home.view_results') };
       default: return null;
@@ -442,9 +443,17 @@ export default function HomeScreen() {
                           <Text style={s.heroTitle}>
                             {data.matchday.label || `Giornata ${data.matchday.number}`}
                           </Text>
-                          {matchdayMsg !== '' && (
-                            <Text style={s.heroSub}>{matchdayMsg}</Text>
+                          {/* Countdown timer */}
+                          {countdown > 0 && (
+                            <Text style={s.heroSub}>Scadenza tra {formatCountdown(countdown)}</Text>
                           )}
+                          {/* Prediction progress bar */}
+                          <View style={s.predProgressRow}>
+                            <View style={s.predProgressBarBg}>
+                              <View style={[s.predProgressBarFill, { width: `${(data.matchday.my_predictions_count / Math.max(data.matchday.total_matches || 10, 1)) * 100}%` }]} />
+                            </View>
+                            <Text style={s.predProgressText}>{data.matchday.my_predictions_count}/{data.matchday.total_matches || 10} pronostici</Text>
+                          </View>
                         </>
                       )}
 
@@ -977,6 +986,31 @@ const s = StyleSheet.create({
   emptyHero: { alignItems: 'center', paddingVertical: 32, gap: 8 },
   emptyHeroTitle: { fontSize: 18, fontWeight: '700', color: DARK.textSub },
   emptyHeroSub: { fontSize: 13, color: DARK.textMuted, textAlign: 'center' },
+
+  // Prediction progress (unified with tournament)
+  predProgressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+  },
+  predProgressBarBg: {
+    flex: 1,
+    height: 6,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  predProgressBarFill: {
+    height: '100%',
+    backgroundColor: DARK.accent,
+    borderRadius: 3,
+  },
+  predProgressText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.55)',
+    fontWeight: '600',
+  },
 
   // ── 2. Classifica LIVE (premium with orange border) ──
   liveCard: {
