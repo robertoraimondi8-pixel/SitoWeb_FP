@@ -5,7 +5,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { CompetitionProvider, useCompetition } from '../../src/contexts/CompetitionContext';
+import { useCompetition } from '../../src/contexts/CompetitionContext';
 
 function ImpersonationBanner() {
   const [active, setActive] = useState(false);
@@ -114,9 +114,9 @@ function TabContent() {
 
 export default function TabLayout() {
   return (
-    <CompetitionProvider>
+    <>
       <ImpersonationBanner />
       <TabContent />
-    </CompetitionProvider>
+    </>
   );
 }
