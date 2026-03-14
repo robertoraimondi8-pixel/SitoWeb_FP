@@ -2705,18 +2705,23 @@ async function doImportFixtures(mdId) {
   const selected = Array.from(document.querySelectorAll('.fix-check:checked')).map(c => parseInt(c.value));
   if (selected.length === 0) { showToast('Seleziona almeno una partita', 'error'); return; }
 
-  // Get the league_id from the matchday context
+  // Get the league_id or tournament_id from the matchday context
   const md = (window._allMatchdays||[]).find(m => m.id === mdId);
-  let leagueId = md ? md.league_id : null;
-  if (!leagueId) {
-    // Fallback: try the main page league filter dropdown
-    const mdLeagueEl = document.getElementById('md-league');
-    if (mdLeagueEl) {
-      const filterVal = mdLeagueEl.value;
-      leagueId = (filterVal && filterVal !== 'all') ? filterVal : null;
+  let leagueId = null;
+  if (md && md._is_tournament && md._tournament_id) {
+    // Tournament context: use tournament_id as league_id
+    leagueId = md._tournament_id;
+  } else {
+    leagueId = md ? md.league_id : null;
+    if (!leagueId) {
+      const mdLeagueEl = document.getElementById('md-league');
+      if (mdLeagueEl) {
+        const filterVal = mdLeagueEl.value;
+        leagueId = (filterVal && filterVal !== 'all') ? filterVal : null;
+      }
     }
   }
-  if (!leagueId) { showToast('Impossibile determinare la lega. Seleziona una lega specifica nel filtro.', 'error'); return; }
+  if (!leagueId) { showToast('Impossibile determinare la lega/torneo. Seleziona una lega specifica nel filtro.', 'error'); return; }
 
   try {
     const r = await apiCall('/admin/real-fixtures/import', 'POST', {

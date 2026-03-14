@@ -64,22 +64,32 @@ async def real_fixtures_search(
 async def real_fixtures_import(req: ImportFixturesRequest, user=Depends(get_current_user)):
     from apifootball import map_api_status
     is_super = user.get("role") in ("admin", "superadmin")
-    if not is_super:
-        league_check = await leagues_col.find_one({"id": req.league_id}, {"_id": 0})
-        if not league_check:
-            raise HTTPException(404, "Lega non trovata")
-        if league_check.get("owner_id") != user["id"]:
-            raise HTTPException(403, "Solo il creatore della lega o un super admin può importare partite")
-        if league_check.get("match_source_type") not in ("custom", "manual", "api"):
-            raise HTTPException(400, "Questa lega usa le partite della Lega Nazionale")
+
+    # Determine if this is a league or tournament context
+    league = await leagues_col.find_one({"id": req.league_id}, {"_id": 0})
+    is_tournament = False
+    if not league:
+        from database import tournaments_col as t_col
+        tournament = await t_col.find_one({"id": req.league_id}, {"_id": 0})
+        if not tournament:
+            raise HTTPException(404, "Lega o torneo non trovato")
+        is_tournament = True
+    else:
+        # League permission check (skip for super admin and tournaments)
+        if not is_super:
+            if league.get("owner_id") != user["id"]:
+                raise HTTPException(403, "Solo il creatore della lega o un super admin puo importare partite")
+            if league.get("match_source_type") not in ("custom", "manual", "api"):
+                raise HTTPException(400, "Questa lega usa le partite della Lega Nazionale")
 
     if len(req.fixture_ids) > MAX_MATCHES_PER_MATCHDAY:
         raise HTTPException(400, f"Massimo {MAX_MATCHES_PER_MATCHDAY} partite per giornata")
 
-    league = await leagues_col.find_one({"id": req.league_id}, {"_id": 0})
-    if not league:
-        raise HTTPException(404, "Lega non trovata")
+    # Find the matchday - check both regular matchdays and tournament rounds
     matchday = await matchdays_col.find_one({"id": req.matchday_id}, {"_id": 0})
+    if not matchday and is_tournament:
+        from database import tournament_rounds_col
+        matchday = await tournament_rounds_col.find_one({"id": req.matchday_id}, {"_id": 0})
     if not matchday:
         raise HTTPException(404, "Giornata non trovata")
 

@@ -101,6 +101,11 @@ App di pronostici sportivi con sistema di leghe, tornei e classifiche. L'utente 
 - [x] **API gruppi migliorata** - Ritorna `qualifies`, `advance_count`, `players_per_group`, `groups_count` + statistiche tiebreak per giocatore
 - [x] **Tiebreak classifica gironi** - Ordinamento: punti girone → punti pronostici → indovinati → esatti → 1X2
 
+## Completed (14/03/2026 - Tournament Import Bug Fix)
+- [x] **Fix "Lega non trovata"** - L'import partite nel torneo cercava `league_id` solo in `leagues_col`. Ora controlla anche `tournaments_col` come fallback.
+- [x] **Fix frontend doImportFixtures** - Per i matchday torneo (`_is_tournament: true`), usa `_tournament_id` come `league_id` nel payload.
+- [x] **Fix permission check** - Il check owner/match_source_type è ora skippato per i tornei (solo per le leghe).
+
 ## Prioritized Backlog
 
 ### P1 - Next Up
