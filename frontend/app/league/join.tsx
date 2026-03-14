@@ -37,7 +37,7 @@ export default function JoinLeagueScreen() {
   const handleNationalJoin = async (leagueId: string) => {
     setPayLoading(leagueId);
     try {
-      const origin = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+      const origin = process.env.EXPO_PUBLIC_API_URL || process.env.EXPO_PUBLIC_BACKEND_URL || '';
       const res = await apiCall('/payments/checkout', {
         method: 'POST',
         token,
