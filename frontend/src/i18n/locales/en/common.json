@@ -178,7 +178,8 @@
     "avg_last_5_label": "AVG\nLAST 5",
     "no_matchday_scheduled": "No matchday scheduled",
     "change_prediction": "Change prediction",
-    "confirm_prediction": "Confirm prediction"
+    "confirm_prediction": "Confirm prediction",
+    "making_points": "Scoring {{points}} points on {{matches}} matches"
   },
   "predictions": {
     "title": "Predictions",
@@ -914,7 +915,10 @@
     "status_registration": "REGISTRATION OPEN",
     "status_groups": "GROUP STAGE",
     "status_knockout": "KNOCKOUT",
-    "status_completed": "COMPLETED"
+    "status_completed": "COMPLETED",
+    "winning": "You are winning",
+    "losing": "You are losing",
+    "tied": "Tied"
   },
   "tournamentRankings": {
     "title": "Tournament Rankings",

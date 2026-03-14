@@ -429,11 +429,14 @@ export default function HomeScreen() {
                           <Text style={s.heroPrimaryLabel}>{t('home.matchday_points_label')}</Text>
                           <Text style={s.heroContextMsg} data-testid="league-context-msg">
                             {(() => {
-                              const pts = data.matchday.status?.toUpperCase() === 'LIVE'
+                              const isLive = data.matchday.status?.toUpperCase() === 'LIVE';
+                              const pts = isLive
                                 ? (data.live?.total_provisional ?? 0)
                                 : (data.matchday.my_points ?? data.live?.total_provisional ?? 0);
                               const val = Math.round(Number(pts));
-                              if (val > 0) return t('home.scored_on_matches', { points: val, matches: 10 });
+                              const totalMatches = Math.min(data.matchday.total_matches || 0, 10);
+                              if (isLive) return t('home.making_points', { points: val, matches: totalMatches });
+                              if (val > 0) return t('home.scored_on_matches', { points: val, matches: totalMatches });
                               return t('home.no_points_matchday');
                             })()}
                           </Text>

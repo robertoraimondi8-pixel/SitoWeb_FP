@@ -348,7 +348,9 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   {cri.my_points} – {cri.opp_points}
                 </Text>
                 <Text style={s.heroContextMsg} data-testid="tournament-context-msg">
-                  {cri.my_points > cri.opp_points ? i18t('tournamentView.you_won') : cri.my_points < cri.opp_points ? i18t('tournamentView.you_lost') : i18t('tournamentView.you_drew')}
+                  {cri.status === 'LIVE'
+                    ? (cri.my_points > cri.opp_points ? i18t('tournamentView.winning') : cri.my_points < cri.opp_points ? i18t('tournamentView.losing') : i18t('tournamentView.tied'))
+                    : (cri.my_points > cri.opp_points ? i18t('tournamentView.you_won') : cri.my_points < cri.opp_points ? i18t('tournamentView.you_lost') : i18t('tournamentView.you_drew'))}
                 </Text>
                 <Text style={s.heroPrimaryLabel}>VS {cri.opponent_name.toUpperCase()}</Text>
               </View>

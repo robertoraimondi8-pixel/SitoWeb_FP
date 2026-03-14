@@ -58,7 +58,9 @@ export default function RulesScreen() {
     })();
   }, [activeLeague, tournamentId, isTournament, token]);
 
-  const sc = isTournament ? (data?.settings?.scoring_config || {}) : (data?.scoring_config || {});
+  const sc = isTournament
+    ? (data?.scoring_config || { '1x2': { enabled: true, points: 2 }, exact_score: { enabled: true, points: 5 }, over_under: { enabled: true, points: 1 }, goal_no_goal: { enabled: true, points: 1 } })
+    : (data?.scoring_config || {});
 
   const matchSourceLabel = () => {
     const type = data?.match_source_type || data?.league_type;
@@ -98,10 +100,10 @@ export default function RulesScreen() {
             <Text style={s.cardTitle}>{isTournament ? t('rules.tournament_settings') : t('rules.league_settings')}</Text>
             {isTournament ? (
               <>
-                <RuleRow label={t('rules.tournament_type')} value={data.settings?.type === 'groups_knockout' ? t('rules.tournament_type_groups') : t('rules.tournament_type_knockout')} />
-                <RuleRow label={t('rules.tournament_participants')} value={data.registered_count || data.settings?.num_participants || '-'} />
-                {data.settings?.group_config?.num_groups && (
-                  <RuleRow label={t('rules.tournament_groups')} value={data.settings.group_config.num_groups} />
+                <RuleRow label={t('rules.tournament_type')} value={data.tournament_type === 'groups_knockout' ? t('rules.tournament_type_groups') : t('rules.tournament_type_knockout')} />
+                <RuleRow label={t('rules.tournament_participants')} value={data.registered_count || data.max_participants || '-'} />
+                {data.groups_count && (
+                  <RuleRow label={t('rules.tournament_groups')} value={data.groups_count} />
                 )}
               </>
             ) : (

@@ -178,7 +178,8 @@
     "avg_last_5_label": "MEDIA\nULTIME 5",
     "no_matchday_scheduled": "Nessuna giornata in programma",
     "change_prediction": "Cambia pronostico",
-    "confirm_prediction": "Conferma pronostico"
+    "confirm_prediction": "Conferma pronostico",
+    "making_points": "Stai facendo {{points}} punti su {{matches}} partite"
   },
   "predictions": {
     "title": "Pronostici",
@@ -914,7 +915,10 @@
     "status_registration": "ISCRIZIONI APERTE",
     "status_groups": "FASE A GIRONI",
     "status_knockout": "ELIMINAZIONE DIRETTA",
-    "status_completed": "CONCLUSO"
+    "status_completed": "CONCLUSO",
+    "winning": "Stai vincendo",
+    "losing": "Stai perdendo",
+    "tied": "Sei in parità"
   },
   "tournamentRankings": {
     "title": "Classifiche Torneo",
