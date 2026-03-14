@@ -1193,8 +1193,9 @@ async def get_matchup_live(tournament_id: str, matchup_id: str, user=Depends(get
         a_total += a_pts
         b_total += b_pts
 
-        # Only show opponent's predictions after match starts (like leagues)
-        show_predictions = m.get("status") in ("live", "finished")
+        # Show predictions when match started OR when round is LIVE/COMPLETED (predictions locked)
+        round_locked = rnd.get("status", "").upper() in ("LIVE", "COMPLETED", "CLOSED")
+        show_predictions = m.get("status") in ("live", "finished") or round_locked
         match_details.append({
             "match": m,
             "user_a_prediction": a_pred.get("prediction_value") if a_pred and show_predictions else None,
