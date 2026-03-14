@@ -762,7 +762,8 @@ async def edit_league_rules(league_id: str, request: Request, user=Depends(requi
     allowed_fields = {
         "name", "scoring_config", "start_matchday", "end_matchday",
         "bet_deadline_minutes", "include_championship_predictions",
-        "competition_name"
+        "competition_name", "entry_fee", "season_id", "is_system",
+        "league_type", "match_source_type"
     }
 
     updates = {}
@@ -955,7 +956,8 @@ async def admin_create_league(request: Request, user=Depends(require_permission(
     league = {
         "id": league_id,
         "name": name,
-        "league_type": "private",
+        "league_type": body.get("league_type", "private"),
+        "is_system": body.get("is_system", False),
         "season_id": season_id,
         "invite_code": invite_code,
         "owner_id": owner_id,
@@ -967,6 +969,7 @@ async def admin_create_league(request: Request, user=Depends(require_permission(
         "match_source_type": match_source_type,
         "scoring_config": scoring,
         "include_championship_predictions": body.get("include_championship_predictions", False),
+        "entry_fee": body.get("entry_fee", 0),
         "status": "active",
         "rules_locked": False,
         "created_at": now_utc(),
