@@ -9,6 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/contexts/AuthContext';
 import { apiCall, isAuthError } from '../src/api/client';
+import { useTranslation } from 'react-i18next';
 
 const ACCENT = '#F5A623';
 

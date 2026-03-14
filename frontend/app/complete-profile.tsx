@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../src/contexts/AuthContext';
 import { apiCall } from '../src/api/client';
+import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius, brandGradients, shadows } from '../src/theme/designSystem';
 import { BrandLogo } from '../src/components/BrandLogo';
 
@@ -29,6 +30,7 @@ type FormState = {
 export default function CompleteProfileScreen() {
   const router = useRouter();
   const { refreshUser } = useAuth();
+  const { t } = useTranslation();
 
   const [form, setForm] = useState<FormState>({
     firstName: '', lastName: '', username: '',
@@ -49,16 +51,16 @@ export default function CompleteProfileScreen() {
 
   const handleSubmit = async () => {
     const e: Record<string, string> = {};
-    if (!form.firstName.trim()) e.firstName = 'Inserisci il nome';
-    if (!form.lastName.trim()) e.lastName = 'Inserisci il cognome';
-    if (form.username.trim() && !/^[a-zA-Z0-9_]{3,20}$/.test(form.username.trim())) e.username = '3-20 caratteri: lettere, numeri, _';
-    if (!dob) e.dob = 'Seleziona la data di nascita';
-    if (!form.address.trim()) e.address = 'Inserisci l\'indirizzo';
-    if (!form.city.trim()) e.city = 'Inserisci la città';
-    if (!form.postalCode.trim()) e.postalCode = 'Inserisci il CAP';
-    if (!form.country) e.country = 'Seleziona il paese';
-    if (!acceptedPrivacy) e.privacy = 'Devi accettare la Privacy Policy';
-    if (!acceptedTerms) e.terms = 'Devi accettare i Termini e Condizioni';
+    if (!form.firstName.trim()) e.firstName = t('complete_profile.err_first_name');
+    if (!form.lastName.trim()) e.lastName = t('complete_profile.err_last_name');
+    if (form.username.trim() && !/^[a-zA-Z0-9_]{3,20}$/.test(form.username.trim())) e.username = t('complete_profile.username_validation');
+    if (!dob) e.dob = t('complete_profile.err_dob');
+    if (!form.address.trim()) e.address = t('complete_profile.err_address');
+    if (!form.city.trim()) e.city = t('complete_profile.err_city');
+    if (!form.postalCode.trim()) e.postalCode = t('complete_profile.err_cap');
+    if (!form.country) e.country = t('complete_profile.err_country');
+    if (!acceptedPrivacy) e.privacy = t('complete_profile.err_privacy');
+    if (!acceptedTerms) e.terms = t('complete_profile.err_terms');
     setErrors(e);
     if (Object.keys(e).length > 0) return;
 
@@ -82,7 +84,7 @@ export default function CompleteProfileScreen() {
       router.replace('/(tabs)/home');
     } catch (e: unknown) {
       const err = e as any;
-      setSubmitError(err?.message || 'Errore nel salvataggio. Riprova.');
+      setSubmitError(err?.message || t('complete_profile.save_error'));
     } finally {
       setLoading(false);
     }
@@ -102,13 +104,13 @@ export default function CompleteProfileScreen() {
             <BrandLogo variant="wordmark" size="lg" />
             <View style={s.badge}>
               <Ionicons name="shield-checkmark" size={16} color={colors.accent} />
-              <Text style={s.badgeText}>Profilo incompleto</Text>
+              <Text style={s.badgeText}>{t('complete_profile.badge_incomplete')}</Text>
             </View>
           </View>
 
-          <Text style={s.pageTitle}>Completa il tuo profilo</Text>
+          <Text style={s.pageTitle}>{t('complete_profile.title')}</Text>
           <Text style={s.pageSubtitle}>
-            Per accedere all'app è necessario completare il profilo con i dati richiesti.
+            {t('complete_profile.subtitle')}
           </Text>
 
           {submitError ? (
@@ -122,8 +124,8 @@ export default function CompleteProfileScreen() {
           <View style={s.formCard}>
 
             {/* Username */}
-            <Text style={s.sectionLabel}>Il tuo username</Text>
-            <Text style={s.label}>Username</Text>
+            <Text style={s.sectionLabel}>{t('complete_profile.section_username')}</Text>
+            <Text style={s.label}>{t('username')}</Text>
             <View style={[s.inputRow, errors.username && { borderColor: colors.error }]}>
               <Ionicons name="at-outline" size={18} color={colors.textSecondary} />
               <TextInput
@@ -137,14 +139,13 @@ export default function CompleteProfileScreen() {
               />
             </View>
             {errors.username ? <Text style={s.fieldError}>{errors.username}</Text> : null}
-            <Text style={s.hint}>Sarà visibile agli altri utenti nelle classifiche</Text>
+            <Text style={s.hint}>{t('complete_profile.username_hint')}</Text>
 
-            {/* Dati personali */}
-            <Text style={s.sectionLabel}>Dati personali</Text>
+            <Text style={s.sectionLabel}>{t('complete_profile.section_personal')}</Text>
 
             <View style={s.row2}>
               <View style={{ flex: 1 }}>
-                <Text style={s.label}>Nome *</Text>
+                <Text style={s.label}>{t('complete_profile.name_label')}</Text>
                 <View style={[s.inputRow, errors.firstName && { borderColor: colors.error }]}>
                   <TextInput
                     style={s.input}
@@ -157,7 +158,7 @@ export default function CompleteProfileScreen() {
                 {errors.firstName ? <Text style={s.fieldError}>{errors.firstName}</Text> : null}
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={s.label}>Cognome *</Text>
+                <Text style={s.label}>{t('complete_profile.surname_label')}</Text>
                 <View style={[s.inputRow, errors.lastName && { borderColor: colors.error }]}>
                   <TextInput
                     style={s.input}

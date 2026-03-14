@@ -10,6 +10,7 @@ import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius } from '../../src/theme/designSystem';
+import { useTranslation } from 'react-i18next';
 
 export default function JoinTournamentScreen() {
   const { token } = useAuth();
