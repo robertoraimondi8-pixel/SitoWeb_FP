@@ -51,9 +51,11 @@ export default function RulesScreen() {
   const sc = league?.scoring_config || {};
 
   const matchSourceLabel = () => {
-    const type = league?.league_type || league?.match_source_type;
-    if (type === 'national') return 'Lega Nazionale';
-    return 'Partite personalizzate';
+    const type = league?.match_source_type || league?.league_type;
+    if (type === 'national') return 'Lega Nazionale (partite ufficiali)';
+    if (type === 'api') return 'Partite ufficiali (da calendario API)';
+    if (type === 'manual' || type === 'custom') return 'Partite personalizzate';
+    return 'Partite ufficiali';
   };
 
   return (

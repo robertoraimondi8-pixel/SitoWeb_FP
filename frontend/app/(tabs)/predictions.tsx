@@ -72,8 +72,8 @@ export default function PredictionsScreen() {
   const [detailFixtureId, setDetailFixtureId] = useState<number | null>(null);
 
   const formatPts = (pts: number) => {
-    return Math.round(pts).toString();
-    return `${val} ${pts === 1 ? 'punto' : 'punti'}`;
+    const val = Math.round(pts);
+    return `${val} ${val === 1 ? 'punto' : 'punti'}`;
   };
 
   // Mercati visibili filtrati per scoring_config
@@ -870,11 +870,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: 5,
     paddingHorizontal: 14,
     marginHorizontal: -16,
     marginTop: -16,
-    marginBottom: 12,
+    marginBottom: 8,
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
     backgroundColor: '#F5A623',
@@ -1122,11 +1122,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   valueBtnActive: {
-    backgroundColor: '#1F4C8F',
-    borderColor: '#1F4C8F',
-    shadowColor: '#000',
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+    shadowColor: '#F5A623',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 3,
   },
@@ -1136,7 +1136,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   valueBtnTextActive: {
-    color: colors.textInverse,
+    color: '#0D2240',
   },
   
   exactRow: { 
