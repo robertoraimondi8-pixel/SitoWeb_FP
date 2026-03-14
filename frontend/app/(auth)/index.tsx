@@ -44,7 +44,7 @@ export default function AuthLanding() {
       const redirectUri = AuthSession.makeRedirectUri({ scheme: 'fantapronostic', path: 'auth/callback' });
       const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUri)}`;
       timeoutRef.current = setTimeout(() => {
-        setGoogleError('Login non completato. Riprova.');
+        setGoogleError(t('login_errors.google_timeout'));
         setGoogleLoading(false);
       }, 15000);
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
@@ -58,7 +58,7 @@ export default function AuthLanding() {
           const queryMatch = result.url.match(/[?&]session_id=([^&#]+)/);
           if (queryMatch) sessionId = queryMatch[1];
         }
-        if (!sessionId) { setGoogleError('Sessione non valida. Riprova.'); setGoogleLoading(false); return; }
+        if (!sessionId) { setGoogleError(t('login_errors.google_invalid_session')); setGoogleLoading(false); return; }
 
         const res = await apiCall('/auth/google/session', { method: 'POST', body: { session_id: sessionId }, skipAuth: true });
 
@@ -85,13 +85,13 @@ export default function AuthLanding() {
 
         router.replace(targetRoute as Href);
       } else if (result.type === 'cancel' || result.type === 'dismiss') {
-        setGoogleError(result.type === 'cancel' ? 'Login annullato' : '');
+        setGoogleError(result.type === 'cancel' ? t('login_errors.google_cancelled') : '');
       } else {
-        setGoogleError('Errore durante il login. Riprova.');
+        setGoogleError(t('login_errors.google_generic_error'));
       }
     } catch (e: unknown) {
       clearTimeout(timeoutRef.current);
-      setGoogleError(e.message || 'Errore di connessione');
+      setGoogleError(e.message || t('login_errors.google_connection_error'));
     } finally {
       setGoogleLoading(false);
     }

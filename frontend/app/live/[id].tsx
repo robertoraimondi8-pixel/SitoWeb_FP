@@ -10,6 +10,7 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { LiveScreenData, getErrorMessage } from '../../src/types/api';
 import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius } from '../../src/theme/designSystem';
 import { AnimatedSweep } from '../../src/components/ui';
 import { MatchDetailSheet } from '../../src/components/MatchDetailSheet';
@@ -38,6 +39,7 @@ interface LiveMatch {
 }
 
 export default function LiveScreen() {
+  const { t } = useTranslation();
   const { token, handleAuthError } = useAuth();
   const params = useLocalSearchParams<{ id: string; league_id?: string }>();
   
@@ -138,7 +140,7 @@ export default function LiveScreen() {
         <LinearGradient colors={['#F5F6F8', '#ECEFF3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
         <View style={s.center}>
           <ActivityIndicator size="large" color={colors.accent} />
-          <Text style={s.loadingText}>Caricamento Live...</Text>
+          <Text style={s.loadingText}>{t('live.loading_live')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -157,7 +159,7 @@ export default function LiveScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={s.headerInfo}>
-          <Text style={s.headerTitle}>{data?.matchday_label || `Giornata ${data?.matchday_number}`}</Text>
+          <Text style={s.headerTitle}>{data?.matchday_label || `${t('matchday')} ${data?.matchday_number}`}</Text>
           <View style={s.headerMeta}>
             {isLive && (
               <View style={s.liveBadgeHeader}>
@@ -185,12 +187,12 @@ export default function LiveScreen() {
             <AnimatedSweep />
             <View style={s.pointsRow}>
               <View style={s.pointsItem}>
-                <Text style={s.pointsLabel}>Punti Base</Text>
+                <Text style={s.pointsLabel}>{t('live.base_points')}</Text>
                 <Text style={s.pointsValue}>{Math.round(data?.base_points || 0)}</Text>
               </View>
               <View style={s.pointsDivider} />
               <View style={s.pointsItem}>
-                <Text style={s.pointsLabel}>{isCompleted ? 'Punti Ufficiali' : 'Punti Provvisori'}</Text>
+                <Text style={s.pointsLabel}>{isCompleted ? t('live.official_points') : t('live.provisional_points')}</Text>
                 <Text style={s.pointsValueBig}>{Math.round(data?.total_live_points || 0)}</Text>
               </View>
             </View>
@@ -223,7 +225,7 @@ export default function LiveScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, marginHorizontal: -16, marginTop: -16, marginBottom: 12, borderTopLeftRadius: 18, borderTopRightRadius: 18, backgroundColor: '#F5A623' }}>
                 <View>
                   <Text style={{ fontSize: 16, fontWeight: '900', color: '#0D2240', letterSpacing: 1.5 }}>BOOST X3</Text>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: 'rgba(13,34,64,0.7)' }}>Moltiplica X3 i punti</Text>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: 'rgba(13,34,64,0.7)' }}>{t('live.multiply_x3')}</Text>
                 </View>
                 <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(13,34,64,0.15)', alignItems: 'center', justifyContent: 'center' }}>
                   <Ionicons name="flash" size={20} color="#0D2240" />
@@ -304,7 +306,7 @@ export default function LiveScreen() {
                     <Text style={s.predValue}>{match.my_prediction}</Text>
                   </View>
                 ) : (
-                  <Text style={s.noPred}>Nessun pronostico</Text>
+                  <Text style={s.noPred}>{t('live.no_prediction')}</Text>
                 )}
               </View>
               <View style={s.pointsCol2}>

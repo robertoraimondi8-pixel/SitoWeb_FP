@@ -19,7 +19,7 @@ import { colors, typography, spacing, borderRadius, shadows } from '../../src/th
 import { BrandLogo } from '../../src/components/BrandLogo';
 
 // ─── Mappa errori login → messaggi leggibili ─────────────────────────────────
-function mapLoginError(e: unknown): string {
+function mapLoginErrorKey(e: unknown): string {
   const raw = (e?.message ?? String(e ?? '')).toLowerCase();
   if (
     raw.includes('401') || raw.includes('400') ||
@@ -27,15 +27,15 @@ function mapLoginError(e: unknown): string {
     raw.includes('incorrect') || raw.includes('not found') ||
     raw.includes('user not found') ||
     raw.includes('email o password') || raw.includes('non validi')
-  ) return 'Email o password errata';
+  ) return 'login_errors.invalid_credentials';
   if (
     raw.includes('network') || raw.includes('fetch') ||
     raw.includes('connection') || raw.includes('failed to fetch')
-  ) return 'Problema di connessione, riprova';
+  ) return 'login_errors.network_error';
   if (raw.includes('50') || raw.includes('server error') || raw.includes('internal')) {
-    return 'Errore del server, riprova tra poco';
+    return 'login_errors.server_error';
   }
-  return 'Errore durante il login. Riprova.';
+  return 'login_errors.generic_error';
 }
 
 const { width } = Dimensions.get('window');
@@ -105,7 +105,7 @@ export default function LoginScreen() {
 
       router.replace('/(tabs)/home');
     } catch (e: unknown) {
-      setError(mapLoginError(e));
+      setError(t(mapLoginErrorKey(e)));
     } finally {
       setLoading(false);
     }
@@ -134,7 +134,7 @@ export default function LoginScreen() {
       const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUri)}`;
 
       timeoutRef.current = setTimeout(() => {
-        setGoogleError('Login non completato. Riprova.');
+        setGoogleError(t('login_errors.google_timeout'));
         setGoogleLoading(false);
       }, GOOGLE_LOGIN_TIMEOUT);
 
@@ -155,7 +155,7 @@ export default function LoginScreen() {
         }
 
         if (!sessionId) {
-          setGoogleError('Sessione non valida. Riprova.');
+          setGoogleError(t('login_errors.google_invalid_session'));
           setGoogleLoading(false);
           return;
         }
@@ -169,16 +169,16 @@ export default function LoginScreen() {
           await loginWithToken(res.access_token, res.refresh_token, res.user);
           router.replace('/');
         } catch (backendError: unknown) {
-          setGoogleError(backendError.message || 'Autenticazione fallita');
+          setGoogleError(backendError.message || t('login_errors.google_auth_failed'));
           setGoogleLoading(false);
         }
       } else if (result.type === 'cancel') {
-        setGoogleError('Login annullato');
+        setGoogleError(t('login_errors.google_cancelled'));
         setGoogleLoading(false);
       } else if (result.type === 'dismiss') {
         setGoogleLoading(false);
       } else {
-        setGoogleError('Errore durante il login. Riprova.');
+        setGoogleError(t('login_errors.google_generic_error'));
         setGoogleLoading(false);
       }
     } catch (e: unknown) {
@@ -186,7 +186,7 @@ export default function LoginScreen() {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
-      setGoogleError(e.message || 'Errore di connessione');
+      setGoogleError(e.message || t('login_errors.google_connection_error'));
       setGoogleLoading(false);
     }
   };
@@ -306,7 +306,7 @@ export default function LoginScreen() {
                   onPress={handleRetryGoogle}
                   style={styles.retryBtn}
                 >
-                  <Text style={styles.retryBtnText}>Riprova</Text>
+                  <Text style={styles.retryBtnText}>{t('login_errors.retry')}</Text>
                 </TouchableOpacity>
               </View>
             ) : null}

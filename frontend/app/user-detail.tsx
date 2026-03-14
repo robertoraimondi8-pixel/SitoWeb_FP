@@ -9,6 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../src/contexts/AuthContext';
 import { apiCall, isAuthError } from '../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius } from '../src/theme/designSystem';
 import { AnimatedSweep } from '../src/components/ui';
 
@@ -45,6 +46,7 @@ interface UserProfile {
 }
 
 export default function UserDetailScreen() {
+  const { t } = useTranslation();
   const { token, handleAuthError } = useAuth();
   const params = useLocalSearchParams<{ userId: string; leagueId?: string }>();
   
