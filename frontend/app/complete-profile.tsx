@@ -259,7 +259,7 @@ export default function CompleteProfileScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
                 <Ionicons name="globe-outline" size={18} color={colors.textSecondary} />
                 <Text style={{ color: form.country ? colors.textPrimary : colors.textMuted, fontSize: 15 }}>
-                  {form.country || 'Seleziona paese'}
+                  {form.country || t('completeProfile.select_country')}
                 </Text>
               </View>
               <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />

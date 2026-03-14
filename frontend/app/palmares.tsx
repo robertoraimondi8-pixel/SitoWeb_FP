@@ -13,60 +13,63 @@ import { useTranslation } from 'react-i18next';
 
 const ACCENT = '#F5A623';
 
-type TrophyCategory = {
+
+
+type CategoryDef = {
   key: string;
   icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subtitleKey: string;
   color: string;
   gradColors: readonly [string, string, string];
-  items: { label: string; countKey: string; icon: keyof typeof Ionicons.glyphMap }[];
+  items: { labelKey: string; countKey: string; icon: keyof typeof Ionicons.glyphMap }[];
 };
 
-const CATEGORIES: TrophyCategory[] = [
+const CATEGORY_DEFS: CategoryDef[] = [
   {
     key: 'league',
     icon: 'trophy',
-    title: 'Trofei Lega',
-    subtitle: 'Vittorie nelle leghe di campionato',
+    titleKey: 'palmares.league_title',
+    subtitleKey: 'palmares.league_subtitle',
     color: ACCENT,
     gradColors: ['#2C5FA8', '#1F4C8F', '#162F5C'] as const,
     items: [
-      { label: 'Campione di Lega', countKey: 'league_champion', icon: 'trophy' },
-      { label: 'Secondo classificato', countKey: 'league_second', icon: 'medal' },
-      { label: 'Terzo classificato', countKey: 'league_third', icon: 'ribbon' },
+      { labelKey: 'palmares.league_champion', countKey: 'league_champion', icon: 'trophy' },
+      { labelKey: 'palmares.league_second', countKey: 'league_second', icon: 'medal' },
+      { labelKey: 'palmares.league_third', countKey: 'league_third', icon: 'ribbon' },
     ],
   },
   {
     key: 'tournament',
     icon: 'flash',
-    title: 'Trofei Tornei',
-    subtitle: 'Vittorie nei tornei ad eliminazione',
+    titleKey: 'palmares.tournament_title',
+    subtitleKey: 'palmares.tournament_subtitle',
     color: '#22c55e',
     gradColors: ['#166534', '#15803d', '#166534'] as const,
     items: [
-      { label: 'Campione Torneo', countKey: 'tournament_champion', icon: 'trophy' },
-      { label: 'Finalista', countKey: 'tournament_finalist', icon: 'medal' },
-      { label: 'Semifinalista', countKey: 'tournament_semifinalist', icon: 'ribbon' },
+      { labelKey: 'palmares.tournament_champion', countKey: 'tournament_champion', icon: 'trophy' },
+      { labelKey: 'palmares.tournament_finalist', countKey: 'tournament_finalist', icon: 'medal' },
+      { labelKey: 'palmares.tournament_semifinalist', countKey: 'tournament_semifinalist', icon: 'ribbon' },
     ],
   },
   {
     key: 'weekly',
     icon: 'calendar',
-    title: 'Trofei Settimanali',
-    subtitle: 'Record nelle singole giornate',
+    titleKey: 'palmares.weekly_title',
+    subtitleKey: 'palmares.weekly_subtitle',
     color: '#8B5CF6',
     gradColors: ['#5B21B6', '#6D28D9', '#4C1D95'] as const,
     items: [
-      { label: 'Miglior punteggio giornata', countKey: 'weekly_best', icon: 'star' },
-      { label: 'Punteggio perfetto', countKey: 'weekly_perfect', icon: 'diamond' },
-      { label: 'Serie positiva (5+)', countKey: 'weekly_streak', icon: 'flame' },
+      { labelKey: 'palmares.weekly_best', countKey: 'weekly_best', icon: 'star' },
+      { labelKey: 'palmares.weekly_perfect', countKey: 'weekly_perfect', icon: 'diamond' },
+      { labelKey: 'palmares.weekly_streak', countKey: 'weekly_streak', icon: 'flame' },
     ],
   },
 ];
 
 export default function PalmaresScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { token, handleAuthError } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -101,15 +104,15 @@ export default function PalmaresScreen() {
 
   const getTrophyLabel = (type: string) => {
     const map: Record<string, string> = {
-      weekly_best: 'Miglior punteggio',
-      weekly_perfect: 'Punteggio perfetto',
-      weekly_streak: 'Serie positiva',
-      league_champion: 'Campione di Lega',
-      league_second: '2° classificato',
-      league_third: '3° classificato',
-      tournament_champion: 'Campione Torneo',
-      tournament_finalist: 'Finalista',
-      tournament_semifinalist: 'Semifinalista',
+      weekly_best: t('palmares.weekly_best_short'),
+      weekly_perfect: t('palmares.weekly_perfect_short'),
+      weekly_streak: t('palmares.weekly_streak_short'),
+      league_champion: t('palmares.league_champion'),
+      league_second: t('palmares.league_second_short'),
+      league_third: t('palmares.league_third_short'),
+      tournament_champion: t('palmares.tournament_champion'),
+      tournament_finalist: t('palmares.tournament_finalist'),
+      tournament_semifinalist: t('palmares.tournament_semifinalist'),
     };
     return map[type] || type;
   };
@@ -157,10 +160,10 @@ export default function PalmaresScreen() {
                 <Ionicons name="medal" size={36} color={ACCENT} />
               </View>
               <Text style={s.summaryCount}>{total}</Text>
-              <Text style={s.summaryLabel}>Trofei totali</Text>
+              <Text style={s.summaryLabel}>{t('palmares.total_trophies')}</Text>
               <View style={s.summaryDivider} />
               <View style={s.summaryRow}>
-                {CATEGORIES.map((cat) => (
+                {CATEGORY_DEFS.map((cat) => (
                   <View key={cat.key} style={s.summaryCol}>
                     <Ionicons name={cat.icon} size={18} color={cat.color} />
                     <Text style={[s.summaryColCount, { color: cat.color }]}>{getCatTotal(cat.key)}</Text>
@@ -171,7 +174,7 @@ export default function PalmaresScreen() {
           </View>
 
           {/* Trophy Categories */}
-          {CATEGORIES.map((cat) => (
+          {CATEGORY_DEFS.map((cat) => (
             <View key={cat.key} style={s.categoryCard} data-testid={`trophy-category-${cat.key}`}>
               <LinearGradient
                 colors={cat.gradColors}
@@ -190,8 +193,8 @@ export default function PalmaresScreen() {
                     <Ionicons name={cat.icon} size={22} color={cat.color} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={s.catTitle}>{cat.title}</Text>
-                    <Text style={s.catSub}>{cat.subtitle}</Text>
+                    <Text style={s.catTitle}>{t(cat.titleKey)}</Text>
+                    <Text style={s.catSub}>{t(cat.subtitleKey)}</Text>
                   </View>
                 </View>
                 {cat.items.map((item, idx) => {
@@ -206,7 +209,7 @@ export default function PalmaresScreen() {
                         }]}>
                           <Ionicons name={item.icon} size={16} color={count > 0 ? cat.color : `${cat.color}60`} />
                         </View>
-                        <Text style={[s.trophyLabel, count > 0 && { color: '#fff', fontWeight: '600' }]}>{item.label}</Text>
+                        <Text style={[s.trophyLabel, count > 0 && { color: '#fff', fontWeight: '600' }]}>{t(item.labelKey)}</Text>
                         <View style={[s.trophyCountWrap, count > 0 && { backgroundColor: `${cat.color}20` }]}>
                           <Text style={[s.trophyCount, count > 0 && { color: cat.color }]}>{count}</Text>
                         </View>
@@ -221,7 +224,7 @@ export default function PalmaresScreen() {
           {/* Recent Trophies */}
           {recentTrophies.length > 0 && (
             <View style={s.recentSection} data-testid="recent-trophies">
-              <Text style={s.recentTitle}>Trofei recenti</Text>
+              <Text style={s.recentTitle}>{t('palmares.recent_trophies')}</Text>
               {recentTrophies.map((t) => (
                 <View key={t.id} style={s.recentItem}>
                   <View style={[s.recentDot, { backgroundColor: getTrophyColor(t.type) }]} />
@@ -243,7 +246,7 @@ export default function PalmaresScreen() {
             <View style={s.emptyMsg} data-testid="palmares-empty-message">
               <Ionicons name="sparkles-outline" size={20} color="rgba(255,255,255,0.3)" />
               <Text style={s.emptyText}>
-                I trofei verranno assegnati al termine di ogni competizione. Gioca e conquista il tuo primo trofeo!
+                {t('palmares.empty_msg')}
               </Text>
             </View>
           )}

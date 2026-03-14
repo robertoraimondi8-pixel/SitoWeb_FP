@@ -6,6 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { apiCall } from '../api/client';
 import { colors, typography, spacing, borderRadius } from '../theme/designSystem';
+import { useTranslation } from 'react-i18next';
 
 type FixtureEvent = {
   time_elapsed: number | null;
@@ -85,6 +86,7 @@ const LIVE_STATUSES = new Set(['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE']);
 const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN']);
 
 export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) {
+  const { t } = useTranslation();
   const [data, setData] = useState<FixtureDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +100,7 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
       setActiveTab('events');
       apiCall<FixtureDetail>(`/stats/fixture-detail/${fixtureId}`, { token })
         .then(setData)
-        .catch(() => setError('Dettagli partita non disponibili'))
+        .catch(() => setError(t('matchDetail.not_available')))
         .finally(() => setLoading(false));
     }
   }, [visible, fixtureId]);
@@ -122,7 +124,7 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
           {loading ? (
             <View style={s.center}>
               <ActivityIndicator size="small" color={colors.accent} />
-              <Text style={s.loadingText}>Caricamento dettagli...</Text>
+              <Text style={s.loadingText}>{t('matchDetail.loading')}</Text>
             </View>
           ) : error ? (
             <View style={s.center}>
@@ -180,7 +182,7 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
               {/* Tab Selector */}
               <View style={s.tabBar}>
                 {(['events', 'stats', 'lineups'] as Tab[]).map(tab => {
-                  const labels: Record<Tab, string> = { events: 'Riassunto', stats: 'Statistiche', lineups: 'Formazioni' };
+                  const labels: Record<Tab, string> = { events: t('matchDetail.tab_events'), stats: t('matchDetail.tab_stats'), lineups: t('matchDetail.tab_lineups') };
                   const icons: Record<Tab, string> = { events: 'football-outline', stats: 'bar-chart-outline', lineups: 'people-outline' };
                   const isActive = activeTab === tab;
                   return (
@@ -212,7 +214,7 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
 /* ── Events List (stile Diretta) ── */
 function EventsList({ events, homeTeam, halftime }: { events: FixtureEvent[]; homeTeam: string; halftime: { home: number | null; away: number | null } }) {
   if (events.length === 0) {
-    return <Text style={s.emptyText}>Nessun evento disponibile</Text>;
+    return <Text style={s.emptyText}>{t('matchDetail.no_events')}</Text>;
   }
 
   // Compute running score for each event
@@ -241,7 +243,7 @@ function EventsList({ events, homeTeam, halftime }: { events: FixtureEvent[]; ho
         <Text style={s.halfHeaderScore}>{htHome} - {htAway}</Text>
       </View>
       {fh.length === 0 ? (
-        <Text style={s.noEventsHalf}>Nessun evento</Text>
+        <Text style={s.noEventsHalf}>{t('matchDetail.no_events_half')}</Text>
       ) : fh.map((ev, i) => <EventRow key={`fh-${i}`} ev={ev} homeTeam={homeTeam} />)}
 
       {sh.length > 0 && (
@@ -267,12 +269,12 @@ function EventRow({ ev, homeTeam }: { ev: FixtureEvent & { runningHome: number; 
 
   const getDetailText = (detail: string) => {
     if (!detail || detail === 'Normal Goal' || detail === 'Yellow Card') return '';
-    if (detail === 'Own Goal') return 'Autogol';
-    if (detail === 'Penalty') return 'Rigore';
-    if (detail === 'Missed Penalty') return 'Rigore sbagliato';
-    if (detail === 'Red Card') return 'Rosso';
-    if (detail === 'Second Yellow card') return 'Doppio giallo';
-    if (detail.includes('cancelled')) return 'Gol annullato';
+    if (detail === 'Own Goal') return t('matchDetail.own_goal');
+    if (detail === 'Penalty') return t('matchDetail.penalty');
+    if (detail === 'Missed Penalty') return t('matchDetail.missed_penalty');
+    if (detail === 'Red Card') return t('matchDetail.red_card');
+    if (detail === 'Second Yellow card') return t('matchDetail.second_yellow');
+    if (detail.includes('cancelled')) return t('matchDetail.goal_cancelled');
     if (detail.startsWith('Substitution')) return '';
     return detail;
   };
@@ -379,28 +381,28 @@ function StatsComparison({ stats, preview, homeName, awayName }: { stats: TeamSt
             </View>
           )}
           {!preview.home_form?.length && !preview.h2h?.length && (
-            <Text style={s.emptyText}>Statistiche pre-partita non disponibili</Text>
+            <Text style={s.emptyText}>{t('matchDetail.stats_prematch_unavailable')}</Text>
           )}
         </View>
       );
     }
-    return <Text style={s.emptyText}>Statistiche non disponibili</Text>;
+    return <Text style={s.emptyText}>{t('matchDetail.stats_unavailable')}</Text>;
   }
 
   const home = stats[0];
   const away = stats[1];
 
   const STAT_KEYS = [
-    { key: 'Ball Possession', label: 'Possesso palla' },
-    { key: 'Total Shots', label: 'Tiri totali' },
-    { key: 'Shots on Goal', label: 'Tiri in porta' },
-    { key: 'Corner Kicks', label: 'Calci d\'angolo' },
-    { key: 'Fouls', label: 'Falli' },
-    { key: 'Offsides', label: 'Fuorigioco' },
-    { key: 'Yellow Cards', label: 'Cartellini gialli' },
-    { key: 'Red Cards', label: 'Cartellini rossi' },
-    { key: 'Goalkeeper Saves', label: 'Parate' },
-    { key: 'Passes accurate', label: 'Passaggi riusciti' },
+    { key: 'Ball Possession', label: t('matchDetail.ball_possession') },
+    { key: 'Total Shots', label: t('matchDetail.total_shots') },
+    { key: 'Shots on Goal', label: t('matchDetail.shots_on_goal') },
+    { key: 'Corner Kicks', label: t('matchDetail.corner_kicks') },
+    { key: 'Fouls', label: t('matchDetail.fouls') },
+    { key: 'Offsides', label: t('matchDetail.offsides') },
+    { key: 'Yellow Cards', label: t('matchDetail.yellow_cards') },
+    { key: 'Red Cards', label: t('matchDetail.red_cards') },
+    { key: 'Goalkeeper Saves', label: t('matchDetail.goalkeeper_saves') },
+    { key: 'Passes accurate', label: t('matchDetail.passes_accurate') },
   ];
 
   return (
@@ -448,7 +450,7 @@ function StatsComparison({ stats, preview, homeName, awayName }: { stats: TeamSt
 /* ── Lineups View ── */
 function LineupsView({ lineups }: { lineups: Lineup[] }) {
   if (lineups.length === 0) {
-    return <Text style={s.emptyText}>Formazioni non disponibili</Text>;
+    return <Text style={s.emptyText}>{t('matchDetail.lineups_unavailable')}</Text>;
   }
 
   return (
@@ -473,7 +475,7 @@ function LineupsView({ lineups }: { lineups: Lineup[] }) {
           )}
 
           {/* Starters */}
-          <Text style={s.lineupSectionTitle}>Titolari</Text>
+          <Text style={s.lineupSectionTitle}>{t('matchDetail.starters')}</Text>
           {lineup.starters.map((p, j) => (
             <View key={j} style={s.playerRow}>
               <Text style={s.playerNumber}>{p.number || '-'}</Text>
@@ -485,7 +487,7 @@ function LineupsView({ lineups }: { lineups: Lineup[] }) {
           {/* Substitutes */}
           {lineup.substitutes.length > 0 && (
             <>
-              <Text style={s.lineupSectionTitle}>Panchina</Text>
+              <Text style={s.lineupSectionTitle}>{t('matchDetail.bench')}</Text>
               {lineup.substitutes.map((p, j) => (
                 <View key={j} style={s.playerRow}>
                   <Text style={[s.playerNumber, { color: colors.textMuted }]}>{p.number || '-'}</Text>

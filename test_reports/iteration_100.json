@@ -1,0 +1,77 @@
+{
+  "summary": "i18n Testing - Critical issues found. Landing page and tab bar use English correctly (browser-detected). However, home screen and side menu show Italian text despite English being selected. Root cause: Multiple hardcoded Italian strings remain in the code, and the language screen header is hardcoded as 'Lingua' instead of using t('language').",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Language Screen", "issue": "Header shows hardcoded 'Lingua' instead of using i18n translation", "selector": "language.tsx line 35", "priority": "HIGH"},
+      {"component": "Home Screen", "issue": "Hardcoded Italian string 'Giornata' on line 449", "selector": "home.tsx line 449", "priority": "HIGH"},
+      {"component": "Home Screen", "issue": "Hardcoded Italian 'partite' on line 197", "selector": "home.tsx line 197", "priority": "HIGH"},
+      {"component": "Home Screen", "issue": "Hardcoded Italian 'Hai fatto X punti su 10 partite' on line 436", "selector": "home.tsx line 436", "priority": "HIGH"},
+      {"component": "Home Screen", "issue": "Hardcoded Italian 'Nessuna giornata in programma' on line 482", "selector": "home.tsx line 482", "priority": "HIGH"}
+    ],
+    "integration_issues": [
+      {"flow": "Language switching", "issue": "Language page title remains 'Lingua' regardless of selected language", "affected_selectors": ["language.tsx headerTitle"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_100.json"],
+  "action_items": [
+    "Replace hardcoded 'Lingua' in /app/frontend/app/menu/language.tsx line 35 with t('language') and import useTranslation's t function",
+    "Replace hardcoded 'Giornata ${data.matchday.number}' in home.tsx line 449 with translation key like t('home.matchday_label') + ' ' + data.matchday.number",
+    "Replace hardcoded '${totalMatches} partite' in home.tsx line 197 with translation",
+    "Replace hardcoded 'Hai fatto ${val} punti su 10 partite' in home.tsx line 436 with translation",
+    "Replace hardcoded 'Nessuna giornata in programma' in home.tsx line 482 with translation key like t('home.no_matchday_scheduled')"
+  ],
+  "critical_code_review_comments": [
+    "language.tsx line 35: Hardcoded 'Lingua' - should use {t('language')} with useTranslation hook",
+    "home.tsx contains 4+ hardcoded Italian strings that bypass the i18n system",
+    "Admin screens (/app/frontend/app/admin/*) contain many hardcoded Italian strings - not critical but should be fixed for consistency"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (skipped)",
+    "frontend": "60%"
+  },
+  "test_credentials": "ilio@raimondi.it / password123",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "i18n refactoring incomplete. Landing page and tab bar work correctly with browser language detection. Side menu and home screen have hardcoded Italian strings that need to be replaced with t() calls. Language screen header is hardcoded as 'Lingua'. Test user has 'language: it' in their profile but the app should respect the language selected via UI (which saves to localStorage as APP_LANGUAGE).",
+  "i18n_test_results": {
+    "landing_page": {
+      "status": "PASS",
+      "language": "English (browser detected)",
+      "verified_strings": ["Predict. Win. Dominate the rankings", "Sign Up", "Sign In", "Continue with Google", "Forgot password?", "Terms", "Privacy Policy"]
+    },
+    "login_form": {
+      "status": "PASS",
+      "language": "English",
+      "verified_strings": ["Welcome back!", "Sign in to continue", "SIGN IN"]
+    },
+    "tab_bar": {
+      "status": "PASS",
+      "language": "English",
+      "verified_strings": ["Home", "Statistics", "Predictions", "Rankings", "Profile"]
+    },
+    "home_screen": {
+      "status": "FAIL",
+      "language": "Mixed Italian/English",
+      "hardcoded_italian": ["PUNTI GIORNATA", "CLASSIFICA", "Vedi classifica", "POSIZIONE ATTUALE", "PUNTI TOTALI", "MEDIA ULTIME 5", "ULTIME 5 GIORNATE", "GIORNATA"],
+      "notes": "Should show English but shows Italian due to hardcoded strings"
+    },
+    "side_menu": {
+      "status": "FAIL",
+      "language": "Italian",
+      "found_italian": ["Profilo", "Lingua", "LEGA", "Le mie leghe", "Partecipanti", "Regolamento", "I miei inviti", "TORNEI", "I miei tornei", "Iscriviti a nuovi tornei", "COMUNICAZIONI", "Notifiche", "LEGALE", "Termini di Servizio"],
+      "notes": "Side menu items use t() correctly but current selected language appears to be Italian. Language screen shows English is selected but side menu shows Italian - possible state sync issue"
+    },
+    "language_screen": {
+      "status": "PARTIAL",
+      "issues": ["Header shows 'Lingua' instead of 'Language' (hardcoded)"],
+      "working": ["Language options display correctly", "Checkmark shows current selection", "All three languages available (Italiano, English, Español)"]
+    }
+  }
+}

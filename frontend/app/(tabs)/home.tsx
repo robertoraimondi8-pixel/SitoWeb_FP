@@ -409,7 +409,7 @@ export default function HomeScreen() {
                       <View style={s.heroTop}>
                         <View style={s.heroLabelRow}>
                           <Ionicons name="football" size={13} color={DARK.textMuted} />
-                          <Text style={s.heroLabel}>{(data.matchday.label || `GIORNATA ${data.matchday.number}`).toUpperCase()}</Text>
+                          <Text style={s.heroLabel}>{(data.matchday.label || `${t('home.matchday_label')} ${data.matchday.number}`).toUpperCase()}</Text>
                         </View>
                         <StatusBadge status={data.matchday.status} label={getStatusLabel(data.matchday.status)} />
                       </View>
@@ -426,7 +426,7 @@ export default function HomeScreen() {
                               return val > 0 ? `+${val}` : `${val}`;
                             })()}
                           </Text>
-                          <Text style={s.heroPrimaryLabel}>PUNTI GIORNATA</Text>
+                          <Text style={s.heroPrimaryLabel}>{t('home.matchday_points_label')}</Text>
                           <Text style={s.heroContextMsg} data-testid="league-context-msg">
                             {(() => {
                               const pts = data.matchday.status?.toUpperCase() === 'LIVE'
@@ -434,7 +434,7 @@ export default function HomeScreen() {
                                 : (data.matchday.my_points ?? data.live?.total_provisional ?? 0);
                               const val = Math.round(Number(pts));
                               if (val > 0) return `Hai fatto ${val} punti su 10 partite`;
-                              return 'Nessun punto questa giornata';
+                              return t('home.no_points_matchday');
                             })()}
                           </Text>
                         </View>
@@ -548,7 +548,7 @@ export default function HomeScreen() {
               >
                 <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
                 <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
-                <Text style={s.miniRankTitle}>CLASSIFICA</Text>
+                <Text style={s.miniRankTitle}>{t('home.rankings_section')}</Text>
                 {data.rankings_preview.top.slice(0, 3).map((entry: any, i: number) => {
                   const isMe = entry.user_id === data.rankings_preview?.current_user_id;
                   return (
@@ -560,7 +560,7 @@ export default function HomeScreen() {
                   );
                 })}
                 <View style={s.miniRankCtaRow}>
-                  <Text style={s.miniRankCta}>Vedi classifica</Text>
+                  <Text style={s.miniRankCta}>{t('home.view_all_rankings')}</Text>
                   <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.5)" />
                 </View>
               </LinearGradient>
@@ -606,7 +606,7 @@ export default function HomeScreen() {
                     <Ionicons name="trophy" size={20} color={DARK.accent} />
                   </View>
                   <Text style={s.perfValue}>{data.user_summary.rank ? `${data.user_summary.rank}\u00B0` : '-'}</Text>
-                  <Text style={s.perfLabel}>POSIZIONE{'\n'}ATTUALE</Text>
+                  <Text style={s.perfLabel}>{t('home.position_current_label')}</Text>
                 </LinearGradient>
               </View>
               {/* Total Points */}
@@ -639,7 +639,7 @@ export default function HomeScreen() {
                     <Ionicons name="star" size={20} color="#FFFFFF" />
                   </View>
                   <Text style={s.perfValue}>{formatPoints(data.user_summary.total_points)}</Text>
-                  <Text style={s.perfLabel}>PUNTI{'\n'}TOTALI</Text>
+                  <Text style={s.perfLabel}>{t('home.total_points_label')}</Text>
                 </LinearGradient>
               </View>
               {/* Avg Last 5 */}
@@ -672,7 +672,7 @@ export default function HomeScreen() {
                     <Ionicons name="football" size={20} color={LIGHT.green} />
                   </View>
                   <Text style={s.perfValue}>{avg5 ?? '-'}</Text>
-                  <Text style={s.perfLabel}>MEDIA{'\n'}ULTIME 5</Text>
+                  <Text style={s.perfLabel}>{t('home.avg_last_5_label')}</Text>
                 </LinearGradient>
               </View>
             </View>
@@ -689,7 +689,7 @@ export default function HomeScreen() {
             >
               <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
               <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
-              <Text style={s.last5Title}>ULTIME 5 GIORNATE</Text>
+              <Text style={s.last5Title}>{t('home.last_5_matchdays')}</Text>
               <View style={s.last5Row}>
                 {data.last_5_performance.map((item: any, i: number) => (
                   <View key={i} style={s.last5PillWrap}>

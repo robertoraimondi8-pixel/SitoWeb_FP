@@ -19,10 +19,10 @@ export default function InvitesScreen() {
     setJoining(true);
     try {
       await apiCall('/leagues/join', { token, method: 'POST', body: { invite_code: code.trim() } });
-      Alert.alert('Fatto', 'Ti sei unito alla lega!');
+      Alert.alert('OK', t('invites.joined_success'));
       setCode('');
     } catch (e: any) {
-      Alert.alert('Errore', e.message || 'Codice invito non valido');
+      Alert.alert(t('profileEdit.error'), e.message || t('invites.invalid_code'));
     } finally {
       setJoining(false);
     }

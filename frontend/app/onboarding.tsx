@@ -17,6 +17,7 @@ import { BrandLogo } from '../src/components/BrandLogo';
 
 export default function OnboardingScreen() {
   const { t, i18n } = useTranslation();
+  const { t: i18t } = useTranslation();
   const { token, user, logout, handleAuthError } = useAuth();
   const { refreshLeagues } = useLeague();
   const router = useRouter();
@@ -75,7 +76,7 @@ export default function OnboardingScreen() {
       // Refresh leagues and go home
       if (token) await refreshLeagues(token);
       router.replace('/(tabs)/home');
-    } catch (e: unknown) { Alert.alert('Errore', e.message); }
+    } catch (e: unknown) { Alert.alert('Error', e.message); }
     finally { setPayLoading(false); }
   };
 

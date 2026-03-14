@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
 import { colors, borderRadius } from '../../src/theme/designSystem';
+import { useTranslation } from 'react-i18next';
 
 type Tournament = {
   id: string;
@@ -23,14 +24,15 @@ type Tournament = {
   current_round: number;
 };
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-  registration: { label: 'Iscrizioni aperte', color: '#22c55e', icon: 'person-add' },
-  groups: { label: 'Fase a gironi', color: '#3b82f6', icon: 'grid' },
-  knockout: { label: 'Eliminazione diretta', color: '#f59e0b', icon: 'flash' },
-  completed: { label: 'Concluso', color: '#6b7280', icon: 'checkmark-circle' },
+const STATUS_CONFIG_KEYS: Record<string, { labelKey: string; color: string; icon: string }> = {
+  registration: { labelKey: 'browseTournaments.status_registration', color: '#22c55e', icon: 'person-add' },
+  groups: { labelKey: 'browseTournaments.status_groups', color: '#3b82f6', icon: 'grid' },
+  knockout: { labelKey: 'browseTournaments.status_knockout', color: '#f59e0b', icon: 'flash' },
+  completed: { labelKey: 'browseTournaments.status_completed', color: '#6b7280', icon: 'checkmark-circle' },
 };
 
 export default function BrowseTournaments() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const router = useRouter();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -60,7 +62,7 @@ export default function BrowseTournaments() {
       await apiCall(`/tournaments/${tournamentId}/register`, { method: 'POST', token });
       fetchTournaments();
     } catch (e: any) {
-      alert(e.message || 'Errore durante l\'iscrizione');
+      alert(e.message || t('browseTournaments.register_error'));
     } finally {
       setRegistering(null);
     }
@@ -76,7 +78,7 @@ export default function BrowseTournaments() {
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn} data-testid="browse-tournaments-back">
           <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Tornei disponibili</Text>
+        <Text style={s.headerTitle}>{t('browseTournaments.title')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -87,30 +89,30 @@ export default function BrowseTournaments() {
         {tournaments.length === 0 ? (
           <View style={s.emptyState}>
             <Ionicons name="trophy-outline" size={48} color={colors.textMuted} />
-            <Text style={s.emptyTitle}>Nessun torneo disponibile</Text>
-            <Text style={s.emptyText}>I tornei verranno creati dall'amministratore</Text>
+            <Text style={s.emptyTitle}>{t('browseTournaments.empty_title')}</Text>
+            <Text style={s.emptyText}>{t('browseTournaments.empty_text')}</Text>
           </View>
         ) : (
-          tournaments.map(t => {
-            const cfg = STATUS_CONFIG[t.status] || STATUS_CONFIG.completed;
-            const spotsPercent = Math.round((t.registered_count / t.max_participants) * 100);
-            const isOpen = t.status === 'registration';
-            const isFull = t.spots_left <= 0;
+          tournaments.map(tn => {
+            const cfg = STATUS_CONFIG_KEYS[tn.status] || STATUS_CONFIG_KEYS.completed;
+            const spotsPercent = Math.round((tn.registered_count / tn.max_participants) * 100);
+            const isOpen = tn.status === 'registration';
+            const isFull = tn.spots_left <= 0;
 
             return (
               <TouchableOpacity
-                key={t.id}
+                key={tn.id}
                 style={s.card}
                 activeOpacity={0.8}
-                onPress={() => router.push({ pathname: '/(tabs)/home', params: { tournament_id: t.id, tournament_name: t.name } } as any)}
-                data-testid={`tournament-card-${t.id}`}
+                onPress={() => router.push({ pathname: '/(tabs)/home', params: { tournament_id: tn.id, tournament_name: tn.name } } as any)}
+                data-testid={`tournament-card-${tn.id}`}
               >
                 {/* Header */}
                 <View style={s.cardHeader}>
-                  <Text style={s.cardName} numberOfLines={1}>{t.name}</Text>
+                  <Text style={s.cardName} numberOfLines={1}>{tn.name}</Text>
                   <View style={[s.statusBadge, { backgroundColor: cfg.color + '20' }]}>
                     <Ionicons name={cfg.icon as any} size={12} color={cfg.color} />
-                    <Text style={[s.statusText, { color: cfg.color }]}>{cfg.label}</Text>
+                    <Text style={[s.statusText, { color: cfg.color }]}>{t(cfg.labelKey)}</Text>
                   </View>
                 </View>
 
@@ -118,67 +120,67 @@ export default function BrowseTournaments() {
                 <View style={s.infoGrid}>
                   <View style={s.infoItem}>
                     <Ionicons name="people-outline" size={16} color={colors.textMuted} />
-                    <Text style={s.infoValue}>{t.max_participants}</Text>
-                    <Text style={s.infoLabel}>partecipanti</Text>
+                    <Text style={s.infoValue}>{tn.max_participants}</Text>
+                    <Text style={s.infoLabel}>{t('browseTournaments.participants')}</Text>
                   </View>
                   <View style={s.infoItem}>
                     <Ionicons name="grid-outline" size={16} color={colors.textMuted} />
-                    <Text style={s.infoValue}>{t.groups_count}x{t.players_per_group}</Text>
-                    <Text style={s.infoLabel}>gironi</Text>
+                    <Text style={s.infoValue}>{tn.groups_count}x{tn.players_per_group}</Text>
+                    <Text style={s.infoLabel}>{t('browseTournaments.groups')}</Text>
                   </View>
                   <View style={s.infoItem}>
                     <Ionicons name="calendar-outline" size={16} color={colors.textMuted} />
-                    <Text style={s.infoValue}>{t.duration_rounds}</Text>
-                    <Text style={s.infoLabel}>giornate</Text>
+                    <Text style={s.infoValue}>{tn.duration_rounds}</Text>
+                    <Text style={s.infoLabel}>{t('browseTournaments.matchdays')}</Text>
                   </View>
                   <View style={s.infoItem}>
                     <Ionicons name="cash-outline" size={16} color={colors.textMuted} />
-                    <Text style={s.infoValue}>{t.entry_fee === 0 ? 'Gratis' : `${t.entry_fee}$`}</Text>
-                    <Text style={s.infoLabel}>iscrizione</Text>
+                    <Text style={s.infoValue}>{tn.entry_fee === 0 ? t('browseTournaments.free') : `${tn.entry_fee}$`}</Text>
+                    <Text style={s.infoLabel}>{t('browseTournaments.entry_fee')}</Text>
                   </View>
                 </View>
 
                 {/* Progress bar */}
                 <View style={s.progressSection}>
                   <View style={s.progressHeader}>
-                    <Text style={s.progressLabel}>Iscritti</Text>
-                    <Text style={s.progressCount}>{t.registered_count}/{t.max_participants}</Text>
+                    <Text style={s.progressLabel}>{t('browseTournaments.registered')}</Text>
+                    <Text style={s.progressCount}>{tn.registered_count}/{tn.max_participants}</Text>
                   </View>
                   <View style={s.progressTrack}>
                     <View style={[s.progressFill, { width: `${spotsPercent}%`, backgroundColor: isFull ? '#ef4444' : cfg.color }]} />
                   </View>
                   {isOpen && !isFull && (
                     <Text style={[s.spotsText, { color: cfg.color }]}>
-                      {t.spots_left} {t.spots_left === 1 ? 'posto rimasto' : 'posti rimasti'}
+                      {tn.spots_left} {tn.spots_left === 1 ? t('browseTournaments.spot_remaining') : t('browseTournaments.spots_remaining')}
                     </Text>
                   )}
                 </View>
 
                 {/* Action */}
-                {isOpen && !t.is_registered && !isFull ? (
+                {isOpen && !tn.is_registered && !isFull ? (
                   <TouchableOpacity
                     style={s.registerBtn}
-                    onPress={() => handleRegister(t.id)}
-                    disabled={registering === t.id}
-                    data-testid={`register-btn-${t.id}`}
+                    onPress={() => handleRegister(tn.id)}
+                    disabled={registering === tn.id}
+                    data-testid={`register-btn-${tn.id}`}
                   >
-                    {registering === t.id ? (
+                    {registering === tn.id ? (
                       <ActivityIndicator size="small" color="#fff" />
                     ) : (
                       <>
                         <Ionicons name="add-circle" size={18} color="#fff" />
-                        <Text style={s.registerBtnText}>Iscriviti</Text>
+                        <Text style={s.registerBtnText}>{t('browseTournaments.register')}</Text>
                       </>
                     )}
                   </TouchableOpacity>
-                ) : t.is_registered ? (
+                ) : tn.is_registered ? (
                   <View style={s.registeredBadge}>
                     <Ionicons name="checkmark-circle" size={16} color="#22c55e" />
-                    <Text style={s.registeredText}>Sei iscritto</Text>
+                    <Text style={s.registeredText}>{t('browseTournaments.registered_badge')}</Text>
                   </View>
                 ) : isFull && isOpen ? (
                   <View style={s.fullBadge}>
-                    <Text style={s.fullText}>Torneo al completo</Text>
+                    <Text style={s.fullText}>{t('browseTournaments.full_badge')}</Text>
                   </View>
                 ) : null}
               </TouchableOpacity>

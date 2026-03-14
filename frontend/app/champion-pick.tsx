@@ -207,7 +207,7 @@ export default function ChampionPickScreen() {
 
               {/* Info */}
               <Text style={s.sectionTitle}>
-                {myPick ? 'Cambia la tua scelta' : 'Scegli il vincitore'}
+                {myPick ? t('championPick.change_choice') : t('championPick.choose_winner')}
               </Text>
               <Text style={s.sectionSub}>
                 Seleziona la squadra che secondo te vincerà il campionato di {competition}
@@ -347,7 +347,7 @@ export default function ChampionPickScreen() {
                   <>
                     <Ionicons name="trophy" size={20} color="#fff" style={{ marginRight: 8 }} />
                     <Text style={s.saveBtnText}>
-                      {myPick ? 'Cambia pronostico' : 'Conferma pronostico'}
+                      {myPick ? t('home.change_prediction') : t('home.confirm_prediction')}
                     </Text>
                   </>
                 )}

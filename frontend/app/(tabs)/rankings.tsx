@@ -182,19 +182,19 @@ export default function RankingsScreen() {
         <View style={styles.entryInfo}>
           <Text style={[styles.entryName, isCurrentUser && styles.entryNameBold]}>
             {entry.username}
-            {isCurrentUser && ' (Tu)'}
+            {isCurrentUser && ` ${t('rankings.you_suffix')}`}
           </Text>
           {isTop3 && (
             <Text style={[styles.entryMeta, { color: podiumColor }]}>
-              {index === 0 ? 'Primo' : index === 1 ? 'Secondo' : 'Terzo'}
-              {tab === 'total' && entry.matchdays_played ? ` · ${entry.matchdays_played} giornate` : ''}
+              {index === 0 ? t('rankings.first') : index === 1 ? t('rankings.second') : t('rankings.third')}
+              {tab === 'total' && entry.matchdays_played ? ` · ${entry.matchdays_played} ${t('rankings.matchdays_played')}` : ''}
             </Text>
           )}
           {/* Stats row under player name - only Indovinati */}
           <Text style={styles.statsRow} data-testid={`stats-${entry.user_id}`}>
             {tab === 'total'
-              ? `Indovinati ${entry.total_correct_predictions ?? 0}`
-              : `Indovinati ${entry.total_correct ?? 0}`}
+              ? `${t('rankings.correct_predictions')} ${entry.total_correct_predictions ?? 0}`
+              : `${t('rankings.correct_predictions')} ${entry.total_correct ?? 0}`}
           </Text>
         </View>
 
@@ -246,7 +246,7 @@ export default function RankingsScreen() {
       // bracket API returns { bracket: { semifinal: [...], final: [...] } }
       const raw = bracketRes?.bracket || {};
       const rounds = Object.entries(raw).map(([roundType, matchups]) => ({
-        round_label: roundType === 'quarterfinal' ? 'Quarti di Finale' : roundType === 'semifinal' ? 'Semifinali' : roundType === 'final' ? 'Finale' : roundType,
+        round_label: roundType === 'quarterfinal' ? t('tournamentRankings.quarterfinal') : roundType === 'semifinal' ? t('tournamentRankings.semifinal') : roundType === 'final' ? t('tournamentRankings.final') : roundType,
         round_type: roundType,
         matchups: matchups as any[],
       }));
@@ -265,7 +265,7 @@ export default function RankingsScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <LinearGradient colors={['#F5F6F8', '#ECEFF3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Classifiche Torneo</Text>
+          <Text style={styles.headerTitle}>{t('tournamentRankings.title')}</Text>
           <View style={styles.accentLine} />
         </View>
         <View style={styles.singleLeagueHeader}>
@@ -276,13 +276,13 @@ export default function RankingsScreen() {
         <View style={styles.tabContainer}>
           <View style={styles.tabRow}>
             <TouchableOpacity onPress={() => setTrkTab('gironi')} style={[styles.tabBtn, trkTab === 'gironi' && styles.tabBtnActive]} data-testid="trk-tab-gironi">
-              <Text style={[styles.tabText, trkTab === 'gironi' && styles.tabTextActive]}>Gironi</Text>
+              <Text style={[styles.tabText, trkTab === 'gironi' && styles.tabTextActive]}>{t('tournamentRankings.tab_groups')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setTrkTab('tabellone')} style={[styles.tabBtn, trkTab === 'tabellone' && styles.tabBtnActive]} data-testid="trk-tab-tabellone">
-              <Text style={[styles.tabText, trkTab === 'tabellone' && styles.tabTextActive]}>Tabellone</Text>
+              <Text style={[styles.tabText, trkTab === 'tabellone' && styles.tabTextActive]}>{t('tournamentRankings.tab_bracket')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setTrkTab('partite')} style={[styles.tabBtn, trkTab === 'partite' && styles.tabBtnActive]} data-testid="trk-tab-partite">
-              <Text style={[styles.tabText, trkTab === 'partite' && styles.tabTextActive]}>Partite</Text>
+              <Text style={[styles.tabText, trkTab === 'partite' && styles.tabTextActive]}>{t('tournamentRankings.tab_matches')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setTrkTab('regolamento')} style={[styles.tabBtn, trkTab === 'regolamento' && styles.tabBtnActive]} data-testid="trk-tab-regolamento">
               <Text style={[styles.tabText, trkTab === 'regolamento' && styles.tabTextActive]}>{t('rankings.tab_rules')}</Text>
@@ -302,24 +302,24 @@ export default function RankingsScreen() {
             {!hasGroups ? (
               <View style={{ padding: 32, alignItems: 'center' }}>
                 <Ionicons name="time-outline" size={40} color={colors.textMuted} />
-                <Text style={{ marginTop: 12, fontSize: 14, color: colors.textMuted, textAlign: 'center' }}>I gironi saranno disponibili dopo la fase di iscrizione</Text>
+                <Text style={{ marginTop: 12, fontSize: 14, color: colors.textMuted, textAlign: 'center' }}>{t('tournamentRankings.groups_pending')}</Text>
               </View>
             ) : (
               <>
                 <View style={{ paddingHorizontal: 16, paddingVertical: 10, backgroundColor: 'rgba(34,197,94,0.06)', borderRadius: 8, marginBottom: 12 }} data-testid="qualification-rule">
                   <Text style={{ fontSize: 12, fontWeight: '600', color: '#22c55e', textAlign: 'center' }}>
-                    {`I primi ${trkAdvanceCount} giocatori di ogni girone si qualificano per la fase a eliminazione diretta`}
+                    {t('tournamentRankings.qualification_rule', { count: trkAdvanceCount })}
                   </Text>
                 </View>
                 {trkGroups.map((g: any) => (
                   <View key={g.group_name} style={{ marginBottom: 20, backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}>
                     <LinearGradient colors={['#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingHorizontal: 16, paddingVertical: 10 }}>
-                      <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14, letterSpacing: 1 }}>GIRONE {g.group_name}</Text>
+                      <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14, letterSpacing: 1 }}>{t('tournamentRankings.group_label')} {g.group_name}</Text>
                     </LinearGradient>
                     {/* Table header */}
                     <View style={{ flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
                       <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted }}>#</Text>
-                      <Text style={{ flex: 4, fontSize: 11, fontWeight: '700', color: colors.textMuted }}>Giocatore</Text>
+                      <Text style={{ flex: 4, fontSize: 11, fontWeight: '700', color: colors.textMuted }}>{t('tournamentRankings.player_col')}</Text>
                       <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>G</Text>
                       <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>V</Text>
                       <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'center' }}>P</Text>
@@ -331,7 +331,7 @@ export default function RankingsScreen() {
                       return (
                         <View key={s.user_id} style={{ flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f8f8f8', backgroundColor: isMe ? 'rgba(245,166,35,0.06)' : (i < (g.qualifies || 2) ? 'rgba(34,197,94,0.04)' : 'transparent') }}>
                           <Text style={{ flex: 1, fontSize: 13, fontWeight: isMe ? '800' : '600', color: i < (g.qualifies || 2) ? '#22c55e' : colors.textSecondary }}>{i + 1}</Text>
-                          <Text style={{ flex: 4, fontSize: 13, fontWeight: isMe ? '800' : '500', color: isMe ? colors.primary : colors.textPrimary }} numberOfLines={1}>{s.username}{isMe ? ' (tu)' : ''}</Text>
+                          <Text style={{ flex: 4, fontSize: 13, fontWeight: isMe ? '800' : '500', color: isMe ? colors.primary : colors.textPrimary }} numberOfLines={1}>{s.username}{isMe ? ` ${t('rankings.you_suffix')}` : ''}</Text>
                           <Text style={{ flex: 1, fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>{s.played ?? 0}</Text>
                           <Text style={{ flex: 1, fontSize: 12, color: '#22c55e', textAlign: 'center', fontWeight: '600' }}>{s.wins ?? 0}</Text>
                           <Text style={{ flex: 1, fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>{s.draws ?? 0}</Text>
@@ -353,8 +353,8 @@ export default function RankingsScreen() {
             {(!bracketReady || trkBracket.length === 0 || trkBracket.every((r: any) => (r.matchups || []).every((m: any) => m.status === 'pending'))) ? (
               <View style={{ padding: 32, alignItems: 'center' }}>
                 <Ionicons name="git-branch-outline" size={40} color={colors.textMuted} />
-                <Text style={{ marginTop: 12, fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>Tabellone eliminazione diretta</Text>
-                <Text style={{ marginTop: 6, fontSize: 13, color: colors.textMuted, textAlign: 'center' }}>{bracketReady ? 'In attesa che terminino i gironi' : 'Disponibile dopo la fase a gironi'}</Text>
+                <Text style={{ marginTop: 12, fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>{t('tournamentRankings.bracket_title')}</Text>
+                <Text style={{ marginTop: 6, fontSize: 13, color: colors.textMuted, textAlign: 'center' }}>{bracketReady ? t('tournamentRankings.bracket_pending') : t('tournamentRankings.bracket_after_groups')}</Text>
               </View>
             ) : (
               <View>
@@ -375,10 +375,10 @@ export default function RankingsScreen() {
                         </View>
                         {m.tiebreak_reason && m.status === 'completed' && (
                           <Text style={{ fontSize: 10, color: '#F5A623', fontWeight: '600', textAlign: 'center', marginTop: 4 }} data-testid={`tiebreak-${m.id}`}>
-                            {m.tiebreak_reason === 'total_correct_predictions' ? 'Vince per tiebreak: piu pronostici indovinati'
-                              : m.tiebreak_reason === 'exact_score_hits' ? 'Vince per tiebreak: piu risultati esatti'
-                              : m.tiebreak_reason === 'one_x_two_hits' ? 'Vince per tiebreak: piu 1X2 corretti'
-                              : 'Vince per tiebreak: sorteggio'}
+                            {m.tiebreak_reason === 'total_correct_predictions' ? t('tournamentRankings.tiebreak_correct_predictions')
+                              : m.tiebreak_reason === 'exact_score_hits' ? t('tournamentRankings.tiebreak_exact_scores')
+                              : m.tiebreak_reason === 'one_x_two_hits' ? t('tournamentRankings.tiebreak_1x2_correct')
+                              : t('tournamentRankings.tiebreak_random')}
                           </Text>
                         )}
                       </View>
@@ -412,13 +412,13 @@ export default function RankingsScreen() {
           });
 
           // Build filter options
-          const knockoutLabels: Record<string, string> = { knockout: 'Sedicesimi', round_of_16: 'Ottavi di Finale', quarter: 'Quarti di Finale', semi: 'Semifinali', final: 'Finale' };
+          const knockoutLabels: Record<string, string> = { knockout: t('tournamentRankings.round_of_32'), round_of_16: t('tournamentRankings.round_of_16'), quarter: t('tournamentRankings.quarterfinal'), semi: t('tournamentRankings.semifinal'), final: t('tournamentRankings.final') };
           const filterOptions: { key: string; label: string; icon: string }[] = [
-            { key: 'all', label: 'Tutte le partite', icon: 'list' },
+            { key: 'all', label: t('tournamentRankings.all_matches'), icon: 'list' },
           ];
           // Add group filters sorted by name
           [...groupIds].sort((a, b) => (groupMap[a] || '').localeCompare(groupMap[b] || '')).forEach(gid => {
-            filterOptions.push({ key: `group_${gid}`, label: `Girone ${groupMap[gid] || '?'}`, icon: 'people' });
+            filterOptions.push({ key: `group_${gid}`, label: `${t('tournamentRankings.group_prefix')} ${groupMap[gid] || '?'}`, icon: 'people' });
           });
           // Add knockout filters
           ['knockout', 'round_of_16', 'quarter', 'semi', 'final'].forEach(kt => {
@@ -441,7 +441,7 @@ export default function RankingsScreen() {
             filtered = allMatchupsFlat;
           }
 
-          const activeLabel = filterOptions.find(f => f.key === trkPartiteFilter)?.label || 'Tutte le partite';
+          const activeLabel = filterOptions.find(f => f.key === trkPartiteFilter)?.label || t('tournamentRankings.all_matches');
 
           // Group filtered matchups by round for display
           const roundsMap: Record<string, { label: string; round_type: string; round_number: number; matchups: any[] }> = {};
@@ -492,17 +492,17 @@ export default function RankingsScreen() {
               {groupedRounds.length === 0 ? (
                 <View style={{ padding: 32, alignItems: 'center' }}>
                   <Ionicons name="football-outline" size={40} color={colors.textMuted} />
-                  <Text style={{ marginTop: 12, fontSize: 14, color: colors.textMuted, textAlign: 'center' }}>Nessuna partita ancora disponibile</Text>
+                  <Text style={{ marginTop: 12, fontSize: 14, color: colors.textMuted, textAlign: 'center' }}>{t('tournamentRankings.no_matches')}</Text>
                 </View>
               ) : groupedRounds.map((round: any) => (
                 <View key={`${round.round_type}_${round.round_number}`} style={{ marginBottom: 20 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                     <View style={{ width: 4, height: 20, backgroundColor: round.round_type === 'group' ? '#22c55e' : colors.primary, borderRadius: 2 }} />
                     <Text style={{ fontSize: 15, fontWeight: '800', color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-                      {trkPartiteFilter.startsWith('group_') ? `Girone ${groupMap[trkPartiteFilter.replace('group_', '')] || ''} - Round ${round.round_number}` : round.label}
+                      {trkPartiteFilter.startsWith('group_') ? `${t('tournamentRankings.group_prefix')} ${groupMap[trkPartiteFilter.replace('group_', '')] || ''} - ${t('tournamentRankings.round_label')} ${round.round_number}` : round.label}
                     </Text>
                     <View style={{ backgroundColor: round.round_type === 'group' ? 'rgba(34,197,94,0.1)' : 'rgba(31,76,143,0.1)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: round.round_type === 'group' ? '#22c55e' : colors.primary }}>{(round.matchups || []).length} sfide</Text>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: round.round_type === 'group' ? '#22c55e' : colors.primary }}>{(round.matchups || []).length} {t('tournamentRankings.challenges')}</Text>
                     </View>
                   </View>
                   {(round.matchups || []).map((m: any) => {
@@ -512,7 +512,7 @@ export default function RankingsScreen() {
                     const roundIsActive = activeRound && round.round_number === activeRound.round_number && ['OPEN', 'LIVE'].includes(activeRound.status);
                     const isInProgress = !isDone && (m.status === 'in_progress' || roundIsActive);
                     const statusColor = isDone ? colors.primary : isInProgress ? '#22c55e' : '#9ca3af';
-                    const statusLabel = isDone ? 'Completata' : isInProgress ? 'In corso' : 'Da giocare';
+                    const statusLabel = isDone ? t('tournamentRankings.status_completed') : isInProgress ? t('tournamentRankings.status_in_progress') : t('tournamentRankings.status_to_play');
                     return (
                       <TouchableOpacity key={m.id} style={{ backgroundColor: isMyMatch ? 'rgba(245,166,35,0.06)' : '#fff', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: isMyMatch ? 1.5 : 1, borderColor: isMyMatch ? colors.accent : '#e8e8e8' }}
                         activeOpacity={0.7}
@@ -521,7 +521,7 @@ export default function RankingsScreen() {
                           router.push({ pathname: '/(tabs)/home', params: { tournament_id: tournamentId, tournament_name: trkTournament?.name, matchup_id: m.id } } as any);
                         }}
                       >
-                        {isMyMatch && <Text style={{ fontSize: 9, fontWeight: '800', color: colors.accent, letterSpacing: 1, marginBottom: 6 }}>LA TUA SFIDA</Text>}
+                        {isMyMatch && <Text style={{ fontSize: 9, fontWeight: '800', color: colors.accent, letterSpacing: 1, marginBottom: 6 }}>{t('tournamentRankings.your_challenge')}</Text>}
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Text style={{ fontSize: 14, fontWeight: m.user_a_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1 }} numberOfLines={1}>{m.user_a_username || 'TBD'}</Text>
                           <View style={{ backgroundColor: statusColor, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginHorizontal: 8 }}>
@@ -529,7 +529,7 @@ export default function RankingsScreen() {
                           </View>
                           <Text style={{ fontSize: 14, fontWeight: m.user_b_id === user?.id ? '800' : '500', color: colors.textPrimary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{m.user_b_username || 'TBD'}</Text>
                         </View>
-                        {m.group_name && <Text style={{ fontSize: 10, color: colors.textMuted, marginTop: 6 }}>Girone {m.group_name}</Text>}
+                        {m.group_name && <Text style={{ fontSize: 10, color: colors.textMuted, marginTop: 6 }}>{t('tournamentRankings.group_prefix')} {m.group_name}</Text>}
                       </TouchableOpacity>
                     );
                   })}
@@ -546,14 +546,14 @@ export default function RankingsScreen() {
             <View style={{ backgroundColor: 'rgba(31,76,143,0.06)', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(31,76,143,0.15)' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <Ionicons name="grid-outline" size={18} color={colors.primary} />
-                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>Struttura del torneo</Text>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>{t('tournamentRankings.structure_title')}</Text>
               </View>
               <View style={{ gap: 6 }}>
                 <Text style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 22 }}>
-                  {`${Array.isArray(trkGroups) ? trkGroups.length : 0} gironi da ${(Array.isArray(trkGroups) && trkGroups[0]?.standings?.length) || '?'} giocatori`}
+                  {t('tournamentRankings.structure_groups_desc', { count: Array.isArray(trkGroups) ? trkGroups.length : 0, size: (Array.isArray(trkGroups) && trkGroups[0]?.standings?.length) || '?' })}
                 </Text>
                 <Text style={{ fontSize: 14, color: '#22c55e', fontWeight: '600', lineHeight: 22 }}>
-                  {`I primi ${trkAdvanceCount} giocatori di ogni girone si qualificano per la fase a eliminazione diretta`}
+                  {t('tournamentRankings.qualification_rule', { count: trkAdvanceCount })}
                 </Text>
               </View>
             </View>
@@ -562,17 +562,17 @@ export default function RankingsScreen() {
             <View style={{ backgroundColor: 'rgba(245,166,35,0.06)', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(245,166,35,0.15)' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <Ionicons name="trophy-outline" size={18} color="#F5A623" />
-                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>Fase a eliminazione diretta</Text>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>{t('tournamentRankings.knockout_title')}</Text>
               </View>
               <View style={{ gap: 4 }}>
                 {(() => {
                   const totalQualified = (Array.isArray(trkGroups) ? trkGroups.length : 0) * trkAdvanceCount;
                   const rounds: string[] = [];
-                  if (totalQualified >= 32) rounds.push('Trentaduesimi di finale');
-                  if (totalQualified >= 16) rounds.push('Ottavi di finale');
-                  if (totalQualified >= 8) rounds.push('Quarti di finale');
-                  if (totalQualified >= 4) rounds.push('Semifinale');
-                  rounds.push('Finale');
+                  if (totalQualified >= 32) rounds.push(t('tournamentRankings.round_32'));
+                  if (totalQualified >= 16) rounds.push(t('tournamentRankings.round_16'));
+                  if (totalQualified >= 8) rounds.push(t('tournamentRankings.round_8'));
+                  if (totalQualified >= 4) rounds.push(t('tournamentRankings.round_4'));
+                  rounds.push(t('tournamentRankings.round_final'));
                   return rounds.map((r, i) => (
                     <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}>
                       <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: i === rounds.length - 1 ? '#F5A623' : 'rgba(245,166,35,0.15)', alignItems: 'center', justifyContent: 'center' }}>
@@ -589,17 +589,17 @@ export default function RankingsScreen() {
             <View style={{ backgroundColor: 'rgba(139,92,246,0.06)', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(139,92,246,0.15)' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <Ionicons name="swap-vertical-outline" size={18} color="#8B5CF6" />
-                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>Regole di spareggio</Text>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>{t('tournamentRankings.tiebreak_title')}</Text>
               </View>
               <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 10, lineHeight: 20 }}>
                 Se due giocatori sono in parita di punti in uno scontro diretto, il vincitore viene determinato in quest'ordine:
               </Text>
               <View style={{ gap: 6 }}>
                 {[
-                  { num: '1', text: 'Piu pronostici indovinati', color: '#3B82F6' },
-                  { num: '2', text: 'Piu risultati esatti indovinati', color: '#8B5CF6' },
-                  { num: '3', text: 'Piu 1X2 indovinati', color: '#10B981' },
-                  { num: '4', text: 'Sorteggio automatico (ultimo fallback)', color: '#94A3B8' },
+                  { num: '1', text: t('tournamentRankings.tiebreak_rule_1'), color: '#3B82F6' },
+                  { num: '2', text: t('tournamentRankings.tiebreak_rule_2'), color: '#8B5CF6' },
+                  { num: '3', text: t('tournamentRankings.tiebreak_rule_3'), color: '#10B981' },
+                  { num: '4', text: t('tournamentRankings.tiebreak_rule_4'), color: '#94A3B8' },
                 ].map(rule => (
                   <View key={rule.num} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 }}>
                     <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: rule.color, alignItems: 'center', justifyContent: 'center' }}>
@@ -615,13 +615,13 @@ export default function RankingsScreen() {
             <View style={{ backgroundColor: 'rgba(34,197,94,0.06)', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: 'rgba(34,197,94,0.15)' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <Ionicons name="people-outline" size={18} color="#22c55e" />
-                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>Fase a gironi</Text>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>{t('tournamentRankings.group_phase_title')}</Text>
               </View>
               <View style={{ gap: 4 }}>
-                <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 20 }}>Vittoria: 3 punti girone</Text>
-                <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 20 }}>Pareggio: 1 punto girone</Text>
-                <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 20 }}>Sconfitta: 0 punti girone</Text>
-                <Text style={{ fontSize: 13, color: colors.textMuted, lineHeight: 20, marginTop: 4, fontStyle: 'italic' }}>In caso di parita, si usano i punti pronostici come criterio secondario.</Text>
+                <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 20 }}>{t('tournamentRankings.group_win')}</Text>
+                <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 20 }}>{t('tournamentRankings.group_draw')}</Text>
+                <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 20 }}>{t('tournamentRankings.group_loss')}</Text>
+                <Text style={{ fontSize: 13, color: colors.textMuted, lineHeight: 20, marginTop: 4, fontStyle: 'italic' }}>{t('tournamentRankings.group_tiebreak_note')}</Text>
               </View>
             </View>
           </ScrollView>
@@ -692,7 +692,7 @@ export default function RankingsScreen() {
           >
             <Ionicons name={isLiveMatchday ? "pulse" : "calendar-outline"} size={18} color={isLiveMatchday ? colors.success : colors.primary} />
             <Text style={styles.matchdaySelectorText}>
-              {selectedMatchday ? `Giornata ${selectedMatchday.number}` : 'Seleziona giornata'}
+              {selectedMatchday ? `${t('rankings.matchday_label')} ${selectedMatchday.number}` : t('rankings.select_matchday')}
             </Text>
             <View style={[
               styles.matchdaySelectorBadge,
@@ -728,7 +728,7 @@ export default function RankingsScreen() {
             <Ionicons name="search" size={18} color={colors.textMuted} style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Cerca utente..."
+              placeholder={t("rankings.search_user")}
               placeholderTextColor={colors.textMuted}
               value={searchQuery}
               onChangeText={setSearchQuery}

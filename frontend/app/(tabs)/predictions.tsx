@@ -22,10 +22,10 @@ import { colors, typography, spacing, borderRadius, shadows } from '../../src/th
 import { StatusBadge, PrimaryButton, AnimatedSweep } from '../../src/components/ui';
 
 const ALL_MARKETS = [
-  { key: '1X2',          configKey: '1x2',         label: '1X2',               info: 'Scegli il risultato finale:\n1 = squadra di casa\nX = pareggio\n2 = squadra ospite', defaultPts: 2 },
-  { key: 'GOAL_NOGOL',   configKey: 'goal_no_goal', label: 'GG/NG', info: 'Sì = entrambe le squadre segnano almeno un gol\nNo = almeno una squadra non segna', defaultPts: 1 },
-  { key: 'OVER_UNDER_25',configKey: 'over_under',   label: 'U/O 2.5',         info: 'Over = almeno 3 gol totali nella partita\nUnder = meno di 3 gol totali', defaultPts: 1 },
-  { key: 'EXACT_SCORE',  configKey: 'exact_score',  label: 'Ris. Esatto',      info: 'Indovina il punteggio finale esatto', defaultPts: 5 },
+  { key: '1X2',          configKey: '1x2',         labelKey: 'predictions.label_1x2',      infoKey: 'predictions.info_1x2', defaultPts: 2 },
+  { key: 'GOAL_NOGOL',   configKey: 'goal_no_goal', labelKey: 'predictions.label_gg_ng',    infoKey: 'predictions.info_gg_ng', defaultPts: 1 },
+  { key: 'OVER_UNDER_25',configKey: 'over_under',   labelKey: 'predictions.label_over_under', infoKey: 'predictions.info_over_under', defaultPts: 1 },
+  { key: 'EXACT_SCORE',  configKey: 'exact_score',  labelKey: 'predictions.label_exact_score', infoKey: 'predictions.info_exact_score', defaultPts: 5 },
 ];
 
 const VALUE_OPTIONS: Record<string, string[]> = {
@@ -341,7 +341,7 @@ export default function PredictionsScreen() {
         .map(p => ({ match_id: p.matchId, market_type: p.market, prediction_value: p.value }));
 
       if (predictions.length === 0) {
-        Alert.alert(t('error'), 'Inserisci almeno un pronostico');
+        Alert.alert(t('error'), t('predictions.insert_at_least_one'));
         setSaving(false);
         return;
       }
@@ -353,7 +353,7 @@ export default function PredictionsScreen() {
       if (res.errors?.length > 0) {
         const lockErrors = res.errors.filter((e: { error: string }) => e.error.includes('locked'));
         if (lockErrors.length > 0) {
-          Alert.alert('Info', `${res.saved_count} salvati. ${lockErrors.length} match già iniziati.`);
+          Alert.alert('Info', `${t('predictions.saved_count', { count: res.saved_count })}. ${t('predictions.locked_count', { count: lockErrors.length })}.`);
         }
       }
       setSaved(true);
@@ -588,7 +588,7 @@ export default function PredictionsScreen() {
                               styles.marketLabel, 
                               selectedMarket === mk.key && styles.marketLabelActive
                             ]}>
-                              {mk.label}
+                              {t(mk.labelKey)}
                             </Text>
                             <Text style={[
                               styles.marketPts, 
@@ -617,7 +617,7 @@ export default function PredictionsScreen() {
                       const market = MARKETS.find(mk => mk.key === marketKey);
                       return market ? (
                         <View style={styles.marketInfoTooltip}>
-                          <Text style={styles.marketInfoText}>{market.info}</Text>
+                          <Text style={styles.marketInfoText}>{t(market.infoKey)}</Text>
                           <TouchableOpacity
                             style={styles.marketInfoClose}
                             onPress={() => setInfoMarket(null)}

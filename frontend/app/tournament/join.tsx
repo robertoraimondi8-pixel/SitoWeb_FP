@@ -13,6 +13,7 @@ import { colors, spacing, borderRadius } from '../../src/theme/designSystem';
 import { useTranslation } from 'react-i18next';
 
 export default function JoinTournamentScreen() {
+  const { t: i18t } = useTranslation();
   const { token } = useAuth();
   const { refreshLeagues } = useLeague();
   const router = useRouter();
@@ -36,10 +37,10 @@ export default function JoinTournamentScreen() {
     try {
       await apiCall(`/tournaments/${tournId}/register`, { method: 'POST', token });
       if (token) await refreshLeagues(token);
-      Alert.alert('Iscritto!', 'Sei stato iscritto al torneo con successo.');
+      Alert.alert('OK', i18t('browseTournaments.registered_badge'));
       router.replace('/(tabs)/home');
     } catch (e: any) {
-      Alert.alert('Errore', e.message || 'Impossibile iscriversi');
+      Alert.alert(i18t('profileEdit.error'), e.message || i18t('browseTournaments.register_error'));
     } finally { setJoining(null); }
   };
 
@@ -50,10 +51,10 @@ export default function JoinTournamentScreen() {
       // Try to find tournament by code (id or invite_code)
       const res = await apiCall(`/tournaments/join-by-code`, { method: 'POST', token, body: { code: code.trim() } });
       if (token) await refreshLeagues(token);
-      Alert.alert('Iscritto!', 'Sei entrato nel torneo.');
+      Alert.alert('OK', i18t('browseTournaments.registered_badge'));
       router.replace('/(tabs)/home');
     } catch (e: any) {
-      Alert.alert('Errore', e.message || 'Codice non valido');
+      Alert.alert(i18t('profileEdit.error'), e.message);
     } finally { setJoining(null); }
   };
 

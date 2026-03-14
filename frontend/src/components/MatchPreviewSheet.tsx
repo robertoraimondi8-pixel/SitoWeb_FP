@@ -6,6 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { apiCall } from '../../src/api/client';
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
+import { useTranslation } from 'react-i18next';
 
 type FormMatch = {
   date: string;
@@ -57,6 +58,7 @@ const RESULT_COLORS: Record<string, string> = {
 };
 
 export function MatchPreviewSheet({ matchId, token, visible, onClose }: Props) {
+  const { t } = useTranslation();
   const [data, setData] = useState<PreviewData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +70,7 @@ export function MatchPreviewSheet({ matchId, token, visible, onClose }: Props) {
       setData(null);
       apiCall<PreviewData>(`/stats/match-preview/${matchId}`, { token })
         .then(setData)
-        .catch(() => setError('Statistiche non disponibili'))
+        .catch(() => setError(t('matchPreview.not_available')))
         .finally(() => setLoading(false));
     }
   }, [visible, matchId]);
@@ -88,7 +90,7 @@ export function MatchPreviewSheet({ matchId, token, visible, onClose }: Props) {
           {loading ? (
             <View style={s.center}>
               <ActivityIndicator size="small" color={colors.accent} />
-              <Text style={s.loadingText}>Caricamento statistiche...</Text>
+              <Text style={s.loadingText}>{t('matchPreview.loading')}</Text>
             </View>
           ) : error ? (
             <View style={s.center}>
@@ -113,7 +115,7 @@ export function MatchPreviewSheet({ matchId, token, visible, onClose }: Props) {
               {/* Standings Position */}
               {(data.home_standing || data.away_standing) && (
                 <View style={s.section}>
-                  <Text style={s.sectionTitle}>Posizione in classifica</Text>
+                  <Text style={s.sectionTitle}>{t('matchPreview.league_position')}</Text>
                   <View style={s.standingsRow}>
                     <StandingCard
                       team={data.home_team}
@@ -131,21 +133,21 @@ export function MatchPreviewSheet({ matchId, token, visible, onClose }: Props) {
 
               {/* Home Team Form */}
               <View style={s.section}>
-                <Text style={s.sectionTitle}>Ultime 5 - {data.home_team}</Text>
+                <Text style={s.sectionTitle}>{t('matchPreview.last_5')} - {data.home_team}</Text>
                 <FormRow matches={data.home_form} />
               </View>
 
               {/* Away Team Form */}
               <View style={s.section}>
-                <Text style={s.sectionTitle}>Ultime 5 - {data.away_team}</Text>
+                <Text style={s.sectionTitle}>{t('matchPreview.last_5')} - {data.away_team}</Text>
                 <FormRow matches={data.away_form} />
               </View>
 
               {/* Head to Head */}
               <View style={s.section}>
-                <Text style={s.sectionTitle}>Scontri diretti</Text>
+                <Text style={s.sectionTitle}>{t('matchPreview.head_to_head')}</Text>
                 {data.h2h.length === 0 ? (
-                  <Text style={s.emptyText}>Nessuno scontro diretto recente</Text>
+                  <Text style={s.emptyText}>{t('matchPreview.no_h2h')}</Text>
                 ) : (
                   data.h2h.map((m, i) => (
                     <View key={i} style={s.h2hRow}>
@@ -189,7 +191,7 @@ function StandingCard({ team, logo, standing }: { team: string; logo: string | n
 /* ── Form Row ── */
 function FormRow({ matches }: { matches: FormMatch[] }) {
   if (matches.length === 0) {
-    return <Text style={s.emptyText}>Nessun dato</Text>;
+    return <Text style={s.emptyText}>{t('matchPreview.no_data')}</Text>;
   }
   return (
     <View>

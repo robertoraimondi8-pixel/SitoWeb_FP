@@ -16,6 +16,7 @@ import { apiCall } from '../api/client';
 import { colors, typography, spacing, borderRadius } from '../theme/designSystem';
 import { AnimatedSweep, StatusBadge, LastFiveIndicator } from './ui';
 import { MatchDetailSheet } from './MatchDetailSheet';
+import { useTranslation } from 'react-i18next';
 
 const DARK = { accent: '#F5A623', textMuted: 'rgba(255,255,255,0.45)' };
 
@@ -27,6 +28,7 @@ interface Props {
 export function TournamentView({ tournamentId, initialMatchupId }: Props) {
   const { token, user } = useAuth();
   const router = useRouter();
+  const { t: i18t } = useTranslation();
   const { setCurrentRoundInfo, pendingMatchupOpen, setPendingMatchupOpen } = useCompetition();
   const [tournament, setTournament] = useState<any>(null);
   const [myMatchups, setMyMatchups] = useState<any[]>([]);
@@ -134,7 +136,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
   const t = tournament;
   const hasGroups = t.status !== 'draft' && t.status !== 'registration';
   const statusLabels: Record<string, string> = {
-    draft: 'BOZZA', registration: 'ISCRIZIONI APERTE', groups: 'FASE A GIRONI', knockout: 'ELIMINAZIONE DIRETTA', completed: 'CONCLUSO'
+    draft: i18t('tournamentView.status_draft'), registration: i18t('tournamentView.status_registration'), groups: i18t('tournamentView.status_groups'), knockout: i18t('tournamentView.status_knockout'), completed: i18t('tournamentView.status_completed')
   };
   const formatMarket = (m: string | null) => {
     if (!m) return '';
@@ -159,15 +161,15 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
     const isMe = (uid: string) => uid === user?.id;
     const aWin = user_a_total > user_b_total;
     const bWin = user_b_total > user_a_total;
-    const aName = isMe(mu.user_a_id) ? 'Tu' : mu.user_a_username;
-    const bName = isMe(mu.user_b_id) ? 'Tu' : mu.user_b_username;
+    const aName = isMe(mu.user_a_id) ? i18t('tournamentView.you') : mu.user_a_username;
+    const bName = isMe(mu.user_b_id) ? i18t('tournamentView.you') : mu.user_b_username;
 
     return (
       <ScrollView contentContainerStyle={s.scrollContent} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchMatchupLive(activeMatchup.id)} tintColor={colors.accent} />}>
         {/* Back to tournament */}
         <TouchableOpacity style={s.backRow} onPress={closeMatchupLive} data-testid="matchup-back">
           <Ionicons name="arrow-back" size={18} color={colors.accent} />
-          <Text style={s.backText}>Torna al torneo</Text>
+          <Text style={s.backText}>{i18t('tournamentView.back_to_tournament')}</Text>
         </TouchableOpacity>
 
         {/* ═══ 1. HERO SCORE CARD ═══ */}
@@ -176,7 +178,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
           <View style={s.heroTop}>
             <View style={s.heroLabelRow}>
               <Ionicons name="flash" size={13} color={DARK.textMuted} />
-              <Text style={s.heroLabel}>SFIDA 1 VS 1</Text>
+              <Text style={s.heroLabel}>{i18t('tournamentView.challenge_1v1')}</Text>
             </View>
             {isLive && <View style={s.liveBadgeBig}><View style={s.liveDotBig} /><Text style={s.liveTextBig}>LIVE</Text></View>}
           </View>
@@ -204,10 +206,10 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
         {mu.tiebreak_reason && mu.status === 'completed' && (
           <View style={{ marginTop: -6, marginBottom: 12, alignSelf: 'center', backgroundColor: 'rgba(245,166,35,0.12)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(245,166,35,0.3)' }} data-testid="tiebreak-indicator">
             <Text style={{ fontSize: 12, fontWeight: '700', color: '#F5A623', textAlign: 'center' }}>
-              {mu.tiebreak_reason === 'total_correct_predictions' ? 'Vince per tiebreak: piu pronostici indovinati'
-                : mu.tiebreak_reason === 'exact_score_hits' ? 'Vince per tiebreak: piu risultati esatti'
-                : mu.tiebreak_reason === 'one_x_two_hits' ? 'Vince per tiebreak: piu 1X2 corretti'
-                : 'Vince per tiebreak: sorteggio'}
+              {mu.tiebreak_reason === 'total_correct_predictions' ? i18t('tournamentView.tiebreak_correct_predictions')
+                : mu.tiebreak_reason === 'exact_score_hits' ? i18t('tournamentView.tiebreak_exact_scores')
+                : mu.tiebreak_reason === 'one_x_two_hits' ? i18t('tournamentView.tiebreak_1x2_correct')
+                : i18t('tournamentView.tiebreak_random')}
             </Text>
           </View>
         )}
@@ -297,7 +299,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
 
   // Loading matchup live
   if (activeMatchup && matchupLoading) {
-    return <View style={s.center}><ActivityIndicator size="large" color={colors.accent} /><Text style={{ color: colors.textSecondary, marginTop: 8 }}>Caricamento sfida...</Text></View>;
+    return <View style={s.center}><ActivityIndicator size="large" color={colors.accent} /><Text style={{ color: colors.textSecondary, marginTop: 8 }}>{i18t('tournamentView.loading_challenge')}</Text></View>;
   }
 
   // ══════════════════════════════════════
@@ -330,11 +332,11 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
           <View style={s.heroTop}>
             <View style={s.heroLabelRow}>
               <Ionicons name="flash" size={13} color={DARK.textMuted} />
-              <Text style={s.heroLabel}>{cri.label?.toUpperCase() || 'SFIDA TORNEO'}</Text>
+              <Text style={s.heroLabel}>{cri.label?.toUpperCase() || i18t('tournamentView.tournament_challenge')}</Text>
             </View>
             <StatusBadge
               status={cri.status === 'OPEN' ? 'OPEN' : cri.status === 'LIVE' ? 'LIVE' : cri.status === 'PENDING' ? 'LOCKED' : 'COMPLETED'}
-              label={cri.status === 'OPEN' ? 'PRONOSTICI APERTI' : cri.status === 'LIVE' ? 'LIVE' : cri.status === 'PENDING' ? 'IN PREPARAZIONE' : 'COMPLETATA'}
+              label={cri.status === 'OPEN' ? i18t('tournamentView.predictions_open') : cri.status === 'LIVE' ? 'LIVE' : cri.status === 'PENDING' ? i18t('tournamentView.in_preparation') : i18t('tournamentView.completed')}
             />
           </View>
 
@@ -346,7 +348,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   {cri.my_points} – {cri.opp_points}
                 </Text>
                 <Text style={s.heroContextMsg} data-testid="tournament-context-msg">
-                  {cri.my_points > cri.opp_points ? 'Hai vinto' : cri.my_points < cri.opp_points ? 'Hai perso' : 'Hai pareggiato'}
+                  {cri.my_points > cri.opp_points ? i18t('tournamentView.you_won') : cri.my_points < cri.opp_points ? i18t('tournamentView.you_lost') : i18t('tournamentView.you_drew')}
                 </Text>
                 <Text style={s.heroPrimaryLabel}>VS {cri.opponent_name.toUpperCase()}</Text>
               </View>
@@ -354,7 +356,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
               {/* Live points badge */}
               {cri.status === 'LIVE' && cri.live_total !== null && (
                 <View style={s.livePointsRow}>
-                  <Text style={s.livePointsLabel}>I tuoi punti live</Text>
+                  <Text style={s.livePointsLabel}>{i18t('tournamentView.your_live_points')}</Text>
                   <Text style={s.livePointsVal}>{cri.live_total}</Text>
                 </View>
               )}
@@ -365,12 +367,12 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
               {cri.opponent_name ? (
                 <Text style={s.heroOpponentPrimary}>VS {cri.opponent_name.toUpperCase()}</Text>
               ) : (
-                <Text style={s.heroOpponentPrimary}>{t.registered_count}/{t.max_participants} {i18t('tournament.participants')}</Text>
+                <Text style={s.heroOpponentPrimary}>{t.registered_count}/{t.max_participants}</Text>
               )}
 
               {/* Countdown timer — secondary */}
               {cri.status === 'OPEN' && countdown > 0 && (
-                <Text style={s.heroCountdownSec}>Scadenza tra {formatCountdown(countdown)}</Text>
+                <Text style={s.heroCountdownSec}>{i18t('tournamentView.expires_in')} {formatCountdown(countdown)}</Text>
               )}
 
               {/* Matchday label — tertiary */}
@@ -382,7 +384,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   <View style={s.predProgressBarBg}>
                     <View style={[s.predProgressBarFill, { width: cri.total_matches > 0 ? `${(cri.my_predictions_count / cri.total_matches) * 100}%` : '0%' }]} />
                   </View>
-                  <Text style={s.predProgressText}>{cri.my_predictions_count}/{cri.total_matches} pronostici</Text>
+                  <Text style={s.predProgressText}>{cri.my_predictions_count}/{cri.total_matches} {i18t('tournamentView.predictions_count')}</Text>
                 </View>
               )}
 
@@ -390,7 +392,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
               {cri.status === 'PENDING' && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, opacity: 0.7 }}>
                   <Ionicons name="time-outline" size={16} color="rgba(255,255,255,0.6)" />
-                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>In attesa delle partite da pronosticare</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>{i18t('tournamentView.waiting_matches')}</Text>
                 </View>
               )}
             </>
@@ -404,9 +406,9 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.ctaGrad}
             >
               <Text style={s.ctaText}>
-                {cri.status === 'OPEN' ? (cri.my_predictions_count > 0 ? 'MODIFICA PRONOSTICI' : 'INSERISCI PRONOSTICI')
-                  : cri.status === 'LIVE' ? 'SEGUI LIVE'
-                  : 'VEDI RISULTATI'}
+                {cri.status === 'OPEN' ? (cri.my_predictions_count > 0 ? i18t('tournamentView.edit_predictions') : i18t('tournamentView.insert_predictions'))
+                  : cri.status === 'LIVE' ? i18t('tournamentView.follow_live')
+                  : i18t('tournamentView.see_results')}
               </Text>
               <View style={s.ctaIcon}>
                 <Ionicons name={cri.status === 'LIVE' ? 'pulse' : 'arrow-forward'} size={18} color="#fff" />
@@ -424,17 +426,17 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
             <StatusBadge status={t.status === 'registration' ? 'OPEN' : 'COMPLETED'} label={statusLabels[t.status] || t.status} />
           </View>
           <Text style={s.heroTitle}>{t.name}</Text>
-          <Text style={s.heroSub}>{t.registered_count}/{t.max_participants} iscritti  &bull;  {t.groups_count} gironi da {t.players_per_group}  &bull;  {t.duration_rounds} round</Text>
+          <Text style={s.heroSub}>{t.registered_count}/{t.max_participants} {i18t('tournamentView.registered')}  &bull;  {t.groups_count} {i18t('tournamentView.groups_label')} {t.players_per_group}  &bull;  {t.duration_rounds} {i18t('tournamentView.rounds')}</Text>
 
           {t.status === 'registration' && !t.is_registered && (
             <TouchableOpacity onPress={joinTournament} disabled={joining} data-testid="join-tournament-btn">
               <LinearGradient colors={['#F7A21B', '#E88E00']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.ctaGrad}>
-                {joining ? <ActivityIndicator size="small" color="#fff" /> : <><Text style={s.ctaText}>Iscriviti al Torneo</Text><View style={s.ctaIcon}><Ionicons name="arrow-forward" size={18} color="#fff" /></View></>}
+                {joining ? <ActivityIndicator size="small" color="#fff" /> : <><Text style={s.ctaText}>{i18t('tournamentView.join_tournament')}</Text><View style={s.ctaIcon}><Ionicons name="arrow-forward" size={18} color="#fff" /></View></>}
               </LinearGradient>
             </TouchableOpacity>
           )}
           {t.is_registered && t.status === 'registration' && (
-            <View style={s.enrolledRow}><Ionicons name="checkmark-circle" size={16} color={colors.success} /><Text style={s.enrolledText}>Sei iscritto — In attesa di inizio</Text></View>
+            <View style={s.enrolledRow}><Ionicons name="checkmark-circle" size={16} color={colors.success} /><Text style={s.enrolledText}>{i18t('tournamentView.enrolled_waiting')}</Text></View>
           )}
         </LinearGradient>
       )}
@@ -457,7 +459,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
             >
               <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
               <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
-              <Text style={s.miniRankTitle}>CLASSIFICA {myGroup.group_name ? myGroup.group_name.toUpperCase() : 'GIRONE'}</Text>
+              <Text style={s.miniRankTitle}>{i18t('tournamentView.ranking_label')} {myGroup.group_name ? myGroup.group_name.toUpperCase() : i18t('tournamentView.group_fallback')}</Text>
               {top3.map((entry: any, i: number) => {
                 const isMe = entry.user_id === user?.id;
                 return (
@@ -469,7 +471,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                 );
               })}
               <View style={s.miniRankCtaRow}>
-                <Text style={s.miniRankCta}>Vedi classifica</Text>
+                <Text style={s.miniRankCta}>{i18t('tournamentView.see_rankings')}</Text>
                 <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.5)" />
               </View>
             </LinearGradient>
@@ -489,7 +491,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
         const avg = completed.length > 0 ? Math.round(totalPts / completed.length).toString() : '-';
         return (
           <View>
-            <Text style={s.sectionLabel}>PERFORMANCE</Text>
+            <Text style={s.sectionLabel}>{i18t('tournamentView.performance')}</Text>
             <View style={s.perfRow}>
               <View style={s.perfCardOuter}>
                 <LinearGradient colors={['#2C5FA8', '#1F4C8F', '#162F5C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.perfCardGrad}>
@@ -498,7 +500,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
                   <View style={s.perfIconWrap}><Ionicons name="trophy" size={20} color={DARK.accent} /></View>
                   <Text style={s.perfValue}>{wins}</Text>
-                  <Text style={s.perfLabel}>{'VITTORIE\nTORNEO'}</Text>
+                  <Text style={s.perfLabel}>{i18t('tournamentView.wins_tournament')}</Text>
                 </LinearGradient>
               </View>
               <View style={s.perfCardOuter}>
@@ -508,7 +510,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
                   <View style={s.perfIconWrap}><Ionicons name="star" size={20} color="#fff" /></View>
                   <Text style={s.perfValue}>{Math.round(totalPts).toString()}</Text>
-                  <Text style={s.perfLabel}>{'PUNTI\nTOTALI'}</Text>
+                  <Text style={s.perfLabel}>{i18t('tournamentView.total_points')}</Text>
                 </LinearGradient>
               </View>
               <View style={s.perfCardOuter}>
@@ -518,7 +520,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
                   <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
                   <View style={s.perfIconWrap}><Ionicons name="football" size={20} color="#22c55e" /></View>
                   <Text style={s.perfValue}>{avg}</Text>
-                  <Text style={s.perfLabel}>{'MEDIA\nULTIME 5'}</Text>
+                  <Text style={s.perfLabel}>{i18t('tournamentView.avg_last_5')}</Text>
                 </LinearGradient>
               </View>
             </View>
@@ -544,7 +546,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
           >
             <LinearGradient colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.06)', 'transparent']} start={{ x: 0.1, y: 0.0 }} end={{ x: 0.9, y: 1.0 }} style={s.whiteSweep} />
             <LinearGradient colors={['rgba(255,255,255,0.10)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGlow} />
-            <Text style={s.last5Title}>ULTIME 5 SFIDE</Text>
+            <Text style={s.last5Title}>{i18t('tournamentView.last_5_challenges')}</Text>
             <View style={s.last5Row}>
               {last5.map((item: any, i: number) => (
                 <View key={i} style={s.last5PillWrap}>

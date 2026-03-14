@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
 import { apiCall, isAuthError } from '../../src/api/client';
@@ -23,6 +24,7 @@ const DEFAULT_SCORING: Record<string, { enabled: boolean; points: number; label:
 };
 
 export default function CreateLeagueScreen() {
+  const { t } = useTranslation();
   const { token, handleAuthError } = useAuth();
   const { refreshLeagues } = useLeague();
   const router = useRouter();

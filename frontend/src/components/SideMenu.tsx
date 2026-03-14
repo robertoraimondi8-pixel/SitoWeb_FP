@@ -89,31 +89,33 @@ export function SideMenu({ visible, onClose }: Props) {
     }, 150);
   };
 
+  const { t } = useTranslation();
+
   const accountItems: MenuItem[] = [
-    { icon: 'person-outline', label: 'Profilo', route: '/menu/profile-edit', testId: 'menu-profile' },
-    { icon: 'language-outline', label: 'Lingua', route: '/menu/language', testId: 'menu-language' },
+    { icon: 'person-outline', label: t('side_menu.profile'), route: '/menu/profile-edit', testId: 'menu-profile' },
+    { icon: 'language-outline', label: t('side_menu.language'), route: '/menu/language', testId: 'menu-language' },
   ];
 
   const leagueItems: MenuItem[] = [
-    { icon: 'list-outline', label: 'Le mie leghe', route: '/menu/my-leagues', testId: 'menu-my-leagues' },
-    { icon: 'people-outline', label: 'Partecipanti', route: '/menu/members', testId: 'menu-members' },
-    { icon: 'document-text-outline', label: 'Regolamento', route: '/menu/rules', testId: 'menu-rules' },
-    { icon: 'mail-outline', label: 'I miei inviti', route: '/menu/invites', testId: 'menu-invites' },
+    { icon: 'list-outline', label: t('side_menu.my_leagues'), route: '/menu/my-leagues', testId: 'menu-my-leagues' },
+    { icon: 'people-outline', label: t('side_menu.participants'), route: '/menu/members', testId: 'menu-members' },
+    { icon: 'document-text-outline', label: t('side_menu.rules'), route: '/menu/rules', testId: 'menu-rules' },
+    { icon: 'mail-outline', label: t('side_menu.my_invites'), route: '/menu/invites', testId: 'menu-invites' },
   ];
 
   const tournamentItems: MenuItem[] = [
-    { icon: 'trophy-outline', label: 'I miei tornei', route: '/menu/my-tournaments', testId: 'menu-my-tournaments' },
-    { icon: 'add-circle-outline', label: 'Iscriviti a nuovi tornei', route: '/menu/browse-tournaments', testId: 'menu-browse-tournaments' },
+    { icon: 'trophy-outline', label: t('side_menu.my_tournaments'), route: '/menu/my-tournaments', testId: 'menu-my-tournaments' },
+    { icon: 'add-circle-outline', label: t('side_menu.join_tournaments'), route: '/menu/browse-tournaments', testId: 'menu-browse-tournaments' },
   ];
 
   const commsItems: MenuItem[] = [
-    { icon: 'newspaper-outline', label: 'News', route: '/menu/news', testId: 'menu-news' },
-    { icon: 'notifications-outline', label: 'Notifiche', route: '/menu/notifications', testId: 'menu-notifications' },
+    { icon: 'newspaper-outline', label: t('side_menu.news'), route: '/menu/news', testId: 'menu-news' },
+    { icon: 'notifications-outline', label: t('side_menu.notifications'), route: '/menu/notifications', testId: 'menu-notifications' },
   ];
 
   const legalItems: MenuItem[] = [
-    { icon: 'document-text-outline', label: 'Termini di Servizio', route: '/menu/terms', testId: 'menu-terms' },
-    { icon: 'shield-checkmark-outline', label: 'Privacy Policy', route: '/privacy-policy', testId: 'menu-privacy' },
+    { icon: 'document-text-outline', label: t('side_menu.terms_of_service'), route: '/menu/terms', testId: 'menu-terms' },
+    { icon: 'shield-checkmark-outline', label: t('side_menu.privacy_policy'), route: '/privacy-policy', testId: 'menu-privacy' },
   ];
 
   const renderSection = (title: string, icon: keyof typeof Ionicons.glyphMap, items: MenuItem[]) => (
@@ -158,7 +160,7 @@ export function SideMenu({ visible, onClose }: Props) {
                 </Text>
               </View>
               <View style={s.userInfo}>
-                <Text style={s.userName}>{user?.username || 'Utente'}</Text>
+                <Text style={s.userName}>{user?.username || t('side_menu.user_fallback')}</Text>
                 <Text style={s.userEmail}>{user?.email || ''}</Text>
               </View>
               <TouchableOpacity onPress={onClose} style={s.closeBtn} data-testid="menu-close">
@@ -174,17 +176,17 @@ export function SideMenu({ visible, onClose }: Props) {
               </View>
             )}
 
-            {renderSection('ACCOUNT', 'person-circle-outline', accountItems)}
-            {renderSection('LEGA', 'trophy-outline', leagueItems)}
-            {renderSection('TORNEI', 'podium-outline', tournamentItems)}
-            {renderSection('COMUNICAZIONI', 'megaphone-outline', commsItems)}
-            {renderSection('LEGALE', 'shield-outline', legalItems)}
+            {renderSection(t('side_menu.section_account'), 'person-circle-outline', accountItems)}
+            {renderSection(t('side_menu.section_league'), 'trophy-outline', leagueItems)}
+            {renderSection(t('side_menu.section_tournaments'), 'podium-outline', tournamentItems)}
+            {renderSection(t('side_menu.section_comms'), 'megaphone-outline', commsItems)}
+            {renderSection(t('side_menu.section_legal'), 'shield-outline', legalItems)}
 
             {/* Logout — in fondo a tutto */}
             <View style={s.logoutWrap}>
               <View style={s.logoutDivider} />
               <PressableMenuItem
-                item={{ icon: 'log-out-outline', label: 'Logout', action: handleLogout, testId: 'menu-logout' }}
+                item={{ icon: 'log-out-outline', label: t('side_menu.logout'), action: handleLogout, testId: 'menu-logout' }}
                 onPress={handleLogout}
               />
             </View>

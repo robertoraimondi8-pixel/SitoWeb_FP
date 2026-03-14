@@ -7,8 +7,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
 import { colors, typography, spacing, borderRadius, brandGradients } from '../../src/theme/designSystem';
+import { useTranslation } from 'react-i18next';
 
 export default function ProfileEditScreen() {
+  const { t } = useTranslation();
   const { user, token, logout, updateUser } = useAuth();
   const router = useRouter();
   const [username, setUsername] = useState(user?.username || '');
@@ -26,9 +28,9 @@ export default function ProfileEditScreen() {
     try {
       const res = await apiCall<{ email: string }>('/profile/email', { token, method: 'PUT', body: { new_email: newEmail.trim(), password: emailPwd } });
       updateUser({ email: res.email });
-      Alert.alert('Salvato', 'Email aggiornata con successo');
+      Alert.alert(t('profileEdit.saved'), t('profileEdit.email_updated'));
       setNewEmail(''); setEmailPwd('');
-    } catch (e: any) { Alert.alert('Errore', e.message || 'Errore nel cambio email'); }
+    } catch (e: any) { Alert.alert(t('profileEdit.error'), e.message || t('profileEdit.email_change_error')); }
     finally { setEmailSaving(false); }
   };
 
@@ -38,8 +40,8 @@ export default function ProfileEditScreen() {
     try {
       const updated = await apiCall('/profile', { token, method: 'PUT', body: { username: username.trim() } });
       updateUser({ username: updated.username });
-      Alert.alert('Salvato', 'Nome utente aggiornato');
-    } catch (e: any) { Alert.alert('Errore', e.message || 'Errore nel salvataggio'); }
+      Alert.alert(t('profileEdit.saved'), t('profileEdit.username_updated'));
+    } catch (e: any) { Alert.alert(t('profileEdit.error'), e.message || t('profileEdit.save_error')); }
     finally { setSaving(false); }
   };
 
@@ -48,18 +50,18 @@ export default function ProfileEditScreen() {
     setPwdSaving(true);
     try {
       await apiCall('/profile/password', { token, method: 'PUT', body: { current_password: currentPwd, new_password: newPwd } });
-      Alert.alert('Salvato', 'Password aggiornata con successo');
+      Alert.alert(t('profileEdit.saved'), t('profileEdit.password_updated'));
       setCurrentPwd(''); setNewPwd('');
-    } catch (e: any) { Alert.alert('Errore', e.message || 'Password non corretta'); }
+    } catch (e: any) { Alert.alert(t('profileEdit.error'), e.message || t('profileEdit.wrong_password')); }
     finally { setPwdSaving(false); }
   };
 
   const deleteAccount = () => {
-    Alert.alert('Elimina Account', 'Sei sicuro? Tutti i tuoi dati verranno eliminati permanentemente.', [
-      { text: 'Annulla', style: 'cancel' },
-      { text: 'Elimina', style: 'destructive', onPress: async () => {
+    Alert.alert(t('profileEdit.delete_account'), t('profileEdit.delete_confirm'), [
+      { text: t('profileEdit.cancel'), style: 'cancel' },
+      { text: t('profileEdit.delete'), style: 'destructive', onPress: async () => {
         try { await apiCall('/profile', { token, method: 'DELETE' }); await logout(); router.replace('/(auth)/login' as any); }
-        catch (e: any) { Alert.alert('Errore', e.message); }
+        catch (e: any) { Alert.alert(t('profileEdit.error'), e.message); }
       }},
     ]);
   };
@@ -71,44 +73,44 @@ export default function ProfileEditScreen() {
         <TouchableOpacity onPress={() => router.back()} data-testid="back-btn">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Profilo</Text>
+        <Text style={s.headerTitle}>{t('profileEdit.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
       <ScrollView contentContainerStyle={s.content}>
         {/* Email */}
         <View style={s.card}>
-          <Text style={s.label}>Email</Text>
+          <Text style={s.label}>{t('profileEdit.email')}</Text>
           <Text style={s.value}>{user?.email}</Text>
           <View style={s.divider} />
-          <Text style={[s.label, { marginTop: 12 }]}>Cambia Email</Text>
-          <TextInput style={s.input} value={newEmail} onChangeText={setNewEmail} placeholder="Nuova email" keyboardType="email-address" autoCapitalize="none" placeholderTextColor="rgba(255,255,255,0.3)" data-testid="new-email-input" />
-          <TextInput style={[s.input, { marginTop: 8 }]} value={emailPwd} onChangeText={setEmailPwd} placeholder="Conferma con password" secureTextEntry placeholderTextColor="rgba(255,255,255,0.3)" data-testid="email-pwd-input" />
+          <Text style={[s.label, { marginTop: 12 }]}>{t('profileEdit.change_email')}</Text>
+          <TextInput style={s.input} value={newEmail} onChangeText={setNewEmail} placeholder={t("profileEdit.new_email")} keyboardType="email-address" autoCapitalize="none" placeholderTextColor="rgba(255,255,255,0.3)" data-testid="new-email-input" />
+          <TextInput style={[s.input, { marginTop: 8 }]} value={emailPwd} onChangeText={setEmailPwd} placeholder={t("profileEdit.confirm_password")} secureTextEntry placeholderTextColor="rgba(255,255,255,0.3)" data-testid="email-pwd-input" />
           <TouchableOpacity style={s.saveBtn} onPress={changeEmail} disabled={emailSaving} data-testid="change-email-btn">
             <LinearGradient colors={brandGradients.cta} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.saveBtnGradient}>
-              {emailSaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>Aggiorna Email</Text>}
+              {emailSaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>{t('profileEdit.update_email')}</Text>}
             </LinearGradient>
           </TouchableOpacity>
         </View>
 
         {/* Username */}
         <View style={s.card}>
-          <Text style={s.label}>Nome utente</Text>
-          <TextInput style={s.input} value={username} onChangeText={setUsername} placeholder="Username" placeholderTextColor="rgba(255,255,255,0.3)" data-testid="username-input" />
+          <Text style={s.label}>{t('profileEdit.username')}</Text>
+          <TextInput style={s.input} value={username} onChangeText={setUsername} placeholder={t("profileEdit.username_placeholder")} placeholderTextColor="rgba(255,255,255,0.3)" data-testid="username-input" />
           <TouchableOpacity style={s.saveBtn} onPress={saveUsername} disabled={saving} data-testid="save-username-btn">
             <LinearGradient colors={brandGradients.cta} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.saveBtnGradient}>
-              {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>Salva</Text>}
+              {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>{t('profileEdit.save')}</Text>}
             </LinearGradient>
           </TouchableOpacity>
         </View>
 
         {/* Password */}
         <View style={s.card}>
-          <Text style={s.label}>Cambia Password</Text>
-          <TextInput style={s.input} value={currentPwd} onChangeText={setCurrentPwd} placeholder="Password attuale" secureTextEntry placeholderTextColor="rgba(255,255,255,0.3)" data-testid="current-pwd-input" />
-          <TextInput style={[s.input, { marginTop: 8 }]} value={newPwd} onChangeText={setNewPwd} placeholder="Nuova password" secureTextEntry placeholderTextColor="rgba(255,255,255,0.3)" data-testid="new-pwd-input" />
+          <Text style={s.label}>{t('profileEdit.change_password')}</Text>
+          <TextInput style={s.input} value={currentPwd} onChangeText={setCurrentPwd} placeholder={t("profileEdit.current_password")} secureTextEntry placeholderTextColor="rgba(255,255,255,0.3)" data-testid="current-pwd-input" />
+          <TextInput style={[s.input, { marginTop: 8 }]} value={newPwd} onChangeText={setNewPwd} placeholder={t("profileEdit.new_password")} secureTextEntry placeholderTextColor="rgba(255,255,255,0.3)" data-testid="new-pwd-input" />
           <TouchableOpacity style={s.saveBtn} onPress={changePassword} disabled={pwdSaving} data-testid="change-pwd-btn">
             <LinearGradient colors={brandGradients.cta} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.saveBtnGradient}>
-              {pwdSaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>Cambia Password</Text>}
+              {pwdSaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.saveBtnText}>{t('profileEdit.change_password')}</Text>}
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -116,7 +118,7 @@ export default function ProfileEditScreen() {
         {/* Delete Account */}
         <TouchableOpacity style={s.deleteBtn} onPress={deleteAccount} data-testid="delete-account-btn">
           <Ionicons name="trash-outline" size={18} color={colors.error} />
-          <Text style={s.deleteBtnText}>Elimina Account</Text>
+          <Text style={s.deleteBtnText}>{t('profileEdit.delete_account')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

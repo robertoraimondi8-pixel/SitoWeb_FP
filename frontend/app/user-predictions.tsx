@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../src/contexts/AuthContext';
 import { UserPredictionsData, getErrorMessage } from '../src/types/api';
 import { apiCall, isAuthError } from '../src/api/client';
@@ -31,6 +32,7 @@ interface Prediction {
 }
 
 export default function UserPredictionsScreen() {
+  const { t } = useTranslation();
   const { token, handleAuthError } = useAuth();
   const params = useLocalSearchParams<{ userId: string; matchdayId: string; leagueId?: string }>();
   
@@ -51,7 +53,7 @@ export default function UserPredictionsScreen() {
           if (didLogout) router.replace('/(auth)/login');
           return;
         }
-        setError(e.message || 'Errore nel caricamento');
+        setError(e.message || t('userPredictions.loading_error'));
       }
       finally { setLoading(false); }
     })();
@@ -80,7 +82,7 @@ export default function UserPredictionsScreen() {
       case '1X2': return '1X2';
       case 'GOAL_NOGOL': return 'GNG';
       case 'OVER_UNDER_25': return 'O/U';
-      case 'EXACT_SCORE': return 'Esatto';
+      case 'EXACT_SCORE': return t('userPredictions.exact_label');
       default: return market;
     }
   };

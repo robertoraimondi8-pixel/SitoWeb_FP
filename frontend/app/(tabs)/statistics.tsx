@@ -60,7 +60,7 @@ const COUNTRY_FLAGS: Record<string, string> = {
 
 const formatRound = (round?: string) => {
   if (!round) return '';
-  return round.replace('Regular Season - ', 'Giornata ');
+  return round.replace('Regular Season - ', `${t('statistics.matchday_label')} `);
 };
 
 const formatRoundShort = (round?: string) => {
@@ -369,7 +369,7 @@ function FixturesWithRoundPicker({
         >
           <Ionicons name="calendar-outline" size={18} color={colors.primary} />
           <Text style={styles.roundPickerText}>
-            {selectedRound ? formatRound(selectedRound) : 'Tutte le giornate'}
+            {selectedRound ? formatRound(selectedRound) : t('statistics.all_matchdays')}
           </Text>
           <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
         </TouchableOpacity>
