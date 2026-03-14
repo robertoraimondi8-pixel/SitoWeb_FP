@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
 import { useCompetition } from '../contexts/CompetitionContext';
 import { apiCall } from '../api/client';
@@ -61,6 +61,11 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
   }, [token, tournamentId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Re-fetch when screen gains focus (e.g. returning from predictions)
+  useFocusEffect(
+    useCallback(() => { fetchData(); }, [fetchData])
+  );
 
   // Countdown timer for OPEN rounds
   useEffect(() => {
