@@ -1,15 +1,12 @@
 """Payment routes: Stripe checkout for custom-matches leagues and national league membership."""
 import os
 import logging
+import stripe
 from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import Optional, Dict
 
-from emergentintegrations.payments.stripe.checkout import (
-    StripeCheckout, CheckoutSessionRequest, CheckoutSessionResponse, CheckoutStatusResponse
-)
-
-from database import leagues_col, memberships_col, payments_col, seasons_col
+from database import leagues_col, memberships_col, payments_col
 from models import new_id, now_utc
 from auth import get_current_user
 from services import (
@@ -20,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 payment_router = APIRouter(prefix="/api/payments", tags=["Payments"])
 
-CUSTOM_LEAGUE_PRICE = 89.99  # EUR
+CUSTOM_LEAGUE_PRICE = 8999  # cents (€89.99)
 
 
 class CustomLeagueCheckoutRequest(BaseModel):
@@ -39,11 +36,11 @@ class NationalLeagueCheckoutRequest(BaseModel):
     origin_url: str
 
 
-def _get_stripe():
+def _init_stripe():
     api_key = os.environ.get("STRIPE_API_KEY")
     if not api_key:
         raise HTTPException(500, "Stripe not configured")
-    return api_key
+    stripe.api_key = api_key
 
 
 @payment_router.post("/custom-league-checkout")
@@ -53,7 +50,7 @@ async def create_custom_league_checkout(
     user=Depends(get_current_user),
 ):
     """Create Stripe checkout session for a custom-matches league (€89.99)."""
-    api_key = _get_stripe()
+    _init_stripe()
 
     if req.end_matchday < req.start_matchday:
         raise HTTPException(400, "La giornata finale deve essere >= giornata iniziale")
@@ -83,26 +80,29 @@ async def create_custom_league_checkout(
         "include_championship_predictions": str(req.include_championship_predictions),
     }
 
-    host_url = str(request.base_url).rstrip("/")
-    webhook_url = f"{host_url}api/payments/webhook/stripe"
-
-    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
-    checkout_req = CheckoutSessionRequest(
-        amount=CUSTOM_LEAGUE_PRICE,
-        currency="eur",
+    session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[{
+            "price_data": {
+                "currency": "eur",
+                "product_data": {"name": f"Lega Premium: {req.name}", "description": "Lega con partite personalizzate"},
+                "unit_amount": CUSTOM_LEAGUE_PRICE,
+            },
+            "quantity": 1,
+        }],
+        mode="payment",
         success_url=success_url,
         cancel_url=cancel_url,
         metadata=metadata,
     )
-    session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_req)
 
     scoring = normalize_scoring_config(req.scoring_config) if req.scoring_config else DEFAULT_SCORING_CONFIG
 
     await payments_col.insert_one({
         "id": payment_id,
         "user_id": user["id"],
-        "session_id": session.session_id,
-        "amount": CUSTOM_LEAGUE_PRICE,
+        "session_id": session.id,
+        "amount": 89.99,
         "currency": "eur",
         "payment_status": "pending",
         "type": "custom_league_creation",
@@ -119,7 +119,7 @@ async def create_custom_league_checkout(
         "created_at": now_utc(),
     })
 
-    return {"url": session.url, "session_id": session.session_id}
+    return {"url": session.url, "session_id": session.id}
 
 
 @payment_router.get("/status/{session_id}")
@@ -129,13 +129,11 @@ async def get_payment_status(session_id: str, user=Depends(get_current_user)):
     if not payment:
         raise HTTPException(404, "Payment not found")
 
-    api_key = _get_stripe()
-    webhook_url = "https://placeholder.com/api/payments/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
-    status: CheckoutStatusResponse = await stripe_checkout.get_checkout_status(session_id)
+    _init_stripe()
+    session = stripe.checkout.Session.retrieve(session_id)
 
-    payment_status = status.payment_status or "unpaid"
-    session_status = status.status or "open"
+    payment_status = session.payment_status or "unpaid"
+    session_status = session.status or "open"
 
     result = {
         "payment_status": payment_status,
@@ -273,7 +271,7 @@ async def create_national_league_checkout(
     if existing_mem:
         raise HTTPException(400, "Already a member of this league")
 
-    api_key = _get_stripe()
+    _init_stripe()
     origin = req.origin_url.rstrip("/")
     success_url = f"{origin}/league/payment-success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{origin}/league/join"
@@ -286,24 +284,29 @@ async def create_national_league_checkout(
         "type": "national_league_membership",
     }
 
-    host_url = str(request.base_url).rstrip("/")
-    webhook_url = f"{host_url}api/payments/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+    amount_cents = int(float(entry_fee) * 100)
 
-    checkout_req = CheckoutSessionRequest(
-        amount=float(entry_fee),
-        currency="eur",
+    session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[{
+            "price_data": {
+                "currency": "eur",
+                "product_data": {"name": f"Iscrizione Lega Nazionale: {league['name']}"},
+                "unit_amount": amount_cents,
+            },
+            "quantity": 1,
+        }],
+        mode="payment",
         success_url=success_url,
         cancel_url=cancel_url,
         metadata=metadata,
     )
-    session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_req)
 
     await payments_col.insert_one({
         "id": payment_id,
         "user_id": user["id"],
         "league_id": req.league_id,
-        "session_id": session.session_id,
+        "session_id": session.id,
         "amount": float(entry_fee),
         "currency": "eur",
         "payment_status": "pending",
@@ -312,33 +315,37 @@ async def create_national_league_checkout(
         "created_at": now_utc(),
     })
 
-    return {"url": session.url, "session_id": session.session_id}
+    return {"url": session.url, "session_id": session.id}
 
 
 @payment_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
     """Handle Stripe webhook events."""
-    api_key = _get_stripe()
+    _init_stripe()
     body = await request.body()
-    signature = request.headers.get("Stripe-Signature", "")
-
-    host_url = str(request.base_url).rstrip("/")
-    webhook_url = f"{host_url}api/payments/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+    sig = request.headers.get("Stripe-Signature", "")
+    endpoint_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 
     try:
-        event = await stripe_checkout.handle_webhook(body, signature)
-        logger.info(f"Stripe webhook event: {event.event_type} session={event.session_id}")
+        if endpoint_secret:
+            event = stripe.Webhook.construct_event(body, sig, endpoint_secret)
+        else:
+            import json
+            event = stripe.Event.construct_from(json.loads(body), stripe.api_key)
 
-        if event.payment_status == "paid":
-            payment = await payments_col.find_one({"session_id": event.session_id})
-            if payment and payment["payment_status"] != "paid":
-                await payments_col.update_one(
-                    {"session_id": event.session_id},
-                    {"$set": {"payment_status": "paid", "status": "complete"}},
-                )
-                if payment.get("type") == "custom_league_creation":
-                    await _create_league_from_payment(payment)
+        logger.info(f"Stripe webhook event: {event.type}")
+
+        if event.type == "checkout.session.completed":
+            session_data = event.data.object
+            if session_data.payment_status == "paid":
+                payment = await payments_col.find_one({"session_id": session_data.id})
+                if payment and payment["payment_status"] != "paid":
+                    await payments_col.update_one(
+                        {"session_id": session_data.id},
+                        {"$set": {"payment_status": "paid", "status": "complete"}},
+                    )
+                    if payment.get("type") == "custom_league_creation":
+                        await _create_league_from_payment(payment)
         return {"status": "ok"}
     except Exception as e:
         logger.error(f"Stripe webhook error: {e}")
