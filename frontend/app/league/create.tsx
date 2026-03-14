@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, Switch, KeyboardAvoidingView, Platform,
-  ActivityIndicator, Share, Alert,
+  ActivityIndicator, Share, Alert, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -13,6 +13,8 @@ import { apiCall, isAuthError } from '../../src/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, borderRadius } from '../../src/theme/designSystem';
+
+const CUSTOM_LEAGUE_PRICE = '89,99';
 
 const DEADLINE_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60];
 
@@ -77,7 +79,7 @@ export default function CreateLeagueScreen() {
   const handleCreate = async () => {
     setError('');
     if (!name.trim() || name.trim().length < 3) { setError('Il nome deve avere almeno 3 caratteri'); return; }
-    if (endMD < startMD) { setError('La giornata finale deve essere ≥ giornata iniziale'); return; }
+    if (endMD < startMD) { setError('La giornata finale deve essere >= giornata iniziale'); return; }
     const seasonId = seasons[0]?.id;
     if (!seasonId) { setError('Nessuna stagione attiva trovata'); return; }
 
@@ -88,22 +90,49 @@ export default function CreateLeagueScreen() {
 
     setLoading(true);
     try {
-      const res = await apiCall('/leagues', {
-        method: 'POST',
-        token,
-        body: {
-          name: name.trim(),
-          season_id: seasonId,
-          start_matchday: startMD,
-          end_matchday: endMD,
-          bet_deadline_minutes: deadline,
-          match_source_type: sourceType,
-          scoring_config: scoringConfig,
-          include_championship_predictions: false,
-        },
-      });
-      if (token) await refreshLeagues(token);
-      setCreated(res);
+      if (sourceType === 'custom') {
+        // Custom matches: redirect to Stripe checkout
+        const origin = Platform.OS === 'web' ? window.location.origin : '';
+        const res = await apiCall('/payments/custom-league-checkout', {
+          method: 'POST',
+          token,
+          body: {
+            origin_url: origin,
+            name: name.trim(),
+            season_id: seasonId,
+            start_matchday: startMD,
+            end_matchday: endMD,
+            bet_deadline_minutes: deadline,
+            scoring_config: scoringConfig,
+            include_championship_predictions: false,
+          },
+        });
+        if (res.url) {
+          if (Platform.OS === 'web') {
+            window.location.href = res.url;
+          } else {
+            Linking.openURL(res.url);
+          }
+        }
+      } else {
+        // National: free creation
+        const res = await apiCall('/leagues', {
+          method: 'POST',
+          token,
+          body: {
+            name: name.trim(),
+            season_id: seasonId,
+            start_matchday: startMD,
+            end_matchday: endMD,
+            bet_deadline_minutes: deadline,
+            match_source_type: sourceType,
+            scoring_config: scoringConfig,
+            include_championship_predictions: false,
+          },
+        });
+        if (token) await refreshLeagues(token);
+        setCreated(res);
+      }
     } catch (e: unknown) {
       if (isAuthError(e)) { const d = await handleAuthError(e); if (d) router.replace('/(auth)/login'); return; }
       setError(e.message || 'Errore nella creazione');
@@ -285,6 +314,12 @@ export default function CreateLeagueScreen() {
                 {c.recommended && (
                   <Text style={[s.recommendedBadge, { color: colors.accent }]}>Consigliato</Text>
                 )}
+                {type === 'custom' && (
+                  <View style={[s.priceBadge, { backgroundColor: '#F59E0B22', borderColor: '#F59E0B55' }]}>
+                    <Ionicons name="card-outline" size={12} color="#F59E0B" />
+                    <Text style={{ color: '#F59E0B', fontSize: 11, fontWeight: '700' }}>{CUSTOM_LEAGUE_PRICE} EUR</Text>
+                  </View>
+                )}
                 <Text style={[s.sourceDesc, { color: colors.textSecondary }]}>
                   {c.desc}
                 </Text>
@@ -292,6 +327,15 @@ export default function CreateLeagueScreen() {
               );
             })}
           </View>
+
+          {sourceType === 'custom' && (
+            <View style={[s.priceNote, { backgroundColor: '#FEF3C7', borderColor: '#F59E0B55' }]} data-testid="custom-price-note">
+              <Ionicons name="information-circle-outline" size={16} color="#92400E" />
+              <Text style={{ color: '#92400E', fontSize: 12, lineHeight: 17, flex: 1 }}>
+                Le leghe con partite personalizzate richiedono un pagamento di {CUSTOM_LEAGUE_PRICE} EUR.{'\n'}Con questa opzione l'organizzatore sceglie manualmente le partite ogni settimana.
+              </Text>
+            </View>
+          )}
 
           {/* Scoring Config */}
           <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>SISTEMA PUNTI</Text>
@@ -320,12 +364,22 @@ export default function CreateLeagueScreen() {
           {/* Submit */}
           <TouchableOpacity
             testID="create-league-submit-btn"
-            style={[s.btn, { backgroundColor: name.trim().length >= 3 ? colors.accent : colors.border }]}
+            data-testid="create-league-submit-btn"
+            style={[s.btn, {
+              backgroundColor: name.trim().length >= 3
+                ? (sourceType === 'custom' ? '#F59E0B' : colors.accent)
+                : colors.border,
+            }]}
             onPress={handleCreate}
             disabled={loading || name.trim().length < 3}
           >
             {loading ? (
-              <ActivityIndicator color={colors.background} />
+              <ActivityIndicator color="#FFFFFF" />
+            ) : sourceType === 'custom' ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="card-outline" size={18} color="#FFFFFF" />
+                <Text style={[s.btnText, { color: '#FFFFFF' }]}>PAGA E CREA LEGA - {CUSTOM_LEAGUE_PRICE} EUR</Text>
+              </View>
             ) : (
               <Text style={[s.btnText, { color: colors.background }]}>CREA LEGA</Text>
             )}
@@ -359,6 +413,8 @@ const makeStyles = () => StyleSheet.create({
   sourceLabel: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   sourceDesc: { fontSize: 11, textAlign: 'center', lineHeight: 15 },
   recommendedBadge: { fontSize: 10, fontWeight: '700', marginTop: 2, marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
+  priceBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 1 },
+  priceNote: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, padding: 12, borderRadius: 10, borderWidth: 1, marginBottom: 4 },
   scoringCard: { borderWidth: 1, borderRadius: 14, padding: 16, gap: 4, marginBottom: 4 },
   marketRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' },
   marketLabel: { fontSize: 14, fontWeight: '600' },

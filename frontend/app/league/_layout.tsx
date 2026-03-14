@@ -7,6 +7,7 @@ export default function LeagueLayout() {
       <Stack.Screen name="join" />
       <Stack.Screen name="join-private" />
       <Stack.Screen name="list" />
+      <Stack.Screen name="payment-success" />
       <Stack.Screen name="[id]/manage" />
     </Stack>
   );

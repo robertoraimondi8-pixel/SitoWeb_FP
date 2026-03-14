@@ -1,0 +1,50 @@
+{
+  "summary": "Stripe integration for custom-matches leagues tested successfully. All backend APIs working. Frontend UI features verified after fixing route issue. Fixed missing payment-success route in _layout.tsx",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_stripe_payments.py",
+    "/app/test_reports/pytest/stripe_payments_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/frontend/app/league/_layout.tsx",
+    "/app/backend/tests/test_stripe_payments.py"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8 tests passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": "ilio@raimondi.it / password123",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Stripe integration fully functional. Backend APIs tested: POST /api/payments/custom-league-checkout (creates Stripe checkout session, returns URL starting with https://checkout.stripe.com/), GET /api/payments/status/{session_id} (returns payment_status, status, amount=89.99, currency=eur, type=custom_league_creation), POST /api/leagues (national source - free). Frontend tested: /league/create shows correct conditional UI when switching between national and custom source types. Payment-success route was fixed in _layout.tsx",
+  "verified_features": {
+    "backend": {
+      "custom_league_checkout": "PASSED - Creates Stripe checkout session, returns URL and session_id",
+      "payment_status": "PASSED - Returns payment_status, status, amount, currency, type",
+      "national_league_creation": "PASSED - Creates league without payment (free)",
+      "auth_required": "PASSED - All payment endpoints require authentication",
+      "matchday_validation": "PASSED - Validates end_matchday >= start_matchday"
+    },
+    "frontend": {
+      "create_league_national": "PASSED - Default selection shows 'CREA LEGA' button in blue",
+      "price_badge": "PASSED - '89,99 EUR' badge visible on Personalizzate card",
+      "yellow_info_note": "PASSED - Appears when custom selected explaining 89.99 EUR pricing",
+      "custom_button": "PASSED - Button changes to amber color with 'PAGA E CREA LEGA - 89,99 EUR' and card icon",
+      "payment_success_page": "PASSED - Shows polling screen with 'Verifica pagamento in corso...' text"
+    }
+  },
+  "fixes_applied": {
+    "payment_success_route": "Added <Stack.Screen name='payment-success' /> to /app/frontend/app/league/_layout.tsx - this route was missing causing 'Unmatched Route' error"
+  }
+}
