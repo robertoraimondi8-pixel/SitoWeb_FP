@@ -4,8 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useLeague } from '../../src/contexts/LeagueContext';
+import { useCompetition } from '../../src/contexts/CompetitionContext';
 import { apiCall } from '../../src/api/client';
 import { colors, typography, spacing, borderRadius, brandGradients } from '../../src/theme/designSystem';
 
@@ -25,37 +27,45 @@ function isEnabled(val: ScoringItem | undefined): boolean {
   return false;
 }
 
-const SCORING_LABELS: { key: string; label: string }[] = [
-  { key: '1x2', label: 'Esito corretto (1X2)' },
-  { key: 'exact_score', label: 'Risultato esatto' },
-  { key: 'over_under', label: 'Under/Over' },
-  { key: 'goal_no_goal', label: 'GG/NG' },
-];
-
 export default function RulesScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { token } = useAuth();
   const { activeLeague } = useLeague();
-  const [league, setLeague] = useState<any>(null);
+  const { mode, tournamentId } = useCompetition();
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const isTournament = mode === 'tournament' && !!tournamentId;
+
+  const SCORING_LABELS: { key: string; labelKey: string }[] = [
+    { key: '1x2', labelKey: 'rules.scoring_1x2' },
+    { key: 'exact_score', labelKey: 'rules.scoring_exact' },
+    { key: 'over_under', labelKey: 'rules.scoring_over_under' },
+    { key: 'goal_no_goal', labelKey: 'rules.scoring_gg_ng' },
+  ];
 
   useEffect(() => {
-    if (!activeLeague || !token) return;
+    if (!token) return;
     (async () => {
-      try { setLeague(await apiCall(`/leagues/${activeLeague.id}`, { token })); }
-      catch (_) { /* silent */ }
+      try {
+        if (isTournament) {
+          setData(await apiCall(`/tournaments/${tournamentId}`, { token }));
+        } else if (activeLeague) {
+          setData(await apiCall(`/leagues/${activeLeague.id}`, { token }));
+        }
+      } catch (_) { /* silent */ }
       finally { setLoading(false); }
     })();
-  }, [activeLeague, token]);
+  }, [activeLeague, tournamentId, isTournament, token]);
 
-  const sc = league?.scoring_config || {};
+  const sc = isTournament ? (data?.settings?.scoring_config || {}) : (data?.scoring_config || {});
 
   const matchSourceLabel = () => {
-    const type = league?.match_source_type || league?.league_type;
-    if (type === 'national') return 'Lega Nazionale (partite ufficiali)';
-    if (type === 'api') return 'Partite ufficiali (da calendario API)';
-    if (type === 'manual' || type === 'custom') return 'Partite personalizzate';
-    return 'Partite ufficiali';
+    const type = data?.match_source_type || data?.league_type;
+    if (type === 'national') return t('rules.source_national');
+    if (type === 'api') return t('rules.source_api');
+    if (type === 'manual' || type === 'custom') return t('rules.source_custom');
+    return t('rules.source_default');
   };
 
   return (
@@ -65,32 +75,68 @@ export default function RulesScreen() {
         <TouchableOpacity onPress={() => router.back()} data-testid="back-btn">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Regolamento</Text>
+        <Text style={s.headerTitle}>{t('rules.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
       {loading ? (
         <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 40 }} />
-      ) : league ? (
+      ) : data ? (
         <ScrollView contentContainerStyle={s.content}>
-          <Text style={s.leagueName}>{league.name}</Text>
+          <Text style={s.leagueName}>{data.name}</Text>
 
+          {/* Scoring */}
           <View style={s.card}>
-            <Text style={s.cardTitle}>Punteggi</Text>
-            {SCORING_LABELS.map(({ key, label }) => {
+            <Text style={s.cardTitle}>{t('rules.scoring')}</Text>
+            {SCORING_LABELS.map(({ key, labelKey }) => {
               if (!isEnabled(sc[key])) return null;
-              return <RuleRow key={key} label={label} value={`${getPoints(sc[key])} pts`} />;
+              return <RuleRow key={key} label={t(labelKey)} value={`${getPoints(sc[key])} pts`} />;
             })}
           </View>
 
+          {/* Settings */}
           <View style={s.card}>
-            <Text style={s.cardTitle}>Impostazioni Lega</Text>
-            <RuleRow label="Partite da pronosticare" value={matchSourceLabel()} />
-            <RuleRow label="Giornata iniziale" value={league.start_matchday || 1} />
-            <RuleRow label="Giornata finale" value={league.end_matchday || 38} />
+            <Text style={s.cardTitle}>{isTournament ? t('rules.tournament_settings') : t('rules.league_settings')}</Text>
+            {isTournament ? (
+              <>
+                <RuleRow label={t('rules.tournament_type')} value={data.settings?.type === 'groups_knockout' ? t('rules.tournament_type_groups') : t('rules.tournament_type_knockout')} />
+                <RuleRow label={t('rules.tournament_participants')} value={data.registered_count || data.settings?.num_participants || '-'} />
+                {data.settings?.group_config?.num_groups && (
+                  <RuleRow label={t('rules.tournament_groups')} value={data.settings.group_config.num_groups} />
+                )}
+              </>
+            ) : (
+              <>
+                <RuleRow label={t('rules.match_source')} value={matchSourceLabel()} />
+                <RuleRow label={t('rules.start_matchday')} value={data.start_matchday || 1} />
+                <RuleRow label={t('rules.end_matchday')} value={data.end_matchday || 38} />
+              </>
+            )}
           </View>
+
+          {/* Tiebreak - General */}
+          <View style={s.card}>
+            <Text style={s.cardTitle}>{t('rules.tiebreak_title')}</Text>
+            <Text style={s.tiebreakDesc}>{t('rules.tiebreak_desc')}</Text>
+            <TiebreakItem num="1" text={t('rules.tiebreak_1')} />
+            <TiebreakItem num="2" text={t('rules.tiebreak_2')} />
+            <TiebreakItem num="3" text={t('rules.tiebreak_3')} />
+            <TiebreakItem num="4" text={t('rules.tiebreak_4')} />
+          </View>
+
+          {/* Tiebreak - Knockout (tournament only) */}
+          {isTournament && (
+            <View style={s.card}>
+              <Text style={s.cardTitle}>{t('rules.tiebreak_knockout_title')}</Text>
+              <Text style={s.tiebreakDesc}>{t('rules.tiebreak_knockout_desc')}</Text>
+              <TiebreakItem num="1" text={t('rules.tiebreak_knockout_1')} />
+              <TiebreakItem num="2" text={t('rules.tiebreak_knockout_2')} />
+              <TiebreakItem num="3" text={t('rules.tiebreak_knockout_3')} />
+              <TiebreakItem num="4" text={t('rules.tiebreak_knockout_4')} />
+            </View>
+          )}
         </ScrollView>
       ) : (
-        <Text style={s.empty}>Nessuna lega selezionata</Text>
+        <Text style={s.empty}>{t('rules.no_competition')}</Text>
       )}
     </SafeAreaView>
   );
@@ -101,6 +147,15 @@ function RuleRow({ label, value }: { label: string; value: string | number }) {
     <View style={s.ruleRow}>
       <Text style={s.ruleLabel}>{label}</Text>
       <Text style={s.ruleValue}>{String(value)}</Text>
+    </View>
+  );
+}
+
+function TiebreakItem({ num, text }: { num: string; text: string }) {
+  return (
+    <View style={s.tiebreakRow}>
+      <View style={s.tiebreakBadge}><Text style={s.tiebreakBadgeText}>{num}</Text></View>
+      <Text style={s.tiebreakText}>{text}</Text>
     </View>
   );
 }
@@ -117,4 +172,9 @@ const s = StyleSheet.create({
   ruleLabel: { fontSize: 14, color: 'rgba(255,255,255,0.7)', flex: 1 },
   ruleValue: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
   empty: { textAlign: 'center', color: colors.textSecondary, marginTop: 40, fontSize: 14 },
+  tiebreakDesc: { fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 19, marginBottom: 12 },
+  tiebreakRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 10 },
+  tiebreakBadge: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  tiebreakBadgeText: { fontSize: 12, fontWeight: '800', color: '#1A1A2E' },
+  tiebreakText: { fontSize: 14, color: 'rgba(255,255,255,0.8)', flex: 1 },
 });

@@ -285,7 +285,7 @@ export default function RankingsScreen() {
               <Text style={[styles.tabText, trkTab === 'partite' && styles.tabTextActive]}>Partite</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setTrkTab('regolamento')} style={[styles.tabBtn, trkTab === 'regolamento' && styles.tabBtnActive]} data-testid="trk-tab-regolamento">
-              <Text style={[styles.tabText, trkTab === 'regolamento' && styles.tabTextActive]}>Regolamento</Text>
+              <Text style={[styles.tabText, trkTab === 'regolamento' && styles.tabTextActive]}>{t('rankings.tab_rules')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -710,7 +710,7 @@ export default function RankingsScreen() {
           {isLiveMatchday && (
             <View style={styles.liveBanner} data-testid="live-standings-banner">
               <View style={styles.liveBannerDot} />
-              <Text style={styles.liveBannerText}>Classifica in tempo reale</Text>
+              <Text style={styles.liveBannerText}>{t('home.live_rankings_realtime')}</Text>
             </View>
           )}
         </View>
@@ -777,7 +777,7 @@ export default function RankingsScreen() {
           {(!standings?.entries || standings.entries.length === 0) && (
             <View style={styles.emptyState}>
               <Ionicons name="trophy-outline" size={48} color={colors.textMuted} />
-              <Text style={styles.emptyTitle}>In attesa del kickoff</Text>
+              <Text style={styles.emptyTitle}>{t('home.waiting_kickoff')}</Text>
               <Text style={styles.emptySubtitle}>
                 La classifica sarà disponibile dopo l'inizio delle partite
               </Text>

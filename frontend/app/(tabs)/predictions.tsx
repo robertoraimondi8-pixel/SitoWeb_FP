@@ -92,7 +92,7 @@ export default function PredictionsScreen() {
 
       if (isTournament) {
         leagueId = tournamentId;
-        setCompetitionName(tournamentName || 'Torneo');
+        setCompetitionName(tournamentName || t('predictions.tournament'));
         setLeagueInfo({ id: tournamentId, isManual: false, isOwner: false });
 
         // Load scoring config: first try tournament, then fall back to national league config
@@ -106,7 +106,7 @@ export default function PredictionsScreen() {
             if (homeData?.league?.id) {
               const natLeague = await apiCall(`/leagues/${homeData.league.id}`, { token });
               if (natLeague?.scoring_config) setScoringConfig(natLeague.scoring_config);
-              if (natLeague?.competition_name) setCompetitionName(tDetail?.name || tournamentName || 'Torneo');
+              if (natLeague?.competition_name) setCompetitionName(tDetail?.name || tournamentName || t('predictions.tournament'));
             }
           }
         } catch (_) {}
@@ -418,10 +418,10 @@ export default function PredictionsScreen() {
   // Status label based on matchday status
   const getStatusLabel = () => {
     switch (matchdayStatus) {
-      case 'OPEN': return 'Giornata Aperta';
-      case 'LOCKED': return 'Giornata Chiusa';
-      case 'COMPLETED': return 'Giornata Completata';
-      case 'LIVE': return 'Giornata Live';
+      case 'OPEN': return t('predictions.matchday_open');
+      case 'LOCKED': return t('predictions.matchday_locked');
+      case 'COMPLETED': return t('predictions.matchday_completed');
+      case 'LIVE': return t('predictions.matchday_live');
       default: return matchdayStatus;
     }
   };
@@ -463,7 +463,7 @@ export default function PredictionsScreen() {
       {isLocked && (
         <View style={styles.lockedBanner} data-testid="locked-banner">
           <Ionicons name="lock-closed" size={16} color={colors.statusLocked} />
-          <Text style={styles.lockedBannerText}>Giornata chiusa — i pronostici non sono modificabili</Text>
+          <Text style={styles.lockedBannerText}>{t('predictions.matchday_closed_banner')}</Text>
         </View>
       )}
 

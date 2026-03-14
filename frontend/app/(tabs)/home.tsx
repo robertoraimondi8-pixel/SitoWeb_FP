@@ -179,7 +179,7 @@ export default function HomeScreen() {
   const getCtaConfig = (status: string) => {
     const hasPredictions = (data?.matchday?.my_predictions_count || 0) > 0;
     switch (status?.toUpperCase()) {
-      case 'OPEN': return { icon: 'create-outline' as const, label: hasPredictions ? 'MODIFICA PRONOSTICI' : 'INSERISCI PRONOSTICI' };
+      case 'OPEN': return { icon: 'create-outline' as const, label: hasPredictions ? t('home.edit_predictions') : t('home.insert_predictions') };
       case 'LIVE': return { icon: 'pulse' as const, label: t('home.follow_live') };
       case 'COMPLETED': return { icon: 'checkmark-circle' as const, label: t('home.view_results') };
       default: return null;
@@ -191,7 +191,7 @@ export default function HomeScreen() {
     const status = data.matchday.status?.toUpperCase();
     const totalMatches = Math.min(data.matchday.total_matches || 0, 10);
     if (status === 'OPEN' && countdown > 0) {
-      return `${totalMatches} partite \u00B7 Scadenza tra ${formatCountdown(countdown)}`;
+      return `${totalMatches} ${t('matches')} \u00B7 ${t('home.deadline_in')} ${formatCountdown(countdown)}`;
     }
     if (status === 'OPEN') {
       return `${data.matchday.my_predictions_count}/${totalMatches} partite`;
@@ -309,7 +309,7 @@ export default function HomeScreen() {
                   <Ionicons name={isActive ? 'trophy' : 'trophy-outline'} size={18} color={isActive ? DARK.accent : colors.textSecondary} />
                   <View style={{ flex: 1 }}>
                     <Text style={[s.switcherItemText, isActive && { color: DARK.accent }]}>{lg.name}</Text>
-                    <Text style={s.switcherItemSub}>{lg.league_type === 'national' ? 'Lega Nazionale' : `${lg.member_count ?? ''} membri`}</Text>
+                    <Text style={s.switcherItemSub}>{lg.league_type === 'national' ? t('home.national_league') : `${lg.member_count ?? ''} ${t('members')}`}</Text>
                   </View>
                   {isActive && <Ionicons name="checkmark" size={16} color={DARK.accent} />}
                 </TouchableOpacity>
@@ -442,7 +442,7 @@ export default function HomeScreen() {
                         <>
                           {/* Countdown timer — PRIMARY info for leagues */}
                           {countdown > 0 && (
-                            <Text style={s.heroCountdownPrimary}>Scadenza tra {formatCountdown(countdown)}</Text>
+                            <Text style={s.heroCountdownPrimary}>{t('home.deadline_in')} {formatCountdown(countdown)}</Text>
                           )}
                           {/* Matchday title — SECONDARY */}
                           <Text style={s.heroTitleSecondary}>
@@ -453,7 +453,7 @@ export default function HomeScreen() {
                             <View style={s.predProgressBarBg}>
                               <View style={[s.predProgressBarFill, { width: `${(data.matchday.my_predictions_count / Math.max(data.matchday.matches_loaded || data.matchday.total_matches || 10, 1)) * 100}%` }]} />
                             </View>
-                            <Text style={s.predProgressText}>{data.matchday.my_predictions_count}/{data.matchday.matches_loaded || data.matchday.total_matches || 10} pronostici</Text>
+                            <Text style={s.predProgressText}>{data.matchday.my_predictions_count}/{data.matchday.matches_loaded || data.matchday.total_matches || 10} {t('predictions.title').toLowerCase()}</Text>
                           </View>
                         </>
                       )}
@@ -521,7 +521,7 @@ export default function HomeScreen() {
                     <View style={s.liveDot} />
                     <Text style={s.liveBadgeText}>LIVE</Text>
                   </View>
-                  <Text style={s.liveTitle}>Classifica</Text>
+                  <Text style={s.liveTitle}>{t('home.live_rankings')}</Text>
                 </View>
                 <View style={s.liveRight}>
                   <Text style={s.liveRank}>{data.live?.live_rank ? `${data.live.live_rank}\u00B0` : '-'}</Text>

@@ -365,7 +365,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
               {cri.opponent_name ? (
                 <Text style={s.heroOpponentPrimary}>VS {cri.opponent_name.toUpperCase()}</Text>
               ) : (
-                <Text style={s.heroOpponentPrimary}>{t.registered_count}/{t.max_participants} partecipanti</Text>
+                <Text style={s.heroOpponentPrimary}>{t.registered_count}/{t.max_participants} {i18t('tournament.participants')}</Text>
               )}
 
               {/* Countdown timer — secondary */}
