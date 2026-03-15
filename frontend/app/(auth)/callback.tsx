@@ -2,15 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { apiCall } from '../../src/api/client';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../../src/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../src/theme/designSystem';
-
-const LOG_PREFIX = '[GoogleCallback]';
 
 export default function AuthCallbackScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { loginWithToken } = useAuth();
   const [error, setError] = useState('');
   const [processing, setProcessing] = useState(true);
 
@@ -22,19 +21,15 @@ export default function AuthCallbackScreen() {
     try {
       let sessionId: string | null = null;
 
-      // Method 1: Check URL params (for deep links)
       if (params.session_id) {
         sessionId = params.session_id as string;
       }
 
-      // Method 2: Extract session_id from URL hash fragment (web)
       if (!sessionId && Platform.OS === 'web' && typeof window !== 'undefined') {
         const hash = window.location.hash;
         if (hash && hash.includes('session_id=')) {
           sessionId = hash.split('session_id=')[1]?.split('&')[0];
         }
-        
-        // Also check query params
         const urlParams = new URLSearchParams(window.location.search);
         if (!sessionId && urlParams.has('session_id')) {
           sessionId = urlParams.get('session_id');
@@ -48,28 +43,44 @@ export default function AuthCallbackScreen() {
         return;
       }
 
-      // Send session_id to backend for verification
       const res = await apiCall('/auth/google/session', {
         method: 'POST',
         body: { session_id: sessionId },
         skipAuth: true,
       });
 
-      // Save auth data
-      await AsyncStorage.setItem('access_token', res.access_token);
-      await AsyncStorage.setItem('refresh_token', res.refresh_token);
-      await AsyncStorage.setItem('user', JSON.stringify(res.user));
+      // Bug 1 fix: update AuthContext in-memory state (not just AsyncStorage)
+      await loginWithToken(res.access_token, res.refresh_token, res.user);
 
-      // Redirect to home
+      // Bug 2 fix: same routing gates as normal login
+      // GATE 1: incomplete profile (Google users without username/dob)
+      if (res.user?.profile_completed === false) {
+        router.replace('/complete-profile');
+        return;
+      }
+
+      // GATE 2: email verification
+      if (res.user?.email_verified === false) {
+        router.replace('/verify-email');
+        return;
+      }
+
+      // GATE 3: no leagues → onboarding
+      try {
+        const leagues = await apiCall('/leagues', { token: res.access_token });
+        if (!leagues || leagues.length === 0) {
+          router.replace('/onboarding');
+          return;
+        }
+      } catch {
+        // If leagues check fails, continue to home
+      }
+
       router.replace('/(tabs)/home');
     } catch (e: unknown) {
-      setError(e.message || 'Autenticazione fallita');
+      setError((e as Error).message || 'Autenticazione fallita');
       setProcessing(false);
     }
-  };
-
-  const handleRetry = () => {
-    router.replace('/(auth)/login');
   };
 
   return (
@@ -78,24 +89,18 @@ export default function AuthCallbackScreen() {
         <View style={s.errorContainer}>
           <Ionicons name="alert-circle" size={48} color={colors.error} />
           <Text style={[s.errorText, { color: colors.error }]}>{error}</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[s.retryBtn, { backgroundColor: colors.accent }]}
-            onPress={handleRetry}
+            onPress={() => router.replace('/(auth)/login')}
+            data-testid="callback-retry-btn"
           >
-            <Text style={[s.retryBtnText, { color: colors.background }]}>
-              Torna al Login
-            </Text>
+            <Text style={[s.retryBtnText, { color: colors.background }]}>Torna al Login</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View style={s.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
-          <Text style={[s.text, { color: colors.textSecondary }]}>
-            Autenticazione in corso...
-          </Text>
-          <Text style={[s.subtext, { color: colors.textSecondary }]}>
-            Attendere...
-          </Text>
+          <Text style={[s.text, { color: colors.textSecondary }]}>Autenticazione in corso...</Text>
         </View>
       )}
     </View>
@@ -103,41 +108,11 @@ export default function AuthCallbackScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    padding: 24 
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  errorContainer: {
-    alignItems: 'center',
-    gap: 16,
-    paddingHorizontal: 24,
-  },
-  text: { 
-    fontSize: 16, 
-    fontWeight: '500',
-  },
-  subtext: {
-    fontSize: 13,
-  },
-  errorText: { 
-    fontSize: 15, 
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  retryBtn: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginTop: 16,
-  },
-  retryBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  loadingContainer: { alignItems: 'center', gap: 16 },
+  errorContainer: { alignItems: 'center', gap: 16, paddingHorizontal: 24 },
+  text: { fontSize: 16, fontWeight: '500' },
+  errorText: { fontSize: 15, textAlign: 'center', fontWeight: '500' },
+  retryBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 10, marginTop: 16 },
+  retryBtnText: { fontSize: 15, fontWeight: '600' },
 });
