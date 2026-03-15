@@ -16,11 +16,7 @@
     },
     "preview": {
       "distribution": "internal",
-      "ios": {
-        "bundleIdentifier": "com.fantapronostic.app"
-      },
       "android": {
-        "package": "com.fantapronostic.app",
         "buildType": "apk"
       },
       "env": {
@@ -29,11 +25,7 @@
     },
     "production": {
       "autoIncrement": true,
-      "ios": {
-        "bundleIdentifier": "com.fantapronostic.app"
-      },
       "android": {
-        "package": "com.fantapronostic.app",
         "buildType": "app-bundle"
       },
       "env": {
