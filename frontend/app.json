@@ -25,21 +25,7 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.fantapronostic.app",
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            {
-              "scheme": "fantapronostic",
-              "host": "*",
-              "pathPrefix": "/auth"
-            }
-          ],
-          "category": ["BROWSABLE", "DEFAULT"]
-        }
-      ]
+      "package": "com.fantapronostic.app"
     },
     "web": {
       "bundler": "metro",
