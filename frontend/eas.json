@@ -44,12 +44,12 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
+        "appleId": "robertoraimondi8@gmail.com",
+        "ascAppId": "6760613936",
+        "appleTeamId": "UYGWA7CLQ6"
       },
       "android": {
-        "serviceAccountKeyPath": "",
+        "serviceAccountKeyPath": "./fantapronostic-play-key.json",
         "track": "internal"
       }
     }
