@@ -9,6 +9,9 @@
       "distribution": "internal",
       "ios": {
         "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://fantaofficial28032026-production.up.railway.app"
       }
     },
     "preview": {
@@ -19,6 +22,9 @@
       "android": {
         "package": "com.fantapronostic.app",
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://fantaofficial28032026-production.up.railway.app"
       }
     },
     "production": {
@@ -29,6 +35,9 @@
       "android": {
         "package": "com.fantapronostic.app",
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://fantaofficial28032026-production.up.railway.app"
       }
     }
   },
