@@ -10,14 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.fantapronostic.app",
-      "infoPlist": {
-        "CFBundleURLTypes": [
-          {
-            "CFBundleURLSchemes": ["fantapronostic"]
-          }
-        ]
-      }
+      "bundleIdentifier": "com.fantapronostic.app"
     },
     "android": {
       "adaptiveIcon": {
