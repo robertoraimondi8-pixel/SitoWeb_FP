@@ -204,6 +204,130 @@ a{color:#F59E0B}
 
 
 
+@app.get("/api/delete-account", response_class=HTMLResponse)
+async def delete_account_page():
+    return """<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elimina Account - FantaPronostic</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f9fafb;color:#1f2937;line-height:1.7}
+.container{max-width:600px;margin:0 auto;padding:40px 20px}
+h1{color:#1F3A8A;font-size:24px;margin-bottom:8px}
+.subtitle{color:#6b7280;font-size:15px;margin-bottom:32px}
+.warning-box{background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:20px;margin-bottom:24px}
+.warning-box h3{color:#DC2626;font-size:15px;margin-bottom:8px}
+.warning-box ul{margin:8px 0 0 20px;color:#7F1D1D;font-size:14px}
+.warning-box li{margin-bottom:4px}
+.form-group{margin-bottom:16px}
+label{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px}
+input{width:100%;padding:12px 14px;border:1px solid #D1D5DB;border-radius:8px;font-size:15px;outline:none;transition:border-color .2s}
+input:focus{border-color:#1F3A8A;box-shadow:0 0 0 3px rgba(31,58,138,.1)}
+.btn-delete{width:100%;padding:14px;background:#DC2626;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;transition:background .2s}
+.btn-delete:hover{background:#B91C1C}
+.btn-delete:disabled{background:#9CA3AF;cursor:not-allowed}
+.result{margin-top:20px;padding:16px;border-radius:10px;font-size:14px;display:none}
+.result.success{display:block;background:#F0FDF4;border:1px solid #BBF7D0;color:#166534}
+.result.error{display:block;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626}
+.footer{text-align:center;margin-top:40px;color:#9CA3AF;font-size:12px}
+.logo{text-align:center;margin-bottom:24px}
+.logo span:first-child{font-size:22px;font-weight:800;color:#F59E0B}
+.logo span:last-child{font-size:22px;font-weight:600;color:#1F3A8A}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo"><span>FANTA</span><span>Pronostic</span></div>
+  <h1>Elimina il tuo Account</h1>
+  <p class="subtitle">Questa azione e irreversibile. Tutti i tuoi dati verranno eliminati permanentemente.</p>
+
+  <div class="warning-box">
+    <h3>Cosa verra eliminato:</h3>
+    <ul>
+      <li>Il tuo profilo e tutti i dati personali</li>
+      <li>I tuoi pronostici e il tuo storico punteggi</li>
+      <li>Le tue iscrizioni a leghe e tornei</li>
+      <li>Le leghe di cui sei proprietario</li>
+    </ul>
+  </div>
+
+  <div id="form-section">
+    <div class="form-group">
+      <label for="email">Email del tuo account</label>
+      <input type="email" id="email" placeholder="La tua email" required>
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="La tua password" required>
+    </div>
+    <button class="btn-delete" id="delete-btn" onclick="handleDelete()">Elimina il mio Account</button>
+  </div>
+
+  <div id="result" class="result"></div>
+
+  <p class="footer">FantaPronostic - Il gioco dei pronostici sportivi<br>
+  Per assistenza: <a href="mailto:robertoraimondi8@gmail.com" style="color:#F59E0B">robertoraimondi8@gmail.com</a></p>
+</div>
+
+<script>
+async function handleDelete() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('delete-btn');
+  const result = document.getElementById('result');
+
+  if (!email || !password) {
+    result.className = 'result error';
+    result.textContent = 'Inserisci email e password.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Eliminazione in corso...';
+  result.style.display = 'none';
+
+  try {
+    const API = window.location.origin + '/api';
+
+    const loginRes = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const loginData = await loginRes.json();
+
+    if (!loginRes.ok || !loginData.access_token) {
+      throw new Error('Email o password non validi.');
+    }
+
+    const delRes = await fetch(API + '/auth/delete-account', {
+      method: 'DELETE',
+      headers: {'Authorization': 'Bearer ' + loginData.access_token}
+    });
+    const delData = await delRes.json();
+
+    if (delRes.ok) {
+      document.getElementById('form-section').style.display = 'none';
+      result.className = 'result success';
+      result.textContent = 'Account eliminato con successo. Tutti i tuoi dati sono stati rimossi.';
+    } else {
+      throw new Error(delData.detail || 'Errore durante l\\'eliminazione.');
+    }
+  } catch (e) {
+    result.className = 'result error';
+    result.textContent = e.message;
+    btn.disabled = false;
+    btn.textContent = 'Elimina il mio Account';
+  }
+}
+</script>
+</body>
+</html>"""
+
+
+
 # ========================================
 # LIFECYCLE EVENTS
 # ========================================

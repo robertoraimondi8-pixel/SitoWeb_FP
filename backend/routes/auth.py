@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from datetime import datetime, timezone, timedelta
 import logging
 
-from database import users_col
+from database import users_col, memberships_col, predictions_col, payments_col, leagues_col, trophies_col
 from models import (
     RegisterRequest, LoginRequest, TokenResponse, RefreshRequest,
     new_id, now_utc
@@ -320,3 +320,35 @@ async def google_auth_session(request: Request):
             "accepted_terms": google_user.get("accepted_terms", False),
         }
     )
+
+
+# ========================================
+# DELETE ACCOUNT
+# ========================================
+@auth_router.delete("/delete-account")
+async def delete_account(user=Depends(get_current_user)):
+    """Permanently delete the authenticated user's account and all associated data."""
+    user_id = user["id"]
+
+    # Delete user's memberships
+    await memberships_col.delete_many({"user_id": user_id})
+
+    # Delete user's predictions
+    await predictions_col.delete_many({"user_id": user_id})
+
+    # Delete user's trophies
+    await trophies_col.delete_many({"user_id": user_id})
+
+    # Delete user's payments
+    await payments_col.delete_many({"user_id": user_id})
+
+    # Delete leagues owned by user
+    owned_leagues = await leagues_col.find({"owner_id": user_id}, {"_id": 0, "id": 1}).to_list(None)
+    for league in owned_leagues:
+        await memberships_col.delete_many({"league_id": league["id"]})
+        await leagues_col.delete_one({"id": league["id"]})
+
+    # Delete the user
+    await users_col.delete_one({"id": user_id})
+
+    return {"status": "ok", "message": "Account eliminato con successo"}
