@@ -77,6 +77,134 @@ app.include_router(trophy_router)
 
 
 # ========================================
+# LEGAL PAGES (Privacy Policy & Terms)
+# ========================================
+@app.get("/api/privacy-policy", response_class=HTMLResponse)
+async def privacy_policy():
+    return """<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy Policy - FantaPronostic</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:800px;margin:0 auto;padding:40px 20px;color:#1f2937;line-height:1.7;background:#f9fafb}
+h1{color:#1F3A8A;border-bottom:3px solid #F59E0B;padding-bottom:12px}
+h2{color:#1F3A8A;margin-top:32px}
+a{color:#F59E0B}
+.updated{color:#6b7280;font-size:14px}
+</style>
+</head>
+<body>
+<h1>Privacy Policy</h1>
+<p class="updated">Ultimo aggiornamento: 15 marzo 2026</p>
+
+<p><strong>FantaPronostic</strong> ("noi", "nostro") gestisce l'applicazione mobile FantaPronostic (il "Servizio"). Questa pagina informa l'utente sulle nostre politiche relative alla raccolta, all'uso e alla divulgazione dei dati personali quando utilizza il nostro Servizio.</p>
+
+<h2>1. Dati Raccolti</h2>
+<p>Raccogliamo i seguenti dati personali forniti volontariamente dall'utente:</p>
+<ul>
+<li><strong>Dati di registrazione:</strong> nome, cognome, indirizzo email, data di nascita, indirizzo, citta, CAP, paese</li>
+<li><strong>Dati di accesso:</strong> password (memorizzata in forma crittografata)</li>
+<li><strong>Dati di utilizzo:</strong> pronostici inseriti, punteggi, classifiche, partecipazione a leghe e tornei</li>
+<li><strong>Dati di pagamento:</strong> le transazioni sono gestite tramite Stripe. Non memorizziamo dati di carte di credito sui nostri server</li>
+</ul>
+
+<h2>2. Finalita del Trattamento</h2>
+<p>I dati personali sono utilizzati per:</p>
+<ul>
+<li>Creare e gestire l'account utente</li>
+<li>Fornire il servizio di pronostici sportivi</li>
+<li>Gestire classifiche e punteggi</li>
+<li>Elaborare pagamenti tramite Stripe</li>
+<li>Inviare comunicazioni relative al servizio (verifica email, notifiche di gioco)</li>
+</ul>
+
+<h2>3. Condivisione dei Dati</h2>
+<p>Non vendiamo ne condividiamo i dati personali con terze parti, ad eccezione di:</p>
+<ul>
+<li><strong>Stripe:</strong> per l'elaborazione dei pagamenti</li>
+<li><strong>SendGrid:</strong> per l'invio di email transazionali</li>
+<li><strong>MongoDB Atlas:</strong> per l'archiviazione sicura dei dati</li>
+</ul>
+
+<h2>4. Sicurezza</h2>
+<p>Adottiamo misure di sicurezza tecniche e organizzative per proteggere i dati personali, tra cui crittografia delle password, connessioni HTTPS e accesso limitato ai database.</p>
+
+<h2>5. Conservazione dei Dati</h2>
+<p>I dati personali sono conservati per tutta la durata dell'account. L'utente puo richiedere la cancellazione dell'account e di tutti i dati associati in qualsiasi momento contattandoci.</p>
+
+<h2>6. Diritti dell'Utente</h2>
+<p>Ai sensi del GDPR, l'utente ha diritto a:</p>
+<ul>
+<li>Accedere ai propri dati personali</li>
+<li>Rettificare dati inesatti</li>
+<li>Richiedere la cancellazione dei dati</li>
+<li>Opporsi al trattamento</li>
+<li>Richiedere la portabilita dei dati</li>
+</ul>
+
+<h2>7. Minori</h2>
+<p>Il Servizio non e destinato a minori di 18 anni. Non raccogliamo consapevolmente dati di minori.</p>
+
+<h2>8. Contatti</h2>
+<p>Per domande sulla privacy, contattaci a: <a href="mailto:robertoraimondi8@gmail.com">robertoraimondi8@gmail.com</a></p>
+
+<h2>9. Modifiche</h2>
+<p>Ci riserviamo il diritto di aggiornare questa Privacy Policy. Le modifiche saranno pubblicate su questa pagina.</p>
+</body>
+</html>"""
+
+
+@app.get("/api/terms", response_class=HTMLResponse)
+async def terms_of_service():
+    return """<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Termini di Servizio - FantaPronostic</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:800px;margin:0 auto;padding:40px 20px;color:#1f2937;line-height:1.7;background:#f9fafb}
+h1{color:#1F3A8A;border-bottom:3px solid #F59E0B;padding-bottom:12px}
+h2{color:#1F3A8A;margin-top:32px}
+a{color:#F59E0B}
+.updated{color:#6b7280;font-size:14px}
+</style>
+</head>
+<body>
+<h1>Termini di Servizio</h1>
+<p class="updated">Ultimo aggiornamento: 15 marzo 2026</p>
+
+<p>Utilizzando l'applicazione <strong>FantaPronostic</strong>, l'utente accetta i seguenti termini e condizioni.</p>
+
+<h2>1. Descrizione del Servizio</h2>
+<p>FantaPronostic e un'applicazione di pronostici sportivi a scopo ludico. Gli utenti possono creare o partecipare a leghe, effettuare pronostici su partite di calcio e competere in classifiche.</p>
+
+<h2>2. Account</h2>
+<p>L'utente e responsabile della sicurezza del proprio account e della password. FantaPronostic non sara responsabile per perdite derivanti dall'uso non autorizzato dell'account.</p>
+
+<h2>3. Pagamenti</h2>
+<p>Alcune funzionalita (es. leghe con partite personalizzate) richiedono un pagamento. I pagamenti sono gestiti tramite Stripe e non sono rimborsabili salvo diversa indicazione.</p>
+
+<h2>4. Comportamento</h2>
+<p>L'utente si impegna a non utilizzare il Servizio per scopi illeciti, non tentare di compromettere la sicurezza del sistema e rispettare gli altri utenti.</p>
+
+<h2>5. Proprieta Intellettuale</h2>
+<p>Tutti i contenuti, il design e il codice di FantaPronostic sono di proprieta del titolare. E vietata la riproduzione non autorizzata.</p>
+
+<h2>6. Limitazione di Responsabilita</h2>
+<p>Il Servizio e fornito "cosi com'e". Non garantiamo disponibilita ininterrotta. FantaPronostic non e un servizio di scommesse e non comporta vincite in denaro reale, salvo eventuali premi organizzati dal gestore della lega.</p>
+
+<h2>7. Risoluzione</h2>
+<p>Ci riserviamo il diritto di sospendere o terminare l'accesso al Servizio in caso di violazione dei presenti termini.</p>
+
+<h2>8. Contatti</h2>
+<p>Per domande: <a href="mailto:robertoraimondi8@gmail.com">robertoraimondi8@gmail.com</a></p>
+</body>
+</html>"""
+
+
+
+# ========================================
 # LIFECYCLE EVENTS
 # ========================================
 _live_task = None
