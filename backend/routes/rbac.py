@@ -948,6 +948,27 @@ async def admin_update_user_email(user_id: str, request: Request, user=Depends(g
 
 
 # ========================================
+# ADMIN: FORCE RESET PASSWORD
+# ========================================
+@rbac_router.post("/users/{user_id}/force-reset-password")
+async def admin_force_reset_password(user_id: str, request: Request, user=Depends(get_current_user)):
+    """Force reset a user's password (super admin only)."""
+    if not user.get("is_super_admin"):
+        raise HTTPException(status_code=403, detail="Super admin only")
+    body = await request.json()
+    new_password = body.get("password", "")
+    if len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    from auth import hash_password
+    hashed = hash_password(new_password)
+    result = await users_col.update_one({"id": user_id}, {"$set": {"password": hashed}})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"status": "ok", "user_id": user_id}
+
+
+
+# ========================================
 # ADMIN: CREATE NEW LEAGUE
 # ========================================
 @rbac_router.post("/leagues/create")
