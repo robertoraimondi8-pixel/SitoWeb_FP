@@ -13,8 +13,9 @@ from database import (
 from models import new_id, now_utc
 from auth import get_current_user
 from permissions import require_permission
+import services
 from services import (
-    MAX_MATCHES_PER_MATCHDAY, NATIONAL_LEAGUE_ID,
+    MAX_MATCHES_PER_MATCHDAY,
     log_audit, recompute_matchday_kickoff,
     get_apifootball, recalculate_match_predictions,
     calculate_matchday_scores_full,

@@ -12,8 +12,9 @@ from models import (
     new_id, now_utc
 )
 from auth import get_current_user
+import services
 from services import (
-    NATIONAL_LEAGUE_ID, MAX_MATCHES_PER_MATCHDAY, DEFAULT_SCORING_CONFIG,
+    MAX_MATCHES_PER_MATCHDAY, DEFAULT_SCORING_CONFIG,
     generate_invite_code, log_audit, _match_source_query,
     compute_matchday_status, create_notification, create_notification_for_league,
     require_league_admin, recalculate_matchday_scores, recalculate_match_predictions
@@ -221,8 +222,8 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
             source_id = nat["id"] if nat else None
         source_league = await leagues_col.find_one({"id": source_id}, {"_id": 0}) if source_id else None
         season_id = source_league["season_id"] if source_league else league["season_id"]
-        matchdays = await matchdays_col.find({"season_id": season_id, "league_id": NATIONAL_LEAGUE_ID}, {"_id": 0}).sort("number", 1).to_list(100)
-        logger.info(f"  NATIONAL MODE: query matchdays by season_id={season_id} league_id=NATIONAL_LEAGUE_ID")
+        matchdays = await matchdays_col.find({"season_id": season_id, "league_id": services.NATIONAL_LEAGUE_ID}, {"_id": 0}).sort("number", 1).to_list(100)
+        logger.info(f"  NATIONAL MODE: query matchdays by season_id={season_id} league_id=services.NATIONAL_LEAGUE_ID")
     else:
         source_id = league_id
         season_id = league["season_id"]
@@ -244,8 +245,8 @@ async def get_league_fixtures(league_id: str, user=Depends(get_current_user)):
             for m in matches_list:
                 logger.info(f"    - {m.get('home_team')} vs {m.get('away_team')}, league_id={m.get('league_id')}")
         else:
-            matches_list = await matches_col.find(_match_source_query(md["id"], NATIONAL_LEAGUE_ID), {"_id": 0}).to_list(20)
-        _source_lid = league_id if is_manual_league else NATIONAL_LEAGUE_ID
+            matches_list = await matches_col.find(_match_source_query(md["id"], services.NATIONAL_LEAGUE_ID), {"_id": 0}).to_list(20)
+        _source_lid = league_id if is_manual_league else services.NATIONAL_LEAGUE_ID
         effective_status = await compute_matchday_status(md, _source_lid)
         result.append({**md, "status": effective_status, "matches": matches_list})
 

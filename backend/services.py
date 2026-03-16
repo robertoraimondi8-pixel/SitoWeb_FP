@@ -24,10 +24,22 @@ logger = logging.getLogger(__name__)
 # ============================================================
 # CONSTANTS (shared across routes)
 # ============================================================
+# Will be resolved dynamically at startup via init_national_league_id()
 NATIONAL_LEAGUE_ID = "f1373417-43aa-4043-b6a2-125873181c95"
 MATCHES_PER_MATCHDAY = 11
 MAX_MATCHES_PER_MATCHDAY = 10
 NATIONAL_LEAGUE_PRICE = 20.00  # EUR
+
+
+async def init_national_league_id():
+    """Resolve the national league ID from DB at startup. Updates the global."""
+    global NATIONAL_LEAGUE_ID
+    nl = await leagues_col.find_one({"league_type": "national"}, {"_id": 0, "id": 1})
+    if nl:
+        NATIONAL_LEAGUE_ID = nl["id"]
+        logger.info(f"[INIT] National league ID resolved from DB: {nl['id']}")
+    else:
+        logger.warning(f"[INIT] No national league found, using fallback: {NATIONAL_LEAGUE_ID}")
 
 DEFAULT_SCORING_CONFIG = {
     "1x2": {"enabled": True, "points": 2},

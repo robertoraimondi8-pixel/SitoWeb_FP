@@ -17,8 +17,9 @@ from models import (
 )
 from auth import hash_password, verify_password, get_current_user
 from scoring import calculate_match_points
+import services
 from services import (
-    NATIONAL_LEAGUE_ID, MATCHES_PER_MATCHDAY,
+    MATCHES_PER_MATCHDAY,
     server_now, _match_source_query, compute_matchday_status,
     create_notification, create_notification_for_league,
     send_expo_push, PUSH_ENABLED, REMINDER_CHECK_INTERVAL
@@ -81,14 +82,14 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
                 {"_id": 0}, sort=[("number", -1)]
             )
     else:
-        matchday = await matchdays_col.find_one({"season_id": season["id"], "status": "LIVE", "league_id": NATIONAL_LEAGUE_ID}, {"_id": 0})
+        matchday = await matchdays_col.find_one({"season_id": season["id"], "status": "LIVE", "league_id": services.NATIONAL_LEAGUE_ID}, {"_id": 0})
         if not matchday:
-            matchday = await matchdays_col.find_one({"season_id": season["id"], "status": "OPEN", "league_id": NATIONAL_LEAGUE_ID}, {"_id": 0})
+            matchday = await matchdays_col.find_one({"season_id": season["id"], "status": "OPEN", "league_id": services.NATIONAL_LEAGUE_ID}, {"_id": 0})
         if not matchday and season.get("current_matchday_id"):
-            matchday = await matchdays_col.find_one({"id": season["current_matchday_id"], "league_id": NATIONAL_LEAGUE_ID}, {"_id": 0})
+            matchday = await matchdays_col.find_one({"id": season["current_matchday_id"], "league_id": services.NATIONAL_LEAGUE_ID}, {"_id": 0})
         if not matchday:
             matchday = await matchdays_col.find_one(
-                {"season_id": season["id"], "league_id": NATIONAL_LEAGUE_ID, "status": {"$ne": "DRAFT"}},
+                {"season_id": season["id"], "league_id": services.NATIONAL_LEAGUE_ID, "status": {"$ne": "DRAFT"}},
                 {"_id": 0}, sort=[("number", -1)]
             )
 
@@ -96,7 +97,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
     live_data = None
 
     if matchday:
-        _md_source_lid = active_league["id"] if is_manual_league else NATIONAL_LEAGUE_ID
+        _md_source_lid = active_league["id"] if is_manual_league else services.NATIONAL_LEAGUE_ID
         effective_status = await compute_matchday_status(matchday, _md_source_lid)
         matchday["status"] = effective_status
 
@@ -112,7 +113,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
 
         countdown_seconds = max(0, int((first_kickoff - now).total_seconds())) if effective_status == "OPEN" else 0
 
-        _md_source_lid = active_league["id"] if is_manual_league else NATIONAL_LEAGUE_ID
+        _md_source_lid = active_league["id"] if is_manual_league else services.NATIONAL_LEAGUE_ID
         match_count = await matches_col.count_documents(_match_source_query(matchday["id"], _md_source_lid))
         total_matches = max(match_count, MATCHES_PER_MATCHDAY)
 
@@ -221,7 +222,7 @@ async def get_home(league_id: str = None, user=Depends(get_current_user)):
             logger.info(f"[HOME] last5 league_id={first_league['id']}, source=manual, matchdays_completed={len(completed_matchdays_docs)}")
         else:
             completed_matchdays_docs = await matchdays_col.find(
-                {"league_id": NATIONAL_LEAGUE_ID, "status": "COMPLETED"}, {"_id": 0, "id": 1, "number": 1}
+                {"league_id": services.NATIONAL_LEAGUE_ID, "status": "COMPLETED"}, {"_id": 0, "id": 1, "number": 1}
             ).sort("number", -1).to_list(100)
             logger.info(f"[HOME] last5 league_id={first_league['id']}, source=national, matchdays_completed={len(completed_matchdays_docs)}")
 

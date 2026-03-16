@@ -11,8 +11,9 @@ from database import joker_usages_col
 from models import PredictionsBatchRequest, new_id, now_utc
 from auth import get_current_user
 from scoring import calculate_match_points
+import services
 from services import (
-    NATIONAL_LEAGUE_ID, MATCHES_PER_MATCHDAY,
+    MATCHES_PER_MATCHDAY,
     server_now, compute_matchday_status, validate_prediction,
     compute_matchday_points
 )
@@ -224,7 +225,7 @@ async def get_user_predictions_transparency(target_user_id: str, matchday_id: st
     if not matchday:
         raise HTTPException(404, "Matchday not found")
 
-    effective_status = await compute_matchday_status(matchday, NATIONAL_LEAGUE_ID)
+    effective_status = await compute_matchday_status(matchday, services.NATIONAL_LEAGUE_ID)
     matchday["status"] = effective_status
 
     if matchday["status"] not in ("LOCKED", "LIVE", "COMPLETED"):

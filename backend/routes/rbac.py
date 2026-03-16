@@ -18,8 +18,9 @@ from models import (
 )
 from auth import get_current_user, hash_password
 from permissions import ALL_PERMISSIONS, require_permission, get_user_permissions
+import services
 from services import (
-    NATIONAL_LEAGUE_ID, DEFAULT_SCORING_CONFIG,
+    DEFAULT_SCORING_CONFIG,
     log_audit, generate_invite_code, compute_matchday_status
 )
 

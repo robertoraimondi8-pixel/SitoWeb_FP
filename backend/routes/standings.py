@@ -8,8 +8,9 @@ from database import (
 )
 from database import joker_usages_col, standings_cache_col
 from auth import get_current_user
+import services
 from services import (
-    NATIONAL_LEAGUE_ID, compute_matchday_status, compute_matchday_points
+    compute_matchday_status, compute_matchday_points
 )
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ async def get_total_standings(league_id: str = None, user=Depends(get_current_us
 
     is_national_type = league_doc.get("match_source_type") not in ("manual", "custom", "api")
     if is_national_type:
-        completed_mds = await matchdays_col.find({"league_id": NATIONAL_LEAGUE_ID, "status": "COMPLETED"}, {"_id": 0, "id": 1}).to_list(200)
+        completed_mds = await matchdays_col.find({"league_id": services.NATIONAL_LEAGUE_ID, "status": "COMPLETED"}, {"_id": 0, "id": 1}).to_list(200)
         league_played_md_ids = [m["id"] for m in completed_mds]
         if not league_played_md_ids:
             entries = []
@@ -132,7 +133,7 @@ async def get_weekly_standings(matchday_id: str, league_id: str = None, user=Dep
         raise HTTPException(404, "League not found")
 
     is_manual = league_doc.get("match_source_type") in ("manual", "custom", "api")
-    source_lid = league_id if is_manual else NATIONAL_LEAGUE_ID
+    source_lid = league_id if is_manual else services.NATIONAL_LEAGUE_ID
     effective_status = await compute_matchday_status(matchday, source_lid)
     matchday["status"] = effective_status
 
@@ -199,7 +200,7 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
         league = await leagues_col.find_one({"id": league_id}, {"_id": 0})
         if league:
             is_manual = league.get("match_source_type") in ("manual", "custom", "api")
-            is_national = league_id == NATIONAL_LEAGUE_ID
+            is_national = league_id == services.NATIONAL_LEAGUE_ID
             if is_manual:
                 matchdays = await matchdays_col.find({"league_id": league_id}, {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}).sort("number", -1).to_list(50)
                 return matchdays
@@ -207,7 +208,7 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
                 season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
                 if not season:
                     return []
-                matchdays = await matchdays_col.find({"season_id": season["id"], "league_id": NATIONAL_LEAGUE_ID}, {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}).sort("number", -1).to_list(50)
+                matchdays = await matchdays_col.find({"season_id": season["id"], "league_id": services.NATIONAL_LEAGUE_ID}, {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}).sort("number", -1).to_list(50)
                 return matchdays
             else:
                 members = await memberships_col.find({"league_id": league_id, "status": "active"}, {"_id": 0, "user_id": 1}).to_list(1000)
@@ -215,7 +216,7 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
                 played_md_ids = await predictions_col.distinct("matchday_id", {"user_id": {"$in": member_user_ids}, "league_id": league_id})
                 season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
                 if season:
-                    active_national_mds = await matchdays_col.find({"season_id": season["id"], "league_id": NATIONAL_LEAGUE_ID, "status": {"$in": ["OPEN", "LIVE", "LOCKED"]}}, {"_id": 0, "id": 1}).to_list(5)
+                    active_national_mds = await matchdays_col.find({"season_id": season["id"], "league_id": services.NATIONAL_LEAGUE_ID, "status": {"$in": ["OPEN", "LIVE", "LOCKED"]}}, {"_id": 0, "id": 1}).to_list(5)
                     for amd in active_national_mds:
                         if amd["id"] not in played_md_ids:
                             played_md_ids.append(amd["id"])
@@ -224,14 +225,14 @@ async def get_available_matchdays(league_id: str = None, user=Depends(get_curren
                 matchdays = await matchdays_col.find({"id": {"$in": played_md_ids}, "status": {"$in": ["COMPLETED", "LIVE", "OPEN", "LOCKED"]}}, {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1, "first_kickoff": 1}).sort("number", -1).to_list(50)
                 for md in matchdays:
                     if md["status"] in ("OPEN", "LOCKED"):
-                        md["status"] = await compute_matchday_status(md, NATIONAL_LEAGUE_ID)
+                        md["status"] = await compute_matchday_status(md, services.NATIONAL_LEAGUE_ID)
                     md.pop("first_kickoff", None)
                 return matchdays
 
     season = await seasons_col.find_one({"is_active": True}, {"_id": 0})
     if not season:
         return []
-    matchdays = await matchdays_col.find({"season_id": season["id"], "league_id": NATIONAL_LEAGUE_ID}, {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}).sort("number", -1).to_list(50)
+    matchdays = await matchdays_col.find({"season_id": season["id"], "league_id": services.NATIONAL_LEAGUE_ID}, {"_id": 0, "id": 1, "number": 1, "label": 1, "status": 1}).sort("number", -1).to_list(50)
     return matchdays
 
 

@@ -17,8 +17,9 @@ from models import (
 from auth import get_current_user
 from permissions import require_permission
 from scoring import calculate_match_points, calculate_matchday_total
+import services
 from services import (
-    NATIONAL_LEAGUE_ID, MAX_MATCHES_PER_MATCHDAY,
+    MAX_MATCHES_PER_MATCHDAY,
     VALID_TRANSITIONS, STATUS_ORDER,
     log_audit, _match_source_query, compute_matchday_status,
     recompute_matchday_kickoff, calculate_matchday_scores_full,
@@ -65,7 +66,7 @@ async def admin_set_current_matchday(season_id: str, matchday_id: str, admin=Dep
     matchday = await matchdays_col.find_one({"id": matchday_id, "season_id": season_id})
     if not matchday:
         raise HTTPException(404, "Matchday not found in this season")
-    if matchday.get("league_id") != NATIONAL_LEAGUE_ID:
+    if matchday.get("league_id") != services.NATIONAL_LEAGUE_ID:
         raise HTTPException(400, "Solo le giornate della Lega Nazionale possono essere impostate come giornata corrente della stagione.")
     await seasons_col.update_one({"id": season_id}, {"$set": {"current_matchday_id": matchday_id}})
     await log_audit(admin["id"], admin["username"], "SET_CURRENT_MATCHDAY", "season", season_id, {"matchday_id": matchday_id, "matchday_number": matchday["number"]}, ip=admin.get("_request_ip"))
@@ -162,7 +163,7 @@ async def admin_list_matchdays(season_id: str = None, league_id: str = None, adm
     if league_id and league_id != "all":
         query["league_id"] = league_id
     elif not league_id:
-        query["league_id"] = NATIONAL_LEAGUE_ID
+        query["league_id"] = services.NATIONAL_LEAGUE_ID
     if season_id:
         query["season_id"] = season_id
     matchdays = await matchdays_col.find(query, {"_id": 0}).sort("number", 1).to_list(500)
@@ -175,7 +176,7 @@ async def admin_list_matchdays(season_id: str = None, league_id: str = None, adm
 @admin_router.post("/matchdays")
 async def admin_create_matchday(req: MatchdayCreate, admin=Depends(require_permission("admin.matchdays.manage"))):
     md_id = new_id()
-    target_league = req.league_id or NATIONAL_LEAGUE_ID
+    target_league = req.league_id or services.NATIONAL_LEAGUE_ID
     md = {"id": md_id, "season_id": req.season_id, "number": req.number, "label": req.label or f"Giornata {req.number}", "half": req.half, "first_kickoff": req.first_kickoff, "status": req.status, "league_id": target_league, "created_at": now_utc()}
     await matchdays_col.insert_one(md)
     await log_audit(admin["id"], admin["username"], "CREATE", "matchday", md_id, {"number": req.number}, ip=admin.get("_request_ip"))
@@ -202,7 +203,7 @@ async def admin_update_matchday(matchday_id: str, req: AdminMatchdayUpdate, admi
         matchday = matchday or await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
         if matchday:
             md_num = matchday.get("number", "?")
-            league_id_for_notif = matchday.get("league_id", NATIONAL_LEAGUE_ID)
+            league_id_for_notif = matchday.get("league_id", services.NATIONAL_LEAGUE_ID)
             leagues_using = await leagues_col.find({"$or": [{"id": league_id_for_notif}, {"league_type": "national"}]}, {"_id": 0, "id": 1, "name": 1}).to_list(50)
             for lg in leagues_using:
                 await create_notification_for_league(lg["id"], "matchday_open", f"Giornata {md_num} aperta!", f"I pronostici per la Giornata {md_num} sono ora aperti. Inserisci i tuoi pronostici!", link=f"/predictions?matchday={matchday_id}")
@@ -213,7 +214,7 @@ async def admin_update_matchday(matchday_id: str, req: AdminMatchdayUpdate, admi
         matchday = await matchdays_col.find_one({"id": matchday_id}, {"_id": 0})
         if matchday:
             md_num = matchday.get("number", "?")
-            league_id_for_notif = matchday.get("league_id", NATIONAL_LEAGUE_ID)
+            league_id_for_notif = matchday.get("league_id", services.NATIONAL_LEAGUE_ID)
             leagues_using = await leagues_col.find({"$or": [{"id": league_id_for_notif}, {"league_type": "national"}]}, {"_id": 0, "id": 1}).to_list(50)
             for lg in leagues_using:
                 await create_notification_for_league(lg["id"], "standings_updated", f"Classifica aggiornata!", f"I risultati della Giornata {md_num} sono stati calcolati. Controlla la classifica!", link="/rankings")
@@ -313,7 +314,7 @@ async def admin_list_matches(
 @admin_router.post("/matches")
 async def admin_create_match(req: MatchCreate, admin=Depends(require_permission("admin.matches.manage"))):
     matchday = await matchdays_col.find_one({"id": req.matchday_id}, {"_id": 0, "league_id": 1})
-    match_league_id = matchday.get("league_id", NATIONAL_LEAGUE_ID) if matchday else NATIONAL_LEAGUE_ID
+    match_league_id = matchday.get("league_id", services.NATIONAL_LEAGUE_ID) if matchday else services.NATIONAL_LEAGUE_ID
     current_count = await matches_col.count_documents({"matchday_id": req.matchday_id, "league_id": match_league_id})
     if current_count >= MAX_MATCHES_PER_MATCHDAY:
         raise HTTPException(400, f"Limite massimo di {MAX_MATCHES_PER_MATCHDAY} partite per giornata raggiunto")
@@ -432,12 +433,12 @@ async def admin_v3_leagues(user=Depends(get_current_user)):
     is_super = user.get("role") in ("admin", "superadmin")
     results = []
     if is_super:
-        nat = await leagues_col.find_one({"id": NATIONAL_LEAGUE_ID}, {"_id": 0})
+        nat = await leagues_col.find_one({"id": services.NATIONAL_LEAGUE_ID}, {"_id": 0})
         if nat:
             nat["_is_national"] = True
             results.append(nat)
     if is_super:
-        privates = await leagues_col.find({"id": {"$ne": NATIONAL_LEAGUE_ID}}, {"_id": 0}).to_list(200)
+        privates = await leagues_col.find({"id": {"$ne": services.NATIONAL_LEAGUE_ID}}, {"_id": 0}).to_list(200)
     else:
         owned_ids = await memberships_col.find({"user_id": user["id"], "role": {"$in": ["owner", "admin"]}, "status": "active"}, {"league_id": 1, "_id": 0}).to_list(100)
         league_ids = [m["league_id"] for m in owned_ids]
@@ -1433,7 +1434,7 @@ async def admin_backfill_all_trophies(admin=Depends(require_permission("admin.le
         # Also check national matchdays if league uses national source
         if not completed_mds:
             completed_mds = await matchdays_col.find(
-                {"status": "COMPLETED", "league_id": NATIONAL_LEAGUE_ID},
+                {"status": "COMPLETED", "league_id": services.NATIONAL_LEAGUE_ID},
                 {"_id": 0, "id": 1}
             ).to_list(200)
         for md in completed_mds:

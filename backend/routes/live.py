@@ -9,8 +9,9 @@ from database import joker_usages_col
 from models import LiveMatchData, LiveMatchdayResponse
 from auth import get_current_user
 from scoring import calculate_match_points, calculate_matchday_total
+import services
 from services import (
-    NATIONAL_LEAGUE_ID, server_now, _match_source_query,
+    server_now, _match_source_query,
     compute_matchday_status
 )
 
@@ -127,7 +128,7 @@ async def get_live_matchday(matchday_id: str, league_id: str = None, user=Depend
     if not matchday:
         raise HTTPException(404, "Matchday not found")
 
-    source_lid = league_id if (is_tournament and league_id) else (matchday.get("league_id") or NATIONAL_LEAGUE_ID)
+    source_lid = league_id if (is_tournament and league_id) else (matchday.get("league_id") or services.NATIONAL_LEAGUE_ID)
     matches = await matches_col.find({"matchday_id": matchday_id, "league_id": source_lid}, {"_id": 0}).to_list(20)
     pred_filter = {"user_id": user["id"], "matchday_id": matchday_id}
     if league_id:

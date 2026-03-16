@@ -341,6 +341,9 @@ async def startup():
     await create_indexes()
     await matches_col.create_index("external_fixture_id", sparse=True)
     await bootstrap_rbac()
+    # Resolve national league ID dynamically from DB
+    from services import init_national_league_id
+    await init_national_league_id()
     _live_task = asyncio.create_task(live_fixtures_loop())
     _reminder_task = asyncio.create_task(reminder_scheduler_loop())
     logger.info("FantaPronostic API started - indexes created - RBAC bootstrapped - live refresh started")
