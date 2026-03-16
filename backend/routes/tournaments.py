@@ -106,6 +106,26 @@ async def open_registration(tournament_id: str, user=Depends(get_current_user)):
     if t["status"] != "draft":
         raise HTTPException(400, f"Stato attuale: {t['status']}. Deve essere draft.")
     await tournaments_col.update_one({"id": tournament_id}, {"$set": {"status": "registration"}})
+
+    # Notify ALL users about the new tournament
+    try:
+        from services import create_notification
+        tournament_name = t.get("name", "Nuovo Torneo")
+        all_users = await users_col.find(
+            {"is_deleted": {"$ne": True}, "is_disabled": {"$ne": True}},
+            {"_id": 0, "id": 1}
+        ).to_list(10000)
+        for u in all_users:
+            await create_notification(
+                u["id"], "tournament_open",
+                f"Nuovo torneo: {tournament_name}!",
+                f"Le iscrizioni per il torneo {tournament_name} sono aperte! Iscriviti subito per partecipare.",
+                link="/tournament/join"
+            )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"[PUSH] Failed to send tournament notification: {e}")
+
     return {"ok": True, "status": "registration"}
 
 

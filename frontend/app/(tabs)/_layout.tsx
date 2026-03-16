@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useCompetition } from '../../src/contexts/CompetitionContext';
+import { usePushNotifications } from '../../src/hooks/usePushNotifications';
 
 function ImpersonationBanner() {
   const [active, setActive] = useState(false);
@@ -53,7 +54,11 @@ const ib = StyleSheet.create({
 function TabContent() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { token } = useAuth();
   const { mode, currentRoundInfo, leagueMatchdayInfo, setPendingMatchupOpen } = useCompetition();
+
+  // Register for push notifications when user is authenticated
+  usePushNotifications(token);
 
   return (
     <Tabs

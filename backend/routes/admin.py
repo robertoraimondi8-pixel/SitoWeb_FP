@@ -1148,7 +1148,8 @@ async def admin_reset_tournament_groups(tournament_id: str, admin=Depends(requir
 @admin_router.post("/tournaments/{tournament_id}/open-registration")
 async def admin_open_registration(tournament_id: str, admin=Depends(require_permission("admin.tournaments.manage"))):
     """Open registration for a tournament."""
-    from database import tournaments_col
+    from database import tournaments_col, users_col
+    from services import create_notification
     t = await tournaments_col.find_one({"id": tournament_id}, {"_id": 0})
     if not t:
         raise HTTPException(404, "Torneo non trovato")
@@ -1156,6 +1157,25 @@ async def admin_open_registration(tournament_id: str, admin=Depends(require_perm
         raise HTTPException(400, f"Stato attuale: {t['status']}. Deve essere draft.")
     await tournaments_col.update_one({"id": tournament_id}, {"$set": {"status": "registration"}})
     await log_audit(admin["id"], admin["username"], "OPEN_REGISTRATION", "tournament", tournament_id, {"name": t.get("name")}, ip=admin.get("_request_ip"))
+
+    # Notify ALL users about the new tournament
+    try:
+        tournament_name = t.get("name", "Nuovo Torneo")
+        all_users = await users_col.find(
+            {"is_deleted": {"$ne": True}, "is_disabled": {"$ne": True}},
+            {"_id": 0, "id": 1}
+        ).to_list(10000)
+        for u in all_users:
+            await create_notification(
+                u["id"], "tournament_open",
+                f"Nuovo torneo: {tournament_name}!",
+                f"Le iscrizioni per il torneo {tournament_name} sono aperte! Iscriviti subito per partecipare.",
+                link="/tournament/join"
+            )
+        logger.info(f"[PUSH] Sent tournament registration notification to {len(all_users)} users for '{tournament_name}'")
+    except Exception as e:
+        logger.warning(f"[PUSH] Failed to send tournament notification: {e}")
+
     return {"ok": True, "status": "registration"}
 
 

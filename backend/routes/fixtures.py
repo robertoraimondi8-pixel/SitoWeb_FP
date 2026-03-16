@@ -18,6 +18,7 @@ from services import (
     log_audit, recompute_matchday_kickoff,
     get_apifootball, recalculate_match_predictions,
     calculate_matchday_scores_full,
+    create_notification_for_league,
     LIVE_SYNC_ENABLED, LIVE_REFRESH_INTERVAL,
     CIRCUIT_BREAKER_COOLDOWN
 )
@@ -138,6 +139,37 @@ async def real_fixtures_import(req: ImportFixturesRequest, user=Depends(get_curr
     await log_audit(user["id"], user["username"], "IMPORT_FIXTURES", "match", req.matchday_id, {"imported_count": len(imported), "skipped_count": len(skipped), "fixture_ids": req.fixture_ids})
     if imported:
         await recompute_matchday_kickoff(req.matchday_id, req.league_id)
+
+        # Auto-notify league members when matches are imported into an OPEN matchday
+        try:
+            matchday_doc = await matchdays_col.find_one({"id": req.matchday_id}, {"_id": 0, "status": 1, "number": 1, "label": 1})
+            if matchday_doc and matchday_doc.get("status") == "OPEN":
+                md_label = matchday_doc.get("label") or f"Giornata {matchday_doc.get('number', '?')}"
+                match_count = len(imported)
+                # For national league, notify all leagues that use national matches
+                if league and league.get("league_type") == "national":
+                    leagues_using = await leagues_col.find(
+                        {"$or": [{"id": req.league_id}, {"league_type": "national"}]},
+                        {"_id": 0, "id": 1}
+                    ).to_list(50)
+                    for lg in leagues_using:
+                        await create_notification_for_league(
+                            lg["id"], "matches_added",
+                            f"{md_label}: {match_count} partite da pronosticare!",
+                            f"Sono state aggiunte {match_count} partite. Inserisci subito i tuoi pronostici!",
+                            link=f"/predictions?matchday={req.matchday_id}"
+                        )
+                else:
+                    await create_notification_for_league(
+                        req.league_id, "matches_added",
+                        f"{md_label}: {match_count} partite da pronosticare!",
+                        f"Sono state aggiunte {match_count} partite. Inserisci subito i tuoi pronostici!",
+                        link=f"/predictions?matchday={req.matchday_id}"
+                    )
+                logger.info(f"[PUSH] Sent match notification for matchday {req.matchday_id} ({match_count} matches)")
+        except Exception as e:
+            logger.warning(f"[PUSH] Failed to send match notification: {e}")
+
     return {"imported": len(imported), "skipped": len(skipped), "matches": imported, "skipped_details": skipped}
 
 
