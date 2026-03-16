@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useState, useEffect } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useCompetition } from '../../src/contexts/CompetitionContext';
@@ -56,9 +57,14 @@ function TabContent() {
   const router = useRouter();
   const { token } = useAuth();
   const { mode, currentRoundInfo, leagueMatchdayInfo, setPendingMatchupOpen } = useCompetition();
+  const insets = useSafeAreaInsets();
 
   // Register for push notifications when user is authenticated
   usePushNotifications(token);
+
+  // Calculate tab bar height: base height + safe area bottom inset
+  const tabBarBottomPadding = Math.max(insets.bottom, 10);
+  const tabBarHeight = 54 + tabBarBottomPadding;
 
   return (
     <Tabs
@@ -68,8 +74,8 @@ function TabContent() {
           backgroundColor: '#162F5C',
           borderTopColor: 'rgba(255,255,255,0.06)',
           borderTopWidth: 0.5,
-          height: 64,
-          paddingBottom: 10,
+          height: tabBarHeight,
+          paddingBottom: tabBarBottomPadding,
           paddingTop: 6,
           elevation: 8,
           shadowColor: '#000',
