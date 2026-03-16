@@ -567,6 +567,9 @@ def validate_prediction(value: str, market_type: str) -> bool:
 
 def require_league_admin(league: dict, user: dict):
     from fastapi import HTTPException
+    # Super admin and national league bypass all checks
+    if user.get("is_super_admin") or league.get("league_type") == "national":
+        return
     if league.get("owner_id") != user["id"]:
         raise HTTPException(403, "Solo il creatore della lega può gestire le partite")
     if league.get("match_source_type") not in ("manual", "custom", "api"):

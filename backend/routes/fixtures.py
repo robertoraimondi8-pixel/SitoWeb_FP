@@ -63,7 +63,7 @@ async def real_fixtures_search(
 @fixtures_router.post("/import")
 async def real_fixtures_import(req: ImportFixturesRequest, user=Depends(get_current_user)):
     from apifootball import map_api_status
-    is_super = user.get("role") in ("admin", "superadmin")
+    is_super = user.get("is_super_admin") or user.get("role") in ("admin", "superadmin")
 
     # Determine if this is a league or tournament context
     league = await leagues_col.find_one({"id": req.league_id}, {"_id": 0})
@@ -75,8 +75,9 @@ async def real_fixtures_import(req: ImportFixturesRequest, user=Depends(get_curr
             raise HTTPException(404, "Lega o torneo non trovato")
         is_tournament = True
     else:
-        # League permission check (skip for super admin and tournaments)
-        if not is_super:
+        # League permission check (skip for super admin, national league, and tournaments)
+        is_national = league.get("league_type") == "national"
+        if not is_super and not is_national:
             if league.get("owner_id") != user["id"]:
                 raise HTTPException(403, "Solo il creatore della lega o un super admin puo importare partite")
             if league.get("match_source_type") not in ("custom", "manual", "api"):
