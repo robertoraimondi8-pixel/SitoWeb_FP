@@ -134,7 +134,8 @@ export default function HomeScreen() {
       } catch {}
       try {
         const tournaments = await apiCall<any[]>('/tournaments', { token: authToken });
-        setMyTournaments(tournaments.filter((t: any) => t.is_registered && t.my_status === 'active'));
+        const arr = Array.isArray(tournaments) ? tournaments : [];
+        setMyTournaments(arr.filter((t: any) => t.is_registered && t.my_status === 'active'));
       } catch {}
     } catch (e: unknown) {
       if (isAuthError(e)) {

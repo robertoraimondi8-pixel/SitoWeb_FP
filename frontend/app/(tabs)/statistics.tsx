@@ -58,11 +58,6 @@ const COUNTRY_FLAGS: Record<string, string> = {
   France: '\u{1F1EB}\u{1F1F7}',
 };
 
-const formatRound = (round?: string) => {
-  if (!round) return '';
-  return round.replace('Regular Season - ', `${t('statistics.matchday_label')} `);
-};
-
 const formatRoundShort = (round?: string) => {
   if (!round) return '';
   return round.replace('Regular Season - ', 'G');
@@ -325,7 +320,13 @@ function FixturesWithRoundPicker({
   onSelectRound: (round: string | null) => void;
   onFixturePress?: (fixtureId: number) => void;
 }) {
+  const { t } = useTranslation();
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  const formatRound = (round?: string) => {
+    if (!round) return '';
+    return round.replace('Regular Season - ', `${t('statistics.matchday_label')} `);
+  };
 
   // Extract unique rounds preserving order
   const rounds = useMemo(() => {

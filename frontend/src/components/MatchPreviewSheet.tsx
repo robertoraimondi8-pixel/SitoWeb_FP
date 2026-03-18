@@ -190,7 +190,8 @@ function StandingCard({ team, logo, standing }: { team: string; logo: string | n
 
 /* ── Form Row ── */
 function FormRow({ matches }: { matches: FormMatch[] }) {
-  if (matches.length === 0) {
+  const { t } = useTranslation();
+  if (!matches || matches.length === 0) {
     return <Text style={s.emptyText}>{t('matchPreview.no_data')}</Text>;
   }
   return (

@@ -156,8 +156,9 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
   // ══════════════════════════════════════
   if (activeMatchup && matchupLiveData) {
     const mu = matchupLiveData.matchup;
-    const { user_a_total, user_b_total, matches } = matchupLiveData;
-    const isLive = matches.some((m: any) => m.match.status === 'live');
+    const { user_a_total = 0, user_b_total = 0, matches: rawMatches } = matchupLiveData;
+    const matches = Array.isArray(rawMatches) ? rawMatches : [];
+    const isLive = matches.some((m: any) => m.match?.status === 'live');
     const isMe = (uid: string) => uid === user?.id;
     const aWin = user_a_total > user_b_total;
     const bWin = user_b_total > user_a_total;

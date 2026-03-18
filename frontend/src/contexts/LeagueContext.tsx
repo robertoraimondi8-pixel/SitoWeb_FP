@@ -37,17 +37,18 @@ export function LeagueProvider({ children }: { children: React.ReactNode }) {
   const refreshLeagues = useCallback(async (token: string) => {
     setLoading(true);
     try {
-      const ls: League[] = await apiCall('/leagues', { token });
-      setLeagues(ls);
+      const ls = await apiCall('/leagues', { token });
+      const safeLeagues: League[] = Array.isArray(ls) ? ls : [];
+      setLeagues(safeLeagues);
 
       // Restore active league or set first one
       const savedId = await AsyncStorage.getItem('active_league_id');
-      const found = ls.find(l => l.id === savedId);
+      const found = safeLeagues.find(l => l.id === savedId);
       if (found) {
         setActiveLeagueState(found);
-      } else if (ls.length > 0) {
-        setActiveLeagueState(ls[0]);
-        AsyncStorage.setItem('active_league_id', ls[0].id);
+      } else if (safeLeagues.length > 0) {
+        setActiveLeagueState(safeLeagues[0]);
+        AsyncStorage.setItem('active_league_id', safeLeagues[0].id);
       } else {
         setActiveLeagueState(null);
       }

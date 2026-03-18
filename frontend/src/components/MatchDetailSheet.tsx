@@ -213,7 +213,8 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
 
 /* ── Events List (stile Diretta) ── */
 function EventsList({ events, homeTeam, halftime }: { events: FixtureEvent[]; homeTeam: string; halftime: { home: number | null; away: number | null } }) {
-  if (events.length === 0) {
+  const { t } = useTranslation();
+  if (!events || events.length === 0) {
     return <Text style={s.emptyText}>{t('matchDetail.no_events')}</Text>;
   }
 
@@ -260,6 +261,7 @@ function EventsList({ events, homeTeam, halftime }: { events: FixtureEvent[]; ho
 }
 
 function EventRow({ ev, homeTeam }: { ev: FixtureEvent & { runningHome: number; runningAway: number }; homeTeam: string }) {
+  const { t } = useTranslation();
   const isHome = ev.team_name === homeTeam;
   const isGoal = ev.type === 'Goal';
   const isSub = ev.type === 'subst';
@@ -331,7 +333,8 @@ function EventRow({ ev, homeTeam }: { ev: FixtureEvent & { runningHome: number; 
 
 /* ── Stats Comparison ── */
 function StatsComparison({ stats, preview, homeName, awayName }: { stats: TeamStat[], preview?: any, homeName?: string, awayName?: string }) {
-  if (stats.length < 2) {
+  const { t } = useTranslation();
+  if (!stats || stats.length < 2) {
     // Show pre-match preview if available
     if (preview) {
       return (
@@ -449,7 +452,8 @@ function StatsComparison({ stats, preview, homeName, awayName }: { stats: TeamSt
 
 /* ── Lineups View ── */
 function LineupsView({ lineups }: { lineups: Lineup[] }) {
-  if (lineups.length === 0) {
+  const { t } = useTranslation();
+  if (!lineups || lineups.length === 0) {
     return <Text style={s.emptyText}>{t('matchDetail.lineups_unavailable')}</Text>;
   }
 
