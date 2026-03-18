@@ -495,18 +495,26 @@ async def calculate_matchday_scores_full(matchday_id: str, admin: dict):
 # ============================================================
 
 async def send_expo_push(user_id: str, title: str, body: str, data: dict = None, image: str = None):
-    """Send a push notification via Expo Push API to all devices of a user."""
+    """Send a push notification via Expo Push API to all devices of a user.
+    Returns dict with delivery stats."""
+    result = {"tokens_found": 0, "tickets_ok": 0, "tickets_error": 0, "errors": []}
     if not PUSH_ENABLED:
-        return
+        return result
     tokens = await push_tokens_col.find(
         {"user_id": user_id}, {"_id": 0, "token": 1}
     ).to_list(10)
     if not tokens:
-        return
+        return result
+    result["tokens_found"] = len(tokens)
     messages = []
     for t in tokens:
+        tok = t["token"]
+        if not tok or not tok.startswith("ExponentPushToken["):
+            logger.warning(f"[PUSH] Invalid token format for user {user_id[:8]}: {tok[:30] if tok else 'None'}")
+            result["errors"].append(f"invalid_token:{tok[:20] if tok else 'None'}")
+            continue
         msg = {
-            "to": t["token"],
+            "to": tok,
             "sound": "default",
             "title": title,
             "body": body,
@@ -515,17 +523,40 @@ async def send_expo_push(user_id: str, title: str, body: str, data: dict = None,
         if image:
             msg["image"] = image
         messages.append(msg)
+    if not messages:
+        logger.info(f"[PUSH] User {user_id[:8]}: {len(tokens)} tokens found but none valid")
+        return result
     try:
-        async with httpx.AsyncClient(timeout=10) as client:
+        async with httpx.AsyncClient(timeout=15) as client:
             resp = await client.post(
                 EXPO_PUSH_URL,
                 json=messages,
-                headers={"Content-Type": "application/json"},
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
             )
-            if resp.status_code != 200:
-                logger.warning(f"[PUSH] Expo API returned {resp.status_code}: {resp.text[:200]}")
+            if resp.status_code == 200:
+                resp_data = resp.json()
+                ticket_data = resp_data.get("data", [])
+                for i, ticket in enumerate(ticket_data):
+                    status = ticket.get("status", "unknown")
+                    if status == "ok":
+                        result["tickets_ok"] += 1
+                    else:
+                        result["tickets_error"] += 1
+                        detail = ticket.get("details", {})
+                        error_msg = ticket.get("message", detail.get("error", "unknown"))
+                        logger.warning(f"[PUSH] Ticket error for user {user_id[:8]}, token {messages[i]['to'][:30]}: {error_msg}")
+                        result["errors"].append(error_msg)
+                logger.info(f"[PUSH] User {user_id[:8]}: sent={len(messages)}, ok={result['tickets_ok']}, err={result['tickets_error']}")
+            else:
+                logger.warning(f"[PUSH] Expo API HTTP {resp.status_code} for user {user_id[:8]}: {resp.text[:300]}")
+                result["errors"].append(f"http_{resp.status_code}")
     except Exception as e:
         logger.warning(f"[PUSH] Failed to send push to user {user_id[:8]}: {e}")
+        result["errors"].append(str(e))
+    return result
 
 
 async def create_notification(user_id: str, notif_type: str, title: str, message: str, link: str = "", image: str = ""):

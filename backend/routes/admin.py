@@ -660,15 +660,17 @@ async def admin_push_broadcast(request_body: dict, admin=Depends(require_permiss
     if not PUSH_ENABLED:
         raise HTTPException(503, "Push notifications non attive. Imposta PUSH_NOTIFICATIONS_ENABLED=true nel .env")
 
-    sent_count = 0
+    # Collect stats
+    stats = {"recipients_total": 0, "push_tokens_found": 0, "tickets_ok": 0, "tickets_error": 0, "errors": []}
+
     if target == "all":
         all_users = await users_col.find(
             {"is_deleted": {"$ne": True}, "is_disabled": {"$ne": True}},
             {"_id": 0, "id": 1}
         ).to_list(10000)
+        stats["recipients_total"] = len(all_users)
         for u in all_users:
             await create_notification(u["id"], "admin_broadcast", title, body, image=image_url)
-            sent_count += 1
     else:
         league = await leagues_col.find_one({"id": target}, {"_id": 0})
         if not league:
@@ -676,16 +678,23 @@ async def admin_push_broadcast(request_body: dict, admin=Depends(require_permiss
         members = await memberships_col.find(
             {"league_id": target, "status": "active"}, {"user_id": 1, "_id": 0}
         ).to_list(500)
+        stats["recipients_total"] = len(members)
         for m in members:
             await create_notification(m["user_id"], "admin_broadcast", title, body, image=image_url)
-        sent_count = len(members)
+
+    # Count push tokens in DB for these users
+    total_tokens = await push_tokens_col.count_documents({})
+    stats["push_tokens_in_db"] = total_tokens
+
+    # Log summary
+    logger.info(f"[PUSH-BROADCAST] Summary: recipients={stats['recipients_total']}, tokens_in_db={total_tokens}, target={target}")
 
     await log_audit(
         admin["id"], admin["username"], "PUSH_BROADCAST", "notification", "",
-        {"title": title, "target": target, "sent_count": sent_count, "image_url": image_url or None},
+        {"title": title, "target": target, **stats},
         ip=admin.get("_request_ip"),
     )
-    return {"sent_count": sent_count, "target": target}
+    return {"sent_count": stats["recipients_total"], "target": target, "push_stats": stats}
 
 
 @admin_router.post("/push/user/{user_id}")
@@ -796,6 +805,59 @@ async def admin_reminders_status(admin=Depends(require_permission("admin.dashboa
         ],
         "recent_reminders": recent_reminders,
     }
+
+
+@admin_router.get("/push/diagnostics")
+async def admin_push_diagnostics(admin=Depends(require_permission("admin.dashboard.view"))):
+    """Diagnostic endpoint to check push token registration status."""
+    from services import PUSH_ENABLED
+    from database import push_tokens_col
+
+    # Count total tokens
+    total_tokens = await push_tokens_col.count_documents({})
+
+    # Get all tokens with user info
+    tokens = await push_tokens_col.find({}, {"_id": 0}).to_list(100)
+
+    # Get unique user IDs with tokens
+    user_ids_with_tokens = list(set(t.get("user_id", "") for t in tokens))
+
+    # Get all users
+    all_users = await users_col.find(
+        {"is_deleted": {"$ne": True}, "is_disabled": {"$ne": True}},
+        {"_id": 0, "id": 1, "username": 1, "email": 1}
+    ).to_list(10000)
+
+    users_with_tokens = [u for u in all_users if u["id"] in user_ids_with_tokens]
+    users_without_tokens = [u for u in all_users if u["id"] not in user_ids_with_tokens]
+
+    # Check token format validity
+    valid_tokens = [t for t in tokens if t.get("token", "").startswith("ExponentPushToken[")]
+    invalid_tokens = [t for t in tokens if not t.get("token", "").startswith("ExponentPushToken[")]
+
+    return {
+        "push_enabled": PUSH_ENABLED,
+        "total_tokens_in_db": total_tokens,
+        "valid_tokens": len(valid_tokens),
+        "invalid_tokens": len(invalid_tokens),
+        "total_users": len(all_users),
+        "users_with_push_tokens": len(users_with_tokens),
+        "users_without_push_tokens": len(users_without_tokens),
+        "token_details": [
+            {
+                "user_id": t.get("user_id", "")[:8] + "...",
+                "token": t.get("token", "")[:35] + "..." if t.get("token") else "None",
+                "device_type": t.get("device_type", "unknown"),
+                "updated_at": t.get("updated_at", "N/A"),
+            }
+            for t in tokens
+        ],
+        "users_missing_tokens": [
+            {"username": u.get("username", ""), "email": u.get("email", "")[:10] + "..."}
+            for u in users_without_tokens[:20]
+        ],
+    }
+
 
 
 
