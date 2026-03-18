@@ -1,0 +1,14 @@
+diff --git a/node_modules/expo-linear-gradient/build/LinearGradient.js b/node_modules/expo-linear-gradient/build/LinearGradient.js
+index 3f327c4..b1989e2 100644
+--- a/node_modules/expo-linear-gradient/build/LinearGradient.js
++++ b/node_modules/expo-linear-gradient/build/LinearGradient.js
+@@ -9,6 +9,9 @@ import NativeLinearGradient from './NativeLinearGradient';
+ export class LinearGradient extends Component {
+     render() {
+         const { colors, locations, start, end, dither, ...props } = this.props;
++        if (!colors || !Array.isArray(colors) || colors.length === 0) {
++            return (<NativeLinearGradient {...props} colors={[]} locations={locations} startPoint={_normalizePoint(start)} endPoint={_normalizePoint(end)}/>);
++        }
+         let resolvedLocations = locations;
+         if (locations && colors.length !== locations.length) {
+             console.warn('LinearGradient colors and locations props should be arrays of the same length');
