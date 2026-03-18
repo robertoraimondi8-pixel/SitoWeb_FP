@@ -70,7 +70,9 @@ STATUS_ORDER = ["DRAFT", "OPEN", "LIVE", "COMPLETED"]
 
 # Push Notification Config
 EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
-PUSH_ENABLED = os.environ.get("PUSH_NOTIFICATIONS_ENABLED", "false").lower() == "true"
+_push_raw = os.environ.get("PUSH_NOTIFICATIONS_ENABLED", "")
+PUSH_ENABLED = _push_raw.strip().lower() == "true"
+logger.info(f"[INIT] PUSH_NOTIFICATIONS_ENABLED raw: {_push_raw!r} → PUSH_ENABLED={PUSH_ENABLED}")
 
 # Live Fixtures Config
 LIVE_SYNC_ENABLED = os.environ.get("APIFOOTBALL_LIVE_SYNC_ENABLED", "false").lower() == "true"

@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "noreply@fantapronostic.com")
+logger.info(f"[INIT] SendGrid configured: key={'YES ('+SENDGRID_API_KEY[:8]+'...)' if SENDGRID_API_KEY else 'NOT SET'}, sender={SENDER_EMAIL}")
 
 
 async def send_verification_email(to_email: str, token: str, username: str = ""):
