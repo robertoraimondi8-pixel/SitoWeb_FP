@@ -104,20 +104,20 @@ export default function StatisticsScreen() {
         const data = await apiCall<{ standings: StandingEntry[] }>(
           `/stats/standings/${league.league_id}?season=${season}`, { token }
         );
-        setStandings(Array.isArray(data?.standings) ? data.standings : []);
+        setStandings(data?.standings || []);
       } else if (tab === 'results') {
         const data = await apiCall<{ fixtures: FixtureEntry[] }>(
           `/stats/results/${league.league_id}?season=${season}&last=30`, { token }
         );
-        setResults(Array.isArray(data?.fixtures) ? data.fixtures : []);
+        setResults(data?.fixtures || []);
       } else if (tab === 'upcoming') {
         const data = await apiCall<{ fixtures: FixtureEntry[] }>(
           `/stats/upcoming/${league.league_id}?season=${season}&next=30`, { token }
         );
-        setUpcoming(Array.isArray(data?.fixtures) ? data.fixtures : []);
+        setUpcoming(data?.fixtures || []);
       }
-    } catch (e) {
-      // Silenced for production
+    } catch {
+      // API error - data stays as last loaded or empty
     } finally {
       setTabLoading(false);
     }
@@ -262,7 +262,7 @@ export default function StatisticsScreen() {
 
 /* ─── STANDINGS TABLE ─── */
 function StandingsTable({ entries }: { entries: StandingEntry[] }) {
-  if (!Array.isArray(entries) || entries.length === 0) {
+  if (!entries || entries.length === 0) {
     return <Text style={styles.emptyText}>Nessun dato disponibile</Text>;
   }
 
@@ -360,7 +360,7 @@ function FixturesWithRoundPicker({
     return fixtures.filter(f => f && f.round === selectedRound);
   }, [fixtures, selectedRound]);
 
-  if (!Array.isArray(fixtures) || fixtures.length === 0) {
+  if (!fixtures || fixtures.length === 0) {
     return <Text style={styles.emptyText}>Nessun dato disponibile</Text>;
   }
 
