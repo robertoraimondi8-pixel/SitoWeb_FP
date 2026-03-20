@@ -55,8 +55,8 @@ type FixtureInfo = {
   away_logo: string | null;
   home_goals: number | null;
   away_goals: number | null;
-  halftime: { home: number | null; away: number | null };
-  fulltime: { home: number | null; away: number | null };
+  halftime: { home: number | null; away: number | null } | null;
+  fulltime: { home: number | null; away: number | null } | null;
 };
 
 type FixtureDetail = {
@@ -64,6 +64,8 @@ type FixtureDetail = {
   events: FixtureEvent[];
   statistics: TeamStat[];
   lineups: Lineup[];
+  preview?: any;
+  teams?: { home?: { name?: string }; away?: { name?: string } };
 };
 
 type Tab = 'events' | 'stats' | 'lineups';
@@ -74,13 +76,6 @@ interface Props {
   visible: boolean;
   onClose: () => void;
 }
-
-const EVENT_ICONS: Record<string, { name: string; color: string }> = {
-  Goal: { name: 'football', color: '#22c55e' },
-  Card: { name: 'card', color: '#f59e0b' },
-  subst: { name: 'swap-horizontal', color: '#60a5fa' },
-  Var: { name: 'tv', color: '#a78bfa' },
-};
 
 const LIVE_STATUSES = new Set(['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE']);
 const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN']);
@@ -99,15 +94,49 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
       setData(null);
       setActiveTab('events');
       apiCall<FixtureDetail>(`/stats/fixture-detail/${fixtureId}`, { token })
-        .then(setData)
-        .catch(() => setError(t('matchDetail.not_available')))
+        .then((res) => {
+          // Sanitize response to prevent null access crashes
+          const sanitized: FixtureDetail = {
+            fixture: res?.fixture || {} as FixtureInfo,
+            events: Array.isArray(res?.events) ? res.events : [],
+            statistics: Array.isArray(res?.statistics) ? res.statistics : [],
+            lineups: Array.isArray(res?.lineups) ? res.lineups : [],
+            preview: res?.preview || null,
+            teams: res?.teams || null,
+          };
+          setData(sanitized);
+        })
+        .catch(() => setError('Dati non disponibili'))
         .finally(() => setLoading(false));
     }
   }, [visible, fixtureId]);
 
   const fx = data?.fixture;
-  const isLive = fx ? LIVE_STATUSES.has(fx.status_short) : false;
-  const isFinished = fx ? FINISHED_STATUSES.has(fx.status_short) : false;
+  const statusShort = fx?.status_short || '';
+  const isLive = LIVE_STATUSES.has(statusShort);
+  const isFinished = FINISHED_STATUSES.has(statusShort);
+
+  // Safe score values
+  const homeGoals = fx?.home_goals;
+  const awayGoals = fx?.away_goals;
+  const homeGoalsStr = homeGoals !== null && homeGoals !== undefined ? String(homeGoals) : '-';
+  const awayGoalsStr = awayGoals !== null && awayGoals !== undefined ? String(awayGoals) : '-';
+
+  // Safe halftime
+  const htHome = fx?.halftime?.home;
+  const htAway = fx?.halftime?.away;
+  const hasHalftime = htHome !== null && htHome !== undefined;
+
+  const TAB_LABELS: Record<Tab, string> = {
+    events: 'Cronaca',
+    stats: 'Statistiche',
+    lineups: 'Formazioni',
+  };
+  const TAB_ICONS: Record<Tab, string> = {
+    events: 'football-outline',
+    stats: 'bar-chart-outline',
+    lineups: 'people-outline',
+  };
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -124,7 +153,7 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
           {loading ? (
             <View style={s.center}>
               <ActivityIndicator size="small" color={colors.accent} />
-              <Text style={s.loadingText}>{t('matchDetail.loading')}</Text>
+              <Text style={s.loadingText}>Caricamento...</Text>
             </View>
           ) : error ? (
             <View style={s.center}>
@@ -136,54 +165,66 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
               {/* Score Header */}
               <View style={s.scoreHeader}>
                 <View style={s.scoreTeam}>
-                  {fx.home_logo && <Image source={{ uri: fx.home_logo }} style={s.scoreLogo} />}
-                  <Text style={s.scoreTeamName} numberOfLines={2}>{fx.home_team}</Text>
+                  {fx.home_logo ? (
+                    <Image source={{ uri: fx.home_logo }} style={s.scoreLogo} />
+                  ) : (
+                    <View style={[s.scoreLogo, { backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }]}>
+                      <Ionicons name="football-outline" size={20} color={colors.textMuted} />
+                    </View>
+                  )}
+                  <Text style={s.scoreTeamName} numberOfLines={2}>{fx.home_team || 'Casa'}</Text>
                 </View>
                 <View style={s.scoreCenter}>
                   <View style={s.scoreBubble}>
                     <Text style={s.scoreText}>
-                      {fx.home_goals ?? '-'} - {fx.away_goals ?? '-'}
+                      {homeGoalsStr} - {awayGoalsStr}
                     </Text>
                   </View>
                   <View style={[s.statusPill, isLive && s.statusPillLive]}>
                     {isLive && <View style={s.liveDot} />}
                     <Text style={[s.statusPillText, isLive && s.statusPillTextLive]}>
-                      {isLive ? `${fx.elapsed}'` : fx.status_short}
+                      {isLive ? `${fx.elapsed || 0}'` : statusShort || '-'}
                     </Text>
                   </View>
-                  {fx.halftime?.home != null && (
-                    <Text style={s.halftimeText}>HT: {fx.halftime.home} - {fx.halftime.away}</Text>
+                  {hasHalftime && (
+                    <Text style={s.halftimeText}>
+                      HT: {htHome !== null && htHome !== undefined ? htHome : '-'} - {htAway !== null && htAway !== undefined ? htAway : '-'}
+                    </Text>
                   )}
                 </View>
                 <View style={s.scoreTeam}>
-                  {fx.away_logo && <Image source={{ uri: fx.away_logo }} style={s.scoreLogo} />}
-                  <Text style={s.scoreTeamName} numberOfLines={2}>{fx.away_team}</Text>
+                  {fx.away_logo ? (
+                    <Image source={{ uri: fx.away_logo }} style={s.scoreLogo} />
+                  ) : (
+                    <View style={[s.scoreLogo, { backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }]}>
+                      <Ionicons name="football-outline" size={20} color={colors.textMuted} />
+                    </View>
+                  )}
+                  <Text style={s.scoreTeamName} numberOfLines={2}>{fx.away_team || 'Ospite'}</Text>
                 </View>
               </View>
 
               {/* Match Info */}
               {(fx.venue || fx.referee) && (
                 <View style={s.matchInfo}>
-                  {fx.venue && (
+                  {fx.venue ? (
                     <View style={s.infoRow}>
                       <Ionicons name="location-outline" size={14} color={colors.textMuted} />
                       <Text style={s.infoText}>{fx.venue}{fx.city ? `, ${fx.city}` : ''}</Text>
                     </View>
-                  )}
-                  {fx.referee && (
+                  ) : null}
+                  {fx.referee ? (
                     <View style={s.infoRow}>
                       <Ionicons name="person-outline" size={14} color={colors.textMuted} />
                       <Text style={s.infoText}>{fx.referee}</Text>
                     </View>
-                  )}
+                  ) : null}
                 </View>
               )}
 
               {/* Tab Selector */}
               <View style={s.tabBar}>
                 {(['events', 'stats', 'lineups'] as Tab[]).map(tab => {
-                  const labels: Record<Tab, string> = { events: t('matchDetail.tab_events'), stats: t('matchDetail.tab_stats'), lineups: t('matchDetail.tab_lineups') };
-                  const icons: Record<Tab, string> = { events: 'football-outline', stats: 'bar-chart-outline', lineups: 'people-outline' };
                   const isActive = activeTab === tab;
                   return (
                     <TouchableOpacity
@@ -192,17 +233,32 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
                       onPress={() => setActiveTab(tab)}
                       data-testid={`detail-tab-${tab}`}
                     >
-                      <Ionicons name={icons[tab] as any} size={16} color={isActive ? colors.accent : colors.textMuted} />
-                      <Text style={[s.tabText, isActive && s.tabTextActive]}>{labels[tab]}</Text>
+                      <Ionicons name={TAB_ICONS[tab] as any} size={16} color={isActive ? colors.accent : colors.textMuted} />
+                      <Text style={[s.tabText, isActive && s.tabTextActive]}>{TAB_LABELS[tab]}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
               {/* Tab Content */}
-              {activeTab === 'events' && <EventsList events={data.events} homeTeam={fx.home_team} halftime={fx.halftime} />}
-              {activeTab === 'stats' && <StatsComparison stats={data.statistics} preview={data.preview} homeName={data.teams?.home?.name} awayName={data.teams?.away?.name} />}
-              {activeTab === 'lineups' && <LineupsView lineups={data.lineups} />}
+              {activeTab === 'events' && (
+                <EventsList
+                  events={data.events}
+                  homeTeam={fx.home_team || ''}
+                  halftime={fx.halftime}
+                />
+              )}
+              {activeTab === 'stats' && (
+                <StatsComparison
+                  stats={data.statistics}
+                  preview={data.preview}
+                  homeName={data.teams?.home?.name}
+                  awayName={data.teams?.away?.name}
+                />
+              )}
+              {activeTab === 'lineups' && (
+                <LineupsView lineups={data.lineups} />
+              )}
             </ScrollView>
           ) : null}
         </View>
@@ -211,47 +267,58 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
   );
 }
 
-/* ── Events List (stile Diretta) ── */
-function EventsList({ events, homeTeam, halftime }: { events: FixtureEvent[]; homeTeam: string; halftime: { home: number | null; away: number | null } }) {
-  const { t } = useTranslation();
-  if (!events || events.length === 0) {
-    return <Text style={s.emptyText}>{t('matchDetail.no_events')}</Text>;
+/* ── Events List ── */
+function EventsList({
+  events,
+  homeTeam,
+  halftime,
+}: {
+  events: FixtureEvent[];
+  homeTeam: string;
+  halftime: { home: number | null; away: number | null } | null;
+}) {
+  if (!Array.isArray(events) || events.length === 0) {
+    return <Text style={s.emptyText}>Nessun evento disponibile</Text>;
   }
 
-  // Compute running score for each event
+  // Compute running score
   let homeScore = 0;
   let awayScore = 0;
   const enriched = events.map(ev => {
-    const isHome = ev.team_name === homeTeam;
-    const isGoal = ev.type === 'Goal' && ev.detail !== 'Missed Penalty';
+    const isHome = (ev?.team_name || '') === homeTeam;
+    const evDetail = ev?.detail || '';
+    const isGoal = ev?.type === 'Goal' && evDetail !== 'Missed Penalty';
     if (isGoal) {
-      if (ev.detail === 'Own Goal') { if (isHome) awayScore++; else homeScore++; }
+      if (evDetail === 'Own Goal') { if (isHome) awayScore++; else homeScore++; }
       else { if (isHome) homeScore++; else awayScore++; }
     }
     return { ...ev, runningHome: homeScore, runningAway: awayScore };
   });
 
-  const fh = enriched.filter(e => (e.time_elapsed || 0) <= 45);
-  const sh = enriched.filter(e => (e.time_elapsed || 0) > 45);
-  const htHome = halftime?.home ?? '-';
-  const htAway = halftime?.away ?? '-';
-  const htEndScore = fh.length > 0 ? `${fh[fh.length - 1].runningHome} - ${fh[fh.length - 1].runningAway}` : '0 - 0';
+  const fh = enriched.filter(e => (e?.time_elapsed || 0) <= 45);
+  const sh = enriched.filter(e => (e?.time_elapsed || 0) > 45);
+  const htHome = halftime?.home;
+  const htAway = halftime?.away;
+  const htHomeStr = htHome !== null && htHome !== undefined ? String(htHome) : '-';
+  const htAwayStr = htAway !== null && htAway !== undefined ? String(htAway) : '-';
 
   return (
     <View style={s.eventsContainer}>
       <View style={s.halfHeader}>
         <Text style={s.halfHeaderText}>1° TEMPO</Text>
-        <Text style={s.halfHeaderScore}>{htHome} - {htAway}</Text>
+        <Text style={s.halfHeaderScore}>{htHomeStr} - {htAwayStr}</Text>
       </View>
       {fh.length === 0 ? (
-        <Text style={s.noEventsHalf}>{t('matchDetail.no_events_half')}</Text>
+        <Text style={s.noEventsHalf}>Nessun evento</Text>
       ) : fh.map((ev, i) => <EventRow key={`fh-${i}`} ev={ev} homeTeam={homeTeam} />)}
 
       {sh.length > 0 && (
         <>
           <View style={s.halfHeader}>
             <Text style={s.halfHeaderText}>2° TEMPO</Text>
-            <Text style={s.halfHeaderScore}>{htEndScore}</Text>
+            <Text style={s.halfHeaderScore}>
+              {fh.length > 0 ? `${fh[fh.length - 1].runningHome} - ${fh[fh.length - 1].runningAway}` : '0 - 0'}
+            </Text>
           </View>
           {sh.map((ev, i) => <EventRow key={`sh-${i}`} ev={ev} homeTeam={homeTeam} />)}
         </>
@@ -260,34 +327,42 @@ function EventsList({ events, homeTeam, halftime }: { events: FixtureEvent[]; ho
   );
 }
 
-function EventRow({ ev, homeTeam }: { ev: FixtureEvent & { runningHome: number; runningAway: number }; homeTeam: string }) {
-  const { t } = useTranslation();
-  const isHome = ev.team_name === homeTeam;
-  const isGoal = ev.type === 'Goal';
-  const isSub = ev.type === 'subst';
-  const isCard = ev.type === 'Card';
-  const isVar = ev.type === 'Var';
-  const timeStr = ev.time_elapsed ? `${ev.time_elapsed}'${ev.time_extra ? `+${ev.time_extra}` : ''}` : '';
+/* ── Event Row ── */
+function EventRow({
+  ev,
+  homeTeam,
+}: {
+  ev: FixtureEvent & { runningHome: number; runningAway: number };
+  homeTeam: string;
+}) {
+  const isHome = (ev?.team_name || '') === homeTeam;
+  const evType = ev?.type || '';
+  const evDetail = ev?.detail || '';
+  const isGoal = evType === 'Goal';
+  const isSub = evType === 'subst';
+  const isCard = evType === 'Card';
+  const isVar = evType === 'Var';
+  const timeStr = ev?.time_elapsed ? `${ev.time_elapsed}'${ev.time_extra ? `+${ev.time_extra}` : ''}` : '';
 
-  const getDetailText = (detail: string) => {
+  const getDetailText = (detail: string): string => {
     if (!detail || detail === 'Normal Goal' || detail === 'Yellow Card') return '';
-    if (detail === 'Own Goal') return t('matchDetail.own_goal');
-    if (detail === 'Penalty') return t('matchDetail.penalty');
-    if (detail === 'Missed Penalty') return t('matchDetail.missed_penalty');
-    if (detail === 'Red Card') return t('matchDetail.red_card');
-    if (detail === 'Second Yellow card') return t('matchDetail.second_yellow');
-    if (detail.includes('cancelled')) return t('matchDetail.goal_cancelled');
+    if (detail === 'Own Goal') return 'Autogol';
+    if (detail === 'Penalty') return 'Rigore';
+    if (detail === 'Missed Penalty') return 'Rigore sbagliato';
+    if (detail === 'Red Card') return 'Cartellino rosso';
+    if (detail === 'Second Yellow card') return 'Secondo giallo';
+    if (detail.includes('cancelled')) return 'Gol annullato';
     if (detail.startsWith('Substitution')) return '';
     return detail;
   };
 
   const renderIcon = () => {
     if (isGoal) {
-      const bg = (ev.detail === 'Own Goal' || ev.detail === 'Missed Penalty') ? '#ef4444' : '#22c55e';
+      const bg = (evDetail === 'Own Goal' || evDetail === 'Missed Penalty') ? '#ef4444' : '#22c55e';
       return <View style={[s.evIcon, { backgroundColor: bg }]}><Ionicons name="football" size={11} color="#fff" /></View>;
     }
     if (isCard) {
-      const bg = (ev.detail === 'Red Card' || ev.detail === 'Second Yellow card') ? '#ef4444' : '#f59e0b';
+      const bg = (evDetail === 'Red Card' || evDetail === 'Second Yellow card') ? '#ef4444' : '#f59e0b';
       return <View style={[s.evCardIcon, { backgroundColor: bg }]} />;
     }
     if (isSub) return <View style={[s.evIcon, { backgroundColor: '#60a5fa' }]}><Ionicons name="swap-horizontal" size={11} color="#fff" /></View>;
@@ -295,8 +370,11 @@ function EventRow({ ev, homeTeam }: { ev: FixtureEvent & { runningHome: number; 
     return <View style={[s.evIcon, { backgroundColor: colors.textMuted }]}><Ionicons name="ellipse" size={6} color="#fff" /></View>;
   };
 
-  const detailText = getDetailText(ev.detail);
-  const showScore = isGoal && ev.detail !== 'Missed Penalty';
+  const detailText = getDetailText(evDetail);
+  const showScore = isGoal && evDetail !== 'Missed Penalty';
+  const playerName = ev?.player || '?';
+  const assistName = ev?.assist || '';
+  const isRedDetail = evDetail.includes('Red') || evDetail === 'Own Goal';
 
   if (isHome) {
     return (
@@ -306,10 +384,10 @@ function EventRow({ ev, homeTeam }: { ev: FixtureEvent & { runningHome: number; 
         {showScore && <Text style={s.evScore}>{ev.runningHome} - {ev.runningAway}</Text>}
         <View style={s.evPlayerArea}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-            <Text style={[s.evPlayerName, isGoal && s.evPlayerGoal]}>{ev.player || '?'}</Text>
-            {ev.assist && <Text style={s.evAssist}>({ev.assist})</Text>}
+            <Text style={[s.evPlayerName, isGoal && s.evPlayerGoal]}>{playerName}</Text>
+            {assistName ? <Text style={s.evAssist}>({assistName})</Text> : null}
           </View>
-          {detailText ? <Text style={[s.evDetailTag, (ev.detail?.includes('Red') || ev.detail === 'Own Goal') && { color: '#ef4444' }]}>{detailText}</Text> : null}
+          {detailText ? <Text style={[s.evDetailTag, isRedDetail && { color: '#ef4444' }]}>{detailText}</Text> : null}
         </View>
       </View>
     );
@@ -319,10 +397,10 @@ function EventRow({ ev, homeTeam }: { ev: FixtureEvent & { runningHome: number; 
     <View style={[s.evRow, s.evRowAway]}>
       <View style={[s.evPlayerArea, { alignItems: 'flex-end' }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          {ev.assist && <Text style={s.evAssist}>({ev.assist})</Text>}
-          <Text style={[s.evPlayerName, isGoal && s.evPlayerGoal]}>{ev.player || '?'}</Text>
+          {assistName ? <Text style={s.evAssist}>({assistName})</Text> : null}
+          <Text style={[s.evPlayerName, isGoal && s.evPlayerGoal]}>{playerName}</Text>
         </View>
-        {detailText ? <Text style={[s.evDetailTag, (ev.detail?.includes('Red') || ev.detail === 'Own Goal') && { color: '#ef4444' }]}>{detailText}</Text> : null}
+        {detailText ? <Text style={[s.evDetailTag, isRedDetail && { color: '#ef4444' }]}>{detailText}</Text> : null}
       </View>
       {showScore && <Text style={s.evScore}>{ev.runningHome} - {ev.runningAway}</Text>}
       {renderIcon()}
@@ -332,80 +410,100 @@ function EventRow({ ev, homeTeam }: { ev: FixtureEvent & { runningHome: number; 
 }
 
 /* ── Stats Comparison ── */
-function StatsComparison({ stats, preview, homeName, awayName }: { stats: TeamStat[], preview?: any, homeName?: string, awayName?: string }) {
-  const { t } = useTranslation();
-  if (!stats || stats.length < 2) {
+function StatsComparison({
+  stats,
+  preview,
+  homeName,
+  awayName,
+}: {
+  stats: TeamStat[];
+  preview?: any;
+  homeName?: string;
+  awayName?: string;
+}) {
+  if (!Array.isArray(stats) || stats.length < 2) {
     // Show pre-match preview if available
     if (preview) {
+      const homeForm = Array.isArray(preview?.home_form) ? preview.home_form : [];
+      const awayForm = Array.isArray(preview?.away_form) ? preview.away_form : [];
+      const h2h = Array.isArray(preview?.h2h) ? preview.h2h : [];
+
       return (
         <View>
-          {/* Form */}
-          {(preview.home_form?.length > 0 || preview.away_form?.length > 0) && (
+          {(homeForm.length > 0 || awayForm.length > 0) && (
             <View style={{ marginBottom: 16 }}>
               <Text style={[s.emptyText, { color: colors.accent, fontWeight: '700', marginBottom: 8 }]}>Forma Recente</Text>
-              {preview.home_form?.length > 0 && (
+              {homeForm.length > 0 && (
                 <View style={{ marginBottom: 8 }}>
                   <Text style={{ color: colors.textPrimary, fontWeight: '600', fontSize: 13, marginBottom: 4 }}>{homeName || 'Casa'}</Text>
                   <View style={{ flexDirection: 'row', gap: 4 }}>
-                    {preview.home_form.map((m: any, i: number) => {
-                      const isWin = m.result === 'W';
-                      const isDraw = m.result === 'D';
+                    {homeForm.map((m: any, i: number) => {
+                      const result = m?.result || '?';
+                      const isWin = result === 'W';
+                      const isDraw = result === 'D';
                       const bg = isWin ? '#10B981' : isDraw ? '#F59E0B' : '#EF4444';
-                      return <View key={i} style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>{m.result}</Text></View>;
+                      return <View key={i} style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>{result}</Text></View>;
                     })}
                   </View>
                 </View>
               )}
-              {preview.away_form?.length > 0 && (
+              {awayForm.length > 0 && (
                 <View>
                   <Text style={{ color: colors.textPrimary, fontWeight: '600', fontSize: 13, marginBottom: 4 }}>{awayName || 'Ospite'}</Text>
                   <View style={{ flexDirection: 'row', gap: 4 }}>
-                    {preview.away_form.map((m: any, i: number) => {
-                      const isWin = m.result === 'W';
-                      const isDraw = m.result === 'D';
+                    {awayForm.map((m: any, i: number) => {
+                      const result = m?.result || '?';
+                      const isWin = result === 'W';
+                      const isDraw = result === 'D';
                       const bg = isWin ? '#10B981' : isDraw ? '#F59E0B' : '#EF4444';
-                      return <View key={i} style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>{m.result}</Text></View>;
+                      return <View key={i} style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>{result}</Text></View>;
                     })}
                   </View>
                 </View>
               )}
             </View>
           )}
-          {/* H2H */}
-          {preview.h2h?.length > 0 && (
+          {h2h.length > 0 && (
             <View>
               <Text style={[s.emptyText, { color: colors.accent, fontWeight: '700', marginBottom: 8 }]}>Testa a Testa</Text>
-              {preview.h2h.map((m: any, i: number) => (
-                <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 0.5, borderBottomColor: colors.border }}>
-                  <Text style={{ color: colors.textSecondary, fontSize: 11 }}>{m.date ? new Date(m.date).toLocaleDateString('it') : ''}</Text>
-                  <Text style={{ color: colors.textPrimary, fontSize: 12, fontWeight: '600' }}>{m.home} {m.home_goals}-{m.away_goals} {m.away}</Text>
-                </View>
-              ))}
+              {h2h.map((m: any, i: number) => {
+                const dateStr = m?.date ? (() => { try { return new Date(m.date).toLocaleDateString('it'); } catch { return ''; } })() : '';
+                const hGoals = m?.home_goals !== null && m?.home_goals !== undefined ? m.home_goals : '-';
+                const aGoals = m?.away_goals !== null && m?.away_goals !== undefined ? m.away_goals : '-';
+                return (
+                  <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 0.5, borderBottomColor: colors.border }}>
+                    <Text style={{ color: colors.textSecondary, fontSize: 11 }}>{dateStr}</Text>
+                    <Text style={{ color: colors.textPrimary, fontSize: 12, fontWeight: '600' }}>{m?.home || '?'} {hGoals}-{aGoals} {m?.away || '?'}</Text>
+                  </View>
+                );
+              })}
             </View>
           )}
-          {!preview.home_form?.length && !preview.h2h?.length && (
-            <Text style={s.emptyText}>{t('matchDetail.stats_prematch_unavailable')}</Text>
+          {homeForm.length === 0 && h2h.length === 0 && (
+            <Text style={s.emptyText}>Statistiche pre-partita non disponibili</Text>
           )}
         </View>
       );
     }
-    return <Text style={s.emptyText}>{t('matchDetail.stats_unavailable')}</Text>;
+    return <Text style={s.emptyText}>Statistiche non disponibili</Text>;
   }
 
   const home = stats[0];
   const away = stats[1];
+  const homeStats = home?.stats || {};
+  const awayStats = away?.stats || {};
 
   const STAT_KEYS = [
-    { key: 'Ball Possession', label: t('matchDetail.ball_possession') },
-    { key: 'Total Shots', label: t('matchDetail.total_shots') },
-    { key: 'Shots on Goal', label: t('matchDetail.shots_on_goal') },
-    { key: 'Corner Kicks', label: t('matchDetail.corner_kicks') },
-    { key: 'Fouls', label: t('matchDetail.fouls') },
-    { key: 'Offsides', label: t('matchDetail.offsides') },
-    { key: 'Yellow Cards', label: t('matchDetail.yellow_cards') },
-    { key: 'Red Cards', label: t('matchDetail.red_cards') },
-    { key: 'Goalkeeper Saves', label: t('matchDetail.goalkeeper_saves') },
-    { key: 'Passes accurate', label: t('matchDetail.passes_accurate') },
+    { key: 'Ball Possession', label: 'Possesso palla' },
+    { key: 'Total Shots', label: 'Tiri totali' },
+    { key: 'Shots on Goal', label: 'Tiri in porta' },
+    { key: 'Corner Kicks', label: 'Calci d\'angolo' },
+    { key: 'Fouls', label: 'Falli' },
+    { key: 'Offsides', label: 'Fuorigioco' },
+    { key: 'Yellow Cards', label: 'Cartellini gialli' },
+    { key: 'Red Cards', label: 'Cartellini rossi' },
+    { key: 'Goalkeeper Saves', label: 'Parate' },
+    { key: 'Passes accurate', label: 'Passaggi riusciti' },
   ];
 
   return (
@@ -413,28 +511,30 @@ function StatsComparison({ stats, preview, homeName, awayName }: { stats: TeamSt
       {/* Team headers */}
       <View style={s.statsHeader}>
         <View style={s.statsTeamHeader}>
-          {home.team_logo && <Image source={{ uri: home.team_logo }} style={s.statsTeamLogo} />}
-          <Text style={s.statsTeamName} numberOfLines={1}>{home.team_name}</Text>
+          {home?.team_logo ? <Image source={{ uri: home.team_logo }} style={s.statsTeamLogo} /> : null}
+          <Text style={s.statsTeamName} numberOfLines={1}>{home?.team_name || 'Casa'}</Text>
         </View>
         <View style={[s.statsTeamHeader, { justifyContent: 'flex-end' }]}>
-          <Text style={s.statsTeamName} numberOfLines={1}>{away.team_name}</Text>
-          {away.team_logo && <Image source={{ uri: away.team_logo }} style={s.statsTeamLogo} />}
+          <Text style={s.statsTeamName} numberOfLines={1}>{away?.team_name || 'Ospite'}</Text>
+          {away?.team_logo ? <Image source={{ uri: away.team_logo }} style={s.statsTeamLogo} /> : null}
         </View>
       </View>
 
       {STAT_KEYS.map(({ key, label }) => {
-        const homeVal = home.stats[key];
-        const awayVal = away.stats[key];
-        if (homeVal == null && awayVal == null) return null;
+        const homeVal = homeStats[key];
+        const awayVal = awayStats[key];
+        if (homeVal === null && homeVal === undefined && awayVal === null && awayVal === undefined) return null;
 
-        const hNum = parseFloat(String(homeVal || 0).replace('%', ''));
-        const aNum = parseFloat(String(awayVal || 0).replace('%', ''));
+        const hStr = String(homeVal || 0);
+        const aStr = String(awayVal || 0);
+        const hNum = parseFloat(hStr.replace('%', '')) || 0;
+        const aNum = parseFloat(aStr.replace('%', '')) || 0;
         const total = hNum + aNum || 1;
         const hPct = (hNum / total) * 100;
 
         return (
           <View key={key} style={s.statRow}>
-            <Text style={s.statValue}>{homeVal ?? 0}</Text>
+            <Text style={s.statValue}>{homeVal !== null && homeVal !== undefined ? homeVal : 0}</Text>
             <View style={s.statBarContainer}>
               <Text style={s.statLabel}>{label}</Text>
               <View style={s.statBarTrack}>
@@ -442,7 +542,7 @@ function StatsComparison({ stats, preview, homeName, awayName }: { stats: TeamSt
                 <View style={[s.statBarAway, { width: `${100 - hPct}%` }]} />
               </View>
             </View>
-            <Text style={s.statValue}>{awayVal ?? 0}</Text>
+            <Text style={s.statValue}>{awayVal !== null && awayVal !== undefined ? awayVal : 0}</Text>
           </View>
         );
       })}
@@ -452,57 +552,62 @@ function StatsComparison({ stats, preview, homeName, awayName }: { stats: TeamSt
 
 /* ── Lineups View ── */
 function LineupsView({ lineups }: { lineups: Lineup[] }) {
-  const { t } = useTranslation();
-  if (!lineups || lineups.length === 0) {
-    return <Text style={s.emptyText}>{t('matchDetail.lineups_unavailable')}</Text>;
+  if (!Array.isArray(lineups) || lineups.length === 0) {
+    return <Text style={s.emptyText}>Formazioni non disponibili</Text>;
   }
 
   return (
     <View style={s.lineupsContainer}>
-      {lineups.map((lineup, i) => (
-        <View key={i} style={s.lineupTeam}>
-          {/* Team Header */}
-          <View style={s.lineupHeader}>
-            {lineup.team_logo && <Image source={{ uri: lineup.team_logo }} style={s.lineupLogo} />}
-            <View>
-              <Text style={s.lineupTeamName}>{lineup.team_name}</Text>
-              {lineup.formation && <Text style={s.lineupFormation}>{lineup.formation}</Text>}
+      {lineups.map((lineup, i) => {
+        if (!lineup) return null;
+        const starters = Array.isArray(lineup.starters) ? lineup.starters : [];
+        const substitutes = Array.isArray(lineup.substitutes) ? lineup.substitutes : [];
+
+        return (
+          <View key={i} style={s.lineupTeam}>
+            {/* Team Header */}
+            <View style={s.lineupHeader}>
+              {lineup.team_logo ? <Image source={{ uri: lineup.team_logo }} style={s.lineupLogo} /> : null}
+              <View>
+                <Text style={s.lineupTeamName}>{lineup.team_name || 'Squadra'}</Text>
+                {lineup.formation ? <Text style={s.lineupFormation}>{lineup.formation}</Text> : null}
+              </View>
             </View>
+
+            {/* Coach */}
+            {lineup.coach ? (
+              <View style={s.coachRow}>
+                <Ionicons name="person-circle-outline" size={16} color={colors.textMuted} />
+                <Text style={s.coachText}>{lineup.coach}</Text>
+              </View>
+            ) : null}
+
+            {/* Starters */}
+            <Text style={s.lineupSectionTitle}>Titolari</Text>
+            {starters.map((p, j) => (
+              <View key={j} style={s.playerRow}>
+                <Text style={s.playerNumber}>{p?.number || '-'}</Text>
+                <Text style={s.playerName}>{p?.name || '?'}</Text>
+                {p?.pos ? <Text style={s.playerPos}>{p.pos}</Text> : null}
+              </View>
+            ))}
+
+            {/* Substitutes */}
+            {substitutes.length > 0 && (
+              <>
+                <Text style={s.lineupSectionTitle}>Panchina</Text>
+                {substitutes.map((p, j) => (
+                  <View key={j} style={s.playerRow}>
+                    <Text style={[s.playerNumber, { color: colors.textMuted }]}>{p?.number || '-'}</Text>
+                    <Text style={[s.playerName, { color: colors.textSecondary }]}>{p?.name || '?'}</Text>
+                    {p?.pos ? <Text style={s.playerPos}>{p.pos}</Text> : null}
+                  </View>
+                ))}
+              </>
+            )}
           </View>
-
-          {/* Coach */}
-          {lineup.coach && (
-            <View style={s.coachRow}>
-              <Ionicons name="person-circle-outline" size={16} color={colors.textMuted} />
-              <Text style={s.coachText}>{lineup.coach}</Text>
-            </View>
-          )}
-
-          {/* Starters */}
-          <Text style={s.lineupSectionTitle}>{t('matchDetail.starters')}</Text>
-          {lineup.starters.map((p, j) => (
-            <View key={j} style={s.playerRow}>
-              <Text style={s.playerNumber}>{p.number || '-'}</Text>
-              <Text style={s.playerName}>{p.name}</Text>
-              {p.pos && <Text style={s.playerPos}>{p.pos}</Text>}
-            </View>
-          ))}
-
-          {/* Substitutes */}
-          {lineup.substitutes.length > 0 && (
-            <>
-              <Text style={s.lineupSectionTitle}>{t('matchDetail.bench')}</Text>
-              {lineup.substitutes.map((p, j) => (
-                <View key={j} style={s.playerRow}>
-                  <Text style={[s.playerNumber, { color: colors.textMuted }]}>{p.number || '-'}</Text>
-                  <Text style={[s.playerName, { color: colors.textSecondary }]}>{p.name}</Text>
-                  {p.pos && <Text style={s.playerPos}>{p.pos}</Text>}
-                </View>
-              ))}
-            </>
-          )}
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
@@ -546,7 +651,7 @@ const s = StyleSheet.create({
   tabText: { fontSize: 12, fontWeight: '600', color: colors.textMuted },
   tabTextActive: { color: colors.accent, fontWeight: '700' },
 
-  // Events (stile Diretta)
+  // Events
   eventsContainer: { gap: 0 },
   halfHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.background, borderRadius: borderRadius.sm, paddingHorizontal: 14, paddingVertical: 8, marginBottom: 4, marginTop: 8 },
   halfHeaderText: { fontSize: 12, fontWeight: '800', color: colors.textSecondary, letterSpacing: 0.5 },

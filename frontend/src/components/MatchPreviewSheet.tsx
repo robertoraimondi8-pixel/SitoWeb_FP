@@ -190,28 +190,31 @@ function StandingCard({ team, logo, standing }: { team: string; logo: string | n
 
 /* ── Form Row ── */
 function FormRow({ matches }: { matches: FormMatch[] }) {
-  const { t } = useTranslation();
-  if (!matches || matches.length === 0) {
-    return <Text style={s.emptyText}>{t('matchPreview.no_data')}</Text>;
+  if (!Array.isArray(matches) || matches.length === 0) {
+    return <Text style={s.emptyText}>Nessun dato disponibile</Text>;
   }
   return (
     <View>
       {/* Result badges */}
       <View style={s.formBadges}>
         {matches.map((m, i) => (
-          <View key={i} style={[s.formBadge, { backgroundColor: RESULT_COLORS[m.result] || colors.border }]}>
-            <Text style={s.formBadgeText}>{m.result}</Text>
+          <View key={i} style={[s.formBadge, { backgroundColor: RESULT_COLORS[m?.result || ''] || colors.border }]}>
+            <Text style={s.formBadgeText}>{m?.result || '?'}</Text>
           </View>
         ))}
       </View>
       {/* Match details */}
-      {matches.map((m, i) => (
-        <View key={i} style={s.formMatchRow}>
-          <Text style={s.formMatchTeams} numberOfLines={1}>
-            {m.home_team} {m.home_goals}-{m.away_goals} {m.away_team}
-          </Text>
-        </View>
-      ))}
+      {matches.map((m, i) => {
+        const hg = m?.home_goals !== null && m?.home_goals !== undefined ? m.home_goals : '-';
+        const ag = m?.away_goals !== null && m?.away_goals !== undefined ? m.away_goals : '-';
+        return (
+          <View key={i} style={s.formMatchRow}>
+            <Text style={s.formMatchTeams} numberOfLines={1}>
+              {m?.home_team || '?'} {hg}-{ag} {m?.away_team || '?'}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }
