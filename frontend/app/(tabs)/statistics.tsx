@@ -98,7 +98,7 @@ export default function StatisticsScreen() {
   const fetchTabData = useCallback(async (tab: TabView, league: StatsLeague) => {
     if (!token || !league) return;
     setTabLoading(true);
-    const season = league.current_season ?? 2025;
+    const season = league.current_season || 2025;
     try {
       if (tab === 'standings') {
         const data = await apiCall<{ standings: StandingEntry[] }>(
@@ -288,14 +288,14 @@ function StandingsTable({ entries }: { entries: StandingEntry[] }) {
             <Text style={[styles.tableCell, { width: 30 }, isTop4 && styles.tableCellBold]}>{row.rank}</Text>
             <View style={[styles.teamCell, { flex: 1 }]}>
               {row.team_logo ? <Image source={{ uri: row.team_logo }} style={styles.teamLogo} /> : null}
-              <Text style={styles.teamName} numberOfLines={1}>{row.team_name ?? ''}</Text>
+              <Text style={styles.teamName} numberOfLines={1}>{row.team_name || ''}</Text>
             </View>
-            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.played ?? 0}</Text>
-            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.win ?? 0}</Text>
-            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.draw ?? 0}</Text>
-            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.lose ?? 0}</Text>
-            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 36 }]}>{(row.goal_diff ?? 0) > 0 ? `+${row.goal_diff}` : (row.goal_diff ?? 0)}</Text>
-            <Text style={[styles.tableCell, styles.tableCellRight, styles.tableCellBold, { width: 36 }]}>{row.points ?? 0}</Text>
+            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.played}</Text>
+            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.win}</Text>
+            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.draw}</Text>
+            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.lose}</Text>
+            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 36 }]}>{row.goal_diff > 0 ? `+${row.goal_diff}` : row.goal_diff}</Text>
+            <Text style={[styles.tableCell, styles.tableCellRight, styles.tableCellBold, { width: 36 }]}>{row.points}</Text>
           </View>
         );
       })}
@@ -393,14 +393,14 @@ function FixturesWithRoundPicker({
           <View style={styles.fixtureTeams}>
             <View style={styles.fixtureTeamRow}>
               {f.home_logo ? <Image source={{ uri: f.home_logo }} style={styles.fixtureTeamLogo} /> : null}
-              <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.home_team ?? ''}</Text>
+              <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.home_team || ''}</Text>
               {showScore && f.home_goals !== null && f.home_goals !== undefined && (
                 <Text style={styles.fixtureScore}>{f.home_goals}</Text>
               )}
             </View>
             <View style={styles.fixtureTeamRow}>
               {f.away_logo ? <Image source={{ uri: f.away_logo }} style={styles.fixtureTeamLogo} /> : null}
-              <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.away_team ?? ''}</Text>
+              <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.away_team || ''}</Text>
               {showScore && f.away_goals !== null && f.away_goals !== undefined && (
                 <Text style={styles.fixtureScore}>{f.away_goals}</Text>
               )}
