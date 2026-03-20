@@ -3,7 +3,6 @@
     "name": "FantaPronostic",
     "slug": "fantapronostic",
     "version": "1.0.0",
-    "runtimeVersion": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "fantapronostic",
@@ -58,7 +57,7 @@
       }
     },
     "updates": {
-      "url": "https://u.expo.dev/007d3be6-c39e-47ae-84c2-73e3adf857d9"
+      "enabled": false
     },
     "experiments": {
       "typedRoutes": true
