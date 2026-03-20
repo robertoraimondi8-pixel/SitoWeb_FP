@@ -320,12 +320,11 @@ function FixturesWithRoundPicker({
   onSelectRound: (round: string | null) => void;
   onFixturePress?: (fixtureId: number) => void;
 }) {
-  const { t } = useTranslation();
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const formatRound = (round?: string) => {
     if (!round) return '';
-    return round.replace('Regular Season - ', `${t('statistics.matchday_label')} `);
+    return round.replace('Regular Season - ', 'Giornata ');
   };
 
   // Extract unique rounds preserving order
@@ -370,7 +369,7 @@ function FixturesWithRoundPicker({
         >
           <Ionicons name="calendar-outline" size={18} color={colors.primary} />
           <Text style={styles.roundPickerText}>
-            {selectedRound ? formatRound(selectedRound) : t('statistics.all_matchdays')}
+            {selectedRound ? formatRound(selectedRound) : 'Tutte le giornate'}
           </Text>
           <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
         </TouchableOpacity>
