@@ -388,14 +388,14 @@ function FixturesWithRoundPicker({
             <View style={styles.fixtureTeamRow}>
               {f.home_logo && <Image source={{ uri: f.home_logo }} style={styles.fixtureTeamLogo} />}
               <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.home_team}</Text>
-              {showScore && f.home_goals != null && (
+              {showScore && f.home_goals !== null && f.home_goals !== undefined && (
                 <Text style={styles.fixtureScore}>{f.home_goals}</Text>
               )}
             </View>
             <View style={styles.fixtureTeamRow}>
               {f.away_logo && <Image source={{ uri: f.away_logo }} style={styles.fixtureTeamLogo} />}
               <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.away_team}</Text>
-              {showScore && f.away_goals != null && (
+              {showScore && f.away_goals !== null && f.away_goals !== undefined && (
                 <Text style={styles.fixtureScore}>{f.away_goals}</Text>
               )}
             </View>
