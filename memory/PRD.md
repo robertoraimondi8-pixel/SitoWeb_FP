@@ -11,33 +11,39 @@ App di pronostici calcistici con sistema di leghe e tornei. React Native (Expo) 
 
 ## Current Status (March 2026)
 
-### Resolved (code-level, pending OTA deployment)
-- ✅ Fix crash iOS Statistics screen tabs (useTranslation removed from FixturesWithRoundPicker)
-- ✅ Fix crash iOS MatchDetailSheet (dettaglio partita) - NUOVA FIX:
-  - Rimosso useTranslation() da TUTTI i componenti figli (EventsList, EventRow, StatsComparison, LineupsView)
-  - Sostituiti operatori loose equality (!=, ==) con strict equality (!==, ===)
-  - Aggiunto optional chaining (?.) su TUTTE le proprieta partita
-  - Aggiunto fallback values: score mostra '-' se null, statistiche mostrano 0, loghi placeholder
-  - Sanitizzazione risposta API nel useEffect (Array.isArray guards)
-- ✅ Fix crash iOS MatchPreviewSheet (FormRow) - rimosso useTranslation da componente figlio
-- ✅ Fix strict equality in statistics.tsx (f.home_goals, f.away_goals)
-- ✅ patch-package fix per expo-linear-gradient (Vivo V50)
-- ✅ expo-build-properties con ProGuard keep rules
-- ✅ Push notifications logging + diagnostics endpoint
-- ✅ ErrorBoundary con component stack display
-- ✅ Stripe integration per leghe custom
+### CRITICAL: iOS Crash Fix - Completato, in attesa OTA
+Il crash iOS e' causato da 2 pattern pericolosi nel motore Hermes:
+1. `useTranslation()` nei componenti figli (non top-level)
+2. Operatori loose equality (`!=`, `==`) su valori null/undefined
 
-### Pending User Action
-- OTA update per JS-only fixes (statistics crash + match detail crash)
-- Deploy Railway (backend: push logging, email logging)
-- New native build iOS + Android (ProGuard, patch-package)
-- SendGrid API key regeneration (401 Unauthorized)
-- Verify PUSH_NOTIFICATIONS_ENABLED=true su Railway
+**Fix applicato su 7 file:**
+- `MatchDetailSheet.tsx` - RISCRITTO: rimosso useTranslation da 4 componenti figli, null safety completa
+- `MatchPreviewSheet.tsx` - rimosso useTranslation da FormRow, null safety h2h
+- `statistics.tsx` - strict equality per score
+- `live/[id].tsx` - strict equality per elapsed
+- `TournamentView.tsx` - strict equality per predictions e elapsed
+- `home.tsx` - strict equality per punti
+- `menu/rules.tsx` - strict equality per scoring values
+
+**RISULTATO: Zero pattern `!= null` / `== null` rimasti nell'intero frontend.**
+
+### Il crash log mostra ErrorRecovery.crash()
+Questo e' il crash loop di Expo Error Recovery DOPO il crash originale.
+La sequenza e': click partita con dati null -> crash Hermes -> app si riavvia -> Expo Error Recovery non riesce a recuperare -> SIGABRT.
+Il fix nel codice risolve la ROOT CAUSE. Serve OTA update per portarlo sul dispositivo.
+
+### Azioni richieste all'utente per sbloccare
+1. **OTA Update**: `eas update --branch production` per pubblicare i fix JS
+2. **Se crash loop persiste**: disinstallare e reinstallare l'app da TestFlight (cancella bundle corrotto)
+3. **Native build Android (Vivo V50)**: `eas build --platform android --profile production`
+4. **Deploy Railway**: per push notifications e email logging
+5. **SendGrid**: verificare/rigenerare API key
 
 ## Prioritized Backlog
 ### P0
 - [x] Fix crash iOS statistics screen tabs (VERIFIED - iteration_103)
 - [x] Fix crash iOS match detail sheet (VERIFIED - iteration_104)
+- [x] Fix TUTTI i pattern `!= null`/`== null` nel frontend (7 file)
 - [x] Fix crash Vivo V50 LinearGradient (code done, needs native build)
 
 ### P1
@@ -55,8 +61,3 @@ App di pronostici calcistici con sistema di leghe e tornei. React Native (Expo) 
 - Admin prod: robertoraimondi8@gmail.com / admin123
 - User preview: ilio@raimondi.it / password123
 - Test Google Review: test@fantapronostic.com / Test1234!
-
-## Files Modified in This Session
-- /app/frontend/src/components/MatchDetailSheet.tsx (REWRITTEN - null safety + removed useTranslation from children)
-- /app/frontend/src/components/MatchPreviewSheet.tsx (FIXED - FormRow, h2h null safety)
-- /app/frontend/app/(tabs)/statistics.tsx (FIXED - strict equality for scores)

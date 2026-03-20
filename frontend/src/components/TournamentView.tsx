@@ -221,7 +221,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
           const mLive = m.status === 'live';
           const mDone = m.status === 'finished';
           // Show predictions if match started OR if backend returned them (round locked)
-          const show = mDone || mLive || (md.user_a_prediction != null || md.user_b_prediction != null);
+          const show = mDone || mLive || (md.user_a_prediction !== null && md.user_a_prediction !== undefined) || (md.user_b_prediction !== null && md.user_b_prediction !== undefined);
           const aPts = md.user_a_points || 0;
           const bPts = md.user_b_points || 0;
           return (
@@ -238,7 +238,7 @@ export function TournamentView({ tournamentId, initialMatchupId }: Props) {
               <View style={s.matchHeader}>
                 <View style={s.matchNumBadge}><Text style={s.matchNum}>{idx + 1}</Text></View>
                 <Text style={s.competition}>{m.competition || ''}</Text>
-                {mLive && m.elapsed != null && <View style={s.elapsedBadge}><Text style={s.elapsedText}>{m.elapsed}'</Text></View>}
+                {mLive && m.elapsed !== null && m.elapsed !== undefined && <View style={s.elapsedBadge}><Text style={s.elapsedText}>{m.elapsed}'</Text></View>}
                 {mLive && <View style={s.liveBadgeMatch}><View style={s.liveDotSm} /><Text style={s.liveTextMatch}>LIVE</Text></View>}
                 {mDone && <View style={[s.liveBadgeMatch, { backgroundColor: 'rgba(255,255,255,0.15)' }]}><Text style={[s.liveTextMatch, { color: 'rgba(255,255,255,0.6)' }]}>FT</Text></View>}
                 {!mLive && !mDone && m.start_time && (

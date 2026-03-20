@@ -14,14 +14,14 @@ import { colors, typography, spacing, borderRadius, brandGradients } from '../..
 type ScoringItem = { enabled: boolean; points: number } | number;
 
 function getPoints(val: ScoringItem | undefined): number | null {
-  if (val == null) return null;
+  if (val === null || val === undefined) return null;
   if (typeof val === 'number') return val;
   if (typeof val === 'object' && val.enabled) return val.points;
   return null;
 }
 
 function isEnabled(val: ScoringItem | undefined): boolean {
-  if (val == null) return false;
+  if (val === null || val === undefined) return false;
   if (typeof val === 'number') return true;
   if (typeof val === 'object') return val.enabled;
   return false;

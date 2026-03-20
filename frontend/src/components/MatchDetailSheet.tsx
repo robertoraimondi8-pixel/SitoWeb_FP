@@ -6,7 +6,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { apiCall } from '../api/client';
 import { colors, typography, spacing, borderRadius } from '../theme/designSystem';
-import { useTranslation } from 'react-i18next';
 
 type FixtureEvent = {
   time_elapsed: number | null;
@@ -81,7 +80,6 @@ const LIVE_STATUSES = new Set(['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE']);
 const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN']);
 
 export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) {
-  const { t } = useTranslation();
   const [data, setData] = useState<FixtureDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

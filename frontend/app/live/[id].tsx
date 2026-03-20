@@ -243,7 +243,7 @@ export default function LiveScreen() {
                   <Text style={s.specialText}>X3</Text>
                 </View>
               )}
-              {match.status === 'live' && match.elapsed != null && (
+              {match.status === 'live' && match.elapsed !== null && match.elapsed !== undefined && (
                 <View style={s.elapsedBadge}>
                   <Text style={s.elapsedText}>{match.elapsed}'</Text>
                 </View>

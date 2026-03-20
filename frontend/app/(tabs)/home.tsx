@@ -199,14 +199,14 @@ export default function HomeScreen() {
     }
     if (status === 'LIVE') {
       const pts = data.live?.total_provisional;
-      if (pts != null) return `${t('home.in_progress')} \u00B7 ${formatPoints(pts)} pts`;
+      if (pts !== null && pts !== undefined) return `${t('home.in_progress')} \u00B7 ${formatPoints(pts)} pts`;
       return t('home.in_progress');
     }
     if (status === 'COMPLETED') {
       const hasPredictions = (data.matchday.my_predictions_count || 0) > 0;
       if (hasPredictions) {
         const pts = data.matchday.my_points ?? data.live?.total_provisional;
-        if (pts != null) return t('home.you_scored', { points: formatPoints(pts) });
+        if (pts !== null && pts !== undefined) return t('home.you_scored', { points: formatPoints(pts) });
       }
     }
     return '';
