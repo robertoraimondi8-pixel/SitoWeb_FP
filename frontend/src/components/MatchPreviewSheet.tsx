@@ -151,13 +151,13 @@ export function MatchPreviewSheet({ matchId, token, visible, onClose }: Props) {
                 ) : (
                   data.h2h.map((m, i) => (
                     <View key={i} style={s.h2hRow}>
-                      <Text style={s.h2hTeam} numberOfLines={1}>{m.home_team}</Text>
+                      <Text style={s.h2hTeam} numberOfLines={1}>{m?.home_team || '?'}</Text>
                       <View style={s.h2hScore}>
                         <Text style={s.h2hScoreText}>
-                          {m.home_goals ?? '-'} - {m.away_goals ?? '-'}
+                          {m?.home_goals !== null && m?.home_goals !== undefined ? m.home_goals : '-'} - {m?.away_goals !== null && m?.away_goals !== undefined ? m.away_goals : '-'}
                         </Text>
                       </View>
-                      <Text style={[s.h2hTeam, { textAlign: 'right' }]} numberOfLines={1}>{m.away_team}</Text>
+                      <Text style={[s.h2hTeam, { textAlign: 'right' }]} numberOfLines={1}>{m?.away_team || '?'}</Text>
                     </View>
                   ))
                 )}

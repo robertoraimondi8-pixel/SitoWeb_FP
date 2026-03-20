@@ -11,30 +11,33 @@ App di pronostici calcistici con sistema di leghe e tornei. React Native (Expo) 
 
 ## Current Status (March 2026)
 
-### Resolved (code-level, pending deployment)
-- ✅ Fix crash iOS `EXC_BAD_ACCESS abstractEqualityTest` in statistics/fixtures screen
-  - Root cause: `useTranslation()` hook in `FixturesWithRoundPicker` child component
-  - Fix: Removed `useTranslation()` from child component, hardcoded Italian strings
-  - Extra: Replaced loose equality `!= null` with strict `!== null && !== undefined` in fixture score rendering (Hermes safety)
-- ✅ Fix scoping `useTranslation()` in 6 helper functions (MatchDetailSheet, MatchPreviewSheet, statistics)
-- ✅ Fix `formatRound` scoping bug
-- ✅ Array.isArray() guards on all API responses
-- ✅ patch-package fix for expo-linear-gradient (Vivo V50)
-- ✅ expo-build-properties with ProGuard keep rules
+### Resolved (code-level, pending OTA deployment)
+- ✅ Fix crash iOS Statistics screen tabs (useTranslation removed from FixturesWithRoundPicker)
+- ✅ Fix crash iOS MatchDetailSheet (dettaglio partita) - NUOVA FIX:
+  - Rimosso useTranslation() da TUTTI i componenti figli (EventsList, EventRow, StatsComparison, LineupsView)
+  - Sostituiti operatori loose equality (!=, ==) con strict equality (!==, ===)
+  - Aggiunto optional chaining (?.) su TUTTE le proprieta partita
+  - Aggiunto fallback values: score mostra '-' se null, statistiche mostrano 0, loghi placeholder
+  - Sanitizzazione risposta API nel useEffect (Array.isArray guards)
+- ✅ Fix crash iOS MatchPreviewSheet (FormRow) - rimosso useTranslation da componente figlio
+- ✅ Fix strict equality in statistics.tsx (f.home_goals, f.away_goals)
+- ✅ patch-package fix per expo-linear-gradient (Vivo V50)
+- ✅ expo-build-properties con ProGuard keep rules
 - ✅ Push notifications logging + diagnostics endpoint
-- ✅ ErrorBoundary with component stack display
-- ✅ Stripe integration for custom-matches leagues
+- ✅ ErrorBoundary con component stack display
+- ✅ Stripe integration per leghe custom
 
 ### Pending User Action
-- Deploy to Railway (backend changes: push logging, email logging)
-- New native build for iOS + Android (ProGuard, patch-package)
-- OTA update for JS-only fixes (statistics crash)
+- OTA update per JS-only fixes (statistics crash + match detail crash)
+- Deploy Railway (backend: push logging, email logging)
+- New native build iOS + Android (ProGuard, patch-package)
 - SendGrid API key regeneration (401 Unauthorized)
-- Verify PUSH_NOTIFICATIONS_ENABLED=true on Railway
+- Verify PUSH_NOTIFICATIONS_ENABLED=true su Railway
 
 ## Prioritized Backlog
 ### P0
-- [x] Fix crash iOS statistics screen (VERIFIED by testing agent - iteration_103)
+- [x] Fix crash iOS statistics screen tabs (VERIFIED - iteration_103)
+- [x] Fix crash iOS match detail sheet (VERIFIED - iteration_104)
 - [x] Fix crash Vivo V50 LinearGradient (code done, needs native build)
 
 ### P1
@@ -52,3 +55,8 @@ App di pronostici calcistici con sistema di leghe e tornei. React Native (Expo) 
 - Admin prod: robertoraimondi8@gmail.com / admin123
 - User preview: ilio@raimondi.it / password123
 - Test Google Review: test@fantapronostic.com / Test1234!
+
+## Files Modified in This Session
+- /app/frontend/src/components/MatchDetailSheet.tsx (REWRITTEN - null safety + removed useTranslation from children)
+- /app/frontend/src/components/MatchPreviewSheet.tsx (FIXED - FormRow, h2h null safety)
+- /app/frontend/app/(tabs)/statistics.tsx (FIXED - strict equality for scores)
