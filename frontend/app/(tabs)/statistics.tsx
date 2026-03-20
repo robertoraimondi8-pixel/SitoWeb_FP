@@ -83,10 +83,9 @@ export default function StatisticsScreen() {
     if (!token) return;
     try {
       const data = await apiCall<StatsLeague[]>('/stats/leagues', { token });
-      const safe = Array.isArray(data) ? data : [];
-      setLeagues(safe);
-      if (safe.length > 0 && !selectedLeague) {
-        setSelectedLeague(safe[0]);
+      setLeagues(data);
+      if (data.length > 0 && !selectedLeague) {
+        setSelectedLeague(data[0]);
       }
     } catch (e) {
       // Silenced for production
@@ -104,20 +103,20 @@ export default function StatisticsScreen() {
         const data = await apiCall<{ standings: StandingEntry[] }>(
           `/stats/standings/${league.league_id}?season=${season}`, { token }
         );
-        setStandings(data?.standings || []);
+        setStandings(data.standings || []);
       } else if (tab === 'results') {
         const data = await apiCall<{ fixtures: FixtureEntry[] }>(
           `/stats/results/${league.league_id}?season=${season}&last=30`, { token }
         );
-        setResults(data?.fixtures || []);
+        setResults(data.fixtures || []);
       } else if (tab === 'upcoming') {
         const data = await apiCall<{ fixtures: FixtureEntry[] }>(
           `/stats/upcoming/${league.league_id}?season=${season}&next=30`, { token }
         );
-        setUpcoming(data?.fixtures || []);
+        setUpcoming(data.fixtures || []);
       }
-    } catch {
-      // API error - data stays as last loaded or empty
+    } catch (e) {
+      // Silenced for production
     } finally {
       setTabLoading(false);
     }
@@ -262,7 +261,7 @@ export default function StatisticsScreen() {
 
 /* ─── STANDINGS TABLE ─── */
 function StandingsTable({ entries }: { entries: StandingEntry[] }) {
-  if (!entries || entries.length === 0) {
+  if (entries.length === 0) {
     return <Text style={styles.emptyText}>Nessun dato disponibile</Text>;
   }
 
@@ -287,8 +286,8 @@ function StandingsTable({ entries }: { entries: StandingEntry[] }) {
             <View style={[styles.rankIndicator, isTop4 && styles.rankTop, isRelegation && styles.rankBottom]} />
             <Text style={[styles.tableCell, { width: 30 }, isTop4 && styles.tableCellBold]}>{row.rank}</Text>
             <View style={[styles.teamCell, { flex: 1 }]}>
-              {row.team_logo ? <Image source={{ uri: row.team_logo }} style={styles.teamLogo} /> : null}
-              <Text style={styles.teamName} numberOfLines={1}>{row.team_name || ''}</Text>
+              {row.team_logo && <Image source={{ uri: row.team_logo }} style={styles.teamLogo} />}
+              <Text style={styles.teamName} numberOfLines={1}>{row.team_name}</Text>
             </View>
             <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.played}</Text>
             <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.win}</Text>
@@ -331,11 +330,9 @@ function FixturesWithRoundPicker({
 
   // Extract unique rounds preserving order
   const rounds = useMemo(() => {
-    if (!Array.isArray(fixtures)) return [];
     const seen = new Set<string>();
     const list: string[] = [];
     for (const f of fixtures) {
-      if (!f) continue;
       const r = f.round || '';
       if (r && !seen.has(r)) {
         seen.add(r);
@@ -352,15 +349,13 @@ function FixturesWithRoundPicker({
     }
   }, [rounds]);
 
-
   // Filter fixtures by selected round
   const filtered = useMemo(() => {
-    if (!Array.isArray(fixtures)) return [];
     if (!selectedRound) return fixtures;
-    return fixtures.filter(f => f && f.round === selectedRound);
+    return fixtures.filter(f => f.round === selectedRound);
   }, [fixtures, selectedRound]);
 
-  if (!fixtures || fixtures.length === 0) {
+  if (fixtures.length === 0) {
     return <Text style={styles.emptyText}>Nessun dato disponibile</Text>;
   }
 
@@ -392,16 +387,16 @@ function FixturesWithRoundPicker({
         >
           <View style={styles.fixtureTeams}>
             <View style={styles.fixtureTeamRow}>
-              {f.home_logo ? <Image source={{ uri: f.home_logo }} style={styles.fixtureTeamLogo} /> : null}
-              <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.home_team || ''}</Text>
-              {showScore && f.home_goals !== null && f.home_goals !== undefined && (
+              {f.home_logo && <Image source={{ uri: f.home_logo }} style={styles.fixtureTeamLogo} />}
+              <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.home_team}</Text>
+              {showScore && f.home_goals != null && (
                 <Text style={styles.fixtureScore}>{f.home_goals}</Text>
               )}
             </View>
             <View style={styles.fixtureTeamRow}>
-              {f.away_logo ? <Image source={{ uri: f.away_logo }} style={styles.fixtureTeamLogo} /> : null}
-              <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.away_team || ''}</Text>
-              {showScore && f.away_goals !== null && f.away_goals !== undefined && (
+              {f.away_logo && <Image source={{ uri: f.away_logo }} style={styles.fixtureTeamLogo} />}
+              <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.away_team}</Text>
+              {showScore && f.away_goals != null && (
                 <Text style={styles.fixtureScore}>{f.away_goals}</Text>
               )}
             </View>
