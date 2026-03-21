@@ -115,7 +115,7 @@ function safeFormatDate(iso: unknown): string {
   if (typeof iso !== 'string' || iso.length === 0) return '-';
   try {
     const d = new Date(iso);
-    if (isNaN(d.getTime())) return '-';
+    if (Number.isNaN(d.getTime())) return '-';
     return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
   } catch {
     return '-';
@@ -126,14 +126,14 @@ function safeFormatTime(iso: unknown): string {
   if (typeof iso !== 'string' || iso.length === 0) return '-';
   try {
     const d = new Date(iso);
-    if (isNaN(d.getTime())) return '-';
+    if (Number.isNaN(d.getTime())) return '-';
     return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
   } catch {
     return '-';
   }
 }
 
-function safeFormatRound(round: string | null): string {
+function safeFormatRound(round: unknown): string {
   if (typeof round !== 'string' || round.length === 0) return '';
   try {
     return round.replace('Regular Season - ', 'Giornata ');
@@ -142,7 +142,7 @@ function safeFormatRound(round: string | null): string {
   }
 }
 
-function safeFormatRoundShort(round: string | null): string {
+function safeFormatRoundShort(round: unknown): string {
   if (typeof round !== 'string' || round.length === 0) return '';
   try {
     return round.replace('Regular Season - ', 'G');
@@ -462,8 +462,29 @@ function FixturesWithRoundPicker({
       {/* Filtered fixtures */}
       {filtered.map((f, idx) => {
         if (!f || typeof f.fixture_id !== 'number') return null;
+
+        // DIAGNOSTIC: log first 3 fixtures for debugging
+        if (idx < 3) {
+          console.log('[STATS-FIXTURE]', {
+            idx,
+            fixture_id: f.fixture_id,
+            date: f.date,
+            typeofDate: typeof f.date,
+            round: f.round,
+            home_logo: f.home_logo,
+            away_logo: f.away_logo,
+            home_team: f.home_team,
+            away_team: f.away_team,
+          });
+        }
+
         const homeGoals = f.home_goals;
         const awayGoals = f.away_goals;
+        const homeTeam = typeof f.home_team === 'string' ? f.home_team : '?';
+        const awayTeam = typeof f.away_team === 'string' ? f.away_team : '?';
+        const dateStr = safeFormatDate(f.date);
+        const timeStr = safeFormatTime(f.date);
+
         return (
           <TouchableOpacity
             key={`${f.fixture_id}-${idx}`}
@@ -474,23 +495,27 @@ function FixturesWithRoundPicker({
           >
             <View style={styles.fixtureTeams}>
               <View style={styles.fixtureTeamRow}>
-                {f.home_logo ? <Image source={{ uri: f.home_logo }} style={styles.fixtureTeamLogo} /> : null}
-                <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.home_team || '?'}</Text>
+                {/* TEMP: logos disabled for crash isolation */}
+                {/* {f.home_logo ? <Image source={{ uri: f.home_logo }} style={styles.fixtureTeamLogo} /> : null} */}
+                <View style={styles.fixtureTeamLogoPlaceholder} />
+                <Text style={styles.fixtureTeamName} numberOfLines={1}>{homeTeam}</Text>
                 {showScore && homeGoals !== null && homeGoals !== undefined && typeof homeGoals === 'number' && (
                   <Text style={styles.fixtureScore}>{homeGoals}</Text>
                 )}
               </View>
               <View style={styles.fixtureTeamRow}>
-                {f.away_logo ? <Image source={{ uri: f.away_logo }} style={styles.fixtureTeamLogo} /> : null}
-                <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.away_team || '?'}</Text>
+                {/* TEMP: logos disabled for crash isolation */}
+                {/* {f.away_logo ? <Image source={{ uri: f.away_logo }} style={styles.fixtureTeamLogo} /> : null} */}
+                <View style={styles.fixtureTeamLogoPlaceholder} />
+                <Text style={styles.fixtureTeamName} numberOfLines={1}>{awayTeam}</Text>
                 {showScore && awayGoals !== null && awayGoals !== undefined && typeof awayGoals === 'number' && (
                   <Text style={styles.fixtureScore}>{awayGoals}</Text>
                 )}
               </View>
             </View>
             <View style={styles.fixtureMeta}>
-              <Text style={styles.fixtureDate}>{safeFormatDate(f.date)}</Text>
-              {!showScore && <Text style={styles.fixtureTime}>{safeFormatTime(f.date)}</Text>}
+              <Text style={styles.fixtureDate}>{dateStr}</Text>
+              {!showScore && <Text style={styles.fixtureTime}>{timeStr}</Text>}
             </View>
             <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
           </TouchableOpacity>
@@ -809,6 +834,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   fixtureTeamLogo: { width: 18, height: 18, borderRadius: 3 },
+  fixtureTeamLogoPlaceholder: { width: 18, height: 18, borderRadius: 3, backgroundColor: '#E5E7EB' },
   fixtureTeamName: {
     flex: 1,
     fontSize: 13,
