@@ -43,9 +43,9 @@ type FixtureEntry = {
   home_logo: string | null;
   away_team: string;
   away_logo: string | null;
-  home_goals?: number | null;
-  away_goals?: number | null;
-  round?: string;
+  home_goals: number | null;
+  away_goals: number | null;
+  round: string | null;
 };
 
 type TabView = 'standings' | 'results' | 'upcoming';
@@ -58,10 +58,100 @@ const COUNTRY_FLAGS: Record<string, string> = {
   France: '\u{1F1EB}\u{1F1F7}',
 };
 
-const formatRoundShort = (round?: string) => {
-  if (!round) return '';
-  return round.replace('Regular Season - ', 'G');
-};
+/* ─── SANITIZE HELPERS ─── */
+
+function safeString(val: unknown, fallback: string): string {
+  if (typeof val === 'string' && val.length > 0) return val;
+  return fallback;
+}
+
+function safeStringOrNull(val: unknown): string | null {
+  if (typeof val === 'string' && val.length > 0) return val;
+  return null;
+}
+
+function safeNumber(val: unknown): number | null {
+  if (typeof val === 'number' && isFinite(val)) return val;
+  return null;
+}
+
+function sanitizeFixture(raw: unknown): FixtureEntry | null {
+  if (raw === null || raw === undefined || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+
+  const fixture_id = safeNumber(obj.fixture_id);
+  if (fixture_id === null) return null;
+
+  const home_team = safeString(obj.home_team, '');
+  const away_team = safeString(obj.away_team, '');
+  if (home_team === '' && away_team === '') return null;
+
+  const date = safeString(obj.date, '');
+
+  return {
+    fixture_id: fixture_id,
+    date: date,
+    home_team: home_team || '?',
+    home_logo: safeStringOrNull(obj.home_logo),
+    away_team: away_team || '?',
+    away_logo: safeStringOrNull(obj.away_logo),
+    home_goals: safeNumber(obj.home_goals),
+    away_goals: safeNumber(obj.away_goals),
+    round: safeStringOrNull(obj.round),
+  };
+}
+
+function sanitizeFixtures(input: unknown): FixtureEntry[] {
+  if (!Array.isArray(input)) return [];
+  const out: FixtureEntry[] = [];
+  for (let i = 0; i < input.length; i++) {
+    const f = sanitizeFixture(input[i]);
+    if (f !== null) out.push(f);
+  }
+  return out;
+}
+
+function safeFormatDate(iso: unknown): string {
+  if (typeof iso !== 'string' || iso.length === 0) return '-';
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+  } catch {
+    return '-';
+  }
+}
+
+function safeFormatTime(iso: unknown): string {
+  if (typeof iso !== 'string' || iso.length === 0) return '-';
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '-';
+  }
+}
+
+function safeFormatRound(round: string | null): string {
+  if (typeof round !== 'string' || round.length === 0) return '';
+  try {
+    return round.replace('Regular Season - ', 'Giornata ');
+  } catch {
+    return '';
+  }
+}
+
+function safeFormatRoundShort(round: string | null): string {
+  if (typeof round !== 'string' || round.length === 0) return '';
+  try {
+    return round.replace('Regular Season - ', 'G');
+  } catch {
+    return '';
+  }
+}
+
+/* ─── MAIN SCREEN ─── */
 
 export default function StatisticsScreen() {
   const { t } = useTranslation();
@@ -83,12 +173,13 @@ export default function StatisticsScreen() {
     if (!token) return;
     try {
       const data = await apiCall<StatsLeague[]>('/stats/leagues', { token });
-      setLeagues(data);
-      if (data.length > 0 && !selectedLeague) {
-        setSelectedLeague(data[0]);
+      const safe = Array.isArray(data) ? data : [];
+      setLeagues(safe);
+      if (safe.length > 0 && !selectedLeague) {
+        setSelectedLeague(safe[0]);
       }
-    } catch (e) {
-      // Silenced for production
+    } catch {
+      setLeagues([]);
     } finally {
       setLoading(false);
     }
@@ -100,23 +191,28 @@ export default function StatisticsScreen() {
     const season = league.current_season || 2025;
     try {
       if (tab === 'standings') {
-        const data = await apiCall<{ standings: StandingEntry[] }>(
+        const data = await apiCall<{ standings: unknown }>(
           `/stats/standings/${league.league_id}?season=${season}`, { token }
         );
-        setStandings(data.standings || []);
+        const raw = data && typeof data === 'object' ? (data as any).standings : undefined;
+        setStandings(Array.isArray(raw) ? raw : []);
       } else if (tab === 'results') {
-        const data = await apiCall<{ fixtures: FixtureEntry[] }>(
+        const data = await apiCall<{ fixtures: unknown }>(
           `/stats/results/${league.league_id}?season=${season}&last=30`, { token }
         );
-        setResults(data.fixtures || []);
+        const raw = data && typeof data === 'object' ? (data as any).fixtures : undefined;
+        setResults(sanitizeFixtures(raw));
       } else if (tab === 'upcoming') {
-        const data = await apiCall<{ fixtures: FixtureEntry[] }>(
+        const data = await apiCall<{ fixtures: unknown }>(
           `/stats/upcoming/${league.league_id}?season=${season}&next=30`, { token }
         );
-        setUpcoming(data.fixtures || []);
+        const raw = data && typeof data === 'object' ? (data as any).fixtures : undefined;
+        setUpcoming(sanitizeFixtures(raw));
       }
-    } catch (e) {
-      // Silenced for production
+    } catch {
+      if (tab === 'standings') setStandings([]);
+      else if (tab === 'results') setResults([]);
+      else setUpcoming([]);
     } finally {
       setTabLoading(false);
     }
@@ -135,16 +231,6 @@ export default function StatisticsScreen() {
     setRefreshing(true);
     if (selectedLeague) await fetchTabData(activeTab, selectedLeague);
     setRefreshing(false);
-  };
-
-  const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
-  };
-
-  const formatTime = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
   };
 
   if (loading) {
@@ -168,7 +254,7 @@ export default function StatisticsScreen() {
       {/* HEADER */}
       <View style={styles.header}>
         <Ionicons name="stats-chart" size={22} color={colors.primary} />
-        <Text style={styles.headerTitle}>{t('stats.title', { defaultValue: 'Statistiche' })}</Text>
+        <Text style={styles.headerTitle}>Statistiche</Text>
       </View>
 
       {/* LEAGUE SELECTOR */}
@@ -205,9 +291,9 @@ export default function StatisticsScreen() {
         {(['standings', 'results', 'upcoming'] as TabView[]).map((tab) => {
           const isActive = activeTab === tab;
           const labels: Record<TabView, string> = {
-            standings: t('stats.standings', { defaultValue: 'Classifica' }),
-            results: t('stats.results', { defaultValue: 'Risultati' }),
-            upcoming: t('stats.upcoming', { defaultValue: 'Prossime' }),
+            standings: 'Classifica',
+            results: 'Risultati',
+            upcoming: 'Prossime',
           };
           return (
             <TouchableOpacity
@@ -239,8 +325,6 @@ export default function StatisticsScreen() {
           <FixturesWithRoundPicker
             fixtures={currentFixtures}
             showScore={activeTab === 'results'}
-            formatDate={formatDate}
-            formatTime={formatTime}
             selectedRound={selectedRound}
             onSelectRound={setSelectedRound}
             onFixturePress={(fixtureId) => setDetailFixtureId(fixtureId)}
@@ -261,7 +345,8 @@ export default function StatisticsScreen() {
 
 /* ─── STANDINGS TABLE ─── */
 function StandingsTable({ entries }: { entries: StandingEntry[] }) {
-  if (entries.length === 0) {
+  const safe = Array.isArray(entries) ? entries : [];
+  if (safe.length === 0) {
     return <Text style={styles.emptyText}>Nessun dato disponibile</Text>;
   }
 
@@ -278,23 +363,26 @@ function StandingsTable({ entries }: { entries: StandingEntry[] }) {
         <Text style={[styles.tableHeaderCell, styles.tableCellRight, { width: 36 }]}>Pts</Text>
       </View>
 
-      {entries.map((row, idx) => {
-        const isTop4 = row.rank <= 4;
-        const isRelegation = row.rank >= entries.length - 2;
+      {safe.map((row, idx) => {
+        if (!row) return null;
+        const rank = typeof row.rank === 'number' ? row.rank : idx + 1;
+        const isTop4 = rank <= 4;
+        const isRelegation = rank >= safe.length - 2;
+        const goalDiff = typeof row.goal_diff === 'number' ? row.goal_diff : 0;
         return (
-          <View key={row.rank} style={[styles.tableRow, idx % 2 === 0 && styles.tableRowAlt]} data-testid={`standing-row-${row.rank}`}>
+          <View key={`${rank}-${idx}`} style={[styles.tableRow, idx % 2 === 0 && styles.tableRowAlt]} data-testid={`standing-row-${rank}`}>
             <View style={[styles.rankIndicator, isTop4 && styles.rankTop, isRelegation && styles.rankBottom]} />
-            <Text style={[styles.tableCell, { width: 30 }, isTop4 && styles.tableCellBold]}>{row.rank}</Text>
+            <Text style={[styles.tableCell, { width: 30 }, isTop4 && styles.tableCellBold]}>{rank}</Text>
             <View style={[styles.teamCell, { flex: 1 }]}>
-              {row.team_logo && <Image source={{ uri: row.team_logo }} style={styles.teamLogo} />}
-              <Text style={styles.teamName} numberOfLines={1}>{row.team_name}</Text>
+              {row.team_logo ? <Image source={{ uri: row.team_logo }} style={styles.teamLogo} /> : null}
+              <Text style={styles.teamName} numberOfLines={1}>{row.team_name || '?'}</Text>
             </View>
-            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.played}</Text>
-            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.win}</Text>
-            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.draw}</Text>
-            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.lose}</Text>
-            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 36 }]}>{row.goal_diff > 0 ? `+${row.goal_diff}` : row.goal_diff}</Text>
-            <Text style={[styles.tableCell, styles.tableCellRight, styles.tableCellBold, { width: 36 }]}>{row.points}</Text>
+            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.played || 0}</Text>
+            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.win || 0}</Text>
+            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.draw || 0}</Text>
+            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 30 }]}>{row.lose || 0}</Text>
+            <Text style={[styles.tableCell, styles.tableCellCenter, { width: 36 }]}>{goalDiff > 0 ? `+${goalDiff}` : goalDiff}</Text>
+            <Text style={[styles.tableCell, styles.tableCellRight, styles.tableCellBold, { width: 36 }]}>{row.points || 0}</Text>
           </View>
         );
       })}
@@ -306,40 +394,36 @@ function StandingsTable({ entries }: { entries: StandingEntry[] }) {
 function FixturesWithRoundPicker({
   fixtures,
   showScore,
-  formatDate,
-  formatTime,
   selectedRound,
   onSelectRound,
   onFixturePress,
 }: {
   fixtures: FixtureEntry[];
   showScore?: boolean;
-  formatDate: (iso: string) => string;
-  formatTime: (iso: string) => string;
   selectedRound: string | null;
   onSelectRound: (round: string | null) => void;
   onFixturePress?: (fixtureId: number) => void;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const formatRound = (round?: string) => {
-    if (!round) return '';
-    return round.replace('Regular Season - ', 'Giornata ');
-  };
+  // DEFENSE: ensure fixtures is always a safe array
+  const safeFixtures = Array.isArray(fixtures) ? fixtures : [];
 
   // Extract unique rounds preserving order
   const rounds = useMemo(() => {
     const seen = new Set<string>();
     const list: string[] = [];
-    for (const f of fixtures) {
-      const r = f.round || '';
-      if (r && !seen.has(r)) {
+    for (let i = 0; i < safeFixtures.length; i++) {
+      const f = safeFixtures[i];
+      if (!f) continue;
+      const r = typeof f.round === 'string' ? f.round : '';
+      if (r.length > 0 && !seen.has(r)) {
         seen.add(r);
         list.push(r);
       }
     }
     return list;
-  }, [fixtures]);
+  }, [safeFixtures]);
 
   // Auto-select first round when data loads and no round selected
   useEffect(() => {
@@ -350,11 +434,11 @@ function FixturesWithRoundPicker({
 
   // Filter fixtures by selected round
   const filtered = useMemo(() => {
-    if (!selectedRound) return fixtures;
-    return fixtures.filter(f => f.round === selectedRound);
-  }, [fixtures, selectedRound]);
+    if (!selectedRound) return safeFixtures;
+    return safeFixtures.filter(f => f && f.round === selectedRound);
+  }, [safeFixtures, selectedRound]);
 
-  if (fixtures.length === 0) {
+  if (safeFixtures.length === 0) {
     return <Text style={styles.emptyText}>Nessun dato disponibile</Text>;
   }
 
@@ -369,44 +453,49 @@ function FixturesWithRoundPicker({
         >
           <Ionicons name="calendar-outline" size={18} color={colors.primary} />
           <Text style={styles.roundPickerText}>
-            {selectedRound ? formatRound(selectedRound) : 'Tutte le giornate'}
+            {selectedRound ? safeFormatRound(selectedRound) : 'Tutte le giornate'}
           </Text>
           <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
         </TouchableOpacity>
       )}
 
       {/* Filtered fixtures */}
-      {filtered.map((f) => (
-        <TouchableOpacity
-          key={f.fixture_id}
-          style={styles.fixtureCard}
-          data-testid={`fixture-${f.fixture_id}`}
-          activeOpacity={0.7}
-          onPress={() => onFixturePress?.(f.fixture_id)}
-        >
-          <View style={styles.fixtureTeams}>
-            <View style={styles.fixtureTeamRow}>
-              {f.home_logo && <Image source={{ uri: f.home_logo }} style={styles.fixtureTeamLogo} />}
-              <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.home_team}</Text>
-              {showScore && f.home_goals !== null && f.home_goals !== undefined && (
-                <Text style={styles.fixtureScore}>{f.home_goals}</Text>
-              )}
+      {filtered.map((f, idx) => {
+        if (!f || typeof f.fixture_id !== 'number') return null;
+        const homeGoals = f.home_goals;
+        const awayGoals = f.away_goals;
+        return (
+          <TouchableOpacity
+            key={`${f.fixture_id}-${idx}`}
+            style={styles.fixtureCard}
+            data-testid={`fixture-${f.fixture_id}`}
+            activeOpacity={0.7}
+            onPress={() => onFixturePress?.(f.fixture_id)}
+          >
+            <View style={styles.fixtureTeams}>
+              <View style={styles.fixtureTeamRow}>
+                {f.home_logo ? <Image source={{ uri: f.home_logo }} style={styles.fixtureTeamLogo} /> : null}
+                <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.home_team || '?'}</Text>
+                {showScore && homeGoals !== null && homeGoals !== undefined && typeof homeGoals === 'number' && (
+                  <Text style={styles.fixtureScore}>{homeGoals}</Text>
+                )}
+              </View>
+              <View style={styles.fixtureTeamRow}>
+                {f.away_logo ? <Image source={{ uri: f.away_logo }} style={styles.fixtureTeamLogo} /> : null}
+                <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.away_team || '?'}</Text>
+                {showScore && awayGoals !== null && awayGoals !== undefined && typeof awayGoals === 'number' && (
+                  <Text style={styles.fixtureScore}>{awayGoals}</Text>
+                )}
+              </View>
             </View>
-            <View style={styles.fixtureTeamRow}>
-              {f.away_logo && <Image source={{ uri: f.away_logo }} style={styles.fixtureTeamLogo} />}
-              <Text style={styles.fixtureTeamName} numberOfLines={1}>{f.away_team}</Text>
-              {showScore && f.away_goals !== null && f.away_goals !== undefined && (
-                <Text style={styles.fixtureScore}>{f.away_goals}</Text>
-              )}
+            <View style={styles.fixtureMeta}>
+              <Text style={styles.fixtureDate}>{safeFormatDate(f.date)}</Text>
+              {!showScore && <Text style={styles.fixtureTime}>{safeFormatTime(f.date)}</Text>}
             </View>
-          </View>
-          <View style={styles.fixtureMeta}>
-            <Text style={styles.fixtureDate}>{formatDate(f.date)}</Text>
-            {!showScore && <Text style={styles.fixtureTime}>{formatTime(f.date)}</Text>}
-          </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-        </TouchableOpacity>
-      ))}
+            <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+          </TouchableOpacity>
+        );
+      })}
 
       {/* Round Picker Modal */}
       <Modal visible={pickerOpen} transparent animationType="slide" onRequestClose={() => setPickerOpen(false)}>
@@ -439,7 +528,7 @@ function FixturesWithRoundPicker({
                     data-testid={`round-option-${item}`}
                   >
                     <Text style={[styles.modalItemText, isActive && styles.modalItemTextActive]}>
-                      {formatRound(item)}
+                      {safeFormatRound(item)}
                     </Text>
                     {isActive && <Ionicons name="checkmark" size={18} color={colors.accent} />}
                   </TouchableOpacity>
@@ -458,7 +547,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
 
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -474,7 +562,6 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
 
-  // League selector — chips must NOT shrink
   leagueSelector: {
     backgroundColor: '#F3F4F6',
     flexShrink: 0,
@@ -515,7 +602,6 @@ const styles = StyleSheet.create({
   leagueLogo: { width: 20, height: 20, borderRadius: 10 },
   leagueFlag: { fontSize: 16 },
 
-  // Sub-tab bar
   tabBar: {
     flexDirection: 'row',
     backgroundColor: '#F3F4F6',
@@ -557,7 +643,6 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
 
-  // ── Standings Table ──
   tableCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
@@ -624,7 +709,6 @@ const styles = StyleSheet.create({
   rankTop: { backgroundColor: colors.accent },
   rankBottom: { backgroundColor: colors.error },
 
-  // ── Round Picker ──
   roundPickerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -649,7 +733,6 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
 
-  // ── Modal ──
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -700,7 +783,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // ── Fixtures ──
   fixtureCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
