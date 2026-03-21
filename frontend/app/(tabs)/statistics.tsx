@@ -231,6 +231,7 @@ export default function StatisticsScreen() {
       <View style={s.header}>
         <Ionicons name="stats-chart" size={22} color={colors.primary} />
         <Text style={s.headerTitle}>Statistiche</Text>
+        <Text style={{ fontSize: 10, color: '#999', marginLeft: 'auto' }}>v-EM-0321</Text>
       </View>
 
       {/* LEAGUE CHIPS — no Image, text only */}
