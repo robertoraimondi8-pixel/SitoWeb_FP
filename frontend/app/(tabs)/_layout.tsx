@@ -1,5 +1,4 @@
 import { Tabs, useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useState, useEffect } from 'react';
@@ -53,7 +52,6 @@ const ib = StyleSheet.create({
 });
 
 function TabContent() {
-  const { t } = useTranslation();
   const router = useRouter();
   const { token } = useAuth();
   const { mode, currentRoundInfo, leagueMatchdayInfo, setPendingMatchupOpen } = useCompetition();
@@ -88,11 +86,11 @@ function TabContent() {
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600', letterSpacing: 0.2 },
       }}
     >
-      <Tabs.Screen name="home" options={{ title: t('tabs.home'), tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} /> }} />
-      <Tabs.Screen name="statistics" options={{ title: t('tabs.statistics'), tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart" size={size} color={color} /> }} />
+      <Tabs.Screen name="home" options={{ title: 'Home', tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} /> }} />
+      <Tabs.Screen name="statistics" options={{ title: 'Statistiche', tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart" size={size} color={color} /> }} />
       <Tabs.Screen
         name="predictions"
-        options={{ title: t('tabs.predictions'), tabBarIcon: ({ color, size }) => <Ionicons name="football" size={size} color={color} /> }}
+        options={{ title: 'Pronostici', tabBarIcon: ({ color, size }) => <Ionicons name="football" size={size} color={color} /> }}
         listeners={{
           tabPress: (e) => {
             // ═══ DYNAMIC ROUTING for Pronostici tab ═══
@@ -117,8 +115,8 @@ function TabContent() {
           },
         }}
       />
-      <Tabs.Screen name="rankings" options={{ title: t('tabs.rankings'), tabBarIcon: ({ color, size }) => <Ionicons name="trophy" size={size} color={color} /> }} />
-      <Tabs.Screen name="profile" options={{ title: t('tabs.profile'), tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} /> }} />
+      <Tabs.Screen name="rankings" options={{ title: 'Classifica', tabBarIcon: ({ color, size }) => <Ionicons name="trophy" size={size} color={color} /> }} />
+      <Tabs.Screen name="profile" options={{ title: 'Profilo', tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} /> }} />
     </Tabs>
   );
 }
