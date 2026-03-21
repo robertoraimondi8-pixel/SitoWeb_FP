@@ -615,8 +615,66 @@ async function render_dashboard() {
     }
     html += '</div>';
 
+    // ─── Live Refresh Status Panel ───
+    html += '<div class="card" data-testid="live-refresh-panel"><h3 style="display:flex;align-items:center;gap:8px">Live Refresh Status</h3>';
+    try {
+      const lrs = await apiCall('/admin/real-fixtures/live-status');
+      const cb = lrs.circuit_breaker || {};
+      const lr = lrs.last_refresh || {};
+      const mq = lrs.matches_in_queue || {};
+      const cbColor = cb.is_open ? '#EF4444' : '#10B981';
+      const cbLabel = cb.is_open ? 'APERTO (bloccato)' : 'CHIUSO (ok)';
+
+      html += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
+        <div class="counter-box" style="border-color:${lrs.sync_enabled ? '#10B981' : '#EF4444'}"><div class="num" style="color:${lrs.sync_enabled ? '#10B981' : '#EF4444'}">${lrs.sync_enabled ? 'ON' : 'OFF'}</div><div class="label">Sync</div></div>
+        <div class="counter-box" style="border-color:${cbColor}"><div class="num" style="color:${cbColor}">${cbLabel}</div><div class="label">Circuit Breaker</div></div>
+        <div class="counter-box"><div class="num" style="color:#3B82F6">${mq.total||0}</div><div class="label">Match in coda (${mq.live||0} live, ${mq.scheduled||0} sched.)</div></div>
+        <div class="counter-box"><div class="num" style="color:#F5A623">${lrs.refresh_interval_seconds||0}s</div><div class="label">Intervallo Refresh</div></div>
+      </div>`;
+
+      if (lr.seconds_ago !== null) {
+        html += `<p style="font-size:13px;color:#94A3B8;margin-bottom:8px">Ultimo refresh: <strong style="color:#F1F5F9">${lr.seconds_ago}s fa</strong> — Stato: <strong style="color:${lr.status?.startsWith('ok') ? '#10B981' : '#F5A623'}">${lr.status||'-'}</strong></p>`;
+      } else {
+        html += `<p style="font-size:13px;color:#94A3B8;margin-bottom:8px">Nessun refresh eseguito ancora</p>`;
+      }
+      if (lr.last_error) {
+        html += `<p style="font-size:12px;color:#EF4444;margin-bottom:8px">Ultimo errore: ${lr.last_error}</p>`;
+      }
+      if (cb.is_open) {
+        html += `<p style="font-size:13px;color:#EF4444;margin-bottom:8px">Circuit breaker aperto: riprova tra <strong>${cb.remaining_seconds}s</strong> (${cb.consecutive_failures} errori consecutivi)</p>`;
+      }
+      if (lrs.latest_updated_match) {
+        const lm = lrs.latest_updated_match;
+        html += `<p style="font-size:12px;color:#64748B">Ultimo match aggiornato: ${lm.label||'-'} ${lm.score||'-'} (${lm.elapsed||0}') [${lm.status||'-'}]</p>`;
+      }
+
+      html += `<div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-sm" onclick="triggerLiveRefresh()" data-testid="btn-trigger-refresh">Forza Refresh</button>
+        <button class="btn btn-sm btn-outline" onclick="resetCircuitBreaker()" data-testid="btn-reset-cb" style="${cb.is_open ? 'border-color:#EF4444;color:#EF4444' : ''}">Reset Circuit Breaker</button>
+      </div>`;
+    } catch(e) {
+      html += `<p style="color:#EF4444;font-size:13px">Errore caricamento stato: ${e.message}</p>`;
+    }
+    html += '</div>';
+
     el.innerHTML = '<h2>Dashboard</h2>' + html;
   } catch(e) { showToast(e.message, 'error'); el.innerHTML = '<h2>Dashboard</h2><p style="color:#EF4444">Errore: '+e.message+'</p>'; }
+}
+
+async function triggerLiveRefresh() {
+  try {
+    const r = await apiCall('/admin/real-fixtures/refresh-live', 'POST');
+    showToast('Refresh completato: ' + (r.last_status || 'ok'), 'success');
+    renderDashboard();
+  } catch(e) { showToast('Errore refresh: ' + e.message, 'error'); }
+}
+
+async function resetCircuitBreaker() {
+  try {
+    const r = await apiCall('/admin/real-fixtures/reset-circuit-breaker', 'POST');
+    showToast(r.was_open ? 'Circuit breaker resettato!' : 'Circuit breaker era già chiuso', 'success');
+    renderDashboard();
+  } catch(e) { showToast('Errore reset: ' + e.message, 'error'); }
 }
 
 // ========================================

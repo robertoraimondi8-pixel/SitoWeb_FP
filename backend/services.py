@@ -80,7 +80,11 @@ LIVE_REFRESH_INTERVAL = int(os.environ.get("APIFOOTBALL_LIVE_INTERVAL", "180"))
 
 # Circuit breaker state
 _circuit_open_until: float = 0
-CIRCUIT_BREAKER_COOLDOWN = 3600
+CIRCUIT_BREAKER_COOLDOWN = int(os.environ.get("APIFOOTBALL_CIRCUIT_BREAKER_COOLDOWN", "300"))
+_circuit_fail_count: int = 0
+_last_live_refresh_at: float = 0
+_last_live_refresh_status: str = "never"
+_last_live_error: str = ""
 
 # Reminder Config
 REMINDER_CHECK_INTERVAL = 300

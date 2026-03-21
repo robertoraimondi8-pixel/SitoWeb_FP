@@ -185,59 +185,93 @@ async def live_fixtures_loop():
     if not LIVE_SYNC_ENABLED:
         logger.info("[LIVE-REFRESH] Sync disabled (APIFOOTBALL_LIVE_SYNC_ENABLED=false)")
         return
-    logger.info(f"[LIVE-REFRESH] Sync enabled, interval={LIVE_REFRESH_INTERVAL}s")
+    logger.info(f"[LIVE-REFRESH] Sync enabled, interval={LIVE_REFRESH_INTERVAL}s, circuit_breaker_cooldown={CIRCUIT_BREAKER_COOLDOWN}s")
     while True:
         try:
-            logger.info(f"[LIVE-REFRESH] Sleeping {LIVE_REFRESH_INTERVAL}s before next check...")
             await asyncio.sleep(LIVE_REFRESH_INTERVAL)
-            logger.info("[LIVE-REFRESH] Woke up, checking for live matches...")
             await _refresh_live_fixtures()
         except asyncio.CancelledError:
             logger.info("[LIVE-REFRESH] Task cancelled")
             break
         except Exception as e:
-            logger.error(f"[LIVE-REFRESH] Error in loop: {e}", exc_info=True)
+            _svc._last_live_refresh_status = f"loop_error: {e}"
+            _svc._last_live_error = str(e)
+            logger.error(f"[LIVE-REFRESH] Unhandled error in loop: {e}", exc_info=True)
 
 
 async def _refresh_live_fixtures():
     from apifootball import map_api_status
 
-    if time.time() < _svc._circuit_open_until:
-        remaining = int(_svc._circuit_open_until - time.time())
-        logger.info(f"[LIVE-REFRESH] Circuit breaker open, skipping ({remaining}s remaining)")
+    now = time.time()
+
+    # Circuit breaker check with progressive backoff
+    if now < _svc._circuit_open_until:
+        remaining = int(_svc._circuit_open_until - now)
+        logger.info(f"[LIVE-REFRESH] Circuit breaker open ({remaining}s remaining, failures={_svc._circuit_fail_count})")
+        _svc._last_live_refresh_status = f"circuit_breaker_open ({remaining}s left)"
         return
 
+    # Query matches that need updating: live OR scheduled with external fixture
     live_matches = await matches_col.find(
-        {"external_provider": "api-football", "external_fixture_id": {"$exists": True}, "status": {"$in": ["live", "scheduled"]}},
+        {
+            "external_provider": "api-football",
+            "external_fixture_id": {"$exists": True},
+            "status": {"$in": ["live", "scheduled"]},
+        },
         {"_id": 0}
     ).to_list(200)
 
+    _svc._last_live_refresh_at = now
+
     if not live_matches:
-        logger.info("[LIVE-REFRESH] No live/scheduled matches with external_fixture_id found in DB, skipping")
+        _svc._last_live_refresh_status = "ok_no_matches"
+        logger.debug("[LIVE-REFRESH] No live/scheduled matches found in DB")
         return
+
+    logger.info(f"[LIVE-REFRESH] Found {len(live_matches)} matches to check "
+                f"(live={sum(1 for m in live_matches if m['status'] == 'live')}, "
+                f"scheduled={sum(1 for m in live_matches if m['status'] == 'scheduled')})")
 
     client = get_apifootball()
     updated_count = 0
+    api_errors = 0
     finished_matchday_ids = set()
 
     for m in live_matches:
         fid = m["external_fixture_id"]
+        match_label = f"{m.get('home_team', '?')} vs {m.get('away_team', '?')} (fid={fid})"
         try:
             fx = await client.get_fixture_by_id(fid)
         except Exception as e:
+            api_errors += 1
             err_msg = str(e).lower()
             if "429" in err_msg or "403" in err_msg or "suspended" in err_msg or "rate" in err_msg:
-                _svc._circuit_open_until = time.time() + CIRCUIT_BREAKER_COOLDOWN
-                logger.warning(f"[LIVE-REFRESH] Circuit breaker OPEN for {CIRCUIT_BREAKER_COOLDOWN}s due to: {e}")
+                _svc._circuit_fail_count += 1
+                # Progressive backoff: base cooldown * 2^(failures-1), capped at 1 hour
+                backoff = min(CIRCUIT_BREAKER_COOLDOWN * (2 ** (_svc._circuit_fail_count - 1)), 3600)
+                _svc._circuit_open_until = time.time() + backoff
+                _svc._last_live_refresh_status = f"circuit_breaker_triggered (backoff={backoff}s, failures={_svc._circuit_fail_count})"
+                _svc._last_live_error = str(e)
+                logger.warning(f"[LIVE-REFRESH] Circuit breaker OPEN for {backoff}s (failure #{_svc._circuit_fail_count}): {e}")
                 return
-            logger.warning(f"[LIVE-REFRESH] Failed to fetch fixture {fid}: {e}")
+            logger.warning(f"[LIVE-REFRESH] API error for {match_label}: {e}")
+            _svc._last_live_error = f"fixture {fid}: {e}"
             continue
 
         if not fx:
+            logger.warning(f"[LIVE-REFRESH] No data returned for {match_label}")
             continue
+
+        # Reset circuit breaker on successful API call
+        if _svc._circuit_fail_count > 0:
+            logger.info(f"[LIVE-REFRESH] API call succeeded, resetting circuit breaker (was at {_svc._circuit_fail_count} failures)")
+            _svc._circuit_fail_count = 0
+            _svc._circuit_open_until = 0
 
         new_status = map_api_status(fx.get("status_short", "NS"))
         updates = {}
+
+        # Always update scores if available (even if same — ensures consistency)
         if fx.get("home_goals") is not None:
             updates["home_score"] = fx["home_goals"]
         if fx.get("away_goals") is not None:
@@ -251,19 +285,31 @@ async def _refresh_live_fixtures():
         if fx.get("away_logo") and not m.get("away_logo"):
             updates["away_logo"] = fx["away_logo"]
 
+        # Track when this match was last refreshed
+        updates["last_live_update"] = now_utc()
+
         if updates:
             await matches_col.update_one({"id": m["id"]}, {"$set": updates})
             updated_count += 1
-            logger.info(f"[LIVE-REFRESH] Updated {m['home_team']} vs {m['away_team']}: {updates}")
+            if new_status != m["status"] or fx.get("home_goals") != m.get("home_score") or fx.get("away_goals") != m.get("away_score"):
+                logger.info(f"[LIVE-REFRESH] {match_label}: "
+                            f"status={m['status']}->{new_status}, "
+                            f"score={m.get('home_score')}-{m.get('away_score')}->"
+                            f"{fx.get('home_goals')}-{fx.get('away_goals')}, "
+                            f"elapsed={fx.get('elapsed')}'")
+
             if new_status == "finished" and m["status"] != "finished":
+                logger.info(f"[LIVE-REFRESH] Match FINISHED: {match_label} → recalculating predictions")
                 await recalculate_match_predictions(m["id"], m["league_id"])
                 finished_matchday_ids.add(m["matchday_id"])
 
     for md_id in finished_matchday_ids:
         await _check_auto_complete_matchday(md_id)
 
-    if updated_count > 0:
-        logger.info(f"[LIVE-REFRESH] Updated {updated_count} matches")
+    _svc._last_live_refresh_status = f"ok_updated={updated_count}_of_{len(live_matches)}"
+    if api_errors > 0:
+        _svc._last_live_refresh_status += f"_errors={api_errors}"
+    logger.info(f"[LIVE-REFRESH] Cycle done: {updated_count}/{len(live_matches)} updated, {api_errors} API errors")
 
 
 async def _check_auto_complete_matchday(matchday_id: str):
@@ -287,10 +333,88 @@ async def _check_auto_complete_matchday(matchday_id: str):
         })
 
 
+# ========================================
+# ADMIN ENDPOINTS: LIVE REFRESH CONTROL
+# ========================================
+
 @fixtures_router.post("/refresh-live")
 async def real_fixtures_refresh_live(admin=Depends(require_permission("admin.matches.manage"))):
     try:
         await _refresh_live_fixtures()
-        return {"status": "ok", "message": "Live refresh completato"}
+        return {
+            "status": "ok",
+            "message": "Live refresh completato",
+            "last_status": _svc._last_live_refresh_status,
+            "circuit_breaker_open": time.time() < _svc._circuit_open_until,
+        }
     except Exception as e:
         raise HTTPException(502, f"Errore refresh: {e}")
+
+
+@fixtures_router.get("/live-status")
+async def live_refresh_status(admin=Depends(require_permission("admin.matches.manage"))):
+    """Diagnostic endpoint: check the state of the live refresh system."""
+    now = time.time()
+    cb_open = now < _svc._circuit_open_until
+    cb_remaining = int(_svc._circuit_open_until - now) if cb_open else 0
+
+    # Count matches that would be refreshed
+    live_count = await matches_col.count_documents(
+        {"external_provider": "api-football", "external_fixture_id": {"$exists": True}, "status": "live"}
+    )
+    scheduled_count = await matches_col.count_documents(
+        {"external_provider": "api-football", "external_fixture_id": {"$exists": True}, "status": "scheduled"}
+    )
+
+    # Find most recently updated match
+    latest_match = await matches_col.find_one(
+        {"last_live_update": {"$exists": True}},
+        {"_id": 0, "home_team": 1, "away_team": 1, "home_score": 1, "away_score": 1, "elapsed": 1, "status": 1, "last_live_update": 1},
+        sort=[("last_live_update", -1)]
+    )
+
+    return {
+        "sync_enabled": LIVE_SYNC_ENABLED,
+        "refresh_interval_seconds": LIVE_REFRESH_INTERVAL,
+        "circuit_breaker": {
+            "is_open": cb_open,
+            "remaining_seconds": cb_remaining,
+            "consecutive_failures": _svc._circuit_fail_count,
+            "cooldown_base_seconds": CIRCUIT_BREAKER_COOLDOWN,
+        },
+        "last_refresh": {
+            "timestamp": _svc._last_live_refresh_at,
+            "seconds_ago": int(now - _svc._last_live_refresh_at) if _svc._last_live_refresh_at else None,
+            "status": _svc._last_live_refresh_status,
+            "last_error": _svc._last_live_error or None,
+        },
+        "matches_in_queue": {
+            "live": live_count,
+            "scheduled": scheduled_count,
+            "total": live_count + scheduled_count,
+        },
+        "latest_updated_match": {
+            "label": f"{latest_match['home_team']} vs {latest_match['away_team']}" if latest_match else None,
+            "score": f"{latest_match.get('home_score')}-{latest_match.get('away_score')}" if latest_match else None,
+            "elapsed": latest_match.get("elapsed") if latest_match else None,
+            "status": latest_match.get("status") if latest_match else None,
+            "updated_at": str(latest_match.get("last_live_update")) if latest_match else None,
+        } if latest_match else None,
+    }
+
+
+@fixtures_router.post("/reset-circuit-breaker")
+async def reset_circuit_breaker(admin=Depends(require_permission("admin.matches.manage"))):
+    """Manually reset the circuit breaker to resume live updates immediately."""
+    was_open = time.time() < _svc._circuit_open_until
+    old_failures = _svc._circuit_fail_count
+    _svc._circuit_open_until = 0
+    _svc._circuit_fail_count = 0
+    _svc._last_live_error = ""
+    logger.info(f"[LIVE-REFRESH] Circuit breaker manually reset by admin (was_open={was_open}, failures={old_failures})")
+    return {
+        "status": "ok",
+        "message": "Circuit breaker resettato",
+        "was_open": was_open,
+        "previous_failures": old_failures,
+    }
