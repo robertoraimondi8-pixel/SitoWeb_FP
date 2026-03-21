@@ -213,6 +213,7 @@ async def _refresh_live_fixtures():
     ).to_list(200)
 
     if not live_matches:
+        logger.info("[LIVE-REFRESH] No live/scheduled matches with external_fixture_id found in DB, skipping")
         return
 
     client = get_apifootball()
