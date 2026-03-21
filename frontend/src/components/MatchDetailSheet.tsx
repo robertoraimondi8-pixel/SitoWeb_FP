@@ -138,8 +138,9 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={onClose}>
-        <View style={s.sheet} onStartShouldSetResponder={() => true}>
+      <View style={s.overlay}>
+        <TouchableOpacity style={s.overlayBg} activeOpacity={1} onPress={onClose} />
+        <View style={s.sheet}>
           {/* Handle + Close */}
           <View style={s.sheetHeader}>
             <View style={s.handle} />
@@ -260,7 +261,7 @@ export function MatchDetailSheet({ fixtureId, token, visible, onClose }: Props) 
             </ScrollView>
           ) : null}
         </View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 }
@@ -612,6 +613,7 @@ function LineupsView({ lineups }: { lineups: Lineup[] }) {
 
 const s = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' },
+  overlayBg: { flex: 1 },
   sheet: { backgroundColor: colors.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '85%', paddingBottom: 30 },
   sheetHeader: { alignItems: 'center', paddingTop: 10, paddingBottom: 6, paddingHorizontal: 16 },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 4 },
