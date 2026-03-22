@@ -31,10 +31,23 @@
         "expo-build-properties",
         {
           "android": {
-            "extraProguardRules": "-keep class expo.modules.lineargradient.** { *; }\n-keep class expo.modules.** { *; }\n-keepclassmembers class * { @androidx.annotation.Keep *; }"
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": false,
+            "extraProguardRules": "-keep class expo.modules.** { *; }\n-keep class com.facebook.hermes.** { *; }\n-keep class com.facebook.jni.** { *; }\n-keep class com.facebook.react.** { *; }\n-keep class com.facebook.soloader.** { *; }\n-keep class com.swmansion.reanimated.** { *; }\n-keep class com.swmansion.gesturehandler.** { *; }\n-keep class com.th3rdwave.safeareacontext.** { *; }\n-keep class com.reactnativecommunity.asyncstorage.** { *; }\n-keepclassmembers class * { @androidx.annotation.Keep *; }\n-keepclassmembers class * { @com.facebook.proguard.annotations.DoNotStrip *; }\n-keepclassmembers class * { @com.facebook.proguard.annotations.KeepGettersAndSetters *; }\n-dontwarn com.facebook.hermes.**\n-dontwarn com.facebook.jni.**",
+            "packagingOptions": {
+              "pickFirst": [
+                "lib/arm64-v8a/libc++_shared.so",
+                "lib/armeabi-v7a/libc++_shared.so",
+                "lib/x86/libc++_shared.so",
+                "lib/x86_64/libc++_shared.so",
+                "lib/arm64-v8a/libhermes.so",
+                "lib/armeabi-v7a/libhermes.so"
+              ]
+            }
           }
         }
       ],
+      "./plugins/withUncompressedNativeLibs.js",
       [
         "expo-splash-screen",
         {

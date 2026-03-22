@@ -17,7 +17,19 @@ Il crash iOS era causato da 2 pattern pericolosi nel motore Hermes:
 2. Operatori loose equality (`!=`, `==`) su valori null/undefined
 Fix applicato su 7 file. Zero pattern pericolosi rimasti.
 
-### Live Data Refresh - MIGLIORATO
+### Android Vivo V50 Crash (Play Store) - FIX APPLICATO
+Il crash avviene SOLO tramite Play Store (AAB split APK), NON con APK diretto.
+Causa: le librerie native (.so) vengono compresse nell'AAB e il Play Store genera split APK
+che possono fallire il caricamento su certi dispositivi (Vivo V50 / Snapdragon 7 Gen 3 / arm64-v8a).
+
+**Fix applicati:**
+1. `plugins/withUncompressedNativeLibs.js` — disabilita compressione native libs nell'AAB
+2. ProGuard rules estese — keep per Hermes, React Native, Reanimated, GestureHandler, SafeAreaContext, AsyncStorage
+3. `enableShrinkResourcesInReleaseBuilds: false` — previene stripping risorse necessarie
+4. `packagingOptions.pickFirst` — risolve conflitti di librerie duplicate (libc++_shared.so, libhermes.so)
+
+**RICHIEDE NUOVO NATIVE BUILD**: `eas build --platform android --profile production`
+Poi re-upload dell'AAB su Play Store Internal Testing per verifica.
 Il sistema di refresh live dei punteggi dalle API-Football è stato significativamente migliorato:
 - Circuit breaker ridotto da 3600s a 300s (configurabile via env `APIFOOTBALL_CIRCUIT_BREAKER_COOLDOWN`)
 - Backoff progressivo (300s → 600s → 1200s... max 3600s) invece di cooldown fisso
