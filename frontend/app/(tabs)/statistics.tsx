@@ -148,8 +148,7 @@ function formatRoundLabel(r: string): string {
 /* --- MAIN SCREEN --- */
 
 export default function StatisticsScreen() {
-  var auth = useAuth();
-  var token = auth ? auth.token : null;
+  const { token } = useAuth();
 
   var [leagues, setLeagues] = useState<StatsLeague[]>([]);
   var [selectedLeague, setSelectedLeague] = useState<StatsLeague | null>(null);

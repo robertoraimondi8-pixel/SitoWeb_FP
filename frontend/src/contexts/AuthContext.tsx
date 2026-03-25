@@ -46,7 +46,27 @@ interface RegisterData {
   acceptedTerms: boolean;
 }
 
-const AuthContext = createContext<AuthState>({} as AuthState);
+// Safe no-op defaults — prevents "undefined is not a function" if component
+// renders before or outside AuthProvider (e.g., during Android cold start)
+const noop = async () => {};
+const noopBool = async () => false;
+
+const AUTH_DEFAULTS: AuthState = {
+  user: null,
+  token: null,
+  refreshToken: null,
+  isLoading: true,
+  isAuthenticated: false,
+  login: noop as any,
+  register: noop as any,
+  loginWithToken: noop as any,
+  logout: noop as any,
+  refresh: noopBool,
+  handleAuthError: noopBool,
+  updateUser: () => {},
+};
+
+const AuthContext = createContext<AuthState>(AUTH_DEFAULTS);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
