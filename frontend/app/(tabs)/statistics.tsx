@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ScrollView,
+  View, Text, TouchableOpacity, Pressable, StyleSheet, ScrollView, Platform,
   RefreshControl, ActivityIndicator, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -147,6 +147,8 @@ function formatRoundLabel(r: string): string {
 
 /* --- MAIN SCREEN --- */
 
+const BUILD_TAG = 'v-EM-0326';
+
 export default function StatisticsScreen() {
   const { token } = useAuth();
 
@@ -241,6 +243,7 @@ export default function StatisticsScreen() {
       <View style={st.header}>
         <Ionicons name="stats-chart" size={22} color={colors.primary} />
         <Text style={st.headerTitle}>Statistiche</Text>
+        <Text style={{ fontSize: 9, color: colors.textSecondary, marginLeft: 'auto' }}>{BUILD_TAG}</Text>
       </View>
 
       {/* LEAGUE CHIPS with logos */}
@@ -381,10 +384,9 @@ function FixturesList(props: { fixtures: FixtureEntry[]; showScore: boolean; onP
               var timeStr = safeTime(f.date);
 
               return (
-                <TouchableOpacity
+                <Pressable
                   key={String(f.fixture_id) + '-' + String(fi)}
-                  style={st.fixtureCard}
-                  activeOpacity={0.7}
+                  style={function({ pressed }: { pressed: boolean }) { return [st.fixtureCard, pressed && { opacity: 0.7 }]; }}
                   onPress={function() { props.onPress(f.fixture_id); }}
                 >
                   <View style={st.fixtureTeams}>
@@ -408,7 +410,7 @@ function FixturesList(props: { fixtures: FixtureEntry[]; showScore: boolean; onP
                     {!props.showScore ? <Text style={st.fixtureTime}>{timeStr}</Text> : null}
                   </View>
                   <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </View>
