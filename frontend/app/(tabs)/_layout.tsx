@@ -60,12 +60,17 @@ function TabContent() {
   // Register for push notifications when user is authenticated
   usePushNotifications(token);
 
-  // Calculate tab bar height: base height + safe area bottom inset
-  const tabBarBottomPadding = Math.max(insets.bottom, 10);
-  const tabBarHeight = 54 + tabBarBottomPadding;
+  // Responsive tab bar: manual safe area handling
+  // Disable React Navigation's automatic safe area (safeAreaInsets: {bottom: 0})
+  // and calculate manually to avoid double-padding on some devices
+  const ANDROID_MIN_BOTTOM = Platform.OS === 'android' ? 16 : 0;
+  const bottomInset = Math.max(insets.bottom, ANDROID_MIN_BOTTOM);
+  const TAB_BAR_BASE_HEIGHT = 56;
+  const tabBarHeight = TAB_BAR_BASE_HEIGHT + bottomInset;
 
   return (
     <Tabs
+      safeAreaInsets={{ bottom: 0 }}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -73,7 +78,7 @@ function TabContent() {
           borderTopColor: 'rgba(255,255,255,0.06)',
           borderTopWidth: 0.5,
           height: tabBarHeight,
-          paddingBottom: tabBarBottomPadding,
+          paddingBottom: bottomInset,
           paddingTop: 6,
           elevation: 8,
           shadowColor: '#000',
