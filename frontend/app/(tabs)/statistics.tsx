@@ -243,7 +243,9 @@ export default function StatisticsScreen() {
       <View style={st.header}>
         <Ionicons name="stats-chart" size={22} color={colors.primary} />
         <Text style={st.headerTitle}>Statistiche</Text>
-        <Text style={{ fontSize: 9, color: colors.textSecondary, marginLeft: 'auto' }}>{BUILD_TAG}</Text>
+        <View style={{ marginLeft: 'auto', backgroundColor: '#F5A623', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: '#000' }}>{BUILD_TAG}</Text>
+        </View>
       </View>
 
       {/* LEAGUE CHIPS with logos */}
