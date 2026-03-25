@@ -53,6 +53,11 @@ Il sistema di refresh live dei punteggi dalle API-Football è stato significativ
 - [x] Fix crash Vivo V50 LinearGradient (code done, needs native build)
 - [x] Fix Live Data Refresh (circuit breaker, logging, diagnostica admin)
 - [x] Fix Google Sign-In Android crash/stuck (browser cleanup, auth state recovery, token validation)
+- [x] Fix hamburger menu touch area Android (48x48 + hitSlop 12px)
+- [x] Fix onboarding lingua: rimosso testo, solo bandiere con checkmark
+- [x] Fix delete account: messaggio "Account eliminato correttamente" + gestione errori
+- [x] Fix verify email: rimosso banner beta, messaggio user-friendly "Email inviata"
+- [x] Traduzioni IT/EN/ES aggiornate per verify-email e delete-account
 
 ### P1
 - [ ] Fix navigazione tab "Pronostici" per tornei (routing dinamico in _layout.tsx)

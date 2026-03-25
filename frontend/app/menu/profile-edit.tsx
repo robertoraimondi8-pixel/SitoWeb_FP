@@ -57,13 +57,33 @@ export default function ProfileEditScreen() {
   };
 
   const deleteAccount = () => {
-    Alert.alert(t('profileEdit.delete_account'), t('profileEdit.delete_confirm'), [
-      { text: t('profileEdit.cancel'), style: 'cancel' },
-      { text: t('profileEdit.delete'), style: 'destructive', onPress: async () => {
-        try { await apiCall('/profile', { token, method: 'DELETE' }); await logout(); router.replace('/(auth)/login' as any); }
-        catch (e: any) { Alert.alert(t('profileEdit.error'), e.message); }
-      }},
-    ]);
+    Alert.alert(
+      t('profileEdit.delete_account'),
+      t('profileEdit.delete_confirm'),
+      [
+        { text: t('profileEdit.cancel'), style: 'cancel' },
+        {
+          text: t('profileEdit.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiCall('/profile', { token, method: 'DELETE' });
+              await logout();
+              Alert.alert(
+                t('profileEdit.delete_success_title'),
+                t('profileEdit.delete_success_msg'),
+                [{ text: 'OK', onPress: () => router.replace('/(auth)/login' as any) }]
+              );
+            } catch (e: any) {
+              Alert.alert(
+                t('profileEdit.error'),
+                e.message || t('profileEdit.delete_error_msg')
+              );
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (

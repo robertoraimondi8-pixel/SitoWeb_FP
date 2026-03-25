@@ -631,23 +631,18 @@
     "tiebreak_draw": "Vince per tiebreak: sorteggio"
   },
   "verify_email": {
-    "title": "Verifica email",
-    "beta_title": "Versione beta — verifica simulata",
-    "beta_desc": "In questa versione di test l'email non viene inviata realmente.\nIl token di verifica e visibile nei log del server.",
-    "beta_how": "Come usarlo:",
-    "beta_step1": "1. Apri i log backend",
-    "beta_step2": "2. Cerca la riga",
-    "beta_step2_code": "[EMAIL-VERIFY] token=…",
-    "beta_step3": "3. Copia il token e incollalo qui sotto.",
-    "token_label": "Token di verifica",
-    "token_placeholder": "Incolla il token dal log del server",
+    "title": "Verifica la tua email",
+    "sent_desc": "Ti abbiamo inviato un'email di verifica. Per favore controlla la tua casella di posta e inserisci il codice qui sotto.",
+    "check_spam": "Non la trovi? Controlla anche la cartella spam.",
+    "token_label": "Codice di verifica",
+    "token_placeholder": "Inserisci il codice ricevuto via email",
     "verify_btn": "Verifica Email",
     "verified_success": "Email verificata! Reindirizzamento in corso…",
-    "invalid_token": "Token non valido o scaduto.",
-    "resend_btn": "Genera nuovo token",
-    "resend_success": "Nuovo token generato. Controlla i log del server.",
-    "resend_error": "Errore. Riprova piu tardi.",
-    "paste_token": "Incolla il token di verifica."
+    "invalid_token": "Codice non valido o scaduto.",
+    "resend_btn": "Invia di nuovo",
+    "resend_success": "Email di verifica inviata. Controlla la tua casella di posta.",
+    "resend_error": "Errore nell'invio. Riprova piu tardi.",
+    "paste_token": "Inserisci il codice di verifica."
   },
   "user_detail": {
     "title": "Profilo Utente",
@@ -812,6 +807,9 @@
     "delete_confirm": "Sei sicuro? Tutti i tuoi dati verranno eliminati permanentemente.",
     "cancel": "Annulla",
     "delete": "Elimina",
+    "delete_success_title": "Account eliminato",
+    "delete_success_msg": "Il tuo account e stato eliminato correttamente.",
+    "delete_error_msg": "Non e stato possibile eliminare l'account. Riprova piu tardi.",
     "saved": "Salvato",
     "error": "Errore"
   },

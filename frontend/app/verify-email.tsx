@@ -90,18 +90,12 @@ export default function VerifyEmailScreen() {
           <Text style={s.email}>{emailToShow}</Text>
         ) : null}
 
-        {/* BANNER BETA */}
-        <View style={s.betaBanner}>
-          <Ionicons name="flask-outline" size={18} color={colors.warning ?? '#F59E0B'} />
+        {/* Messaggio user-friendly */}
+        <View style={s.infoBanner}>
+          <Ionicons name="mail-outline" size={18} color={colors.info ?? '#3B82F6'} />
           <View style={{ flex: 1 }}>
-            <Text style={s.betaTitle}>{t('verify_email.beta_title')}</Text>
-            <Text style={s.betaDesc}>
-              {t('verify_email.beta_desc')}{'\n\n'}
-              <Text style={{ fontWeight: '700' }}>{t('verify_email.beta_how')}</Text>
-              {'\n'}{t('verify_email.beta_step1')}{'\n'}{t('verify_email.beta_step2')}{' '}
-              <Text style={s.codeText}>{t('verify_email.beta_step2_code')}</Text>
-              {'\n'}{t('verify_email.beta_step3')}
-            </Text>
+            <Text style={s.infoDesc}>{t('verify_email.sent_desc')}</Text>
+            <Text style={s.infoHint}>{t('verify_email.check_spam')}</Text>
           </View>
         </View>
 
@@ -208,17 +202,16 @@ const s = StyleSheet.create({
     ...typography.bodyM, color: colors.accent, fontWeight: '700',
     textAlign: 'center', marginBottom: spacing.xl,
   },
-  betaBanner: {
+  infoBanner: {
     flexDirection: 'row', gap: spacing.md,
-    backgroundColor: '#FEF3C7',
-    borderLeftWidth: 4, borderLeftColor: '#F59E0B',
+    backgroundColor: 'rgba(59,130,246,0.08)',
+    borderLeftWidth: 4, borderLeftColor: '#3B82F6',
     borderRadius: borderRadius.md,
     padding: spacing.md,
     marginBottom: spacing.xl, width: '100%',
   },
-  betaTitle: { fontSize: 13, fontWeight: '700', color: '#92400E', marginBottom: spacing.xs },
-  betaDesc: { fontSize: 12, color: '#78350F', lineHeight: 18 },
-  codeText: { fontFamily: 'monospace', backgroundColor: '#FDE68A', color: '#78350F', fontSize: 11 },
+  infoDesc: { fontSize: 14, color: colors.textPrimary, lineHeight: 20, marginBottom: spacing.xs },
+  infoHint: { fontSize: 12, color: colors.textSecondary, fontStyle: 'italic' },
   tokenSection: { width: '100%', marginBottom: spacing.lg },
   tokenLabel: { ...typography.bodyS, color: colors.textSecondary, fontWeight: '600', marginBottom: spacing.xs },
   tokenInputWrap: {

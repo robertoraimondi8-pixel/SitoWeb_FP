@@ -248,8 +248,8 @@ export default function HomeScreen() {
       <View style={s.ambientOverlay} />
       {/* ═══ HEADER (light premium) ═══ */}
       <View style={s.header}>
-        <TouchableOpacity style={s.headerIcon} onPress={() => setMenuOpen(true)} testID="hamburger-menu-btn" accessibilityLabel="Apri menu" accessibilityRole="button">
-          <Ionicons name="menu" size={24} color={LIGHT.text} />
+        <TouchableOpacity style={s.headerIcon} onPress={() => setMenuOpen(true)} testID="hamburger-menu-btn" accessibilityLabel="Apri menu" accessibilityRole="button" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+          <Ionicons name="menu" size={26} color={LIGHT.text} />
         </TouchableOpacity>
         <View style={s.headerCenter}>
           <BrandLogo variant="wordmark" size="lg" />
@@ -741,8 +741,8 @@ const s = StyleSheet.create({
     backgroundColor: '#F3F4F6',
   },
   headerIcon: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },

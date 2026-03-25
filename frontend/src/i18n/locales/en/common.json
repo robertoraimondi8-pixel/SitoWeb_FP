@@ -574,23 +574,18 @@
     "tiebreak_draw": "Wins by tiebreak: draw"
   },
   "verify_email": {
-    "title": "Verify email",
-    "beta_title": "Beta version — simulated verification",
-    "beta_desc": "In this test version the email is not actually sent.\nThe verification token is visible in the server logs.",
-    "beta_how": "How to use it:",
-    "beta_step1": "1. Open the backend logs",
-    "beta_step2": "2. Look for the line",
-    "beta_step2_code": "[EMAIL-VERIFY] token=…",
-    "beta_step3": "3. Copy the token and paste it below.",
-    "token_label": "Verification token",
-    "token_placeholder": "Paste the token from server logs",
+    "title": "Verify your email",
+    "sent_desc": "We sent you a verification email. Please check your inbox and enter the code below.",
+    "check_spam": "Can't find it? Check your spam folder.",
+    "token_label": "Verification code",
+    "token_placeholder": "Enter the code received by email",
     "verify_btn": "Verify Email",
     "verified_success": "Email verified! Redirecting…",
-    "invalid_token": "Invalid or expired token.",
-    "resend_btn": "Generate new token",
-    "resend_success": "New token generated. Check the server logs.",
-    "resend_error": "Error. Please try again later.",
-    "paste_token": "Paste the verification token."
+    "invalid_token": "Invalid or expired code.",
+    "resend_btn": "Send again",
+    "resend_success": "Verification email sent. Please check your inbox.",
+    "resend_error": "Error sending email. Please try again later.",
+    "paste_token": "Enter the verification code."
   },
   "user_detail": {
     "title": "User Profile",
@@ -812,6 +807,9 @@
     "delete_confirm": "Are you sure? All your data will be permanently deleted.",
     "cancel": "Cancel",
     "delete": "Delete",
+    "delete_success_title": "Account deleted",
+    "delete_success_msg": "Your account has been deleted successfully.",
+    "delete_error_msg": "Unable to delete account. Please try again later.",
     "saved": "Saved",
     "error": "Error"
   },

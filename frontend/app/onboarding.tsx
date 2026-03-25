@@ -124,14 +124,13 @@ export default function OnboardingScreen() {
           </Text>
         </View>
 
-        {/* Language Selector */}
+        {/* Language Selector — solo bandiere */}
         <View style={s.langSection}>
-          <Text style={[s.langLabel, { color: colors.textSecondary }]}>{t('language')}</Text>
           <View style={s.langRow}>
             {[
-              { code: 'it', flag: '🇮🇹', label: 'Italiano' },
-              { code: 'en', flag: '🇬🇧', label: 'English' },
-              { code: 'es', flag: '🇪🇸', label: 'Español' },
+              { code: 'it', flag: '🇮🇹' },
+              { code: 'en', flag: '🇬🇧' },
+              { code: 'es', flag: '🇪🇸' },
             ].map(l => (
               <TouchableOpacity
                 key={l.code}
@@ -144,7 +143,6 @@ export default function OnboardingScreen() {
                 ]}
               >
                 <Text style={s.flag}>{l.flag}</Text>
-                <Text style={[s.langName, { color: lang === l.code ? colors.accent : colors.textPrimary }]}>{l.label}</Text>
                 {lang === l.code && <Ionicons name="checkmark-circle" size={18} color={colors.accent} />}
               </TouchableOpacity>
             ))}
@@ -253,9 +251,8 @@ const s = StyleSheet.create({
   langSection: { marginBottom: 28 },
   langLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
   langRow: { flexDirection: 'row', gap: 10 },
-  langChip: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1.5 },
-  flag: { fontSize: 20 },
-  langName: { flex: 1, fontSize: 14, fontWeight: '600' },
+  langChip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1.5 },
+  flag: { fontSize: 28 },
   sectionLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 },
   pathCard: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 16, borderWidth: 1.5, marginBottom: 12, gap: 14 },
   pathIconWrap: { width: 52, height: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
