@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiCall } from '../../src/api/client';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +10,7 @@ import { colors } from '../../src/theme/designSystem';
 export default function AuthCallbackScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { loginWithToken } = useAuth();
+  const { loginWithToken, logout } = useAuth();
   const [error, setError] = useState('');
   const [processing, setProcessing] = useState(true);
 
@@ -37,6 +38,8 @@ export default function AuthCallbackScreen() {
       }
 
       if (!sessionId) {
+        // Clean up any stale auth state from interrupted flow
+        await AsyncStorage.removeItem('google_auth_pending');
         setError('Sessione non trovata. Riprova il login.');
         setProcessing(false);
         setTimeout(() => router.replace('/(auth)/login'), 3000);
@@ -49,10 +52,13 @@ export default function AuthCallbackScreen() {
         skipAuth: true,
       });
 
-      // Bug 1 fix: update AuthContext in-memory state (not just AsyncStorage)
+      // Save auth data sequentially — loginWithToken awaits each AsyncStorage write
+      // Redirect happens ONLY after all data is persisted
       await loginWithToken(res.access_token, res.refresh_token, res.user);
 
-      // Bug 2 fix: same routing gates as normal login
+      // Clear the pending flag — login completed successfully
+      await AsyncStorage.removeItem('google_auth_pending');
+
       // GATE 1: incomplete profile (Google users without username/dob)
       if (res.user?.profile_completed === false) {
         router.replace('/complete-profile');
@@ -78,6 +84,9 @@ export default function AuthCallbackScreen() {
 
       router.replace('/(tabs)/home');
     } catch (e: unknown) {
+      // Login failed — clean up any partial state to prevent stuck app on restart
+      await AsyncStorage.removeItem('google_auth_pending');
+      try { await logout(); } catch (_) {}
       setError((e as Error).message || 'Autenticazione fallita');
       setProcessing(false);
     }

@@ -64,12 +64,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const storedRefresh = await AsyncStorage.getItem('refresh_token');
       const storedUser = await AsyncStorage.getItem('user');
       if (storedToken && storedUser) {
+        // Validate stored user data is valid JSON
+        const parsed = JSON.parse(storedUser);
+        if (!parsed || !parsed.id || !parsed.email) {
+          console.log('[AUTH] Stored user data is invalid, clearing');
+          await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'user', 'google_auth_pending']);
+          return;
+        }
         setToken(storedToken);
         setRefreshToken(storedRefresh);
-        setUser(JSON.parse(storedUser));
+        setUser(parsed);
+      } else if (storedToken && !storedUser) {
+        // Token exists but no user data = corrupted state from interrupted Google OAuth
+        console.log('[AUTH] Token without user data, clearing corrupted state');
+        await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'user', 'google_auth_pending']);
       }
-    } catch (_) {
-      // silent
+    } catch (e) {
+      // AsyncStorage read failed or JSON.parse failed = corrupted data
+      console.log('[AUTH] Error reading stored auth, performing clean logout:', e);
+      try {
+        await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'user', 'google_auth_pending']);
+      } catch (_) {}
+      setToken(null);
+      setRefreshToken(null);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -128,14 +146,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const loginWithToken = useCallback(async (accessToken: string, refreshToken: string, userData: User) => {
-    // Save to BOTH AsyncStorage AND in-memory state (fixes Google OAuth routing issue)
-    await AsyncStorage.setItem('access_token', accessToken);
-    await AsyncStorage.setItem('refresh_token', refreshToken);
-    await AsyncStorage.setItem('user', JSON.stringify(userData));
-    setToken(accessToken);
-    setRefreshToken(refreshToken);
-    setUser(userData);
+  const loginWithToken = useCallback(async (accessToken: string, refreshTk: string, userData: User) => {
+    // Save sequentially to AsyncStorage — each await completes before the next
+    // This prevents partial/corrupted state if the app is killed mid-save
+    try {
+      await AsyncStorage.setItem('access_token', accessToken);
+      await AsyncStorage.setItem('refresh_token', refreshTk);
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      // Only update React state AFTER all storage operations succeed
+      setToken(accessToken);
+      setRefreshToken(refreshTk);
+      setUser(userData);
+    } catch (e) {
+      // Storage write failed — clean up any partial state
+      console.log('[AUTH] loginWithToken storage failed, cleaning up:', e);
+      try {
+        await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'user', 'google_auth_pending']);
+      } catch (_) {}
+      setToken(null);
+      setRefreshToken(null);
+      setUser(null);
+      throw e; // Re-throw so caller knows login failed
+    }
   }, []);
 
   const logout = useCallback(async () => {
