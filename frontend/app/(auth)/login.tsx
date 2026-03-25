@@ -126,6 +126,9 @@ export default function LoginScreen() {
     setError('');
 
     try {
+      // Mark Google auth as in-progress (for recovery on app restart)
+      await AsyncStorage.setItem('google_auth_pending', 'true');
+
       const redirectUri = AuthSession.makeRedirectUri({
         scheme: 'fantapronostic',
         path: 'auth/callback',
@@ -133,9 +136,12 @@ export default function LoginScreen() {
 
       const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUri)}`;
 
-      timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = setTimeout(async () => {
         setGoogleError(t('login_errors.google_timeout'));
         setGoogleLoading(false);
+        await AsyncStorage.removeItem('google_auth_pending');
+        // Dismiss any stuck browser session
+        try { await WebBrowser.dismissBrowser(); } catch (_) {}
       }, GOOGLE_LOGIN_TIMEOUT);
 
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
@@ -157,6 +163,7 @@ export default function LoginScreen() {
         if (!sessionId) {
           setGoogleError(t('login_errors.google_invalid_session'));
           setGoogleLoading(false);
+          await AsyncStorage.removeItem('google_auth_pending');
           return;
         }
 
@@ -166,20 +173,26 @@ export default function LoginScreen() {
             body: { session_id: sessionId },
             skipAuth: true,
           });
+          // Only persist auth AFTER backend confirms session is valid
           await loginWithToken(res.access_token, res.refresh_token, res.user);
+          await AsyncStorage.removeItem('google_auth_pending');
           router.replace('/');
         } catch (backendError: unknown) {
           setGoogleError(backendError.message || t('login_errors.google_auth_failed'));
           setGoogleLoading(false);
+          await AsyncStorage.removeItem('google_auth_pending');
         }
       } else if (result.type === 'cancel') {
         setGoogleError(t('login_errors.google_cancelled'));
         setGoogleLoading(false);
+        await AsyncStorage.removeItem('google_auth_pending');
       } else if (result.type === 'dismiss') {
         setGoogleLoading(false);
+        await AsyncStorage.removeItem('google_auth_pending');
       } else {
         setGoogleError(t('login_errors.google_generic_error'));
         setGoogleLoading(false);
+        await AsyncStorage.removeItem('google_auth_pending');
       }
     } catch (e: unknown) {
       if (timeoutRef.current) {
@@ -188,6 +201,9 @@ export default function LoginScreen() {
       }
       setGoogleError(e.message || t('login_errors.google_connection_error'));
       setGoogleLoading(false);
+      await AsyncStorage.removeItem('google_auth_pending');
+      // Dismiss any stuck browser
+      try { await WebBrowser.dismissBrowser(); } catch (_) {}
     }
   };
 

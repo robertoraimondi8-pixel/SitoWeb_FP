@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { View, Image, StyleSheet, Animated, Platform, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '../src/contexts/AuthContext';
 import { apiCall } from '../src/api/client';
 import { colors } from '../src/theme/designSystem';
@@ -19,11 +20,16 @@ const { width } = Dimensions.get('window');
 const MIN_SPLASH_MS = 2000;
 
 export default function SplashScreen() {
-  const { isAuthenticated, isLoading, token, user, loginWithToken } = useAuth();
+  const { isAuthenticated, isLoading, token, user, loginWithToken, logout } = useAuth();
   const router = useRouter();
   const [splashDone, setSplashDone] = useState(false);
   const [impersonating, setImpersonating] = useState(false);
   const opacity = new Animated.Value(0);
+
+  // Cleanup any stale browser sessions on app startup (fixes Android Google login stuck)
+  useEffect(() => {
+    cleanupStaleAuthState();
+  }, []);
 
   // Animate logo in
   useEffect(() => {
@@ -35,6 +41,26 @@ export default function SplashScreen() {
     const t = setTimeout(() => setSplashDone(true), MIN_SPLASH_MS);
     return () => clearTimeout(t);
   }, []);
+
+  const cleanupStaleAuthState = async () => {
+    try {
+      // Dismiss any lingering Chrome Custom Tabs from interrupted Google Sign-In
+      if (Platform.OS !== 'web') {
+        await WebBrowser.coolDownAsync();
+      }
+      // If a Google auth was in progress when the app was killed, clean up
+      const pendingAuth = await AsyncStorage.getItem('google_auth_pending');
+      if (pendingAuth === 'true') {
+        console.log('[AUTH-RECOVERY] Detected interrupted Google auth, clearing stale state');
+        await AsyncStorage.removeItem('google_auth_pending');
+        // Only clear tokens if they look invalid (no user data stored)
+        const storedUser = await AsyncStorage.getItem('user');
+        if (!storedUser) {
+          await AsyncStorage.multiRemove(['access_token', 'refresh_token']);
+        }
+      }
+    } catch (_) {}
+  };
 
   // Google OAuth callback handling (web)
   useEffect(() => {
@@ -76,7 +102,16 @@ export default function SplashScreen() {
     }
 
     const userStr = await AsyncStorage.getItem('user');
-    const storedUser: { profile_complete?: boolean; access_token?: string } | null = userStr ? JSON.parse(userStr) : null;
+    const storedUser: { profile_completed?: boolean; email_verified?: boolean } | null = userStr ? JSON.parse(userStr) : null;
+
+    // Validate token is still good before proceeding
+    // If token is invalid/expired, reset auth and go to login
+    if (!storedUser) {
+      console.log('[AUTH-RECOVERY] Token exists but no user data, clearing invalid state');
+      await logout();
+      router.replace('/(auth)/');
+      return;
+    }
 
     // GATE 1: Profile completeness (Google users missing required fields)
     if (storedUser?.profile_completed === false) {
@@ -97,7 +132,17 @@ export default function SplashScreen() {
         router.replace('/onboarding');
         return;
       }
-    } catch (_) {}
+    } catch (e: any) {
+      // If the API call fails with auth error, token is invalid → clear and go to login
+      const msg = String(e?.message ?? e ?? '').toLowerCase();
+      if (msg.includes('401') || msg.includes('403') || msg.includes('unauthorized') || msg.includes('forbidden')) {
+        console.log('[AUTH-RECOVERY] Stored token is invalid, logging out');
+        await logout();
+        router.replace('/(auth)/');
+        return;
+      }
+      // Network error — continue to home, user will retry
+    }
 
     router.replace('/(tabs)/home');
   };

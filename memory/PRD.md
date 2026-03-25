@@ -52,6 +52,7 @@ Il sistema di refresh live dei punteggi dalle API-Football è stato significativ
 - [x] Fix TUTTI i pattern `!= null`/`== null` nel frontend (7 file)
 - [x] Fix crash Vivo V50 LinearGradient (code done, needs native build)
 - [x] Fix Live Data Refresh (circuit breaker, logging, diagnostica admin)
+- [x] Fix Google Sign-In Android crash/stuck (browser cleanup, auth state recovery, token validation)
 
 ### P1
 - [ ] Fix navigazione tab "Pronostici" per tornei (routing dinamico in _layout.tsx)
