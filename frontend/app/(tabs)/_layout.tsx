@@ -56,19 +56,57 @@ const ib = StyleSheet.create({
 });
 
 function TabContent() {
-  const router = useRouter();
-  const { token } = useAuth();
-  const { mode, currentRoundInfo, leagueMatchdayInfo, setPendingMatchupOpen } = useCompetition();
+  // === DIAGNOSTIC: log typeof for every value from contexts ===
+  const routerRaw = useRouter();
+  const authRaw = useAuth();
+  const compRaw = useCompetition();
   const insets = useSafeAreaInsets();
 
-  // Register for push notifications when user is authenticated
-  usePushNotifications(token);
+  // Destructure with safe fallbacks
+  const router = routerRaw;
+  const token = authRaw?.token ?? null;
+  const mode = compRaw?.mode ?? 'league';
+  const currentRoundInfo = compRaw?.currentRoundInfo ?? null;
+  const leagueMatchdayInfo = compRaw?.leagueMatchdayInfo ?? null;
+  const setPendingMatchupOpen = typeof compRaw?.setPendingMatchupOpen === 'function'
+    ? compRaw.setPendingMatchupOpen
+    : () => {};
 
-  // Responsive tab bar: manual safe area handling
-  // Disable React Navigation's automatic safe area (safeAreaInsets: {bottom: 0})
-  // and calculate manually to avoid double-padding on some devices
+  // Log diagnostics on every render (will show in Expo logs / Logcat)
+  useEffect(() => {
+    console.log('[TabContent-DIAG] v-EM-0326 render', JSON.stringify({
+      router: typeof router?.push,
+      'router.push': typeof router?.push,
+      'router.navigate': typeof router?.navigate,
+      'router.replace': typeof router?.replace,
+      token: typeof token,
+      tokenVal: token ? 'present' : 'null',
+      mode: mode,
+      authRaw_keys: authRaw ? Object.keys(authRaw) : 'NULL',
+      'authRaw.logout': typeof authRaw?.logout,
+      'authRaw.login': typeof authRaw?.login,
+      'authRaw.loginWithToken': typeof authRaw?.loginWithToken,
+      'authRaw.handleAuthError': typeof authRaw?.handleAuthError,
+      compRaw_keys: compRaw ? Object.keys(compRaw) : 'NULL',
+      'compRaw.setPendingMatchupOpen': typeof compRaw?.setPendingMatchupOpen,
+      'compRaw.setLeagueMatchdayInfo': typeof compRaw?.setLeagueMatchdayInfo,
+      currentRoundInfo: currentRoundInfo ? 'present' : 'null',
+      leagueMatchdayInfo: leagueMatchdayInfo ? 'present' : 'null',
+      'insets.bottom': insets?.bottom,
+      platform: Platform.OS,
+    }));
+  });
+
+  // Register for push notifications when user is authenticated
+  if (typeof usePushNotifications === 'function') {
+    usePushNotifications(token);
+  } else {
+    console.log('[TabContent-DIAG] usePushNotifications is NOT a function:', typeof usePushNotifications);
+  }
+
+  // Responsive tab bar
   const ANDROID_MIN_BOTTOM = Platform.OS === 'android' ? 16 : 0;
-  const bottomInset = Math.max(insets.bottom, ANDROID_MIN_BOTTOM);
+  const bottomInset = Math.max(insets?.bottom ?? 0, ANDROID_MIN_BOTTOM);
   const TAB_BAR_BASE_HEIGHT = 56;
   const tabBarHeight = TAB_BAR_BASE_HEIGHT + bottomInset;
 
@@ -102,25 +140,27 @@ function TabContent() {
         options={{ title: 'Pronostici', tabBarIcon: ({ color, size }) => <Ionicons name="football" size={size} color={color} /> }}
         listeners={{
           tabPress: (e) => {
-            // ═══ DYNAMIC ROUTING for Pronostici tab ═══
-            // Resolves destination based on competition type + matchday state
+            // Defensive: skip all logic if router is broken
+            if (!router || typeof router.push !== 'function') {
+              console.log('[TabContent-DIAG] tabPress: router.push is not a function!', typeof router?.push);
+              return;
+            }
             if (mode === 'league' && leagueMatchdayInfo) {
-              const status = leagueMatchdayInfo.status?.toUpperCase();
+              const status = (leagueMatchdayInfo.status || '').toUpperCase();
               if (status === 'LIVE' || status === 'COMPLETED') {
                 e.preventDefault();
                 router.push(`/live/${leagueMatchdayInfo.matchdayId}?league_id=${leagueMatchdayInfo.leagueId}` as any);
               }
-              // OPEN / LOCKED → default behavior (predictions form)
             } else if (mode === 'tournament' && currentRoundInfo) {
-              const status = currentRoundInfo.status?.toUpperCase();
+              const status = (currentRoundInfo.status || '').toUpperCase();
               if ((status === 'LIVE' || status === 'COMPLETED') && currentRoundInfo.matchup_id) {
                 e.preventDefault();
                 setPendingMatchupOpen(currentRoundInfo.matchup_id);
-                router.navigate('/(tabs)/home' as any);
+                if (typeof router.navigate === 'function') {
+                  router.navigate('/(tabs)/home' as any);
+                }
               }
-              // OPEN / PENDING → default behavior (predictions form)
             }
-            // No cached info → default behavior (predictions screen handles fallback)
           },
         }}
       />
