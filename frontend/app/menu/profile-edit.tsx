@@ -68,11 +68,14 @@ export default function ProfileEditScreen() {
           onPress: async () => {
             try {
               await apiCall('/profile', { token, method: 'DELETE' });
-              await logout();
+              // Navigate FIRST, then clear state
+              router.replace('/(auth)/login' as any);
+              setTimeout(async () => {
+                await logout();
+              }, 200);
               Alert.alert(
                 t('profileEdit.delete_success_title'),
-                t('profileEdit.delete_success_msg'),
-                [{ text: 'OK', onPress: () => router.replace('/(auth)/login' as any) }]
+                t('profileEdit.delete_success_msg')
               );
             } catch (e: any) {
               Alert.alert(

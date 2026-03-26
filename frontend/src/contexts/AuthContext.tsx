@@ -191,10 +191,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'user', 'onboarding_seen']);
+    // Clear React state FIRST to prevent re-renders with stale data
     setToken(null);
     setRefreshToken(null);
     setUser(null);
+    // Then clear persistent storage
+    try {
+      await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'user', 'onboarding_seen', 'google_auth_pending']);
+    } catch (_) {}
   }, []);
 
   const refresh = useCallback(async (): Promise<boolean> => {

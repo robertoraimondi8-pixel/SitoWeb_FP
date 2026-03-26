@@ -73,8 +73,13 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = async () => {
-    await logout();
+    // Navigate FIRST to unmount tab components, THEN clear state
+    // This prevents crash from re-rendering tab screens with null auth
     router.replace('/(auth)/login');
+    // Small delay to let navigation complete before clearing state
+    setTimeout(async () => {
+      await logout();
+    }, 200);
   };
 
   return (

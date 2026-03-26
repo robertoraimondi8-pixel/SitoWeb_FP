@@ -83,10 +83,11 @@ export function SideMenu({ visible, onClose }: Props) {
 
   const handleLogout = () => {
     onClose();
+    // Navigate FIRST, then clear state to avoid crash during tab re-render
+    router.replace('/(auth)/login' as any);
     setTimeout(async () => {
       await logout();
-      router.replace('/(auth)/login' as any);
-    }, 150);
+    }, 200);
   };
 
   const { t } = useTranslation();

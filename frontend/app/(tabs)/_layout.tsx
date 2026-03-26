@@ -12,6 +12,7 @@ function ImpersonationBanner() {
   const [active, setActive] = useState(false);
   const [username, setUsername] = useState('');
   const { logout } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     AsyncStorage.getItem('impersonation_active').then(v => {
@@ -27,10 +28,13 @@ function ImpersonationBanner() {
   const exitImpersonation = async () => {
     await AsyncStorage.removeItem('impersonation_active');
     await AsyncStorage.removeItem('impersonation_username');
-    await logout();
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       window.close();
     }
+    router.replace('/(auth)/login');
+    setTimeout(async () => {
+      await logout();
+    }, 200);
   };
 
   return (
