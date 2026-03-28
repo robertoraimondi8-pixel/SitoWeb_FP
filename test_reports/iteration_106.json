@@ -1,0 +1,74 @@
+{
+  "summary": "P0 fixes verification: Google OAuth verify-token endpoint and Pronostici tab routing fix. All 16 backend tests passed. Code review confirms predictions.tsx has NO redirect logic for LIVE/COMPLETED matchdays - routing is handled solely by _layout.tsx tab listener.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_google_oauth_and_auth.py",
+    "/app/test_reports/pytest/google_oauth_auth_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "predictions.tsx correctly delegates LIVE/COMPLETED routing to _layout.tsx - NO redirect logic in predictions.tsx",
+    "_layout.tsx tab listener (lines 142-166) properly intercepts Pronostici tab for LIVE/COMPLETED matchdays",
+    "Google OAuth verify-token endpoint (lines 254-293) correctly validates id_token, audience, and email_verified",
+    "Token audience validation checks against 3 configured client IDs (web, android, ios)",
+    "_upsert_google_user helper (lines 296-353) properly handles both new and existing users"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_google_oauth_and_auth.py"
+  ],
+  "success_rate": {
+    "backend": "100% (16/16 tests passed)",
+    "frontend": "N/A - React Native Expo web app, code review verified"
+  },
+  "test_credentials": {
+    "admin": "admin@fantapronostic.com / admin123",
+    "standard_user": "ilio@raimondi.it / password123"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Google OAuth direct flow tested via backend API (can't test actual Google popup in preview). Pronostici tab routing fix verified via code review - predictions.tsx has no redirect logic, _layout.tsx handles all LIVE/COMPLETED routing.",
+  "verified_features": {
+    "POST /api/auth/google/verify-token": {
+      "missing_id_token": "PASSED - Returns 400 'id_token required'",
+      "empty_id_token": "PASSED - Returns 400/401",
+      "invalid_token": "PASSED - Returns 401 with meaningful error",
+      "fake_jwt_token": "PASSED - Returns 401 'Could not verify token signature'",
+      "audience_validation": "VERIFIED in code - checks against 3 client IDs"
+    },
+    "POST /api/auth/login": {
+      "admin_login": "PASSED - Returns tokens and user with role=admin",
+      "standard_user_login": "PASSED - Returns tokens and user",
+      "invalid_credentials": "PASSED - Returns 401",
+      "nonexistent_user": "PASSED - Returns 401"
+    },
+    "POST /api/auth/register": {
+      "missing_fields": "PASSED - Returns 422",
+      "duplicate_email": "PASSED - Returns 400 'Email già registrata'",
+      "underage_user": "PASSED - Returns 400 'Devi avere almeno 18 anni'"
+    },
+    "DELETE /api/auth/delete-account": {
+      "unauthenticated": "PASSED - Returns 401",
+      "auth_validation": "PASSED - Validates token"
+    },
+    "GET /api/home": {
+      "unauthenticated": "PASSED - Returns 401",
+      "authenticated": "PASSED - Returns league and matchday info"
+    },
+    "POST /api/auth/google/session (legacy)": {
+      "missing_session_id": "PASSED - Returns 400 'session_id required'"
+    },
+    "Pronostici_tab_routing_fix": {
+      "predictions.tsx_redirect_logic": "VERIFIED REMOVED - Only auth logout redirect exists (line 242)",
+      "_layout.tsx_tab_listener": "VERIFIED PRESENT - Lines 142-166 handle LIVE/COMPLETED for league and tournament modes"
+    }
+  }
+}

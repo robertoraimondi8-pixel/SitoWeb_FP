@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
   ActivityIndicator, Alert, TextInput, KeyboardAvoidingView, Platform, Image,
@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PredictionsData, Matchday, PredictionEntry, MatchItem, getErrorMessage } from '../../src/types/api';
 import type { Href } from 'expo-router';
-import { goToPredictionsHub } from '../../src/utils/navigation';
+
 import { MatchPreviewSheet } from '../../src/components/MatchPreviewSheet';
 import { MatchDetailSheet } from '../../src/components/MatchDetailSheet';
 
@@ -186,20 +186,9 @@ export default function PredictionsScreen() {
         return;
       }
 
-      // Auto-redirect based on matchday state and competition type
-      // Rule: Pronostici tab = same screen as Home matchday card
-      const mdStatus = activeMatchday.status?.toUpperCase();
-      if (!paramMatchdayId && mdStatus !== 'OPEN') {
-        if (isTournament) {
-          // Tournament: go to Home which shows TournamentView (matchup live/results)
-          router.replace('/(tabs)/home' as any);
-        } else {
-          // League: go to live/results screen
-          const qs = leagueId ? `?league_id=${leagueId}` : '';
-          router.replace(`/live/${activeMatchday.id}${qs}` as any);
-        }
-        return;
-      }
+      // NOTE: No redirect logic here. The tab listener in _layout.tsx handles
+      // routing to live/results screens for LIVE/COMPLETED matchdays.
+      // If we reach this point, we show the predictions (editable if OPEN, read-only if locked).
 
       // Carica predictions per questa giornata
       const predsRes = await apiCall(`/predictions/${activeMatchday.id}?league_id=${leagueId}`, { token });
@@ -257,33 +246,19 @@ export default function PredictionsScreen() {
     finally { setLoading(false); }
   }, [token, handleAuthError, router, paramMatchdayId, competitionMode, tournamentId]);
 
-  // Redirect ref: impedisce redirect loop quando lo screen è montato come tab
-  const redirectedRef = useRef(false);
-
   // useFocusEffect: rifetch ogni volta che la schermata Pronostici ottiene il focus
   // (risolve lo stale state quando si naviga da Home dopo aver creato una nuova giornata)
   useFocusEffect(
     useCallback(() => {
-      redirectedRef.current = false;
       setLoading(true);
       setPreds({});
       fetchData();
     }, [fetchData])
   );
 
-  // Smart redirect: se stato è LIVE o COMPLETED, naviga alla schermata Live
-  // useEffect (non useFocusEffect) per reagire ai cambi di data
-  useEffect(() => {
-    if (!data?.matchday || redirectedRef.current) return;
-    const status = data.matchday.status?.toUpperCase();
-    if (status === 'LIVE' || status === 'COMPLETED') {
-      redirectedRef.current = true;
-      const leagueId = leagueInfo?.id || '';
-      const matchdayId = data.matchday.id;
-      const qs = leagueId ? `?league_id=${leagueId}` : '';
-      router.replace(`/live/${matchdayId}${qs}` as Href);
-    }
-  }, [data?.matchday, leagueInfo, router]);
+  // NOTE: No useEffect redirect here. The tab listener in _layout.tsx is the
+  // single source of truth for routing LIVE/COMPLETED matchdays to their
+  // respective screens (league → /live/{id}, tournament → Home+TournamentView).
 
   const setMarket = (matchId: string, market: string) => {
     setPreds(prev => ({
