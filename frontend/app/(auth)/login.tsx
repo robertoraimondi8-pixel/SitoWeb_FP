@@ -64,10 +64,14 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
 
   // Google Auth Request — DIRECT flow (no Emergent)
+  // On standalone builds, expo-auth-session defaults to "com.fantapronostic.app:/oauthredirect"
+  // which Google Web Client rejects (only accepts HTTPS URIs). Override with the
+  // Expo auth proxy URI that's already registered in Google Cloud Console.
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId: GOOGLE_WEB_CLIENT_ID,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
     iosClientId: GOOGLE_IOS_CLIENT_ID,
+    redirectUri: 'https://auth.expo.io/@robrai/fantapronostic',
   });
 
   // Handle Google auth response when it comes back
