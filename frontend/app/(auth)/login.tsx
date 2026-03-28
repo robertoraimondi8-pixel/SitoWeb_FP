@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
@@ -11,12 +11,20 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { apiCall } from '../../src/api/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
-import * as AuthSession from 'expo-auth-session';
 
 // Design System
 import { colors, typography, spacing, borderRadius, shadows } from '../../src/theme/designSystem';
 import { BrandLogo } from '../../src/components/BrandLogo';
+
+// Ensure browser sessions are completed on Android
+WebBrowser.maybeCompleteAuthSession();
+
+// Google OAuth Client IDs
+const GOOGLE_WEB_CLIENT_ID = '345472883983-g8pdjn2heauuq7jfmdal1n8snj6qbl09.apps.googleusercontent.com';
+const GOOGLE_ANDROID_CLIENT_ID = '345472883983-9ugfodmtmr4vbuotcvap5tphq20q747r.apps.googleusercontent.com';
+const GOOGLE_IOS_CLIENT_ID = '345472883983-gphr333q3n4m1albaq3km2r5ojt77r9t.apps.googleusercontent.com';
 
 // ─── Mappa errori login → messaggi leggibili ─────────────────────────────────
 function mapLoginErrorKey(e: unknown): string {
@@ -40,11 +48,8 @@ function mapLoginErrorKey(e: unknown): string {
 
 const { width } = Dimensions.get('window');
 
-// Timeout per Google Login (15 secondi)
-const GOOGLE_LOGIN_TIMEOUT = 15000;
-
-// Log prefix per identificare i log di Google OAuth
-const LOG_PREFIX = '[GoogleOAuth]';
+// Timeout per Google Login
+const GOOGLE_LOGIN_TIMEOUT = 30000;
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -57,18 +62,32 @@ export default function LoginScreen() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState('');
   const [error, setError] = useState('');
-  
-  // Ref per timeout
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Cleanup timeout on unmount
+  // Google Auth Request — DIRECT flow (no Emergent)
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: GOOGLE_WEB_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
+  });
+
+  // Handle Google auth response when it comes back
   useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+    if (!response) return;
+    if (response.type === 'success') {
+      const idToken = response.params?.id_token || response.authentication?.idToken;
+      if (idToken) {
+        handleGoogleToken(idToken);
+      } else {
+        setGoogleError(t('login_errors.google_invalid_session'));
+        setGoogleLoading(false);
       }
-    };
-  }, []);
+    } else if (response.type === 'cancel' || response.type === 'dismiss') {
+      setGoogleLoading(false);
+    } else if (response.type === 'error') {
+      setGoogleError(response.error?.message || t('login_errors.google_generic_error'));
+      setGoogleLoading(false);
+    }
+  }, [response]);
 
   const handleLogin = async () => {
     if (!email.trim() || !password) return;
@@ -111,104 +130,54 @@ export default function LoginScreen() {
     }
   };
 
-  const resetGoogleState = () => {
-    setGoogleLoading(false);
-    setGoogleError('');
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+  // Process Google id_token with our backend
+  const handleGoogleToken = async (idToken: string) => {
+    try {
+      const res = await apiCall('/auth/google/verify-token', {
+        method: 'POST',
+        body: { id_token: idToken },
+        skipAuth: true,
+      });
+
+      await loginWithToken(res.access_token, res.refresh_token, res.user);
+
+      // Routing gates (same as normal login)
+      if (res.user?.profile_completed === false) {
+        router.replace('/complete-profile');
+        return;
+      }
+      if (res.user?.email_verified === false) {
+        router.replace('/verify-email');
+        return;
+      }
+      try {
+        const leagues = await apiCall('/leagues', { token: res.access_token });
+        if (!leagues || leagues.length === 0) {
+          router.replace('/onboarding');
+          return;
+        }
+      } catch {
+        router.replace('/onboarding');
+        return;
+      }
+      router.replace('/(tabs)/home');
+    } catch (e: any) {
+      setGoogleError(e.message || t('login_errors.google_auth_failed'));
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     setGoogleLoading(true);
     setGoogleError('');
     setError('');
-
-    try {
-      // Mark Google auth as in-progress (for recovery on app restart)
-      await AsyncStorage.setItem('google_auth_pending', 'true');
-
-      const redirectUri = AuthSession.makeRedirectUri({
-        scheme: 'fantapronostic',
-        path: 'auth/callback',
-      });
-
-      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUri)}`;
-
-      timeoutRef.current = setTimeout(async () => {
-        setGoogleError(t('login_errors.google_timeout'));
-        setGoogleLoading(false);
-        await AsyncStorage.removeItem('google_auth_pending');
-        // Dismiss any stuck browser session
-        try { await WebBrowser.dismissBrowser(); } catch (_) {}
-      }, GOOGLE_LOGIN_TIMEOUT);
-
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
-
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-
-      if (result.type === 'success' && result.url) {
-        let sessionId: string | null = null;
-        const hashMatch = result.url.match(/#.*session_id=([^&]+)/);
-        if (hashMatch) sessionId = hashMatch[1];
-        if (!sessionId) {
-          const queryMatch = result.url.match(/[?&]session_id=([^&#]+)/);
-          if (queryMatch) sessionId = queryMatch[1];
-        }
-
-        if (!sessionId) {
-          setGoogleError(t('login_errors.google_invalid_session'));
-          setGoogleLoading(false);
-          await AsyncStorage.removeItem('google_auth_pending');
-          return;
-        }
-
-        try {
-          const res = await apiCall('/auth/google/session', {
-            method: 'POST',
-            body: { session_id: sessionId },
-            skipAuth: true,
-          });
-          // Only persist auth AFTER backend confirms session is valid
-          await loginWithToken(res.access_token, res.refresh_token, res.user);
-          await AsyncStorage.removeItem('google_auth_pending');
-          router.replace('/');
-        } catch (backendError: unknown) {
-          setGoogleError(backendError.message || t('login_errors.google_auth_failed'));
-          setGoogleLoading(false);
-          await AsyncStorage.removeItem('google_auth_pending');
-        }
-      } else if (result.type === 'cancel') {
-        setGoogleError(t('login_errors.google_cancelled'));
-        setGoogleLoading(false);
-        await AsyncStorage.removeItem('google_auth_pending');
-      } else if (result.type === 'dismiss') {
-        setGoogleLoading(false);
-        await AsyncStorage.removeItem('google_auth_pending');
-      } else {
-        setGoogleError(t('login_errors.google_generic_error'));
-        setGoogleLoading(false);
-        await AsyncStorage.removeItem('google_auth_pending');
-      }
-    } catch (e: unknown) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-      setGoogleError(e.message || t('login_errors.google_connection_error'));
-      setGoogleLoading(false);
-      await AsyncStorage.removeItem('google_auth_pending');
-      // Dismiss any stuck browser
-      try { await WebBrowser.dismissBrowser(); } catch (_) {}
-    }
+    promptAsync();
   };
 
   const handleRetryGoogle = () => {
-    resetGoogleState();
+    setGoogleLoading(false);
+    setGoogleError('');
     handleGoogleLogin();
   };
 

@@ -219,36 +219,26 @@ async def get_me(user=Depends(get_current_user)):
 
 @auth_router.post("/google/session")
 async def google_auth_session(request: Request):
-    """Process Google OAuth session_id from Emergent Auth."""
+    """Process Google OAuth session_id from Emergent Auth (LEGACY — kept for backward compat)."""
     import aiohttp
 
-    logger.info("HIT /api/auth/google")
-    logger.info("[GoogleOAuth] === GOOGLE SESSION VERIFICATION STARTED ===")
+    logger.info("HIT /api/auth/google (legacy Emergent flow)")
 
     body = await request.json()
     session_id = body.get("session_id")
     if not session_id:
-        logger.warning("[GoogleOAuth] ERROR: No session_id provided")
         raise HTTPException(400, "session_id required")
 
-    logger.info(f"[GoogleOAuth] Received session_id (length={len(session_id)})")
-
-    logger.info("[GoogleOAuth] Calling Emergent Auth API to verify session...")
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
                 headers={"X-Session-ID": session_id},
             ) as resp:
-                logger.info(f"[GoogleOAuth] Emergent Auth response status: {resp.status}")
                 if resp.status != 200:
-                    error_text = await resp.text()
-                    logger.error(f"[GoogleOAuth] Emergent Auth error: {error_text[:200]}")
                     raise HTTPException(401, "Invalid Google session")
                 google_data = await resp.json()
-                logger.info(f"[GoogleOAuth] Received Google data, email present: {'email' in google_data}")
     except aiohttp.ClientError as e:
-        logger.error(f"[GoogleOAuth] Network error calling Emergent Auth: {str(e)}")
         raise HTTPException(500, "Authentication service unavailable")
 
     email = google_data.get("email")
@@ -256,14 +246,57 @@ async def google_auth_session(request: Request):
     picture = google_data.get("picture", "")
 
     if not email:
-        logger.error("[GoogleOAuth] ERROR: No email in Google data")
         raise HTTPException(400, "No email from Google")
 
-    logger.info(f"[GoogleOAuth] Google email verified: {email[:3]}***")
+    return await _upsert_google_user(email, name, picture)
 
+
+@auth_router.post("/google/verify-token")
+async def google_verify_token(request: Request):
+    """Verify Google id_token directly (NEW — no Emergent dependency)."""
+    from google.oauth2 import id_token as google_id_token
+    from google.auth.transport import requests as google_requests
+
+    body = await request.json()
+    token = body.get("id_token")
+    if not token:
+        raise HTTPException(400, "id_token required")
+
+    logger.info("[GoogleOAuth-Direct] Verifying id_token...")
+
+    GOOGLE_CLIENT_IDS = [
+        "345472883983-g8pdjn2heauuq7jfmdal1n8snj6qbl09.apps.googleusercontent.com",  # web
+        "345472883983-9ugfodmtmr4vbuotcvap5tphq20q747r.apps.googleusercontent.com",  # android
+        "345472883983-gphr333q3n4m1albaq3km2r5ojt77r9t.apps.googleusercontent.com",  # ios
+    ]
+
+    try:
+        idinfo = google_id_token.verify_oauth2_token(
+            token, google_requests.Request(), audience=None
+        )
+        # Verify the token was issued for one of our client IDs
+        if idinfo.get("aud") not in GOOGLE_CLIENT_IDS:
+            logger.warning(f"[GoogleOAuth-Direct] Token audience mismatch: {idinfo.get('aud')}")
+            raise HTTPException(401, "Invalid token audience")
+        if not idinfo.get("email_verified", False):
+            raise HTTPException(401, "Email not verified by Google")
+    except ValueError as e:
+        logger.error(f"[GoogleOAuth-Direct] Token verification failed: {e}")
+        raise HTTPException(401, f"Invalid Google token: {e}")
+
+    email = idinfo["email"]
+    name = idinfo.get("name", "")
+    picture = idinfo.get("picture", "")
+
+    logger.info(f"[GoogleOAuth-Direct] Verified: {email[:3]}***")
+
+    return await _upsert_google_user(email, name, picture)
+
+
+async def _upsert_google_user(email: str, name: str, picture: str):
+    """Shared logic: find or create Google user, return tokens."""
     existing = await users_col.find_one({"email": email}, {"_id": 0})
     if existing:
-        logger.info(f"[GoogleOAuth] Existing user found: {existing['username']}")
         if picture and existing.get("picture") != picture:
             await users_col.update_one({"id": existing["id"]}, {"$set": {"picture": picture}})
         user_id = existing["id"]
@@ -271,7 +304,6 @@ async def google_auth_session(request: Request):
         username = existing.get("username", name)
         language = existing.get("language", "it")
     else:
-        logger.info("[GoogleOAuth] Creating new user from Google data...")
         user_id = new_id()
         base_username = name.replace(" ", "_")[:20] if name else email.split("@")[0]
         username = base_username
@@ -289,6 +321,8 @@ async def google_auth_session(request: Request):
             "language": "it",
             "picture": picture,
             "auth_provider": "google",
+            "profile_completed": False,
+            "email_verified": True,
             "created_at": now_utc(),
         }
         await users_col.insert_one(user)
@@ -301,9 +335,6 @@ async def google_auth_session(request: Request):
 
     google_user = await users_col.find_one({"id": user_id}, {"_id": 0})
     profile_completed = bool(google_user.get("profile_completed", False))
-
-    logger.info(f"[GoogleOAuth] SUCCESS: Tokens generated for user {username}")
-    logger.info("[GoogleOAuth] === GOOGLE SESSION VERIFICATION COMPLETED ===")
 
     return TokenResponse(
         access_token=access,
