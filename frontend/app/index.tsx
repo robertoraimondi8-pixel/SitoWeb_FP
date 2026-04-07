@@ -8,7 +8,7 @@
  *   5. else                        → /(tabs)/home
  */
 import { useEffect, useState } from 'react';
-import { View, Image, StyleSheet, Animated, Platform, Dimensions } from 'react-native';
+import { View, Image, StyleSheet, Animated, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as WebBrowser from 'expo-web-browser';
@@ -16,8 +16,7 @@ import { useAuth } from '../src/contexts/AuthContext';
 import { apiCall } from '../src/api/client';
 import { colors } from '../src/theme/designSystem';
 
-const { width } = Dimensions.get('window');
-const MIN_SPLASH_MS = 2000;
+const MIN_SPLASH_MS = 700;
 
 export default function SplashScreen() {
   const { isAuthenticated, isLoading, token, user, loginWithToken, logout } = useAuth();
@@ -184,9 +183,9 @@ export default function SplashScreen() {
   return (
     <View style={s.container}>
       <Animated.Image
-        source={require('../assets/logo-full.png')}
-        style={[s.logo, { opacity }]}
-        resizeMode="contain"
+        source={require('../assets/images/splash-stadium.png')}
+        style={[s.bg, { opacity }]}
+        resizeMode="cover"
       />
     </View>
   );
@@ -195,12 +194,11 @@ export default function SplashScreen() {
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#1a3a2a',
   },
-  logo: {
-    width: width * 0.65,
-    height: 180,
+  bg: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
   },
 });
