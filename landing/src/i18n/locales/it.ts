@@ -211,10 +211,10 @@ const it = {
     ],
   },
   newsletter: {
-    overline: "Accesso Anticipato",
-    title: "Sii il primo a giocare.",
+    overline: "Newsletter",
+    title: "Iscriviti alla newsletter.",
     subtitle:
-      "Iscriviti alla newsletter per accesso anticipato, aggiornamenti e tornei esclusivi.",
+      "Aggiornamenti sulle novità di FantaPronostic, nuovi tornei e rilasci dell'app direttamente nella tua casella.",
     placeholder: "La tua email",
     cta: "Iscriviti",
     privacy: "Niente spam. Solo calcio. Disiscrivibile in ogni momento.",

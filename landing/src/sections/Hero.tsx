@@ -98,21 +98,19 @@ export function Hero() {
             </motion.div>
           </div>
 
-          {/* Right — real app screenshot in phone frame */}
+          {/* Right — real app screenshot in phone frame (smaller on mobile) */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="lg:col-span-5 relative hidden lg:flex items-center justify-center"
+            className="lg:col-span-5 relative flex items-center justify-center"
           >
-            <div className="absolute -z-10 h-[460px] w-[460px] rounded-full bg-brand-blue-50" />
-            <div className="absolute -z-10 h-[360px] w-[360px] rounded-full bg-white border border-line2" />
+            <div className="absolute -z-10 h-[300px] w-[300px] lg:h-[460px] lg:w-[460px] rounded-full bg-brand-blue-50" />
+            <div className="absolute -z-10 h-[240px] w-[240px] lg:h-[360px] lg:w-[360px] rounded-full bg-white border border-line2" />
 
-            <div className="relative animate-float">
-              <div className="relative rounded-[44px] border-[10px] border-ink bg-ink shadow-blue w-[280px] h-[580px] overflow-hidden">
-                {/* Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-28 bg-ink rounded-b-2xl z-20" />
-                {/* Screenshot */}
+            <div className="relative lg:animate-float">
+              <div className="relative rounded-[36px] lg:rounded-[44px] border-[8px] lg:border-[10px] border-ink bg-ink shadow-blue w-[220px] h-[460px] lg:w-[280px] lg:h-[580px] overflow-hidden">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 lg:h-5 w-24 lg:w-28 bg-ink rounded-b-2xl z-20" />
                 <img
                   src="/app-screen-predictions.jpg"
                   alt="FantaPronostic app — Pronostici Giornata 1"

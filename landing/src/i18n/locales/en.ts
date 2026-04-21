@@ -208,9 +208,10 @@ const en = {
     ],
   },
   newsletter: {
-    overline: "Early Access",
-    title: "Be the first to play.",
-    subtitle: "Join the newsletter for early access, updates and exclusive tournaments.",
+    overline: "Newsletter",
+    title: "Subscribe to the newsletter.",
+    subtitle:
+      "Updates on FantaPronostic news, new tournaments and app releases straight to your inbox.",
     placeholder: "Your email",
     cta: "Subscribe",
     privacy: "No spam. Only football. Unsubscribe anytime.",
