@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    @apply bg-bg-base text-ink font-body;
+    font-feature-settings: "ss01", "ss02";
+  }
+  ::selection {
+    @apply bg-brand text-bg-base;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: "Clash Display", "Space Grotesk", system-ui, sans-serif;
+    font-feature-settings: "ss01";
+  }
+  .container-x {
+    @apply max-w-7xl mx-auto px-5 sm:px-8 lg:px-10;
+  }
+  .section-pad {
+    @apply py-20 md:py-28 lg:py-32;
+  }
+  .overline {
+    @apply text-[11px] md:text-xs uppercase tracking-[0.28em] font-semibold text-brand;
+  }
+  .glass {
+    background: linear-gradient(180deg, rgba(22, 26, 34, 0.8) 0%, rgba(22, 26, 34, 0.6) 100%);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand px-7 py-3.5 font-semibold text-bg-base transition-all duration-200 hover:bg-brand-hover hover:scale-[1.02] active:scale-[0.98];
+    box-shadow: 0 10px 40px -10px rgba(0, 229, 90, 0.55);
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.03] px-7 py-3.5 font-semibold text-ink transition-all duration-200 hover:bg-white/[0.08] hover:border-white/25;
+  }
+  .chip {
+    @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-3 py-1 text-xs font-medium text-muted;
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+  .grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.15 0'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+  }
+  .text-gradient {
+    background: linear-gradient(135deg, #ffffff 0%, #9CA3AF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .brand-gradient {
+    background: linear-gradient(135deg, #00E55A 0%, #00FF8A 50%, #FACC15 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+html,
+body,
+#root {
+  background-color: #0B0D12;
+}
