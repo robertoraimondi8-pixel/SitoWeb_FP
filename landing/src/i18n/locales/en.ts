@@ -8,16 +8,16 @@ const en = {
     download: "Get the App",
   },
   hero: {
-    badge: "The new era of friend-first football predictions",
-    title_line1: "Football is on.",
-    title_line2: "Your turn to",
-    title_line3: "win.",
+    badge: "Competitive football predictions",
+    title_pre: "The most",
+    title_accent: "competitive",
+    title_post: "way to live football with your friends.",
     subtitle:
-      "Create your private league, predict every match and dominate the standings. FantaPronostic turns every matchday into a social challenge between you and your friends.",
-    cta_primary: "Create your League",
+      "Create your private league, submit your predictions every matchday and challenge your friends on live leaderboards updated in real time.",
+    cta_primary: "Get the App",
     cta_secondary: "See how it works",
-    trust_line: "The fantasy game of football predictions.",
-    trust_sub: "Built for those who live football every matchday.",
+    trust_line: "From Serie A to the Champions League.",
+    trust_sub: "Every competition that matters, one league with your friends.",
   },
   marquee: {
     items: [
@@ -33,64 +33,95 @@ const en = {
       "Euros",
     ],
   },
+  value: {
+    overline: "A new way to challenge friends",
+    title_line1: "More engaging than fantasy.",
+    title_line2: "Simpler than you think.",
+    subtitle:
+      "No auctions, no lineups to set, no complex math. Just predictions, live leaderboards and the thrill of calling it right.",
+  },
   how: {
     overline: "How It Works",
-    title: "Three steps. Endless rivalries.",
-    subtitle:
-      "Playing is simple. Winning is another story. Every prediction counts, every point matters, every leaderboard is a challenge against your friends.",
+    title: "Start in less than a minute.",
+    subtitle: "Three steps and you're in the game. No complex setup, no waiting.",
     steps: [
       {
         n: "01",
-        title: "Create or join a league",
-        body:
-          "Spin up a private league and invite your friends with a personal code. Or join a public league and challenge the community.",
+        title: "Create a private league",
+        body: "Invite friends with a personal code.",
       },
       {
         n: "02",
-        title: "Predict before kickoff",
-        body:
-          "1X2, Both Teams to Score, Over/Under, Exact Score. Pick your markets, lock your predictions before kickoff and enjoy the game.",
+        title: "Submit your predictions",
+        body: "Before kickoff.",
       },
       {
         n: "03",
-        title: "Earn points. Climb the table.",
-        body:
-          "Every matchday updates the ranking. More accuracy, more glory. Fewer misses, more domination.",
+        title: "Compete in the standings",
+        body: "Every point can decide the season.",
       },
     ],
   },
   modes: {
-    overline: "3 Game Modes",
-    title: "Choose how to win.",
-    subtitle:
-      "Three formats built for every type of group, every level of rivalry, every moment of the season.",
+    overline: "Game Modes",
+    title: "Three modes. One goal: win.",
+    subtitle: "Three formats built for every type of group and every level of competition.",
     cards: [
       {
-        tag: "Classic Mode",
+        tag: "Classic",
         title: "Free For All",
-        punch: "Score more than anyone else. Take the crown.",
-        body:
-          "The most immediate mode. Everyone plays at the same time and stacks points. The one with the highest total wins the season.",
-        perfect_for: "Perfect for friends, coworkers and community groups.",
-        bullets: ["Single standings", "Unlimited players", "One-click setup"],
+        punch: "The most immediate format.",
+        body: "Everyone stacks points, the best one wins.",
+        perfect_for: "Friends, coworkers, community groups.",
+        bullets: ["Single standings", "Unlimited players", "Instant setup"],
       },
       {
-        tag: "Competitive Mode",
+        tag: "Competitive",
         title: "League Championship",
-        punch: "Every matchday is a head-to-head.",
-        body:
-          "Each matchday players face off 1 vs 1. Whoever scores more prediction points in the round wins the fixture.",
-        perfect_for: "Perfect for competitive groups and season-long leagues.",
-        bullets: ["Win = 3 pts", "Draw = 1 pt", "Loss = 0 pt"],
+        punch: "Head-to-head 1 vs 1.",
+        body: "3 points for a win, 1 for a draw, 0 for a loss.",
+        perfect_for: "Competitive groups, full-season leagues.",
+        bullets: ["Win = 3 pts", "Draw = 1 pt", "Loss = 0 pts"],
       },
       {
-        tag: "Showdown Mode",
+        tag: "Knockout",
         title: "Tournaments",
-        punch: "Win or go home. Every pick counts.",
-        body:
-          "Group stage, qualifiers, knockouts, semis and a final. A structure built for the biggest football events of the year.",
-        perfect_for: "Perfect for Euros, World Cup and Champions League nights.",
-        bullets: ["Groups", "Knockouts", "The Final"],
+        punch: "Group stage and knockouts.",
+        body: "The most intense format.",
+        perfect_for: "Euros, World Cup, Champions League.",
+        bullets: ["Group stage", "Knockouts", "Semis & Final"],
+      },
+    ],
+  },
+  trust: {
+    overline: "Product Reliability",
+    title: "Transparent competition. Clear rules.",
+    subtitle:
+      "FantaPronostic is built to last: verified results, live leaderboards and zero ambiguity.",
+    bullets: [
+      {
+        title: "Predictions lock at kickoff",
+        body: "No changes after the whistle. Everyone plays on equal ground.",
+      },
+      {
+        title: "Standings update automatically",
+        body: "Points are calculated at the end of each match. No manual steps.",
+      },
+      {
+        title: "Live results and real-time scoring",
+        body: "Follow every goal, every action, with your points growing as the match unfolds.",
+      },
+      {
+        title: "Live ranking during matches",
+        body: "The leaderboard moves in real time. Watch your friends climb or fall minute by minute.",
+      },
+      {
+        title: "Invite-only private leagues",
+        body: "You decide who's in. A personal invite code for every league.",
+      },
+      {
+        title: "Verified official results",
+        body: "Data comes from official providers. No errors, no disputes.",
       },
     ],
   },
@@ -98,36 +129,35 @@ const en = {
     overline: "Private Leagues",
     title: "Create your league. Challenge your friends.",
     subtitle:
-      "FantaPronostic's engine is social. Build a private league, share an invite code and gather your tribe: coworkers, 5-a-side mates, classmates, family.",
+      "FantaPronostic is social at the core. Build a private league, share the invite code and gather your crew.",
     features: [
-      { title: "Personal invite code", body: "One code, one crew, zero friction. Share and play." },
-      { title: "Your mode, your call", body: "Free For All, League Championship or Tournament — you decide." },
-      { title: "Custom rules", body: "Set format, duration and markets for each of your private leagues." },
-      { title: "Live leaderboard", body: "Every goal, every result refreshes the standings in real time." },
+      { title: "Personal invite code", body: "One code, one crew, zero friction." },
+      { title: "Your mode, your call", body: "Free For All, Championship or Tournament." },
+      { title: "Custom rules", body: "Format, duration and markets on your terms." },
+      { title: "Live leaderboard", body: "Real-time updates during every match." },
     ],
     cta: "Create a Private League",
   },
   markets: {
     overline: "Prediction Markets",
     title: "Four markets. One goal: nail it.",
-    subtitle:
-      "Clear predictions, straight markets, zero gambling odds. Just the thrill of calling it right.",
+    subtitle: "Clear, straight predictions. No betting odds, only competition between friends.",
     items: [
       { name: "1X2", desc: "Home win, draw or away win." },
-      { name: "Both Teams to Score", desc: "Do both teams score? You decide." },
-      { name: "Over / Under", desc: "Will the match go above or below the line?" },
-      { name: "Exact Score", desc: "The prediction for true experts." },
+      { name: "Both Teams to Score", desc: "Do both teams score?" },
+      { name: "Over / Under", desc: "Goals above or below the line." },
+      { name: "Exact Score", desc: "The pick for true experts." },
     ],
   },
   rules: {
     overline: "Rules",
-    title: "Clean rules. Clean game.",
+    title: "Clear rules. Clean game.",
     subtitle:
-      "FantaPronostic is a competitive predictions platform. No betting, no odds — only skill-based challenges between friends.",
+      "A competitive predictions platform between friends. No betting, only football-knowledge challenges.",
     items: [
       {
         q: "How do you earn points?",
-        a: "Each correct prediction awards points based on the market played. Exact Score is worth more than a simple 1X2. The sum of points drives the matchday and overall standings.",
+        a: "Each correct prediction awards points based on the market played. Exact Score is worth more than a simple 1X2. The sum determines matchday and overall standings.",
       },
       {
         q: "When do predictions lock?",
@@ -139,11 +169,11 @@ const en = {
       },
       {
         q: "How are postponed matches handled?",
-        a: "Postponed matches are automatically recalculated once played, and points are assigned retroactively to the right matchday.",
+        a: "They are automatically recalculated once played, with points assigned retroactively to the right matchday.",
       },
       {
         q: "Are there any payments?",
-        a: "FantaPronostic is free to create basic leagues. Premium features or special tournaments may require a small entry fee.",
+        a: "FantaPronostic is free for basic leagues. Premium features or special tournaments may require an entry fee.",
       },
     ],
   },
@@ -153,11 +183,11 @@ const en = {
     items: [
       {
         q: "Is FantaPronostic a gambling site?",
-        a: "No. FantaPronostic is a competitive predictions platform between friends. No money at stake, no odds, no risk. Only social rivalry and football passion.",
+        a: "No. FantaPronostic is a competitive predictions platform between friends. No money at stake, no odds. Only skill-based social competition.",
       },
       {
         q: "Can I play for free?",
-        a: "Yes. Creating basic leagues and joining is free. Some special competitions or premium features may have a symbolic fee.",
+        a: "Yes. Creating basic leagues and joining is free. Some special competitions or premium features may have a fee.",
       },
       {
         q: "Which leagues can I predict on?",
@@ -165,27 +195,26 @@ const en = {
       },
       {
         q: "How many friends can I invite?",
-        a: "No limit. The more friends, the more competitive your league. Perfect for big groups of coworkers, teammates and family.",
+        a: "No limit. The more players, the more competitive your league.",
       },
       {
         q: "Is the app available on iOS and Android?",
-        a: "We're finalizing the App Store and Google Play launch. Subscribe to the newsletter and be the first to know.",
+        a: "We're finalizing the App Store and Google Play launch. Subscribe to the newsletter to be the first to know.",
       },
       {
         q: "Can I change my league mode after creating it?",
-        a: "The mode is chosen at creation. You can always spin up a new league with a different mode whenever you want.",
+        a: "The mode is chosen at creation. You can always spin up a new league with a different mode.",
       },
     ],
   },
   newsletter: {
-    overline: "Stay Connected",
+    overline: "Early Access",
     title: "Be the first to play.",
-    subtitle:
-      "Join the newsletter for early access, league news, promotions and exclusive tournaments.",
+    subtitle: "Join the newsletter for early access, updates and exclusive tournaments.",
     placeholder: "Your email",
     cta: "Subscribe",
     privacy: "No spam. Only football. Unsubscribe anytime.",
-    success: "Subscription confirmed. Talk soon.",
+    success: "Subscription confirmed.",
   },
   contact: {
     overline: "Contact",
@@ -195,10 +224,10 @@ const en = {
     email: "Email",
     message: "Message",
     cta: "Send",
-    success: "Message sent. Thank you!",
+    success: "Message sent. Thanks.",
   },
   footer: {
-    tagline: "The prediction game where you really challenge your friends.",
+    tagline: "The competitive football predictions platform between friends.",
     product: "Product",
     company: "Company",
     legal: "Legal",
@@ -215,9 +244,9 @@ const en = {
     coming_soon: "Coming soon",
   },
   cta_final: {
-    title: "Football is waiting.",
-    subtitle: "Create your league, call your crew, dominate the standings.",
-    cta: "Play Now",
+    title: "Ready to start?",
+    subtitle: "Create your league, invite your friends, start playing.",
+    cta: "Get the App",
   },
 };
 

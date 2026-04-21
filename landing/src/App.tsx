@@ -1,8 +1,10 @@
 import { Header } from "./components/Header";
 import { Hero } from "./sections/Hero";
 import { Marquee } from "./sections/Marquee";
+import { ValueSection } from "./sections/ValueSection";
 import { HowItWorks } from "./sections/HowItWorks";
 import { GameModes } from "./sections/GameModes";
+import { TrustSection } from "./sections/TrustSection";
 import { PrivateLeagues } from "./sections/PrivateLeagues";
 import { Markets } from "./sections/Markets";
 import { Rules, FAQ } from "./sections/RulesAndFAQ";
@@ -18,8 +20,10 @@ export default function App() {
       <main>
         <Hero />
         <Marquee />
+        <ValueSection />
         <HowItWorks />
         <GameModes />
+        <TrustSection />
         <PrivateLeagues />
         <Markets />
         <Rules />

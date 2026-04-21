@@ -8,16 +8,16 @@ const it = {
     download: "Scarica l'App",
   },
   hero: {
-    badge: "La nuova era dei pronostici tra amici",
-    title_line1: "Il calcio è iniziato.",
-    title_line2: "Tocca a te",
-    title_line3: "vincere.",
+    badge: "Pronostici calcistici competitivi",
+    title_pre: "Il modo più",
+    title_accent: "competitivo",
+    title_post: "di vivere il calcio tra amici.",
     subtitle:
-      "Crea la tua lega privata, pronostica ogni partita e domina la classifica. FantaPronostic trasforma ogni giornata di calcio in una sfida sociale tra te e i tuoi amici.",
-    cta_primary: "Crea la tua Lega",
+      "Crea la tua lega privata, inserisci i pronostici ogni giornata e sfida i tuoi amici in classifiche live sempre aggiornate.",
+    cta_primary: "Scarica l'App",
     cta_secondary: "Scopri come funziona",
-    trust_line: "Il fantacalcio dei pronostici.",
-    trust_sub: "Costruito per chi vive il calcio ogni giornata.",
+    trust_line: "Dalla Serie A alla Champions League.",
+    trust_sub: "Tutti i campionati che contano, una sola lega con i tuoi amici.",
   },
   marquee: {
     items: [
@@ -33,64 +33,97 @@ const it = {
       "Europei",
     ],
   },
+  value: {
+    overline: "Il nuovo modo di sfidare gli amici",
+    title_line1: "Più coinvolgente del fantacalcio.",
+    title_line2: "Più semplice di quanto pensi.",
+    subtitle:
+      "Niente aste, niente formazioni da schierare, niente calcoli complicati. Solo pronostici, classifiche live e la soddisfazione di averla chiamata giusta.",
+  },
   how: {
     overline: "Come Funziona",
-    title: "Tre passi. Infinite rivalità.",
+    title: "Inizia in meno di un minuto.",
     subtitle:
-      "Giocare è semplice. Vincere è tutta un'altra storia. Perché ogni pronostico conta, ogni punto pesa, ogni classifica è una sfida con i tuoi amici.",
+      "Tre passi e sei già in partita. Nessuna configurazione complicata, nessuna attesa.",
     steps: [
       {
         n: "01",
-        title: "Crea o entra in una lega",
-        body:
-          "Crea una lega privata e invita i tuoi amici con un codice personale. Oppure entra in una lega pubblica e sfida la community.",
+        title: "Crea una lega privata",
+        body: "Invita amici con un codice personale.",
       },
       {
         n: "02",
-        title: "Pronostica prima del kickoff",
-        body:
-          "1X2, Goal/No Goal, Over/Under, Risultato esatto. Scegli i mercati, chiudi i pronostici prima del fischio d'inizio e aspetta la partita.",
+        title: "Inserisci i pronostici",
+        body: "Prima del calcio d'inizio.",
       },
       {
         n: "03",
-        title: "Vinci punti. Scala la classifica.",
-        body:
-          "Ogni giornata aggiorna il ranking. Più azzecchi, più sali. Meno sbagli, più dominio.",
+        title: "Competi in classifica",
+        body: "Ogni punto può decidere la stagione.",
       },
     ],
   },
   modes: {
-    overline: "3 Modalità di Gioco",
-    title: "Scegli come vincere.",
+    overline: "Modalità di Gioco",
+    title: "Tre modalità. Un solo obiettivo: vincere.",
     subtitle:
-      "Tre formati pensati per ogni tipo di gruppo, ogni livello di rivalità, ogni momento della stagione.",
+      "Tre formati pensati per ogni tipo di gruppo e ogni livello di competizione.",
     cards: [
       {
-        tag: "Modalità Classica",
+        tag: "Classica",
         title: "Lega Tutti Contro Tutti",
-        punch: "Fai più punti di tutti. Vinci la classifica.",
-        body:
-          "La modalità più immediata. Tutti giocano contemporaneamente, tutti accumulano punti. Vince chi ne totalizza di più al termine della competizione.",
-        perfect_for: "Perfetta per gruppi di amici, colleghi e community.",
-        bullets: ["Classifica unica", "Partecipazione illimitata", "Facile da avviare"],
+        punch: "La formula più immediata.",
+        body: "Tutti accumulano punti, il migliore vince.",
+        perfect_for: "Gruppi di amici, colleghi, community.",
+        bullets: ["Classifica unica", "Partecipanti illimitati", "Avvio immediato"],
       },
       {
-        tag: "Modalità Competitiva",
+        tag: "Competitiva",
         title: "Lega Campionato",
-        punch: "Ogni giornata è uno scontro diretto.",
-        body:
-          "Ogni giornata i partecipanti si affrontano in sfide dirette 1 vs 1. Chi totalizza più punti nella giornata vince il match.",
-        perfect_for: "Perfetta per gruppi competitivi e leghe stagionali.",
+        punch: "Sfide dirette 1vs1.",
+        body: "3 punti vittoria, 1 pareggio, 0 sconfitta.",
+        perfect_for: "Gruppi competitivi, leghe stagionali.",
         bullets: ["Vittoria = 3 pt", "Pareggio = 1 pt", "Sconfitta = 0 pt"],
       },
       {
-        tag: "Modalità Spettacolo",
+        tag: "Knockout",
         title: "Tornei",
-        punch: "Dentro o fuori. Conta ogni pronostico.",
-        body:
-          "Fase a gironi, qualificazioni, eliminazione diretta, semifinali e finale. Struttura pensata per gli eventi più importanti dell'anno.",
-        perfect_for: "Perfetta per Europei, Mondiali e Champions League.",
-        bullets: ["Gironi", "Eliminazione diretta", "Finalissima"],
+        punch: "Gironi ed eliminazione diretta.",
+        body: "La modalità più intensa.",
+        perfect_for: "Europei, Mondiali, Champions League.",
+        bullets: ["Fase a gironi", "Eliminazione diretta", "Semifinale e Finale"],
+      },
+    ],
+  },
+  trust: {
+    overline: "Affidabilità del Prodotto",
+    title: "Competizione trasparente. Regole chiare.",
+    subtitle:
+      "FantaPronostic è costruito per durare: risultati verificati, classifiche live e zero ambiguità.",
+    bullets: [
+      {
+        title: "Pronostici bloccati al calcio d'inizio",
+        body: "Nessuna modifica dopo il fischio. Tutti giocano alle stesse condizioni.",
+      },
+      {
+        title: "Classifiche aggiornate automaticamente",
+        body: "Il sistema calcola i punti alla fine di ogni partita. Zero interventi manuali.",
+      },
+      {
+        title: "Risultati live e punteggi in tempo reale",
+        body: "Segui ogni gol, ogni azione, con i tuoi punti che crescono man mano che la partita avanza.",
+      },
+      {
+        title: "Live ranking durante le partite",
+        body: "La classifica cambia in diretta. Guarda i tuoi amici salire o scendere minuto per minuto.",
+      },
+      {
+        title: "Leghe private con accesso tramite invito",
+        body: "Solo tu decidi chi entra. Codice invito personale per ogni lega.",
+      },
+      {
+        title: "Risultati ufficiali verificati",
+        body: "I dati arrivano dai provider ufficiali. Nessun errore, nessuna contestazione.",
       },
     ],
   },
@@ -98,32 +131,32 @@ const it = {
     overline: "Leghe Private",
     title: "Crea la tua lega. Sfida i tuoi amici.",
     subtitle:
-      "Il motore di FantaPronostic è sociale. Crea una lega privata, genera un codice d'invito e riunisci il tuo gruppo: colleghi, amici del calcetto, compagni di università, famiglia.",
+      "Il cuore di FantaPronostic è sociale. Crea una lega privata, condividi il codice d'invito e riunisci il tuo gruppo.",
     features: [
-      { title: "Codice invito personale", body: "Un codice, un gruppo, zero barriere. Condividi e gioca." },
-      { title: "Modalità a tua scelta", body: "Tutti contro tutti, Campionato o Torneo — la lega è tua, decidi tu." },
-      { title: "Regole personalizzabili", body: "Imposta formato, durata e mercati attivi per ogni lega privata." },
-      { title: "Classifica in tempo reale", body: "Ogni gol, ogni risultato aggiorna il ranking al volo." },
+      { title: "Codice invito personale", body: "Un codice, un gruppo, zero frizioni." },
+      { title: "Modalità a tua scelta", body: "Tutti contro tutti, Campionato o Torneo." },
+      { title: "Regole personalizzabili", body: "Formato, durata e mercati attivi su misura." },
+      { title: "Classifica in tempo reale", body: "Aggiornamento live durante ogni partita." },
     ],
     cta: "Crea una Lega Privata",
   },
   markets: {
     overline: "Mercati di Pronostico",
-    title: "Quattro mercati. Un solo obiettivo: azzeccare.",
+    title: "Quattro mercati. Un obiettivo: azzeccare.",
     subtitle:
-      "Pronostici chiari, mercati diretti, nessuna quota da scommessa. Solo la soddisfazione di averla chiamata giusta.",
+      "Pronostici chiari e diretti. Nessuna quota da scommessa, solo competizione tra amici.",
     items: [
       { name: "1X2", desc: "Vittoria casa, pareggio o vittoria ospite." },
-      { name: "Goal / No Goal", desc: "Segnano entrambe le squadre? Decidi tu." },
+      { name: "Goal / No Goal", desc: "Segnano entrambe le squadre?" },
       { name: "Over / Under", desc: "Più o meno goal nella partita." },
-      { name: "Risultato Esatto", desc: "Il pronostico che vale doppio. Per i veri esperti." },
+      { name: "Risultato Esatto", desc: "Il pronostico per i veri esperti." },
     ],
   },
   rules: {
     overline: "Regolamento",
     title: "Regole chiare. Gioco pulito.",
     subtitle:
-      "FantaPronostic è una piattaforma di pronostici competitivi. Nessuna scommessa, nessuna quota, solo sfide tra amici basate su abilità e intuizione calcistica.",
+      "Una piattaforma di pronostici competitivi tra amici. Nessuna scommessa, solo sfide basate sulla conoscenza del calcio.",
     items: [
       {
         q: "Come si guadagnano i punti?",
@@ -131,19 +164,19 @@ const it = {
       },
       {
         q: "Quando si chiudono i pronostici?",
-        a: "I pronostici si bloccano automaticamente al fischio d'inizio di ogni partita. Dopo quel momento non è più possibile modificarli.",
+        a: "I pronostici si bloccano automaticamente al calcio d'inizio. Dopo quel momento non è più possibile modificarli.",
       },
       {
         q: "Cosa succede se non gioco una giornata?",
-        a: "La giornata non giocata assegna zero punti, ma la competizione continua. Resta sempre attivo per non perdere terreno.",
+        a: "La giornata non giocata assegna zero punti, ma la competizione continua. Resta attivo per non perdere terreno in classifica.",
       },
       {
         q: "Come vengono gestite le partite rinviate?",
-        a: "Le partite rinviate vengono ricalcolate automaticamente una volta recuperate, e i punti vengono assegnati retroattivamente alla giornata corretta.",
+        a: "Le partite rinviate vengono ricalcolate automaticamente una volta disputate, con i punti assegnati retroattivamente alla giornata corretta.",
       },
       {
         q: "La piattaforma prevede pagamenti?",
-        a: "FantaPronostic è gratuito per creare leghe base. Per funzionalità premium o tornei speciali potrà essere richiesta una piccola quota di iscrizione.",
+        a: "FantaPronostic è gratuito per creare leghe base. Per funzionalità premium o tornei speciali potrà essere richiesta una quota di iscrizione.",
       },
     ],
   },
@@ -153,11 +186,11 @@ const it = {
     items: [
       {
         q: "FantaPronostic è un sito di scommesse?",
-        a: "No. FantaPronostic è una piattaforma di pronostici competitivi tra amici. Nessun denaro in palio, nessuna quota, nessun rischio. Solo sfida sociale e passione calcistica.",
+        a: "No. FantaPronostic è una piattaforma di pronostici competitivi tra amici. Nessun denaro in palio, nessuna quota. Solo competizione sociale basata su abilità.",
       },
       {
         q: "Posso giocare gratuitamente?",
-        a: "Sì. La creazione di leghe base e la partecipazione sono gratuite. Alcune competizioni speciali o funzionalità premium potranno prevedere una quota simbolica.",
+        a: "Sì. Creare leghe base e partecipare è gratuito. Alcune competizioni speciali o funzionalità premium possono prevedere una quota.",
       },
       {
         q: "Su quali campionati posso pronosticare?",
@@ -165,27 +198,27 @@ const it = {
       },
       {
         q: "Quanti amici posso invitare nella mia lega?",
-        a: "Non c'è un limite. Più amici inviti, più la lega diventa competitiva. Perfetto per gruppi grandi di colleghi, compagni di squadra, famiglia.",
+        a: "Non c'è un limite. Più partecipanti, più competitiva diventa la lega.",
       },
       {
         q: "L'app è disponibile su iOS e Android?",
-        a: "Stiamo finalizzando il lancio su App Store e Google Play. Iscriviti alla newsletter per essere avvisato al momento del rilascio.",
+        a: "Stiamo finalizzando il lancio su App Store e Google Play. Iscriviti alla newsletter per essere avvisato al rilascio.",
       },
       {
-        q: "Posso cambiare modalità alla mia lega dopo averla creata?",
-        a: "La modalità viene scelta alla creazione. Puoi sempre creare una nuova lega con una modalità diversa quando vuoi.",
+        q: "Posso cambiare modalità alla lega dopo averla creata?",
+        a: "La modalità viene scelta alla creazione. Puoi sempre creare una nuova lega con una modalità diversa.",
       },
     ],
   },
   newsletter: {
-    overline: "Resta Connesso",
+    overline: "Accesso Anticipato",
     title: "Sii il primo a giocare.",
     subtitle:
-      "Iscriviti alla newsletter per ricevere l'accesso anticipato, novità sulle leghe, promozioni e tornei esclusivi.",
+      "Iscriviti alla newsletter per accesso anticipato, aggiornamenti e tornei esclusivi.",
     placeholder: "La tua email",
     cta: "Iscriviti",
-    privacy: "Niente spam. Solo calcio. Puoi disiscriverti quando vuoi.",
-    success: "Iscrizione confermata. Ci sentiamo presto.",
+    privacy: "Niente spam. Solo calcio. Disiscrivibile in ogni momento.",
+    success: "Iscrizione confermata.",
   },
   contact: {
     overline: "Contatti",
@@ -195,10 +228,10 @@ const it = {
     email: "Email",
     message: "Messaggio",
     cta: "Invia",
-    success: "Messaggio inviato. Grazie!",
+    success: "Messaggio inviato. Grazie.",
   },
   footer: {
-    tagline: "Il gioco dei pronostici dove sfidi davvero i tuoi amici.",
+    tagline: "La piattaforma di pronostici calcistici competitivi tra amici.",
     product: "Prodotto",
     company: "Azienda",
     legal: "Legale",
@@ -215,9 +248,9 @@ const it = {
     coming_soon: "Prossimamente",
   },
   cta_final: {
-    title: "Il calcio ti aspetta.",
-    subtitle: "Crea la tua lega, chiama gli amici, domina la classifica.",
-    cta: "Gioca Ora",
+    title: "Pronto a iniziare?",
+    subtitle: "Crea la tua lega, invita gli amici, comincia a giocare.",
+    cta: "Scarica l'App",
   },
 };
 

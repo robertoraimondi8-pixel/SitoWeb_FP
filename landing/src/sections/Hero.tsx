@@ -10,12 +10,11 @@ export function Hero() {
       className="relative overflow-hidden pt-28 md:pt-32 pb-20"
       data-testid="hero-section"
     >
-      {/* Background — soft light with brand tint + stadium fading */}
+      {/* Background */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-brand-blue-50 via-white to-white" />
         <div className="absolute inset-0 grid-bg opacity-100" />
         <div className="absolute inset-0 bg-brand-radial" />
-        {/* Stadium photo fades subtly top-right */}
         <div
           className="absolute top-0 right-0 w-[900px] h-[600px] bg-cover bg-center opacity-10 pointer-events-none"
           style={{
@@ -46,14 +45,13 @@ export function Hero() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="font-display font-bold text-5xl sm:text-6xl md:text-7xl lg:text-[82px] leading-[0.95] tracking-tightest text-ink"
+              className="font-display font-bold text-[42px] sm:text-5xl md:text-6xl lg:text-[72px] leading-[1.02] tracking-tightest text-ink"
               data-testid="hero-title"
             >
-              <span className="block">{t("hero.title_line1")}</span>
-              <span className="block text-brand-blue">
-                {t("hero.title_line2")}{" "}
-                <span className="relative inline-block">
-                  <span className="text-brand-orange italic">{t("hero.title_line3")}</span>
+              <span className="block">
+                {t("hero.title_pre")}{" "}
+                <span className="relative inline-block text-brand-orange italic">
+                  {t("hero.title_accent")}
                   <svg
                     className="absolute -bottom-2 left-0 w-full"
                     viewBox="0 0 200 12"
@@ -70,6 +68,7 @@ export function Hero() {
                   </svg>
                 </span>
               </span>
+              <span className="block text-brand-blue">{t("hero.title_post")}</span>
             </motion.h1>
 
             <motion.p
@@ -88,7 +87,7 @@ export function Hero() {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="mt-10 flex flex-wrap items-center gap-3"
             >
-              <a href="#leagues" className="btn-primary" data-testid="hero-cta-primary">
+              <a href="#download" className="btn-primary" data-testid="hero-cta-primary">
                 {t("hero.cta_primary")}
                 <ArrowRight size={18} />
               </a>
@@ -98,34 +97,22 @@ export function Hero() {
               </a>
             </motion.div>
 
-            {/* Trust bar — real social proof instead of fake stats */}
+            {/* Leagues trust — serious product language */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.55 }}
-              className="mt-14 flex items-center gap-5"
+              className="mt-14 flex items-start gap-5"
               data-testid="hero-trust"
             >
-              <div className="flex -space-x-2">
-                {[
-                  { bg: "bg-brand-blue", letter: "M" },
-                  { bg: "bg-brand-orange", letter: "L" },
-                  { bg: "bg-brand-yellow", letter: "S" },
-                  { bg: "bg-brand-blue-700", letter: "A" },
-                ].map((a, i) => (
-                  <div
-                    key={i}
-                    className={`h-10 w-10 rounded-full ${a.bg} border-[3px] border-white text-white font-bold grid place-items-center text-sm`}
-                  >
-                    {a.letter}
-                  </div>
-                ))}
+              <div className="h-11 w-11 rounded-xl bg-white border border-line grid place-items-center shadow-soft">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-brand-blue">
+                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold text-ink">
-                  {t("hero.trust_line")}
-                </p>
-                <p className="text-xs text-muted">{t("hero.trust_sub")}</p>
+                <p className="text-sm font-bold text-ink">{t("hero.trust_line")}</p>
+                <p className="text-xs text-muted mt-0.5">{t("hero.trust_sub")}</p>
               </div>
             </motion.div>
           </div>
@@ -137,11 +124,9 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="lg:col-span-5 relative hidden lg:flex items-center justify-center"
           >
-            {/* Decorative ring */}
             <div className="absolute -z-10 h-[460px] w-[460px] rounded-full bg-brand-blue-50" />
             <div className="absolute -z-10 h-[360px] w-[360px] rounded-full bg-white border border-line2" />
 
-            {/* Phone mockup */}
             <div className="relative animate-float">
               <div className="relative rounded-[44px] border-[10px] border-ink bg-ink shadow-blue w-[280px] h-[560px] overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-6 bg-ink flex items-center justify-center">
@@ -154,7 +139,7 @@ export function Hero() {
                   </div>
 
                   <p className="text-[10px] uppercase tracking-widest text-white/50 font-semibold mb-2">
-                    Giornata 28
+                    Giornata 28 · LIVE
                   </p>
                   <div className="rounded-2xl bg-white/10 border border-white/15 p-3 backdrop-blur-sm mb-2">
                     <div className="flex items-center justify-between text-white text-sm font-semibold">
@@ -187,29 +172,28 @@ export function Hero() {
                       <p className="text-[10px] uppercase tracking-widest text-white/80 font-bold">
                         La tua posizione
                       </p>
-                      <p className="font-display text-white font-bold text-2xl">
-                        #2 su 12
-                      </p>
+                      <p className="font-display text-white font-bold text-2xl">#2 su 12</p>
                     </div>
                     <span className="text-3xl">🏆</span>
                   </div>
                 </div>
               </div>
 
-              {/* Floating badge */}
-              <div className="absolute -left-10 top-16 bg-white rounded-2xl border border-line shadow-card p-3 flex items-center gap-2 animate-float">
-                <span className="h-8 w-8 rounded-full bg-brand-orange-50 grid place-items-center text-brand-orange">
-                  ⚽
+              {/* LIVE badge on the phone */}
+              <div className="absolute -left-8 top-20 bg-white rounded-2xl border border-line shadow-card p-3 flex items-center gap-2 animate-float">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-60" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
                 </span>
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-muted font-bold">
-                    Gol
+                    LIVE
                   </p>
-                  <p className="text-sm font-display font-bold text-ink">+3 pt</p>
+                  <p className="text-sm font-display font-bold text-ink">72'</p>
                 </div>
               </div>
 
-              <div className="absolute -right-8 bottom-20 bg-white rounded-2xl border border-line shadow-card p-3 flex items-center gap-2">
+              <div className="absolute -right-8 bottom-24 bg-white rounded-2xl border border-line shadow-card p-3 flex items-center gap-2">
                 <span className="h-8 w-8 rounded-full bg-brand-blue-50 grid place-items-center text-brand-blue">
                   ✓
                 </span>
@@ -217,7 +201,7 @@ export function Hero() {
                   <p className="text-[10px] uppercase tracking-widest text-muted font-bold">
                     1X2 OK
                   </p>
-                  <p className="text-sm font-display font-bold text-ink">Juve vince</p>
+                  <p className="text-sm font-display font-bold text-ink">+3 pt</p>
                 </div>
               </div>
             </div>
