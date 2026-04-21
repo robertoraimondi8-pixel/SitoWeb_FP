@@ -56,7 +56,7 @@ export function HowItWorks() {
                       {step.n}
                     </span>
                   </div>
-                  <h3 className="font-display text-2xl font-bold text-ink tracking-tight">
+                  <h3 className="font-display text-2xl font-bold text-ink">
                     {step.title}
                   </h3>
                   <p className="mt-3 text-muted leading-relaxed text-sm md:text-base">

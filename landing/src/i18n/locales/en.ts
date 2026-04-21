@@ -13,7 +13,7 @@ const en = {
     title_accent: "competitive",
     title_post: "way to live football.",
     subtitle:
-      "Create your private league, submit your predictions every matchday and challenge your friends on live leaderboards updated in real time.",
+      "Create or join a league, submit your predictions every matchday and climb the standings to become the champion.",
     cta_primary: "Get the App",
     cta_secondary: "See how it works",
   },

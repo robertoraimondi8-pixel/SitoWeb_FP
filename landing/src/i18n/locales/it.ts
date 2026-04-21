@@ -13,7 +13,7 @@ const it = {
     title_accent: "competitivo",
     title_post: "di vivere il calcio.",
     subtitle:
-      "Crea la tua lega privata, inserisci i pronostici ogni giornata e sfida i tuoi amici in classifiche live sempre aggiornate.",
+      "Crea o unisciti ad una lega, inserisci i pronostici ogni giornata e scala le classifiche per diventare il campione.",
     cta_primary: "Scarica l'App",
     cta_secondary: "Scopri come funziona",
   },

@@ -13,7 +13,7 @@ const es = {
     title_accent: "competitiva",
     title_post: "de vivir el fútbol.",
     subtitle:
-      "Crea tu liga privada, introduce los pronósticos cada jornada y desafía a tus amigos en clasificaciones en vivo actualizadas en tiempo real.",
+      "Crea o únete a una liga, introduce los pronósticos cada jornada y escala las clasificaciones para convertirte en el campeón.",
     cta_primary: "Descarga la App",
     cta_secondary: "Descubre cómo funciona",
   },
