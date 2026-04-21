@@ -1,228 +1,116 @@
 {
-  "meta": {
-    "app_name": "FantaPronostic",
-    "theme_name": "Premium Sport Light",
-    "version": "2.0.0",
-    "design_philosophy": "Refined, cohesive, airy. White cards on soft gray. 16px radius everywhere."
-  },
+  "theme": "dark",
+  "archetype": "Archetype 2 (Performance Pro) mixed with Archetype 5 (Jewel & Luxury)",
+  "vibe": "Premium, competitive, modern, authoritative, stadium night. NOT betting.",
   "colors": {
-    "background": {
-      "default": "#F2F4F7",
-      "card": "#FFFFFF",
-      "modal": "#FFFFFF",
-      "header": "#FFFFFF"
-    },
-    "text": {
-      "primary": "#111827",
-      "secondary": "#64748B",
-      "tertiary": "#94A3B8",
-      "inverse": "#FFFFFF",
-      "highlight": "#1F3A8A"
-    },
-    "brand": {
-      "primary": "#1F3A8A",
-      "primary_light": "#3B82F6",
-      "primary_dark": "#1E3A8A",
-      "accent": "#F59E0B",
-      "accent_light": "#FEF3C7",
-      "accent_glow": "rgba(245, 158, 11, 0.3)"
-    },
-    "status": {
-      "open": {
-        "bg": "#EFF6FF",
-        "text": "#1D4ED8",
-        "indicator": "#3B82F6"
-      },
-      "live": {
-        "bg": "#FEF2F2",
-        "text": "#B91C1C",
-        "indicator": "#EF4444"
-      },
-      "completed": {
-        "bg": "#F1F5F9",
-        "text": "#475569",
-        "indicator": "#64748B"
-      },
-      "locked": {
-        "bg": "#FFFBEB",
-        "text": "#B45309",
-        "indicator": "#F59E0B"
-      }
-    },
-    "border": {
-      "subtle": "#E2E8F0",
-      "focus": "#1F3A8A"
-    }
+    "background_base": "#0B0D12",
+    "background_surface": "#161A22",
+    "background_card": "#1E232E",
+    "primary": "#00E55A",
+    "primary_hover": "#00C24B",
+    "secondary": "#FFFFFF",
+    "accent_gold": "#FACC15",
+    "text_primary": "#F9FAFB",
+    "text_secondary": "#9CA3AF",
+    "border_subtle": "rgba(255, 255, 255, 0.1)",
+    "glass_background": "rgba(11, 13, 18, 0.7)"
   },
   "typography": {
-    "font_family": {
-      "ios": "System",
-      "android": "Roboto"
-    },
-    "weights": {
-      "regular": "400",
-      "medium": "500",
-      "semibold": "600",
-      "bold": "700",
-      "heavy": "800"
-    },
-    "sizes": {
-      "h1": { "size": 28, "line_height": 34, "weight": "800" },
-      "h2": { "size": 22, "line_height": 28, "weight": "700" },
-      "h3": { "size": 18, "line_height": 24, "weight": "700" },
-      "body_lg": { "size": 16, "line_height": 24, "weight": "400" },
-      "body_md": { "size": 14, "line_height": 20, "weight": "500" },
-      "body_sm": { "size": 13, "line_height": 18, "weight": "400" },
-      "caption": { "size": 11, "line_height": 14, "weight": "600", "letter_spacing": 0.5, "case": "uppercase" }
-    }
-  },
-  "spacing": {
-    "base": 4,
+    "heading_font": "Clash Display",
+    "body_font": "Manrope",
     "scale": {
-      "xs": 4,
-      "sm": 8,
-      "md": 12,
-      "lg": 16,
-      "xl": 24,
-      "2xl": 32,
-      "3xl": 48
+      "h1": "text-5xl md:text-6xl lg:text-7xl tracking-tighter font-black text-white",
+      "h2": "text-3xl md:text-4xl lg:text-5xl tracking-tight font-bold text-white",
+      "h3": "text-xl md:text-2xl tracking-tight font-semibold text-white",
+      "body": "text-base leading-relaxed text-[#9CA3AF]",
+      "overline": "text-sm uppercase tracking-[0.2em] font-semibold text-[#00E55A]"
     }
   },
-  "layout": {
-    "radius": {
-      "small": 8,
-      "medium": 12,
-      "card": 16,
-      "button": 12,
-      "pill": 9999
-    },
-    "shadows": {
-      "card_sm": {
-        "shadowColor": "#000",
-        "shadowOffset": { "width": 0, "height": 2 },
-        "shadowOpacity": 0.05,
-        "shadowRadius": 6,
-        "elevation": 2
-      },
-      "card_md": {
-        "shadowColor": "#000",
-        "shadowOffset": { "width": 0, "height": 4 },
-        "shadowOpacity": 0.08,
-        "shadowRadius": 12,
-        "elevation": 4
-      },
-      "card_lg": {
-        "shadowColor": "#000",
-        "shadowOffset": { "width": 0, "height": 8 },
-        "shadowOpacity": 0.12,
-        "shadowRadius": 24,
-        "elevation": 8
-      },
-      "glow": {
-        "shadowColor": "#F59E0B",
-        "shadowOffset": { "width": 0, "height": 4 },
-        "shadowOpacity": 0.3,
-        "shadowRadius": 8,
-        "elevation": 5
-      }
-    }
+  "layout_and_spacing": {
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "section_padding": "py-24 md:py-32",
+    "border_radius": "rounded-2xl",
+    "card_spacing": "p-8 md:p-10",
+    "grid_bento": "grid grid-cols-1 md:grid-cols-12 gap-6"
   },
-  "components": {
+  "components_strategy": {
     "buttons": {
-      "primary": {
-        "height": 52,
-        "radius": 12,
-        "bg": "#1F3A8A",
-        "text_color": "#FFFFFF",
-        "text_size": 16,
-        "text_weight": "600",
-        "shadow": "glow"
-      },
-      "secondary": {
-        "height": 52,
-        "radius": 12,
-        "bg": "#FFFFFF",
-        "border": "#E2E8F0",
-        "text_color": "#1F3A8A",
-        "text_size": 16,
-        "text_weight": "600"
-      },
-      "ghost": {
-        "height": 40,
-        "bg": "transparent",
-        "text_color": "#64748B"
-      }
-    },
-    "badges": {
-      "base": {
-        "height": 26,
-        "padding_x": 10,
-        "radius": 6,
-        "text_size": 11,
-        "text_weight": "700",
-        "letter_spacing": 0.5,
-        "case": "uppercase"
-      }
+      "primary": "bg-[#00E55A] text-[#0B0D12] font-bold rounded-full px-8 py-4 hover:bg-[#00C24B] transition-colors inline-flex items-center justify-center gap-2",
+      "secondary": "bg-transparent border border-[rgba(255,255,255,0.2)] text-white font-semibold rounded-full px-8 py-4 hover:bg-[rgba(255,255,255,0.05)] transition-colors inline-flex items-center justify-center gap-2"
     },
     "cards": {
-      "default": {
-        "bg": "#FFFFFF",
-        "radius": 16,
-        "padding": 20,
-        "shadow": "card_md",
-        "border": "none"
-      },
-      "highlighted": {
-        "bg": "#F8FAFC",
-        "radius": 16,
-        "padding": 16,
-        "border": "#E2E8F0"
-      }
+      "style": "bg-[#161A22] border border-[rgba(255,255,255,0.05)] rounded-2xl p-8 hover:-translate-y-1 transition-transform duration-300 shadow-2xl relative overflow-hidden"
+    },
+    "glassmorphism": {
+      "header": "backdrop-blur-xl bg-[#0B0D12]/70 border-b border-[rgba(255,255,255,0.05)]"
     }
   },
-  "micro_interactions": {
-    "active_opacity": 0.8,
-    "scale_pressed": 0.96,
-    "animation_duration_short": 200,
-    "animation_duration_medium": 350
-  },
-  "instructions_to_main_agent": [
-    "STEP 1: Update '/app/frontend/src/theme/designSystem.ts' to match these new colors, typography, and shadows. Ensure keys remain compatible where possible but update values.",
-    "STEP 2: Deprecate or unify '/app/frontend/src/theme/index.ts' if it conflicts.",
-    "STEP 3: Refactor 'Home' screen (/app/frontend/app/(tabs)/home.tsx):",
-    "  - Change background color to 'colors.background.default' (#F2F4F7).",
-    "  - Update Matchday Card to use 'shadows.card_md' and 'radius.card' (16px).",
-    "  - Add the dynamic info row below matchday title as requested (countdown or match count).",
-    "  - Add subtle fade-in animation on load (Animated.timing).",
-    "  - Update 'StatusBadge' component to use the new uniform badge styles.",
-    "STEP 4: Refactor 'Predictions' screen:",
-    "  - Ensure locked state has reduced saturation (opacity 0.6).",
-    "  - Make 1X2 buttons large, 16px radius, high contrast on selection.",
-    "STEP 5: Refactor 'Rankings' screen:",
-    "  - Highlight top 3 with special background (gold/silver/bronze tint or just 'colors.status.locked.bg' for 1st).",
-    "STEP 6: Refactor 'Profile' screen:",
-    "  - Make 'Admin Console' a clean, distinct button.",
-    "  - Subtle logout button.",
-    "STEP 7: General Polish:",
-    "  - Verify all touchables have 'activeOpacity' and maybe a 'scale' transform on press using Animated.",
-    "  - Ensure no pure black (#000) text; use #111827.",
-    "  - Ensure padding is consistent (multiples of 4, prefer 16/24)."
+  "media_and_images": [
+    {
+      "category": "hero_background",
+      "url": "/splash-stadium.png",
+      "fallback_url": "https://images.unsplash.com/photo-1679391029864-d46f366a456b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzV8MHwxfHNlYXJjaHwxfHxmb290YmFsbCUyMHN0YWRpdW0lMjBuaWdodHxlbnwwfHx8fDE3NzY3Njc5MzB8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Stadium night scene used as full-cover background for the hero section with a dark overlay to ensure text readability."
+    },
+    {
+      "category": "social_spotlight",
+      "url": "https://images.pexels.com/photos/36766070/pexels-photo-36766070.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Friends celebrating a match together. Used in the Private Leagues Spotlight section to highlight the 'sfida i tuoi amici' aspect."
+    },
+    {
+      "category": "texture_abstract",
+      "url": "https://images.unsplash.com/photo-1694978583848-10387200274a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHwyfHxzb2NjZXIlMjBiYWxsJTIwbmVvbnxlbnwwfHx8fDE3NzY3Njc5MzB8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Abstract soccer/neon texture, can be used lightly layered as a background element to break the solid dark background in specific sections."
+    }
   ],
-  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
-    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
-    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
-    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
-    "Create depth through layered design elements with z-index hierarchy",
-    "Use glass-morphism effects with backdrop filters (12-24px blur)",
-    "You MUST NOT apply universal transition. Eg: 'transition: all'. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
-    "You MUST NOT center align the app container, ie do not add '.App { text-align: center; }' in the css file. This disrupts the human natural reading flow of text",
-    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
-    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚 etc for icons.",
-    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
-    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
-    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
-    "Component Reuse: Prioritize using pre-existing components from src/components/ui when applicable.",
-    "Export Conventions: Components MUST use named exports (export const ComponentName = ...), Pages MUST use default exports (export default function PageName() {...}).",
-    "Toasts: Use 'sonner' for toasts if available, or build a custom Toast component in React Native (do not use web libraries)."
-  ]
+  "sections_blueprint": [
+    {
+      "name": "Header",
+      "content": "Sticky crystal glass nav (z-50). Logo on left. Navigation links (Come Funziona, Modalità, FAQ) center. CTA 'Scarica l'App' on right.",
+      "testid": "site-header"
+    },
+    {
+      "name": "Hero",
+      "content": "Overlay hero image with bg-black/60. Headline: 'Il gioco dei pronostici dove sfidi davvero i tuoi amici.' Subheading: 'Crea la tua lega. Domina la classifica. Il calcio è iniziato. Tocca a te vincere.' Dual CTA: 'Crea la tua Lega' (Primary) and 'Scopri come' (Secondary).",
+      "testid": "hero-section"
+    },
+    {
+      "name": "How It Works (Come Funziona)",
+      "content": "3-step visual flow: 1. Crea/entra in una lega, 2. Inserisci pronostici prima del kickoff, 3. Vinci punti e scala la classifica. Use large faint numbers (text-8xl text-white/5) floating behind the text.",
+      "testid": "how-it-works-section"
+    },
+    {
+      "name": "Game Modes (3 Modalità)",
+      "content": "Bento Grid or 3-column Layout. 1) Tutti Contro Tutti (vince chi fa più punti). 2) Lega Campionato (1vs1 ogni giornata, 3pt/1pt/0pt). 3) Tornei (gironi + eliminazione diretta per eventi big). Include premium icons per card.",
+      "testid": "game-modes-section"
+    },
+    {
+      "name": "Private Leagues Spotlight (Focus)",
+      "content": "Split layout section. High-impact image of 'friends_celebrating' on one side. Strong commercial headline: 'Crea la tua lega privata e sfida i tuoi amici'. Emphasize the invite code mechanic. This is the growth engine.",
+      "testid": "private-leagues-section"
+    },
+    {
+      "name": "Prediction Markets",
+      "content": "Technical UI representation of markets (1X2, Goal/No Goal, Over/Under, Risultato esatto). Use a mock app interface component or clean tech widgets, NOT neon casino betting buttons.",
+      "testid": "prediction-markets-section"
+    },
+    {
+      "name": "FAQ & Rules",
+      "content": "Use Shadcn Accordion component for 'Regolamento' and 'FAQ'. Neutral dark card background for answers to maintain authoritative tone.",
+      "testid": "faq-section"
+    },
+    {
+      "name": "Newsletter & Footer",
+      "content": "Contact form (email input + 'Iscriviti' button). Language switcher (IT/EN/ES). App Store/Play Store placeholder badges. Social media links.",
+      "testid": "footer-section"
+    }
+  ],
+  "technical_instructions": {
+    "icons": "Use lucide-react (already installed). Make them scalable and styled with the accent color where necessary.",
+    "testing": "MANDATORY: All buttons, form inputs, links, and major section containers must have `data-testid` attributes (e.g., `data-testid='hero-cta-create'`).",
+    "responsiveness": "Mobile-first approach. Ensure grids stack to 1 column on mobile. Pad sections properly.",
+    "animations": "Use framer-motion for smooth entrance animations (fade up). Buttons should have scale/hover transitions.",
+    "styling": "Utilize Tailwind CSS for all styling. Overwrite Shadcn default UI styling (like generic white borders) to match the premium dark theme (subtle white/10 borders). NO default violet/purple colors.",
+    "fonts": "Include the Google Fonts link for 'Clash Display' (or substitute with a bold modern geometric sans if Clash isn't in Google Fonts natively, e.g. 'Outfit' or 'Space Grotesk' but 'Clash Display' via CDN is preferred) and 'Manrope' in index.html."
+  }
 }
