@@ -19,77 +19,50 @@ export function PrivateLeagues() {
     >
       <div className="absolute inset-0 bg-brand-radial opacity-60" />
       <div className="container-x relative">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-          {/* Left — copy */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.7 }}
-            className="lg:col-span-6"
-          >
-            <span className="overline">{t("leagues.overline")}</span>
-            <h2 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-4 tracking-tightest text-ink leading-[1.05]">
-              {t("leagues.title")}
-            </h2>
-            <p className="mt-6 text-muted text-base md:text-lg leading-relaxed max-w-xl">
-              {t("leagues.subtitle")}
-            </p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7 }}
+          className="max-w-3xl mx-auto text-center mb-14 md:mb-16"
+        >
+          <span className="overline">{t("leagues.overline")}</span>
+          <h2 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-4 tracking-tightest text-ink leading-[1.05]">
+            {t("leagues.title")}
+          </h2>
+          <p className="mt-6 text-muted text-base md:text-lg leading-relaxed">
+            {t("leagues.subtitle")}
+          </p>
+        </motion.div>
 
-            <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {features.map((f, i) => {
-                const Icon = ICONS[i];
-                return (
-                  <motion.div
-                    key={f.title}
-                    initial={{ opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
-                    className="card p-5 hover:-translate-y-1"
-                    data-testid={`league-feature-${i + 1}`}
-                  >
-                    <div className="h-9 w-9 rounded-xl bg-brand-blue text-white grid place-items-center mb-3">
-                      <Icon size={16} strokeWidth={2.4} />
-                    </div>
-                    <h3 className="font-display font-bold text-ink mb-1">{f.title}</h3>
-                    <p className="text-sm text-muted leading-relaxed">{f.body}</p>
-                  </motion.div>
-                );
-              })}
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 max-w-6xl mx-auto">
+          {features.map((f, i) => {
+            const Icon = ICONS[i];
+            return (
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
+                className="card p-6 md:p-7 hover:-translate-y-1"
+                data-testid={`league-feature-${i + 1}`}
+              >
+                <div className="h-11 w-11 rounded-xl bg-brand-blue text-white grid place-items-center mb-4 shadow-blue">
+                  <Icon size={18} strokeWidth={2.4} />
+                </div>
+                <h3 className="font-display font-bold text-ink text-lg mb-2">{f.title}</h3>
+                <p className="text-sm text-muted leading-relaxed">{f.body}</p>
+              </motion.div>
+            );
+          })}
+        </div>
 
-            <div className="mt-10 flex flex-wrap gap-3">
-              <a href="#download" className="btn-primary" data-testid="leagues-cta-create">
-                {t("leagues.cta")}
-                <ArrowRight size={18} />
-              </a>
-            </div>
-          </motion.div>
-
-          {/* Right — real leaderboard screenshot in phone frame */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.7, delay: 0.15 }}
-            className="lg:col-span-6 relative flex items-center justify-center"
-          >
-            <div className="relative">
-              <div className="relative rounded-[44px] border-[10px] border-ink bg-ink shadow-blue w-[320px] md:w-[340px] h-[660px] md:h-[700px] overflow-hidden mx-auto">
-                {/* Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-28 bg-ink rounded-b-2xl z-20" />
-                {/* Screenshot */}
-                <img
-                  src="/app-screen-leaderboard.jpg"
-                  alt="FantaPronostic app — Classifica Lega Nazionale"
-                  className="h-full w-full object-cover object-top"
-                />
-              </div>
-
-              <div className="absolute -z-10 inset-0 rounded-[44px] bg-brand-blue/10 blur-3xl" />
-            </div>
-          </motion.div>
+        <div className="mt-12 flex justify-center">
+          <a href="#download" className="btn-primary" data-testid="leagues-cta-create">
+            {t("leagues.cta")}
+            <ArrowRight size={18} />
+          </a>
         </div>
       </div>
     </section>

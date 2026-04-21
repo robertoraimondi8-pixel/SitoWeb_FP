@@ -15,15 +15,6 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-b from-brand-blue-50 via-white to-white" />
         <div className="absolute inset-0 grid-bg opacity-100" />
         <div className="absolute inset-0 bg-brand-radial" />
-        <div
-          className="absolute top-0 right-0 w-[900px] h-[600px] bg-cover bg-center opacity-10 pointer-events-none"
-          style={{
-            backgroundImage: "url(/stadium.png)",
-            maskImage: "radial-gradient(circle at 70% 40%, black 30%, transparent 75%)",
-            WebkitMaskImage:
-              "radial-gradient(circle at 70% 40%, black 30%, transparent 75%)",
-          }}
-        />
       </div>
 
       <div className="relative z-10 container-x">
@@ -98,19 +89,19 @@ export function Hero() {
             </motion.div>
           </div>
 
-          {/* Right — real app screenshot in phone frame (smaller on mobile) */}
+          {/* Right — real app screenshot (desktop only, smaller) */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="lg:col-span-5 relative flex items-center justify-center"
+            className="lg:col-span-5 relative hidden lg:flex items-center justify-center"
           >
-            <div className="absolute -z-10 h-[300px] w-[300px] lg:h-[460px] lg:w-[460px] rounded-full bg-brand-blue-50" />
-            <div className="absolute -z-10 h-[240px] w-[240px] lg:h-[360px] lg:w-[360px] rounded-full bg-white border border-line2" />
+            <div className="absolute -z-10 h-[380px] w-[380px] rounded-full bg-brand-blue-50" />
+            <div className="absolute -z-10 h-[300px] w-[300px] rounded-full bg-white border border-line2" />
 
-            <div className="relative lg:animate-float">
-              <div className="relative rounded-[36px] lg:rounded-[44px] border-[8px] lg:border-[10px] border-ink bg-ink shadow-blue w-[220px] h-[460px] lg:w-[280px] lg:h-[580px] overflow-hidden">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 lg:h-5 w-24 lg:w-28 bg-ink rounded-b-2xl z-20" />
+            <div className="relative animate-float">
+              <div className="relative rounded-[36px] border-[8px] border-ink bg-ink shadow-blue w-[230px] h-[480px] overflow-hidden">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-24 bg-ink rounded-b-2xl z-20" />
                 <img
                   src="/app-screen-predictions.jpg"
                   alt="FantaPronostic app — Pronostici Giornata 1"

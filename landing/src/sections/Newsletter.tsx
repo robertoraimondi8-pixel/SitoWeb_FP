@@ -43,10 +43,6 @@ export function Newsletter() {
           {/* Orange glow */}
           <div className="absolute -top-40 -right-40 h-[400px] w-[400px] rounded-full bg-brand-orange/40 blur-[120px]" />
           {/* Stadium */}
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-15"
-            style={{ backgroundImage: "url(/stadium.png)" }}
-          />
 
           <div className="relative p-8 md:p-14 lg:p-20 flex flex-col items-center text-center text-white">
             <div className="h-14 w-14 rounded-2xl bg-white/15 border border-white/25 grid place-items-center mb-6 backdrop-blur-sm">
