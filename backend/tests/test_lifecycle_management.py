@@ -9,7 +9,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://context-aware-tabs.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fanta-auth-fix.preview.emergentagent.com').rstrip('/')
 ADMIN_EMAIL = "admin@fantapronostic.com"
 ADMIN_PASSWORD = "admin123"
 ACTIVE_SEASON_ID = "19e329ae-4c6b-47ea-ab38-50a4d1baab1e"

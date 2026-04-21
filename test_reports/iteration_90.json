@@ -25,7 +25,7 @@
   "test_credentials": {
     "admin_email": "admin@fantapronostic.com",
     "admin_password": "admin123",
-    "admin_panel_url": "https://context-aware-tabs.preview.emergentagent.com/api/admin-ui",
+    "admin_panel_url": "https://fanta-auth-fix.preview.emergentagent.com/api/admin-ui",
     "test_matchday_id": "98856f76-a5d9-40e9-97b8-cf3e6667eeb2"
   },
   "seed_data_creation": "None - used existing matchday G1 with 10 matches",

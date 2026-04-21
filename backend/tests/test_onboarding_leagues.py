@@ -14,7 +14,7 @@ import pytest
 import requests
 import random
 
-BASE_URL = "https://context-aware-tabs.preview.emergentagent.com"
+BASE_URL = "https://fanta-auth-fix.preview.emergentagent.com"
 
 
 @pytest.fixture

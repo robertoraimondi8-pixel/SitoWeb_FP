@@ -14,7 +14,7 @@ import requests
 import os
 
 # Public URL for testing
-BASE_URL = "https://context-aware-tabs.preview.emergentagent.com"
+BASE_URL = "https://fanta-auth-fix.preview.emergentagent.com"
 
 # Test credentials from problem statement
 ADMIN_EMAIL = "admin@fantapronostic.com"

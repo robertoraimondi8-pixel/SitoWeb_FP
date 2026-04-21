@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime
 
-BASE_URL = "https://context-aware-tabs.preview.emergentagent.com/api"
+BASE_URL = "https://fanta-auth-fix.preview.emergentagent.com/api"
 TEST_USER = {"email": "marco@test.com", "password": "password123"}
 
 def detailed_verification():

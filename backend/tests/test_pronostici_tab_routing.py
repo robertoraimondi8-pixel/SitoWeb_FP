@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://context-aware-tabs.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://fanta-auth-fix.preview.emergentagent.com')
 
 # Test credentials
 USER_EMAIL = "ilio@raimondi.it"
@@ -91,7 +91,7 @@ class TestHomeAPI:
         assert league_id == "f1373417-43aa-4043-b6a2-125873181c95"
         
         # This is the expected route for LIVE status:
-        # /live/040552b8-0e2a-4cd8-b52e-030e27d93560?league_id=f1373417-43aa-4043-b6a2-125873181c95
+        # /live/040552b8-0e2a-4cd8-b52e-030e27d93560?league_id=fanta-auth-fix
 
 
 class TestTournamentsAPI:

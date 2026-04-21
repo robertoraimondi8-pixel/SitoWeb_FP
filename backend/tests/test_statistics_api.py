@@ -12,7 +12,7 @@ import os
 
 BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://context-aware-tabs.preview.emergentagent.com"
+    BASE_URL = "https://fanta-auth-fix.preview.emergentagent.com"
 
 # Test credentials
 ADMIN_EMAIL = "admin@fantapronostic.com"

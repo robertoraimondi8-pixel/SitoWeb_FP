@@ -23,7 +23,7 @@
   "test_credentials": {
     "admin_email": "admin@fantapronostic.com",
     "admin_password": "admin123",
-    "admin_panel_url": "https://context-aware-tabs.preview.emergentagent.com/api/admin-ui",
+    "admin_panel_url": "https://fanta-auth-fix.preview.emergentagent.com/api/admin-ui",
     "active_season_id": "19e329ae-4c6b-47ea-ab38-50a4d1baab1e"
   },
   "seed_data_creation": "Created test leagues during testing (Test League Valid G26) - can be deleted",

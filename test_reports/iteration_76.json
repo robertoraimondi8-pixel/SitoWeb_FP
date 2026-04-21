@@ -19,11 +19,11 @@
     "VERIFIED: Home screen loads with Giornata 25 LIVE status for Lega Nazionale",
     "VERIFIED: Tab bar shows all 5 tabs: Home, Statistics, Predictions, Rankings, Profile",
     "VERIFIED: Competition switcher visible and shows leagues list when clicked",
-    "VERIFIED: /api/home returns league.id=f1373417-43aa-4043-b6a2-125873181c95 with matchday.status=LIVE",
+    "VERIFIED: /api/home returns league.id=fanta-auth-fix with matchday.status=LIVE",
     "VERIFIED: /api/tournaments returns tournament list (user not registered for any)",
     "VERIFIED: /api/tournaments/{id} returns tournament detail with current_round_info (null for unregistered user)",
     "VERIFIED: Dynamic tab routing works - clicking Pronostici tab on LIVE matchday navigates to /live/{matchdayId}?league_id={leagueId}",
-    "VERIFIED: URL changed from /home to /live/040552b8-0e2a-4cd8-b52e-030e27d93560?league_id=f1373417-43aa-4043-b6a2-125873181c95",
+    "VERIFIED: URL changed from /home to /live/040552b8-0e2a-4cd8-b52e-030e27d93560?league_id=fanta-auth-fix",
     "VERIFIED: Live screen shows match results with LIVE badges and scores"
   ],
   "updated_files": [

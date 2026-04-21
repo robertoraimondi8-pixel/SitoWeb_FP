@@ -27,7 +27,7 @@
     "admin_password": "admin123",
     "user_email": "ilio@raimondi.it",
     "user_password": "password123",
-    "admin_panel_url": "https://context-aware-tabs.preview.emergentagent.com/api/admin-ui",
+    "admin_panel_url": "https://fanta-auth-fix.preview.emergentagent.com/api/admin-ui",
     "active_season_id": "19e329ae-4c6b-47ea-ab38-50a4d1baab1e"
   },
   "seed_data_creation": "Created test leagues during testing (Test Valid G26-38 with random suffix) - can be cleaned up",

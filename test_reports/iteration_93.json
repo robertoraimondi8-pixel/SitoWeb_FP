@@ -27,7 +27,7 @@
     "admin_password": "admin123",
     "admin_id": "f0a01bb1-4b0c-4f6f-9c8e-a7b33b445651",
     "test_user_id": "35dab04d-fb92-4469-92a0-aed0964e1047",
-    "admin_panel_url": "https://context-aware-tabs.preview.emergentagent.com/api/admin-ui"
+    "admin_panel_url": "https://fanta-auth-fix.preview.emergentagent.com/api/admin-ui"
   },
   "verified_features": {
     "impersonate_endpoint": {

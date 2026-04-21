@@ -27,7 +27,7 @@
     "admin_password": "admin123",
     "user_email": "ilio@raimondi.it",
     "user_password": "password123",
-    "admin_panel_url": "https://context-aware-tabs.preview.emergentagent.com/api/admin-ui",
+    "admin_panel_url": "https://fanta-auth-fix.preview.emergentagent.com/api/admin-ui",
     "league_id": "f1373417-43aa-4043-b6a2-125873181c95",
     "tournament_id": "b3e9021f-b8a6-4f65-ad83-fc7b778f922a"
   },

@@ -9,7 +9,7 @@ Tests cover:
 import pytest
 import requests
 
-BASE_URL = "https://context-aware-tabs.preview.emergentagent.com"
+BASE_URL = "https://fanta-auth-fix.preview.emergentagent.com"
 
 
 class TestLoginEmailPassword:

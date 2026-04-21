@@ -42,7 +42,7 @@
     },
     "fix_2_matchdays_api": {
       "status": "PASS",
-      "details": "GET /api/standings/matchdays?league_id=f1373417-43aa-4043-b6a2-125873181c95 returns 25 matchdays numbered 1-25",
+      "details": "GET /api/standings/matchdays?league_id=fanta-auth-fix returns 25 matchdays numbered 1-25",
       "evidence": "curl test output showing 25 matchdays"
     },
     "fix_2_matchdays_dropdown": {

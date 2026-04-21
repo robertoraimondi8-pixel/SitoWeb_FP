@@ -9,7 +9,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://context-aware-tabs.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://fanta-auth-fix.preview.emergentagent.com')
 
 # Test tournament ID from test data
 TEST_TOURNAMENT_ID = "b3e9021f-b8a6-4f65-ad83-fc7b778f922a"

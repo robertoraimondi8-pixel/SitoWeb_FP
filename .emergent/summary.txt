@@ -1,171 +1,160 @@
-<analysis>**original_problem_statement**:
-The user's initial goal was to refactor the Tornei (Tournaments) module into a competition context within the existing app, which was completed. The scope then expanded significantly. The user requested:
-1.  Several UI tweaks (disabling dark mode, adding a tournament counter, changing a header icon to a Palmares trophy icon).
-2.  A Championship Winner Predictions feature, which was fully implemented and then hidden at the user's request.
-3.  To make the Palmares icon functional, leading to the creation of a dedicated Palmares (Trophies) screen.
-4.  To make the Palmares screen dynamic, which required implementing a full backend system for awarding league, tournament, and weekly trophies.
-5.  After implementation, the user noticed that past achievements were not reflected in the Palmares, leading to the current task of creating a data backfill mechanism for trophies.
+<analysis>**original_problem_statement**: 
+The project shifted focus to app stabilization and urgent UI/UX fixes. The user reported critical crashes on Google Sign-In and app Logout, and a navigation bug in the Pronostici tab. The agent was tasked with removing Emergent-managed Google Auth in favor of direct native Google OAuth (). During the session, the user pivoted priorities urgently to fix the app's splash screen, requesting the removal of the default Expo icon/JS overlay in favor of a full-screen stadium image. The user also inquired about building a landing page for their domain .
 
 **PRODUCT REQUIREMENTS**:
--   **Trophy System Accuracy**: The Palmares screen must accurately reflect a user's entire history of achievements, including those that occurred before the trophy system was created.
--   **Trophy Logic**: The system must have logic to award trophies for Weekly Bests, Tournament Wins, and League Championships.
--   **Admin Functionality**: An admin user must have the ability to trigger a process that retroactively calculates and awards trophies for all past events.
+- **Direct Google Auth**: Google Sign-In must happen directly via . Ensure correct client IDs and  matching Google Cloud Console. 
+- **Splash Screen**: Native splash and JS splash () must display a cohesive, full-screen stadium image without any double-logo overlap or white boxes.
+- **App Stability**: Zero crashes on Android/iOS. Fix the logout unmount crash.
 
-**User's preferred language**: Italiano
+**User's preferred language**: Italiano (INSTRUCT NEXT AGENT: You MUST respond to the user in Italian).
 
-**what currently exists?**
-The application features a Palmares (Trophies) screen that dynamically fetches and displays a user's trophies from a new backend system. This system includes a  collection in MongoDB, an API endpoint () to get user trophies, and logic hooked into the scoring service to automatically award Weekly Winner trophies for *future* completed matchdays.
-
-The Championship Winner Predictions feature is fully built on both the backend and frontend but is currently hidden from the UI per the user's instructions.
-
-The agent confirmed that the trophy system does not account for past achievements, and was in the process of building an admin tool to backfill this historical data when the last session ended.
+**what currently exists?** 
+A React Native (Expo) frontend and FastAPI backend. The Pronostici tab navigation bug is successfully fixed and verified. The backend  endpoint is fully functional and tested (16/16 tests pass). The app's splash screen configurations ( and ) have been successfully updated to use a full-screen stadium image. However, the direct Google OAuth integration has a parameter mismatch ( presence) causing a , and the app still crashes on logout due to a race condition.
 
 **Last working item**:
--   **Last item agent was working**: Implementing an admin-only endpoint to retroactively award trophies for all past completed events. This was initiated after the user (logged in as Admin) correctly pointed out that their past weekly wins were not appearing in their Palmares.
--   **Status**: IN PROGRESS
--   **Agent Testing Done**: N
--   **Which testing method agent to use?**: backend testing agent.
-    1.  First, the agent must implement the admin endpoint ().
-    2.  Then, use the testing agent or  to call this endpoint while authenticated as the admin user ().
-    3.  After the call succeeds, verify by calling  for the admin user to confirm that trophies have been awarded.
-    4.  Finally, use the screenshot tool to visually confirm the updated trophy counts on the Palmares screen.
--   **User Testing Done**: N
+- **Last item agent was working**: The agent finalized the splash screen UI replacement and guided the user on how to run a clean native iOS build (An Expo user account is required to proceed.
+Either log in with eas login or set the EXPO_TOKEN environment variable if you're using EAS CLI on CI (Learn more: https://docs.expo.dev/accounts/programmatic-access/)). The agent then responded to the user's inquiry about building a web landing page for .
+- **Status**: USER VERIFICATION PENDING
+- **Agent Testing Done**: Y (Backend Google OAuth verified, Frontend routing verified via subagent)
+- **Which testing method agent to use?**: manual testing by user (for checking the Splash Screen on their physical iOS device post-build).
+- **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: (P0) Retroactively award trophies for past events.**
-    -   **Description**: The current trophy system only awards trophies for events completed *after* its implementation. Past wins (e.g., weekly high scores) are not counted, leading to an inaccurate Palmares for existing users.
-    -   **Attempted fixes**: The agent started creating the backend route and logic for an admin-triggered backfill process.
-    -   **Next debug checklist**:
-        1.  Finalize the creation of a new admin-only endpoint, likely , in a new  or existing .
-        2.  Ensure the endpoint is protected and only accessible by users with the 'admin' role.
-        3.  The endpoint's logic must iterate through all completed matchdays for all leagues.
-        4.  For each matchday, it should identify the user(s) with the highest score and call the existing  function (or similar logic) to grant them a Weekly Winner trophy.
-        5.  Test the endpoint thoroughly as described in the Last working item section.
-    -   **Why fix this issue and what will be achieved with the fix?**: This will ensure data integrity and user satisfaction by making the Palmares a complete and accurate record of a user's achievements.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: Both.
-    -   **Blocked on other issue**: None
+- **Issue 1: Direct Google OAuth Integration Flow & Config (P0)**
+   - **Attempted fixes**: Agent fixed  in , but Claude correctly pointed out that  still contains  and , which causes a  on Android standalone. Also, the Continua con Google button on the first screen () still uses the old  flow.
+   - **Next debug checklist**: 
+      1. In , remove  and  from , keeping ONLY  and .
+      2. In , replace the old  logic with the same  flow used in .
+   - **Why fix this issue and what will be achieved with the fix?**: Users are currently unable to log in with Google ( or ).
+   - **Status**: IN PROGRESS (Agent paused execution because the user explicitly said NON MODIFICARE NIENTE to prioritize the splash screen).
+   - **Is recurring issue?**: Y
+   - **Should Test frontend/backend/both after fix?**: Frontend
 
--   **Issue 2: (P1) Team Name Overlap Bug**
-    -   **Description**: A recurring UI bug where long team names in prediction lists overlap with the match result.
-    -   **Attempted fixes**: A CSS fix was applied to .
-    -   **Status**: USER VERIFICATION PENDING
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: Frontend
+- **Issue 2: App Logout crash (undefined is not a function) (P0)**
+   - **Attempted fixes**: Agent diagnosed a race condition:  triggers unmount while  triggers auth state clearing too early, causing  to crash.
+   - **Next debug checklist**: In  (or where  is defined), replace  with 
+   - **Why fix this issue and what will be achieved with the fix?**: Fixes a consistent, highly frustrating crash.
+   - **Status**: NOT STARTED (Diagnosed, but paused per user request).
+   - **Is recurring issue?**: Y
+   - **Should Test frontend/backend/both after fix?**: Frontend
+
+- **Issue 3: Retroactive Trophy Backfill (P1)**
+    - **Description**: Palmares screen lacks historical data. Need to execute logic to retroactively award trophies for past events via .
+    - **Status**: NOT STARTED
+    - **Is recurring issue?**: Y
+    - **Should Test frontend/backend/both after fix?**: Backend
 
 **In progress Task List**:
--   **Task 1: (P0) Implement and Test the Retroactive Trophy Awarding System.**
-    -   **Where to resume**: The agent had just started creating the necessary backend files (). The next step is to write the full logic for the admin backfill endpoint and register it in .
-    -   **What will be achieved with this?**: The Palmares screen will display correct historical data for all users.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: Both
-    -   **Blocked on something**: None
+- **Task 1: Landing Page / Web version for fantapronostic.com (P2)**
+   - **Where to resume**: Discussing requirements with the user based on their last prompt.
+   - **What will be achieved with this?**: A promotional website or functional web app.
+   - **Status**: NOT STARTED
+   - **Should Test frontend/backend/both after fix?**: Frontend
+   - **Blocked on something**: Pending user confirmation on scope (simple landing vs full web app).
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks**:
-    -   (P1) Implement logic for awarding **League Champion** trophies. The backend hook exists, but the trigger logic (e.g., on season completion) needs to be built.
-    -   (P1) Implement logic for awarding **Tournament Champion** trophies. The backend hook exists, but the trigger logic (e.g., after the final match is scored) needs to be built.
--   **Future Tasks**:
-    -   (P2) Re-enable the Championship Winner Predictions feature (the code is implemented but hidden in the UI).
-    -   (P2) Integrate Stripe for paid entry to the National League and Tournaments.
+Upcoming Tasks:
+- P0: Fix Google OAuth config ( removal &  update).
+- P0: Implement  fix for Logout crash.
+- P1: Implement backfill logic for awarding historical trophies.
+
+Future Tasks:
+- P2: Implement logic for awarding League/Tournament Champion trophies.
+- P2: Re-enable Championship Winner Predictions feature.
+- P2: Integrate Stripe for payments.
 
 **Completed work in this session**
--   **Championship Winner Predictions Feature**: A full-stack feature was implemented, including backend APIs (), a frontend selection screen (), and UI navigation links. This feature was subsequently hidden from the UI at the user's request.
--   **Palmares Screen (Static)**: Created a new screen () and removed the now-defunct Theme setting from the Profile page. The header medal icon was wired to navigate to this new screen.
--   **Trophy System (Dynamic)**:
-    -   **Backend**: Implemented a complete system to award, store, and retrieve user trophies ( collection,  endpoint, and automated awarding logic for future weekly winners).
-    -   **Frontend**: The  screen was refactored to dynamically load and display a user's real trophy counts and a list of recently won trophies.
--   **Testing**: The dynamic trophy system successfully passed a full suite of automated tests via the testing agent.
+- Removed duplicate routing logic in , permanently fixing the Pronostici tab navigation bug (DONE).
+- Created and tested  backend endpoint for native Google Auth (DONE).
+- Modified  and  to replace default expo/JS splash screen with a full-screen, native stadium image (), removing white boxes and logo overlays (DONE).
 
 **Earlier issues found/mentioned but not fixed**
--   None.
+- Issue 1: Google OAuth misconfigurations ( old flow and  param).
+   - Debug checklist: Update both  and  to use strict  +  via .
+   - Why to solve this issue: Core authentication is broken.
+   - Should Test frontend/backend/both after fix: Frontend
+   - Is recurring issue? Y
+
+- Issue 2: Trophy Backfill
+   - Debug checklist: Look at admin endpoints for recalculating past matchday winners.
+   - Why to solve: Ensures user Palmares are accurate.
+   - Should Test frontend/backend/both after fix: Backend
+   - Is recurring issue? Y
 
 **Known issue recurrence from previous fork**
--   **Team Name Overlap Bug**: This UI issue was noted in the previous fork. A fix was attempted in this session, but it is pending final user verification.
+- Issue recurrence in previous fork: Pronostici tab routing (FIXED), Logout Crash (STILL PENDING), Trophy backfill (STILL PENDING).
+- Recurrence count: 4
+- Status: IN PROGRESS
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Data Backfilling/Migration**: The current task involves creating a script to process historical data and populate a new data structure, a common requirement when adding features to live applications.
--   **Admin-Scoped Endpoints**: The solution requires creating an API endpoint that is protected and can only be accessed by users with an 'admin' role.
--   **Event-Driven Logic**: The trophy system is designed to act on application events, such as the completion of a matchday.
+- **Expo Splash Screen**: Uses a combination of native  configuration and a JS-level cover in  to ensure a seamless load transition. Modifications to  require --platform is required when building in non-interactive mode.
+- **Expo Auth Session & Google**: Android standalone requires the  to be explicitly provided matching the Google Cloud Web Client ID, otherwise Expo generates a custom URI that causes a  from Google.
 
 **key DB schema**
--   **trophies_col**: 
--   **champion_picks_col**: Schema exists but the feature is currently unused.
+- : 
+- : 
 
 **changes in tech stack**
--   None.
+- None
 
 **All files of reference**
--   **Backend (Trophy System)**:
-    -   
-    -   
-    -   
-    -   
--   **Frontend (Palmares)**:
-    -   
-    -    (for the header icon link)
-    -    (where the theme setting was removed)
--   **Backend (Hidden Feature)**:
-    -   
--   **Frontend (Hidden Feature)**:
-    -   
+-  (Updated with new splash configuration)
+-  (Updated splash render, needs Google Auth logic update)
+-  (Current working file for OAuth, needs parameter cleanup)
+-  (New visual asset)
 
 **Areas that need refactoring**:
--   The light/dark mode functionality remains disabled. A proper implementation would require refactoring the app's styling to use theme-based variables instead of hardcoded colors.
+- : The  function needs immediate refactoring to use  instead of .
 
 **key api endpoints**
--   : (Active) Fetches the current user's trophies.
--   : (Pending) The endpoint to be created to backfill historical trophies.
--   : (Inactive) Part of the hidden Championship Winner feature.
--   : (Inactive) Part of the hidden Championship Winner feature.
+- : Verifies token with Google certs.
+- : Pending backfill endpoint.
 
 **Critical Info for New Agent**
--   The immediate priority is to fix the data inaccuracy in the Palmares. You must build and test the admin endpoint for retroactively awarding trophies.
--   Test the backfill feature using the admin account: .
--   Do not re-enable the Championship Winner Predictions feature unless explicitly asked by the user. The code is complete and should be left as is.
--   Remember to add logic hooks for awarding League and Tournament champion trophies once the backfill is complete and verified.
--   Always respond in Italian.
+- **Language**: You MUST respond in Italian.
+- **Workflow Interruption**: The agent was about to fix the Google Auth parameters and the Logout crash, but the user explicitly commanded NON MODIFICARE NIENTE !! to freeze code changes and focus solely on the splash screen / native build. Now that the splash screen is pushed, you must ask the user for permission to resume fixing the P0 crashes (Logout & Google Auth).
+- **GitHub Workflow**: The user had trouble using the Save to Github feature effectively to manage branches/PRs. Keep instructions simple. Remind them to pull  before editing further.
+- **Web App Pivot**: The user just asked about creating a simple web app for their domain . Answer their questions but try to steer them to finish the P0 app crashes first.
 
 **documents and test reports created in this job**
--   
--   
--   
+- 
+- 
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Asks for a bundle restart.
-2.  **Agent**: Confirms bundle restart.
-3.  **User**: Are you sure it works? I logged in as Admin, who has won weekly prizes before, but nothing shows up.
-4.  **Agent**: Acknowledges the problem, explaining that the logic only works for *future* events and not retroactively. Proposes a solution to create an admin endpoint to backfill the data.
-5.  **Agent**: Begins implementing the fix by creating the necessary backend files for the admin endpoint.
-6.  **User**: (implied)  - continue with the fix.
-7.  **Agent**: Continues with implementation.
-8.  **User**:  (restart bundle)
-9.  **Agent**: Restarts bundle.
-10. **LATEST**:  (ok, confirmed proceed) - User gives go-ahead to implement the full trophy system.
+10. **User**: Provided screenshot of GitHub merge conflict and asked what to do.
+9. **Agent**: Instructed user to Accept current change to keep the new splash screen logic.
+8. **User**: Complained about an icon covering the stadium image and text getting cut off.
+7. **Agent**: Explained  crops 1:1 images on vertical screens, and Expo's default iOS dev icon overlay. Suggested a portrait image.
+6. **User**: Asked if the native Apple overlay can be removed.
+5. **Agent**: Realized it depends on the build profile (Dev vs Prod). Also discovered a secondary JS splash in  that was causing the white box. Offered to replace  splash with the stadium image.
+4. **User**: Provided the portrait stadium image () and asked to apply the fix for .
+3. **Agent**: Implemented the fix. Instructed user to accept changes on GitHub and run --platform is required when building in non-interactive mode.
+2. **User**: eas build --platform ios --profile production questo comando faccio?
+1. **LATEST**: **User**: Una domanda, non fare modifiche. Io ho un dominio fantapronostic.com se voglio fare anche un sito semplice dhe riprendi l’app si puó fare? Puoi farlo tu? Come funzionerebbe sarebbe eempre su github etc? (Asks if the agent can build a landing page for their web domain).
 
 **Project Health Check:**
--   **Broken**: The trophy data is currently inaccurate for past events, which is a significant functional bug from the user's perspective.
--   **Mocked**: None.
+- **Broken**: Google Auth broken on Android due to  parameter and outdated  flow. Logout crashes app consistently.
+- **Mocked**: None.
 
 **3rd Party Integrations**
--   API-Football (API-Sports)
--   Expo (including Expo Push)
--   APScheduler
--   SendGrid
+- Google OAuth (User Client IDs provided) — Requires User API Key (Client IDs)
+- SendGrid (Emails) — Requires User API Key
+- API-Football (API-Sports) — Requires User API Key
+- Expo Application Services (EAS)
 
 **Testing status**
--   **Testing agent used after significant changes**: YES, for the initial implementation of the trophy system.
--   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: None.
--   **Known regressions**: Trophy counts are inaccurate for historical data.
+- Testing agent used after significant changes: YES (Verified Pronostici routing and Auth endpoint)
+- Troubleshoot agent used after agent stuck in loop: NO
+- Test files created: 
+- Known regressions: Google Auth partially broken.
 
 **Credentials to test flow:**
--   **Standard User**:  / 
--   **Admin**:  /  (Use this account to test the new backfill endpoint).
+- Standard User:  / 
+- Admin:  / 
 
 **What agent forgot to execute**
--   The agent initially overlooked the need to backfill historical data when creating the new trophy feature. This was identified by the user and is now the highest priority task.</analysis>
+- The agent was blocked from executing the final fixes for the Google Auth parameters ( & ) and the Logout crash () because the user explicitly halted modifications to deal with the splash screen emergency. These MUST be picked up immediately.
+- The Trophy backfill (P1) was ignored again.</analysis>

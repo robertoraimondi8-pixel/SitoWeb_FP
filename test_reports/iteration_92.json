@@ -22,7 +22,7 @@
   "test_credentials": {
     "admin_email": "admin@fantapronostic.com",
     "admin_password": "admin123",
-    "admin_panel_url": "https://context-aware-tabs.preview.emergentagent.com/api/admin-ui",
+    "admin_panel_url": "https://fanta-auth-fix.preview.emergentagent.com/api/admin-ui",
     "tournament_1_id": "a0a60a06-65a3-4707-aa42-545a7da08dff",
     "tournament_2_id": "b3e9021f-b8a6-4f65-ad83-fc7b778f922a"
   },

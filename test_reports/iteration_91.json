@@ -25,7 +25,7 @@
   "test_credentials": {
     "admin_email": "admin@fantapronostic.com",
     "admin_password": "admin123",
-    "admin_panel_url": "https://context-aware-tabs.preview.emergentagent.com/api/admin-ui",
+    "admin_panel_url": "https://fanta-auth-fix.preview.emergentagent.com/api/admin-ui",
     "test_tournament_id": "a0a60a06-65a3-4707-aa42-545a7da08dff"
   },
   "seed_data_creation": "None - used existing Torneo Redubull with 32 participants in 'groups' status",
