@@ -1,83 +1,123 @@
-# FantaPronostic PRD
+# FantaPronostic — Product Requirements Document
 
 ## Original Problem Statement
-App di pronostici calcistici con sistema di leghe e tornei. React Native (Expo) frontend + FastAPI backend + MongoDB.
+Build a premium landing page for **fantapronostic.com** to promote the FantaPronostic mobile app (React Native / Expo). The site must communicate the product as a serious competitive football predictions platform between friends, NOT a betting site. Must drive app downloads and league creation.
+
+**User preferred language**: Italiano (agents must respond in Italian).
+
+**User context**:
+- Owns domain `fantapronostic.com` on Squarespace
+- Has a working mobile app (Expo) at `/app/frontend`
+- Has working FastAPI backend at `/app/backend`
+- Wants deploy via Vercel (simplest) + DNS on Squarespace
+
+---
 
 ## Architecture
-- Frontend: React Native (Expo SDK 54) con expo-router
-- Backend: FastAPI (Python) con MongoDB
-- Deploy: Railway (backend) + MongoDB Atlas (DB)
-- CI/CD: GitHub Actions per EAS OTA updates
 
-## Current Status (March 2026)
+```
+/app
+├── backend/              # FastAPI (mobile app API, untouched in this session)
+├── frontend/             # Expo React Native mobile app (untouched)
+├── landing/              # NEW — Vite + React + TypeScript landing page
+│   ├── src/
+│   │   ├── components/   # Header, LanguageSwitcher
+│   │   ├── sections/     # Hero, Marquee, ValueSection, HowItWorks, GameModes, TrustSection, PrivateLeagues, Markets, Rules, FAQ, Newsletter, Contact, FinalCTA, Footer
+│   │   ├── i18n/         # IT/EN/ES translations
+│   │   └── lib/cn.ts
+│   ├── public/           # brand-icon.png, brand-logo-full.png, app-screen-predictions.jpg, app-screen-leaderboard.jpg, stadium.png
+│   └── package.json
+└── memory/
+    └── PRD.md            # this file
+```
 
-### Google OAuth Direct Flow — COMPLETATO
-Migrazione da Emergent-managed Google Auth a flusso diretto:
-- Backend: `/api/auth/google/verify-token` verifica id_token via `google-auth` library
-- Frontend: `login.tsx` usa `expo-auth-session/providers/google` con 3 Client ID (Web, Android, iOS)
-- Redirect URI: `fantapronostic://callback` (scheme in app.json)
-- Legacy endpoint `/api/auth/google/session` mantenuto per backward compat
-- `callback.tsx` è legacy (usato dal vecchio flusso Emergent), può essere rimosso in futuro
+**Supervisor**: `/etc/supervisor/conf.d/supervisord_landing.conf` runs `yarn dev` on port 3000 inside `/app/landing`. Original `expo` program stopped (mobile preview no longer needed in this pod per user's decision).
 
-### Pronostici Tab Navigation Fix — COMPLETATO
-Bug ricorrente da 3+ fork risolto architetturalmente:
-- **Rimossa** tutta la logica di redirect da `predictions.tsx` (redirect a `/live/` e `/(tabs)/home`)
-- **Unico punto decisionale**: tab listener in `_layout.tsx` (righe 142-166)
-- Logica: se matchday è LIVE/COMPLETED → intercetta tab press e naviga a:
-  - League: `/live/{matchdayId}?league_id={leagueId}`
-  - Tournament: `setPendingMatchupOpen` + navigate a `/(tabs)/home` (TournamentView apre il matchup)
-- Se matchday è OPEN → nessun intercept → predictions.tsx mostra form editabile
+---
 
-### Stabilizzazione App (sessioni precedenti) — COMPLETATO
-- Fix crash iOS (Hermes patterns)
-- Fix crash Android Vivo V50 (AAB split APK, newArchEnabled: false)
-- Fix Google Sign-In state corruption
-- Fix App Logout crash (safe context defaults)
-- Fix OTA updates (channel: production)
-- UI/UX fixes (hamburger menu, scroll Android, delete account, bottom tabs safe area)
-- Live Data Refresh robustificato (circuit breaker, diagnostica admin)
+## Brand Identity
 
-## Prioritized Backlog
+- **Primary Blue**: `#1E4FD8` (royal)
+- **Primary Orange (CTA)**: `#F58220`
+- **Yellow accent**: `#FFC107` (from logo ball)
+- **Bg base**: `#FFFFFF`
+- **Soft bg**: `#F6F9FE`
+- **Ink (text)**: `#0B1833`
+- Typography: Clash Display (display) + Manrope (body)
 
-### P0
-- [x] Fix crash iOS statistics screen tabs
-- [x] Fix crash iOS match detail sheet
-- [x] Fix TUTTI i pattern `!= null`/`== null` nel frontend (7 file)
-- [x] Fix crash Vivo V50 LinearGradient (code done, needs native build)
-- [x] Fix Live Data Refresh (circuit breaker, logging, diagnostica admin)
-- [x] Fix Google Sign-In Android crash/stuck
-- [x] Fix hamburger menu touch area Android
-- [x] Fix onboarding lingua
-- [x] Fix delete account
-- [x] Fix verify email
-- [x] Google OAuth Direct Flow (no Emergent dependency)
-- [x] Fix navigazione tab "Pronostici" (routing dinamico in _layout.tsx)
+---
 
-### P1
-- [ ] Backfill trofei storici (Palmares)
-- [ ] Push notifications end-to-end verification (blocked on Railway deploy)
-- [ ] Email service fix (SendGrid 401) (blocked on user action)
+## What's been implemented (2026-04-21)
 
-### P2
-- [ ] Trofei campione lega/torneo
-- [ ] Riattivare predizioni vincitore campionato
-- [ ] Stripe in produzione
+### Landing sections (in order)
+1. **Header** — logo, nav (Come Funziona, Modalità, Leghe Private, Regolamento, FAQ), language switcher (IT/EN/ES), orange "Scarica l'App" CTA
+2. **Hero** — "Il modo più **competitivo** di vivere il calcio." + real app screenshot in phone frame (visible on mobile + desktop)
+3. **Marquee** — scrolling competitions (Serie A, Premier, La Liga, CL, EL, Bundesliga, Ligue 1, Coppa Italia, Mondiali, Europei)
+4. **Value section** — "Più coinvolgente del fantacalcio. Più semplice di quanto pensi."
+5. **How It Works** — "Inizia in meno di un minuto" + 3 steps (01/02/03 orange)
+6. **Game Modes** — Tutti Contro Tutti / Modalità Campionato / Tornei. Clean cards, no icons/tags, 3 colored top bars
+7. **Trust Section** — "Competizione trasparente. Regole chiare." + 6 feature bullets (2 with pulsing LIVE badge)
+8. **Private Leagues** — 4 feature cards + CTA (no phone mockup, centered layout)
+9. **Markets** — "Quattro mercati. Un solo obiettivo: vincere." (1X2, GG/NG, O/U, Risultato Esatto)
+10. **Rules** — accordion 5 items
+11. **FAQ** — accordion 6 items
+12. **Newsletter** — deep blue section, orange CTA, App Store + Play Store badges (Coming Soon)
+13. **Contact** — form (name/email/message) + email placeholder
+14. **Final CTA** — "Pronto a iniziare?" + Scarica l'App
+15. **Footer** — logo, tagline, 3 columns (Prodotto/Azienda/Legale), social icons, tricolore strip, Made in Italy
 
-## Test Accounts
-- Admin prod: robertoraimondi8@gmail.com / admin123
-- Admin preview: admin@fantapronostic.com / admin123
-- User preview: ilio@raimondi.it / password123
-- Test Google Review: test@fantapronostic.com / Test1234!
+### i18n
+- 3 languages fully translated: **Italiano** (default), **English**, **Español**
+- Language detection via localStorage + browser
+- Switcher in header (compact) + optional non-compact
 
-## Key Endpoints
-- `POST /api/auth/google/verify-token` - Verifica id_token Google diretto
-- `POST /api/auth/google/session` - Legacy Emergent auth (backward compat)
-- `GET /api/admin/real-fixtures/live-status` - Diagnostica sistema live refresh
-- `POST /api/admin/real-fixtures/refresh-live` - Forza refresh manuale
-- `POST /api/admin/real-fixtures/reset-circuit-breaker` - Reset circuit breaker
+### Real app screenshots integrated
+- `/app-screen-predictions.jpg` — hero phone mockup (match predictions view)
+- Previously `/app-screen-leaderboard.jpg` used in PrivateLeagues, now removed per user request
 
-## 3rd Party Integrations
-- Google OAuth (User Client IDs) — Direct flow via expo-auth-session
-- API-Football (API-Sports) — Match data
-- Expo Application Services (EAS) — Build & OTA
-- SendGrid — Emails
+---
+
+## Ready to deploy (pending user action)
+
+**Deploy strategy**: Vercel (landing) + Squarespace DNS → fantapronostic.com
+- Root Directory on Vercel: `landing`
+- Framework: Vite
+- Build: `yarn build` → `dist`
+
+**Post-deploy auto-update workflow**: user clicks "Save to GitHub" in Emergent → Vercel auto-deploys within 1-2 min.
+
+---
+
+## Backlog (P0/P1/P2)
+
+### Mobile app (carried over from previous session — DO NOT FORGET)
+- **P0**: Fix Google OAuth `androidClientId`/`iosClientId` in `login.tsx`; update old flow in `index.tsx`
+- **P0**: Fix logout crash in `profile.tsx` — replace `setTimeout` with `InteractionManager.runAfterInteractions`
+- **P1**: Execute retroactive trophy backfill via `/api/admin/recalculate-trophies`
+- **P2**: League/Tournament Champion trophies logic
+- **P2**: Re-enable Championship Winner Predictions
+- **P2**: Stripe payments
+
+### Landing page (new items)
+- **P1 (after Vercel deploy)**: Connect newsletter form to real backend (SendGrid/Resend) so emails are captured
+- **P1 (after Vercel deploy)**: **Web signup integrated with mobile app** — POST to `/api/auth/register` so a user who registers on the site automatically has an app account with same credentials
+- **P2**: Replace App Store / Play Store "Coming Soon" with real links when app is published
+- **P2**: Add real social media links (Instagram/Twitter/YouTube) in footer when provided
+- **P2**: Customer testimonials section (3 quotes) — high-converting addition for sports/social apps
+- **P3**: Add legal pages (Privacy, Terms, Cookies) — currently placeholders
+
+---
+
+## Credentials / Config
+
+- **Backend preview URL**: `https://fanta-auth-fix.preview.emergentagent.com`
+- **Landing preview**: same URL (port 3000)
+- **Test admin**: `admin@fantapronostic.com` / `admin123`
+- **Test user**: `test@fantapronostic.com` / `Test1234!`
+
+## Known NOT WORKING / MOCKED
+- Newsletter form: **UI only** — submit shows success state, does NOT send to any backend yet. MOCKED.
+- Contact form: **UI only** — same as above. MOCKED.
+- App Store / Google Play badges: placeholder `cursor-not-allowed`, no real links yet.
+
+Everything else on the landing is fully real HTML/CSS/React with real copy.
