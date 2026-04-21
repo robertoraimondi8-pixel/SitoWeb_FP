@@ -87,34 +87,6 @@ export function PrivateLeagues() {
                 />
               </div>
 
-              {/* Float badge — invite code */}
-              <div className="absolute -left-6 md:-left-12 top-28 bg-white rounded-2xl border border-line shadow-card p-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-brand-blue-50 grid place-items-center text-brand-blue font-bold">
-                  #
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted font-bold">
-                    Codice lega
-                  </p>
-                  <p className="text-sm font-display font-bold text-brand-blue tracking-widest">
-                    FP-7X92
-                  </p>
-                </div>
-              </div>
-
-              {/* Float badge — trophy */}
-              <div className="absolute -right-4 md:-right-10 bottom-32 bg-white rounded-2xl border border-line shadow-card p-3 flex items-center gap-2">
-                <span className="h-9 w-9 rounded-full bg-brand-orange-50 grid place-items-center text-xl">
-                  🏆
-                </span>
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted font-bold">
-                    1° posto
-                  </p>
-                  <p className="text-sm font-display font-bold text-ink">64 pt</p>
-                </div>
-              </div>
-
               <div className="absolute -z-10 inset-0 rounded-[44px] bg-brand-blue/10 blur-3xl" />
             </div>
           </motion.div>

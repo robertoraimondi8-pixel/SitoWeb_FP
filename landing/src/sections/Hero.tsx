@@ -119,30 +119,6 @@ export function Hero() {
                   className="h-full w-full object-cover object-top"
                 />
               </div>
-
-              {/* LIVE badge */}
-              <div className="absolute -left-8 top-24 bg-white rounded-2xl border border-line shadow-card p-3 flex items-center gap-2 animate-float">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-60" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
-                </span>
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted font-bold">LIVE</p>
-                  <p className="text-sm font-display font-bold text-ink">Giornata 1</p>
-                </div>
-              </div>
-
-              <div className="absolute -right-10 bottom-32 bg-white rounded-2xl border border-line shadow-card p-3 flex items-center gap-2">
-                <span className="h-8 w-8 rounded-full bg-brand-orange-50 grid place-items-center text-brand-orange font-bold">
-                  +6
-                </span>
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted font-bold">
-                    Speciale x3
-                  </p>
-                  <p className="text-sm font-display font-bold text-ink">punti triplicati</p>
-                </div>
-              </div>
             </div>
           </motion.div>
         </div>
