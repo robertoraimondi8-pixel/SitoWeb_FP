@@ -13,7 +13,7 @@
     font-feature-settings: "ss01", "ss02";
   }
   ::selection {
-    @apply bg-brand text-bg-base;
+    @apply bg-brand-blue text-white;
   }
 }
 
@@ -29,55 +29,80 @@
     @apply py-20 md:py-28 lg:py-32;
   }
   .overline {
-    @apply text-[11px] md:text-xs uppercase tracking-[0.28em] font-semibold text-brand;
+    @apply inline-flex items-center gap-2 text-[11px] md:text-xs uppercase tracking-[0.22em] font-bold text-brand-orange;
   }
-  .glass {
-    background: linear-gradient(180deg, rgba(22, 26, 34, 0.8) 0%, rgba(22, 26, 34, 0.6) 100%);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+  .overline::before {
+    content: "";
+    @apply inline-block h-[2px] w-8 bg-brand-orange;
   }
+
+  /* Buttons */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand px-7 py-3.5 font-semibold text-bg-base transition-all duration-200 hover:bg-brand-hover hover:scale-[1.02] active:scale-[0.98];
-    box-shadow: 0 10px 40px -10px rgba(0, 229, 90, 0.55);
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange px-7 py-3.5 font-semibold text-white transition-all duration-200 hover:bg-brand-orange-600 hover:-translate-y-0.5 active:translate-y-0;
+    box-shadow: 0 12px 32px -8px rgba(245, 130, 32, 0.5);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 18px 42px -6px rgba(245, 130, 32, 0.55);
+  }
+  .btn-blue {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand-blue px-7 py-3.5 font-semibold text-white transition-all duration-200 hover:bg-brand-blue-600 hover:-translate-y-0.5 active:translate-y-0;
+    box-shadow: 0 12px 32px -8px rgba(30, 79, 216, 0.4);
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.03] px-7 py-3.5 font-semibold text-ink transition-all duration-200 hover:bg-white/[0.08] hover:border-white/25;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-brand-blue/15 bg-white px-7 py-3.5 font-semibold text-brand-blue transition-all duration-200 hover:bg-brand-blue-50 hover:border-brand-blue/30;
   }
+
   .chip {
-    @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-3 py-1 text-xs font-medium text-muted;
+    @apply inline-flex items-center gap-2 rounded-full border border-brand-blue/15 bg-brand-blue-50 px-3 py-1 text-xs font-semibold text-brand-blue;
   }
+  .chip-orange {
+    @apply inline-flex items-center gap-2 rounded-full border border-brand-orange/20 bg-brand-orange-50 px-3 py-1 text-xs font-semibold text-brand-orange-600;
+  }
+
+  /* Card base */
+  .card {
+    @apply rounded-3xl bg-white border border-line transition-all;
+    box-shadow: 0 4px 20px -6px rgba(11, 24, 51, 0.06);
+  }
+  .card:hover {
+    box-shadow: 0 24px 60px -12px rgba(15, 47, 143, 0.15);
+    border-color: #C5D3EE;
+  }
+
   .grid-bg {
     background-image:
-      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+      linear-gradient(rgba(30, 79, 216, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30, 79, 216, 0.04) 1px, transparent 1px);
     background-size: 56px 56px;
   }
-  .grain::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.5;
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.15 0'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+
+  /* Italian tri-color stripe decoration */
+  .tricolore {
+    background: linear-gradient(to right, #009246 0%, #009246 33%, #FFFFFF 33%, #FFFFFF 66%, #CE2B37 66%, #CE2B37 100%);
   }
-  .text-gradient {
-    background: linear-gradient(135deg, #ffffff 0%, #9CA3AF 100%);
+
+  /* Text gradients */
+  .text-gradient-blue {
+    background: linear-gradient(135deg, #1E4FD8 0%, #2E66F2 50%, #0F2F8F 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
-  .brand-gradient {
-    background: linear-gradient(135deg, #00E55A 0%, #00FF8A 50%, #FACC15 100%);
+  .text-gradient-orange {
+    background: linear-gradient(135deg, #F58220 0%, #FFC107 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+
+  /* Stadium hero overlay tint */
+  .hero-overlay {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.85) 70%, #FFFFFF 100%);
   }
 }
 
 html,
 body,
 #root {
-  background-color: #0B0D12;
+  background-color: #FFFFFF;
 }

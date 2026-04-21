@@ -3,10 +3,10 @@ import { useTranslation } from "react-i18next";
 import { Users, Swords, Crown, Check, ArrowUpRight } from "lucide-react";
 
 const ICONS = [Users, Swords, Crown];
-const GLOWS = [
-  "from-emerald-500/20 via-brand/10 to-transparent",
-  "from-amber-500/20 via-gold/10 to-transparent",
-  "from-violet-500/20 via-brand/10 to-transparent",
+const ACCENTS = [
+  { bg: "bg-brand-blue", text: "text-brand-blue", tint: "bg-brand-blue-50", border: "border-brand-blue/15" },
+  { bg: "bg-brand-orange", text: "text-brand-orange", tint: "bg-brand-orange-50", border: "border-brand-orange/20" },
+  { bg: "bg-brand-blue-700", text: "text-brand-blue-700", tint: "bg-brand-blue-50", border: "border-brand-blue-700/20" },
 ];
 
 export function GameModes() {
@@ -23,20 +23,19 @@ export function GameModes() {
   return (
     <section
       id="modes"
-      className="relative section-pad bg-bg-surface/30"
+      className="relative section-pad bg-bg-soft"
       data-testid="game-modes-section"
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       <div className="container-x">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.6 }}
-          className="max-w-3xl mb-14 md:mb-20"
+          className="max-w-3xl mb-14 md:mb-20 text-center mx-auto"
         >
           <span className="overline">{t("modes.overline")}</span>
-          <h2 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-4 tracking-tight text-ink">
+          <h2 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-4 tracking-tightest text-ink">
             {t("modes.title")}
           </h2>
           <p className="mt-5 text-muted text-base md:text-lg leading-relaxed">
@@ -47,33 +46,36 @@ export function GameModes() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6">
           {cards.map((card, i) => {
             const Icon = ICONS[i];
+            const A = ACCENTS[i];
             return (
               <motion.div
                 key={card.title}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.6, delay: i * 0.12 }}
-                className="group relative rounded-3xl overflow-hidden bg-bg-card border border-white/5 hover:border-brand/40 transition-all duration-500 hover:-translate-y-2"
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                className="group relative card overflow-hidden flex flex-col"
                 data-testid={`mode-card-${i + 1}`}
               >
-                {/* Glow */}
-                <div
-                  className={`absolute -top-32 left-1/2 -translate-x-1/2 h-64 w-64 rounded-full bg-gradient-to-b ${GLOWS[i]} blur-3xl opacity-60 group-hover:opacity-100 transition-opacity`}
-                />
+                {/* Top decorative strip */}
+                <div className={`h-1.5 w-full ${A.bg}`} />
 
-                <div className="relative p-8 md:p-10 flex flex-col h-full">
-                  <div className="flex items-start justify-between mb-8">
-                    <div className="h-14 w-14 rounded-2xl bg-ink/5 border border-white/10 grid place-items-center">
-                      <Icon size={24} className="text-brand" strokeWidth={2} />
+                <div className="p-8 md:p-9 flex flex-col h-full">
+                  <div className="flex items-start justify-between mb-7">
+                    <div
+                      className={`h-14 w-14 rounded-2xl ${A.tint} ${A.text} grid place-items-center border ${A.border}`}
+                    >
+                      <Icon size={24} strokeWidth={2.2} />
                     </div>
-                    <span className="chip">{card.tag}</span>
+                    <span className={`chip ${i === 1 ? "!bg-brand-orange-50 !border-brand-orange/20 !text-brand-orange-600" : ""}`}>
+                      {card.tag}
+                    </span>
                   </div>
 
-                  <h3 className="font-display text-3xl md:text-4xl font-bold text-ink tracking-tight leading-tight">
+                  <h3 className="font-display text-3xl md:text-[32px] font-bold text-ink tracking-tight leading-[1.1]">
                     {card.title}
                   </h3>
-                  <p className="mt-3 font-display text-base md:text-lg text-brand font-medium italic">
+                  <p className={`mt-3 font-display text-base md:text-lg ${A.text} font-semibold italic leading-snug`}>
                     "{card.punch}"
                   </p>
 
@@ -81,20 +83,20 @@ export function GameModes() {
 
                   <div className="mt-7 space-y-2.5">
                     {card.bullets.map((b) => (
-                      <div key={b} className="flex items-center gap-2.5 text-sm text-ink/90">
-                        <span className="h-5 w-5 rounded-full bg-brand/10 border border-brand/30 grid place-items-center">
-                          <Check size={12} className="text-brand" strokeWidth={3} />
+                      <div key={b} className="flex items-center gap-2.5 text-sm text-ink2 font-medium">
+                        <span className={`h-5 w-5 rounded-full ${A.tint} grid place-items-center`}>
+                          <Check size={12} className={A.text} strokeWidth={3} />
                         </span>
                         {b}
                       </div>
                     ))}
                   </div>
 
-                  <div className="mt-auto pt-8 border-t border-white/5 flex items-center justify-between">
-                    <p className="text-xs text-muted/80 max-w-[60%] leading-snug">
+                  <div className="mt-auto pt-8 border-t border-line flex items-center justify-between">
+                    <p className="text-xs text-muted max-w-[60%] leading-snug">
                       {card.perfect_for}
                     </p>
-                    <span className="h-10 w-10 rounded-full bg-white/5 border border-white/10 grid place-items-center group-hover:bg-brand group-hover:border-brand group-hover:text-bg-base transition-all">
+                    <span className={`h-10 w-10 rounded-full ${A.tint} grid place-items-center ${A.text} group-hover:${A.bg} group-hover:text-white transition-all`}>
                       <ArrowUpRight size={16} />
                     </span>
                   </div>

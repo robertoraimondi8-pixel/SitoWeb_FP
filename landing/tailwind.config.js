@@ -4,45 +4,64 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: {
-          base: "#0B0D12",
-          surface: "#161A22",
-          card: "#1E232E",
-        },
+        // Brand
         brand: {
-          DEFAULT: "#00E55A",
-          hover: "#00C24B",
-          glow: "#00FF66",
+          blue: "#1E4FD8",        // primary deep royal blue
+          "blue-600": "#1741B8",  // hover / press
+          "blue-700": "#0F2F8F",  // deep
+          "blue-900": "#0A2570",  // darkest
+          "blue-50": "#EEF3FF",   // very light tint
+          "blue-100": "#DCE6FF",
+          orange: "#F58220",      // CTA orange (warm vibrant)
+          "orange-600": "#E06B00",
+          "orange-50": "#FFF3E6",
+          yellow: "#FFC107",      // yellow accent from ball
         },
-        gold: "#FACC15",
-        ink: "#F9FAFB",
-        muted: "#9CA3AF",
+        // Neutrals
+        ink: "#0B1833",           // text primary (near-black blue)
+        ink2: "#1F2A44",          // text deep
+        muted: "#5B6B88",         // text secondary
+        muted2: "#8A96AE",
+        line: "#E4EAF4",          // subtle border
+        line2: "#CFD8EA",
+        bg: {
+          base: "#FFFFFF",
+          soft: "#F6F9FE",        // cream/soft blue bg
+          tint: "#EEF3FF",        // brand tint
+        },
       },
       fontFamily: {
         display: ['"Clash Display"', '"Space Grotesk"', "system-ui", "sans-serif"],
         body: ['"Manrope"', "system-ui", "sans-serif"],
       },
       letterSpacing: {
-        tightest: "-0.04em",
+        tightest: "-0.035em",
       },
       boxShadow: {
-        glow: "0 0 60px -10px rgba(0, 229, 90, 0.35)",
-        card: "0 24px 80px -20px rgba(0, 0, 0, 0.6)",
+        card: "0 12px 40px -12px rgba(15, 47, 143, 0.15)",
+        cta: "0 14px 35px -10px rgba(245, 130, 32, 0.5)",
+        blue: "0 14px 40px -10px rgba(30, 79, 216, 0.35)",
+        soft: "0 4px 20px -6px rgba(11, 24, 51, 0.08)",
       },
       backgroundImage: {
-        "grid-fade":
-          "linear-gradient(to bottom, rgba(11,13,18,0) 0%, #0B0D12 85%), linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
-        "radial-brand":
-          "radial-gradient(circle at 50% 0%, rgba(0,229,90,0.18) 0%, transparent 55%)",
+        "brand-radial":
+          "radial-gradient(circle at 50% 0%, rgba(30, 79, 216, 0.08) 0%, transparent 60%)",
+        "orange-radial":
+          "radial-gradient(circle at 50% 50%, rgba(245, 130, 32, 0.12) 0%, transparent 65%)",
       },
       animation: {
         "pulse-soft": "pulse 4s ease-in-out infinite",
-        "marquee": "marquee 40s linear infinite",
+        marquee: "marquee 45s linear infinite",
+        float: "float 6s ease-in-out infinite",
       },
       keyframes: {
         marquee: {
           "0%": { transform: "translateX(0%)" },
           "100%": { transform: "translateX(-50%)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-12px)" },
         },
       },
     },

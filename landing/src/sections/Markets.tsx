@@ -14,7 +14,7 @@ export function Markets() {
   return (
     <section
       id="markets"
-      className="relative section-pad bg-bg-surface/30"
+      className="relative section-pad bg-bg-soft"
       data-testid="markets-section"
     >
       <div className="container-x">
@@ -23,10 +23,10 @@ export function Markets() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.6 }}
-          className="max-w-2xl mb-14"
+          className="max-w-2xl mb-14 text-center mx-auto"
         >
           <span className="overline">{t("markets.overline")}</span>
-          <h2 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-4 tracking-tight text-ink">
+          <h2 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-4 tracking-tightest text-ink">
             {t("markets.title")}
           </h2>
           <p className="mt-5 text-muted text-base md:text-lg leading-relaxed">
@@ -44,17 +44,17 @@ export function Markets() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.08 }}
-                className="group relative rounded-2xl bg-bg-card border border-white/5 p-6 md:p-7 hover:border-brand/30 transition-all hover:-translate-y-1"
+                className="group relative card p-6 md:p-7 hover:-translate-y-1"
                 data-testid={`market-card-${i + 1}`}
               >
-                <div className="h-11 w-11 rounded-xl bg-brand/10 border border-brand/20 grid place-items-center mb-5 group-hover:bg-brand group-hover:text-bg-base transition-colors">
-                  <Icon size={18} className="text-brand group-hover:text-bg-base transition-colors" strokeWidth={2.2} />
+                <div className="h-11 w-11 rounded-xl bg-brand-blue text-white grid place-items-center mb-5 group-hover:bg-brand-orange transition-colors shadow-blue">
+                  <Icon size={18} strokeWidth={2.4} />
                 </div>
                 <h3 className="font-display text-xl md:text-2xl font-bold text-ink tracking-tight">
                   {item.name}
                 </h3>
                 <p className="mt-2 text-sm text-muted leading-relaxed">{item.desc}</p>
-                <div className="absolute bottom-4 right-4 text-muted/30 font-display text-5xl font-bold leading-none">
+                <div className="absolute bottom-4 right-4 text-brand-blue-50 font-display text-5xl font-bold leading-none">
                   0{i + 1}
                 </div>
               </motion.div>

@@ -16,9 +16,8 @@ const en = {
       "Create your private league, predict every match and dominate the standings. FantaPronostic turns every matchday into a social challenge between you and your friends.",
     cta_primary: "Create your League",
     cta_secondary: "See how it works",
-    stat_users: "Predictions played",
-    stat_leagues: "Active leagues",
-    stat_matches: "Matches covered",
+    trust_line: "The fantasy game of football predictions.",
+    trust_sub: "Built for those who live football every matchday.",
   },
   marquee: {
     items: [

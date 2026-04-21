@@ -16,9 +16,8 @@ const it = {
       "Crea la tua lega privata, pronostica ogni partita e domina la classifica. FantaPronostic trasforma ogni giornata di calcio in una sfida sociale tra te e i tuoi amici.",
     cta_primary: "Crea la tua Lega",
     cta_secondary: "Scopri come funziona",
-    stat_users: "Pronostici giocati",
-    stat_leagues: "Leghe attive",
-    stat_matches: "Partite coperte",
+    trust_line: "Il fantacalcio dei pronostici.",
+    trust_sub: "Costruito per chi vive il calcio ogni giornata.",
   },
   marquee: {
     items: [

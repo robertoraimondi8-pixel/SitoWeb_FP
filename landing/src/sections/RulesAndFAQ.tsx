@@ -15,7 +15,7 @@ function Accordion({ items, testidPrefix }: { items: Item[]; testidPrefix: strin
           <div
             key={i}
             className={`rounded-2xl border transition-colors ${
-              active ? "border-brand/30 bg-brand/[0.03]" : "border-white/5 bg-bg-surface/50"
+              active ? "border-brand-blue/25 bg-brand-blue-50/40" : "border-line bg-white"
             }`}
             data-testid={`${testidPrefix}-item-${i + 1}`}
           >
@@ -24,14 +24,14 @@ function Accordion({ items, testidPrefix }: { items: Item[]; testidPrefix: strin
               className="w-full flex items-center justify-between gap-4 p-5 md:p-6 text-left"
               data-testid={`${testidPrefix}-toggle-${i + 1}`}
             >
-              <span className="font-display text-base md:text-lg font-semibold text-ink tracking-tight">
+              <span className="font-display text-base md:text-lg font-bold text-ink tracking-tight">
                 {it.q}
               </span>
               <span
-                className={`shrink-0 h-9 w-9 rounded-full grid place-items-center border transition-all ${
+                className={`shrink-0 h-9 w-9 rounded-full grid place-items-center transition-all ${
                   active
-                    ? "bg-brand text-bg-base border-brand rotate-45"
-                    : "bg-white/5 text-ink border-white/10"
+                    ? "bg-brand-orange text-white rotate-45"
+                    : "bg-brand-blue-50 text-brand-blue"
                 }`}
               >
                 <Plus size={16} />
@@ -74,7 +74,7 @@ export function Rules() {
             className="lg:col-span-5"
           >
             <span className="overline">{t("rules.overline")}</span>
-            <h2 className="font-display font-bold text-4xl md:text-5xl mt-4 tracking-tight text-ink leading-[1.05]">
+            <h2 className="font-display font-bold text-4xl md:text-5xl mt-4 tracking-tightest text-ink leading-[1.05]">
               {t("rules.title")}
             </h2>
             <p className="mt-5 text-muted text-base md:text-lg leading-relaxed">
@@ -102,7 +102,7 @@ export function FAQ() {
   return (
     <section
       id="faq"
-      className="relative section-pad bg-bg-surface/30"
+      className="relative section-pad bg-bg-soft"
       data-testid="faq-section"
     >
       <div className="container-x">
@@ -114,7 +114,7 @@ export function FAQ() {
           className="max-w-2xl mb-12 text-center mx-auto"
         >
           <span className="overline">{t("faq.overline")}</span>
-          <h2 className="font-display font-bold text-4xl md:text-5xl mt-4 tracking-tight text-ink">
+          <h2 className="font-display font-bold text-4xl md:text-5xl mt-4 tracking-tightest text-ink">
             {t("faq.title")}
           </h2>
         </motion.div>

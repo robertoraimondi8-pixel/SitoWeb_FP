@@ -28,7 +28,7 @@ export function Header() {
     <header
       className={cn(
         "fixed top-0 inset-x-0 z-50 transition-all duration-300",
-        scrolled ? "py-2" : "py-4",
+        scrolled ? "py-2" : "py-3",
       )}
       data-testid="site-header"
     >
@@ -37,27 +37,32 @@ export function Header() {
           className={cn(
             "flex items-center justify-between rounded-full px-4 sm:px-5 py-2.5 transition-all duration-300",
             scrolled
-              ? "glass shadow-card"
-              : "bg-transparent border border-transparent",
+              ? "bg-white/95 backdrop-blur-xl border border-line shadow-soft"
+              : "bg-white/70 backdrop-blur-md border border-white/60",
           )}
         >
           <a
             href="#top"
-            className="flex items-center gap-2.5"
+            className="flex items-center gap-2"
             data-testid="header-logo-link"
           >
-            <img src="/logo-icon.png" alt="FantaPronostic" className="h-8 w-8 rounded-lg" />
-            <span className="font-display font-bold text-lg tracking-tight">
-              Fanta<span className="text-brand">Pronostic</span>
+            <img
+              src="/brand-icon.png"
+              alt="FantaPronostic"
+              className="h-9 w-9 rounded-xl"
+            />
+            <span className="font-display font-bold text-[17px] tracking-tight leading-none hidden sm:inline">
+              <span className="text-brand-orange">Fanta</span>
+              <span className="text-brand-blue">Pronostic</span>
             </span>
           </a>
 
-          <nav className="hidden lg:flex items-center gap-8">
+          <nav className="hidden lg:flex items-center gap-7">
             {links.map((l) => (
               <a
                 key={l.href}
                 href={l.href}
-                className="text-sm font-medium text-muted hover:text-ink transition-colors"
+                className="text-sm font-semibold text-ink2 hover:text-brand-blue transition-colors"
                 data-testid={`nav-link-${l.href.slice(1)}`}
               >
                 {l.label}
@@ -69,7 +74,7 @@ export function Header() {
             <LanguageSwitcher compact />
             <a
               href="#download"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-bg-base hover:bg-brand-hover transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-brand-orange px-4 py-2 text-sm font-semibold text-white hover:bg-brand-orange-600 transition-colors shadow-cta"
               data-testid="header-download-cta"
             >
               {t("nav.download")}
@@ -77,7 +82,7 @@ export function Header() {
             </a>
             <button
               onClick={() => setOpen((o) => !o)}
-              className="lg:hidden grid place-items-center h-9 w-9 rounded-full border border-white/10 text-ink hover:bg-white/5"
+              className="lg:hidden grid place-items-center h-9 w-9 rounded-full border border-line bg-white text-ink hover:bg-bg-soft"
               aria-label="Menu"
               data-testid="mobile-menu-toggle"
             >
@@ -88,7 +93,7 @@ export function Header() {
 
         {open && (
           <div
-            className="lg:hidden mt-2 glass rounded-3xl p-4 flex flex-col gap-1"
+            className="lg:hidden mt-2 bg-white border border-line rounded-3xl p-3 shadow-card flex flex-col gap-1"
             data-testid="mobile-menu"
           >
             {links.map((l) => (
@@ -96,7 +101,7 @@ export function Header() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="rounded-xl px-4 py-3 text-sm font-medium text-ink hover:bg-white/5"
+                className="rounded-xl px-4 py-3 text-sm font-semibold text-ink2 hover:bg-bg-soft hover:text-brand-blue"
                 data-testid={`mobile-nav-${l.href.slice(1)}`}
               >
                 {l.label}

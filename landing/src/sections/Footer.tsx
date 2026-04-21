@@ -36,22 +36,29 @@ export function Footer() {
 
   return (
     <footer
-      className="relative border-t border-white/5 pt-16 pb-10 bg-bg-base"
+      className="relative pt-16 pb-10 text-white overflow-hidden"
+      style={{ background: "linear-gradient(180deg, #0A2570 0%, #050F35 100%)" }}
       data-testid="footer-section"
     >
-      <div className="container-x">
+      {/* Italian tricolore strip at top */}
+      <div className="absolute top-0 inset-x-0 h-1 tricolore opacity-60" />
+
+      <div className="container-x relative">
         <div className="grid grid-cols-2 md:grid-cols-12 gap-10 md:gap-8">
           <div className="col-span-2 md:col-span-5">
             <a href="#top" className="inline-flex items-center gap-2.5 mb-4">
-              <img src="/logo-icon.png" alt="FantaPronostic" className="h-9 w-9 rounded-lg" />
+              <img src="/brand-icon.png" alt="FantaPronostic" className="h-10 w-10 rounded-xl" />
               <span className="font-display font-bold text-xl tracking-tight">
-                Fanta<span className="text-brand">Pronostic</span>
+                <span className="text-brand-orange">Fanta</span>
+                <span className="text-white">Pronostic</span>
               </span>
             </a>
-            <p className="text-sm text-muted leading-relaxed max-w-sm">{t("footer.tagline")}</p>
+            <p className="text-sm text-white/70 leading-relaxed max-w-sm">
+              {t("footer.tagline")}
+            </p>
 
             <div className="mt-8">
-              <p className="text-xs uppercase tracking-widest text-muted mb-4">
+              <p className="text-xs uppercase tracking-widest text-white/50 font-bold mb-4">
                 {t("footer.follow")}
               </p>
               <div className="flex items-center gap-2">
@@ -63,7 +70,7 @@ export function Footer() {
                   <a
                     key={id}
                     href={href}
-                    className="h-10 w-10 rounded-full border border-white/10 bg-white/[0.02] grid place-items-center text-muted hover:text-ink hover:border-brand/40 hover:bg-brand/10 transition-colors"
+                    className="h-10 w-10 rounded-full border border-white/15 bg-white/5 grid place-items-center text-white/70 hover:text-white hover:border-brand-orange hover:bg-brand-orange/20 transition-colors"
                     data-testid={`social-${id}`}
                     aria-label={id}
                   >
@@ -76,7 +83,7 @@ export function Footer() {
 
           {cols.map((col) => (
             <div key={col.title} className="col-span-1 md:col-span-2">
-              <p className="font-display text-sm font-semibold text-ink uppercase tracking-wider mb-4">
+              <p className="font-display text-sm font-bold text-white uppercase tracking-wider mb-4">
                 {col.title}
               </p>
               <ul className="space-y-2.5">
@@ -84,7 +91,7 @@ export function Footer() {
                   <li key={l.label}>
                     <a
                       href={l.href}
-                      className="text-sm text-muted hover:text-ink transition-colors"
+                      className="text-sm text-white/70 hover:text-brand-orange transition-colors"
                     >
                       {l.label}
                     </a>
@@ -97,11 +104,11 @@ export function Footer() {
           <div className="col-span-2 md:col-span-1" />
         </div>
 
-        <div className="mt-14 pt-8 border-t border-white/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <p className="text-xs text-muted">
+        <div className="mt-14 pt-8 border-t border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <p className="text-xs text-white/60">
             © {year} FantaPronostic. {t("footer.rights")}
           </p>
-          <p className="text-xs text-muted/70">fantapronostic.com</p>
+          <p className="text-xs text-white/50">fantapronostic.com · 🇮🇹 Made in Italy</p>
         </div>
       </div>
     </footer>

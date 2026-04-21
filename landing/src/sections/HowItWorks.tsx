@@ -20,10 +20,10 @@ export function HowItWorks() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.6 }}
-          className="max-w-2xl mb-16"
+          className="max-w-2xl mb-16 text-center mx-auto"
         >
           <span className="overline">{t("how.overline")}</span>
-          <h2 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-4 tracking-tight text-ink">
+          <h2 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-4 tracking-tightest text-ink">
             {t("how.title")}
           </h2>
           <p className="mt-5 text-muted text-base md:text-lg leading-relaxed">
@@ -31,36 +31,41 @@ export function HowItWorks() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
-          {steps.map((step, i) => {
-            const Icon = ICONS[i];
-            return (
-              <motion.div
-                key={step.n}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group relative rounded-3xl bg-bg-surface border border-white/5 p-8 md:p-10 overflow-hidden hover:border-brand/30 transition-colors"
-                data-testid={`how-step-${i + 1}`}
-              >
-                <span className="absolute -top-4 right-4 font-display font-bold text-[140px] leading-none text-white/[0.03] select-none">
-                  {step.n}
-                </span>
-                <div className="relative z-10">
-                  <div className="h-12 w-12 rounded-2xl bg-brand/10 text-brand grid place-items-center border border-brand/20 mb-6 group-hover:scale-110 transition-transform">
-                    <Icon size={22} strokeWidth={2.2} />
+        <div className="relative">
+          {/* Connector line behind cards on desktop */}
+          <div className="hidden md:block absolute top-24 left-[16%] right-[16%] h-px border-t-2 border-dashed border-line2" />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 relative">
+            {steps.map((step, i) => {
+              const Icon = ICONS[i];
+              return (
+                <motion.div
+                  key={step.n}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="card p-8 md:p-9 relative"
+                  data-testid={`how-step-${i + 1}`}
+                >
+                  <div className="flex items-start justify-between mb-7">
+                    <div className="h-14 w-14 rounded-2xl bg-brand-blue text-white grid place-items-center shadow-blue">
+                      <Icon size={22} strokeWidth={2.2} />
+                    </div>
+                    <span className="font-display font-bold text-[64px] leading-none text-brand-blue-50 select-none">
+                      {step.n}
+                    </span>
                   </div>
-                  <h3 className="font-display text-2xl font-semibold text-ink tracking-tight">
+                  <h3 className="font-display text-2xl font-bold text-ink tracking-tight">
                     {step.title}
                   </h3>
                   <p className="mt-3 text-muted leading-relaxed text-sm md:text-base">
                     {step.body}
                   </p>
-                </div>
-              </motion.div>
-            );
-          })}
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
