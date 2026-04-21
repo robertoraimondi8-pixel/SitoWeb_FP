@@ -96,25 +96,6 @@ export function Hero() {
                 {t("hero.cta_secondary")}
               </a>
             </motion.div>
-
-            {/* Leagues trust — serious product language */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.55 }}
-              className="mt-14 flex items-start gap-5"
-              data-testid="hero-trust"
-            >
-              <div className="h-11 w-11 rounded-xl bg-white border border-line grid place-items-center shadow-soft">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-brand-blue">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-bold text-ink">{t("hero.trust_line")}</p>
-                <p className="text-xs text-muted mt-0.5">{t("hero.trust_sub")}</p>
-              </div>
-            </motion.div>
           </div>
 
           {/* Right — floating app mockup */}

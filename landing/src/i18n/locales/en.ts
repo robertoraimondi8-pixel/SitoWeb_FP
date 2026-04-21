@@ -11,13 +11,11 @@ const en = {
     badge: "Competitive football predictions",
     title_pre: "The most",
     title_accent: "competitive",
-    title_post: "way to live football with your friends.",
+    title_post: "way to live football.",
     subtitle:
       "Create your private league, submit your predictions every matchday and challenge your friends on live leaderboards updated in real time.",
     cta_primary: "Get the App",
     cta_secondary: "See how it works",
-    trust_line: "From Serie A to the Champions League.",
-    trust_sub: "Every competition that matters, one league with your friends.",
   },
   marquee: {
     items: [
@@ -38,7 +36,7 @@ const en = {
     title_line1: "More engaging than fantasy.",
     title_line2: "Simpler than you think.",
     subtitle:
-      "No auctions, no lineups to set, no complex math. Just predictions, live leaderboards and the thrill of calling it right.",
+      "Predict the matches, climb the live leaderboards and enjoy the satisfaction of calling the right result.",
   },
   how: {
     overline: "How It Works",
@@ -47,7 +45,7 @@ const en = {
     steps: [
       {
         n: "01",
-        title: "Create a private league",
+        title: "Join or create a league",
         body: "Invite friends with a personal code.",
       },
       {
@@ -68,26 +66,28 @@ const en = {
     subtitle: "Three formats built for every type of group and every level of competition.",
     cards: [
       {
-        tag: "Classic",
-        title: "Free For All",
-        punch: "The most immediate format.",
-        body: "Everyone stacks points, the best one wins.",
-        perfect_for: "Friends, coworkers, community groups.",
-        bullets: ["Single standings", "Unlimited players", "Instant setup"],
+        title: "Free For All League",
+        punch: "Every player against every other.",
+        body: "In this mode every player competes simultaneously against all the others. The final standings are determined by the total points earned across the full season.",
+        perfect_for: "Groups of friends, coworkers, community.",
+        bullets: [
+          "Single overall standings",
+          "Every prediction of the season counts",
+          "Highest total wins",
+          "Perfect for large groups",
+        ],
       },
       {
-        tag: "Competitive",
-        title: "League Championship",
+        title: "Championship Mode",
         punch: "Head-to-head 1 vs 1.",
-        body: "3 points for a win, 1 for a draw, 0 for a loss.",
-        perfect_for: "Competitive groups, full-season leagues.",
-        bullets: ["Win = 3 pts", "Draw = 1 pt", "Loss = 0 pts"],
+        body: "Every matchday players face off directly. Whoever scores more points in the round wins the fixture and climbs the ladder.",
+        perfect_for: "Competitive groups, season-long leagues.",
+        bullets: ["Win = 3 points", "Draw = 1 point", "Loss = 0 points"],
       },
       {
-        tag: "Knockout",
         title: "Tournaments",
         punch: "Group stage and knockouts.",
-        body: "The most intense format.",
+        body: "Group stage, qualifiers, knockouts, semi-finals and final. A format built for the biggest football events of the year.",
         perfect_for: "Euros, World Cup, Champions League.",
         bullets: ["Group stage", "Knockouts", "Semis & Final"],
       },
@@ -140,7 +140,7 @@ const en = {
   },
   markets: {
     overline: "Prediction Markets",
-    title: "Four markets. One goal: nail it.",
+    title: "Four markets. One goal: win.",
     subtitle: "Clear, straight predictions. No betting odds, only competition between friends.",
     items: [
       { name: "1X2", desc: "Home win, draw or away win." },

@@ -52,7 +52,7 @@ export function HowItWorks() {
                     <div className="h-14 w-14 rounded-2xl bg-brand-blue text-white grid place-items-center shadow-blue">
                       <Icon size={22} strokeWidth={2.2} />
                     </div>
-                    <span className="font-display font-bold text-[64px] leading-none text-brand-blue-50 select-none">
+                    <span className="font-display font-black text-[72px] leading-none text-brand-orange/25 select-none">
                       {step.n}
                     </span>
                   </div>

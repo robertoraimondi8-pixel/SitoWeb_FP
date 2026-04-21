@@ -11,13 +11,11 @@ const es = {
     badge: "Pronósticos de fútbol competitivos",
     title_pre: "La forma más",
     title_accent: "competitiva",
-    title_post: "de vivir el fútbol con tus amigos.",
+    title_post: "de vivir el fútbol.",
     subtitle:
       "Crea tu liga privada, introduce los pronósticos cada jornada y desafía a tus amigos en clasificaciones en vivo actualizadas en tiempo real.",
     cta_primary: "Descarga la App",
     cta_secondary: "Descubre cómo funciona",
-    trust_line: "De la Serie A a la Champions League.",
-    trust_sub: "Todas las competiciones que importan, una sola liga con tus amigos.",
   },
   marquee: {
     items: [
@@ -38,7 +36,7 @@ const es = {
     title_line1: "Más adictivo que el fantasy.",
     title_line2: "Más simple de lo que crees.",
     subtitle:
-      "Sin subastas, sin alineaciones, sin cálculos complicados. Solo pronósticos, clasificaciones en vivo y la satisfacción de acertar.",
+      "Pronostica los partidos, escala las clasificaciones en vivo y disfruta de la satisfacción de haber acertado el resultado.",
   },
   how: {
     overline: "Cómo Funciona",
@@ -47,7 +45,7 @@ const es = {
     steps: [
       {
         n: "01",
-        title: "Crea una liga privada",
+        title: "Únete o crea una liga",
         body: "Invita amigos con un código personal.",
       },
       {
@@ -68,26 +66,28 @@ const es = {
     subtitle: "Tres formatos pensados para cada grupo y cada nivel de competencia.",
     cards: [
       {
-        tag: "Clásica",
-        title: "Todos Contra Todos",
-        punch: "La fórmula más inmediata.",
-        body: "Todos acumulan puntos, el mejor gana.",
+        title: "Liga Todos Contra Todos",
+        punch: "Cada jugador contra todos.",
+        body: "En esta modalidad cada participante compite simultáneamente con todos los demás. La clasificación final se determina por la suma total de puntos obtenidos durante la temporada.",
         perfect_for: "Amigos, colegas, comunidades.",
-        bullets: ["Clasificación única", "Participantes ilimitados", "Inicio inmediato"],
+        bullets: [
+          "Clasificación única general",
+          "Cada pronóstico de la temporada cuenta",
+          "Gana quien suma más puntos",
+          "Ideal para grupos grandes",
+        ],
       },
       {
-        tag: "Competitiva",
-        title: "Liga Campeonato",
+        title: "Modalidad Campeonato",
         punch: "Duelos directos 1vs1.",
-        body: "3 puntos victoria, 1 empate, 0 derrota.",
+        body: "Cada jornada los participantes se enfrentan en duelos directos. Quien suma más puntos en la jornada gana el partido y escala la tabla.",
         perfect_for: "Grupos competitivos, ligas de temporada.",
-        bullets: ["Victoria = 3 pts", "Empate = 1 pt", "Derrota = 0 pts"],
+        bullets: ["Victoria = 3 puntos", "Empate = 1 punto", "Derrota = 0 puntos"],
       },
       {
-        tag: "Eliminatoria",
         title: "Torneos",
         punch: "Grupos y eliminación directa.",
-        body: "La modalidad más intensa.",
+        body: "Fase de grupos, clasificatorias, eliminación directa, semifinales y final. Una estructura pensada para los grandes eventos del año.",
         perfect_for: "Eurocopas, Mundiales, Champions League.",
         bullets: ["Fase de grupos", "Eliminación directa", "Semifinales y Final"],
       },
@@ -140,7 +140,7 @@ const es = {
   },
   markets: {
     overline: "Mercados de Pronóstico",
-    title: "Cuatro mercados. Un objetivo: acertar.",
+    title: "Cuatro mercados. Un solo objetivo: ganar.",
     subtitle: "Pronósticos claros y directos. Sin cuotas, solo competencia entre amigos.",
     items: [
       { name: "1X2", desc: "Victoria local, empate o victoria visitante." },

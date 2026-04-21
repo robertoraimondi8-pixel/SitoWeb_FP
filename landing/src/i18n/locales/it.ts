@@ -11,13 +11,11 @@ const it = {
     badge: "Pronostici calcistici competitivi",
     title_pre: "Il modo più",
     title_accent: "competitivo",
-    title_post: "di vivere il calcio tra amici.",
+    title_post: "di vivere il calcio.",
     subtitle:
       "Crea la tua lega privata, inserisci i pronostici ogni giornata e sfida i tuoi amici in classifiche live sempre aggiornate.",
     cta_primary: "Scarica l'App",
     cta_secondary: "Scopri come funziona",
-    trust_line: "Dalla Serie A alla Champions League.",
-    trust_sub: "Tutti i campionati che contano, una sola lega con i tuoi amici.",
   },
   marquee: {
     items: [
@@ -38,7 +36,7 @@ const it = {
     title_line1: "Più coinvolgente del fantacalcio.",
     title_line2: "Più semplice di quanto pensi.",
     subtitle:
-      "Niente aste, niente formazioni da schierare, niente calcoli complicati. Solo pronostici, classifiche live e la soddisfazione di averla chiamata giusta.",
+      "Pronostica le partite, scala le classifiche live ed esulta per la soddisfazione di aver indovinato il risultato.",
   },
   how: {
     overline: "Come Funziona",
@@ -48,7 +46,7 @@ const it = {
     steps: [
       {
         n: "01",
-        title: "Crea una lega privata",
+        title: "Unisciti o crea una lega",
         body: "Invita amici con un codice personale.",
       },
       {
@@ -70,26 +68,28 @@ const it = {
       "Tre formati pensati per ogni tipo di gruppo e ogni livello di competizione.",
     cards: [
       {
-        tag: "Classica",
         title: "Lega Tutti Contro Tutti",
-        punch: "La formula più immediata.",
-        body: "Tutti accumulano punti, il migliore vince.",
+        punch: "Ogni partecipante contro tutti gli altri.",
+        body: "In questa modalità ogni partecipante compete contemporaneamente con tutti gli altri. La classifica finale è determinata dalla somma totale dei punti ottenuti durante la stagione.",
         perfect_for: "Gruppi di amici, colleghi, community.",
-        bullets: ["Classifica unica", "Partecipanti illimitati", "Avvio immediato"],
+        bullets: [
+          "Classifica unica generale",
+          "Conta ogni pronostico della stagione",
+          "Vince chi totalizza più punti",
+          "Perfetta per gruppi numerosi",
+        ],
       },
       {
-        tag: "Competitiva",
-        title: "Lega Campionato",
-        punch: "Sfide dirette 1vs1.",
-        body: "3 punti vittoria, 1 pareggio, 0 sconfitta.",
+        title: "Modalità Campionato",
+        punch: "Scontri diretti 1vs1.",
+        body: "Ogni giornata i partecipanti si affrontano in sfide dirette. Chi totalizza più punti nella giornata vince il match e guadagna punti classifica.",
         perfect_for: "Gruppi competitivi, leghe stagionali.",
-        bullets: ["Vittoria = 3 pt", "Pareggio = 1 pt", "Sconfitta = 0 pt"],
+        bullets: ["Vittoria = 3 punti", "Pareggio = 1 punto", "Sconfitta = 0 punti"],
       },
       {
-        tag: "Knockout",
         title: "Tornei",
         punch: "Gironi ed eliminazione diretta.",
-        body: "La modalità più intensa.",
+        body: "Fase a gironi, qualificazioni, eliminazione diretta, semifinali e finale. Struttura pensata per gli eventi più importanti dell'anno.",
         perfect_for: "Europei, Mondiali, Champions League.",
         bullets: ["Fase a gironi", "Eliminazione diretta", "Semifinale e Finale"],
       },
@@ -142,7 +142,7 @@ const it = {
   },
   markets: {
     overline: "Mercati di Pronostico",
-    title: "Quattro mercati. Un obiettivo: azzeccare.",
+    title: "Quattro mercati. Un solo obiettivo: vincere.",
     subtitle:
       "Pronostici chiari e diretti. Nessuna quota da scommessa, solo competizione tra amici.",
     items: [
