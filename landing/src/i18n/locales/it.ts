@@ -174,10 +174,6 @@ const it = {
         q: "Come vengono gestite le partite rinviate?",
         a: "Le partite rinviate vengono ricalcolate automaticamente una volta disputate, con i punti assegnati retroattivamente alla giornata corretta.",
       },
-      {
-        q: "La piattaforma prevede pagamenti?",
-        a: "FantaPronostic è gratuito per creare leghe base. Per funzionalità premium o tornei speciali potrà essere richiesta una quota di iscrizione.",
-      },
     ],
   },
   faq: {
@@ -190,7 +186,7 @@ const it = {
       },
       {
         q: "Posso giocare gratuitamente?",
-        a: "Sì. Creare leghe base e partecipare è gratuito. Alcune competizioni speciali o funzionalità premium possono prevedere una quota.",
+        a: "Sì, FantaPronostic è completamente gratuito. Crei leghe, inviti amici e pronostichi senza alcun costo.",
       },
       {
         q: "Su quali campionati posso pronosticare?",

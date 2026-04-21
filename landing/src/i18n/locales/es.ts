@@ -171,10 +171,6 @@ const es = {
         q: "¿Cómo se gestionan los partidos aplazados?",
         a: "Se recalculan automáticamente una vez jugados, con puntos asignados retroactivamente.",
       },
-      {
-        q: "¿Hay pagos?",
-        a: "FantaPronostic es gratis para ligas básicas. Funciones premium o torneos especiales pueden requerir una cuota.",
-      },
     ],
   },
   faq: {
@@ -187,7 +183,7 @@ const es = {
       },
       {
         q: "¿Puedo jugar gratis?",
-        a: "Sí. Crear ligas básicas y participar es gratis. Algunas competiciones especiales pueden tener una cuota.",
+        a: "Sí, FantaPronostic es completamente gratis. Crea ligas, invita amigos y pronostica sin ningún coste.",
       },
       {
         q: "¿En qué ligas puedo pronosticar?",

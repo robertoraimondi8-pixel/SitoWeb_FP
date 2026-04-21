@@ -171,10 +171,6 @@ const en = {
         q: "How are postponed matches handled?",
         a: "They are automatically recalculated once played, with points assigned retroactively to the right matchday.",
       },
-      {
-        q: "Are there any payments?",
-        a: "FantaPronostic is free for basic leagues. Premium features or special tournaments may require an entry fee.",
-      },
     ],
   },
   faq: {
@@ -187,7 +183,7 @@ const en = {
       },
       {
         q: "Can I play for free?",
-        a: "Yes. Creating basic leagues and joining is free. Some special competitions or premium features may have a fee.",
+        a: "Yes, FantaPronostic is completely free. Create leagues, invite friends and submit predictions at no cost.",
       },
       {
         q: "Which leagues can I predict on?",
