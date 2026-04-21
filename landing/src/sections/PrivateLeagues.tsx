@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { Link as LinkIcon, Layers, Settings2, Activity, ArrowRight, Copy } from "lucide-react";
+import { Link as LinkIcon, Layers, Settings2, Activity, ArrowRight } from "lucide-react";
 
 const ICONS = [LinkIcon, Layers, Settings2, Activity];
 
@@ -67,98 +67,56 @@ export function PrivateLeagues() {
             </div>
           </motion.div>
 
-          {/* Right — dashboard mockup */}
+          {/* Right — real leaderboard screenshot in phone frame */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.7, delay: 0.15 }}
-            className="lg:col-span-6 relative"
+            className="lg:col-span-6 relative flex items-center justify-center"
           >
-            <div className="relative rounded-3xl bg-white border border-line shadow-card p-6 md:p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-brand-yellow" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                </div>
-                <span className="chip">FantaPronostic · Lega</span>
+            <div className="relative">
+              <div className="relative rounded-[44px] border-[10px] border-ink bg-ink shadow-blue w-[320px] md:w-[340px] h-[660px] md:h-[700px] overflow-hidden mx-auto">
+                {/* Notch */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-28 bg-ink rounded-b-2xl z-20" />
+                {/* Screenshot */}
+                <img
+                  src="/app-screen-leaderboard.jpg"
+                  alt="FantaPronostic app — Classifica Lega Nazionale"
+                  className="h-full w-full object-cover object-top"
+                />
               </div>
 
-              <h3 className="font-display text-2xl md:text-3xl font-bold text-ink tracking-tight">
-                I Campioni del Bar
-              </h3>
-              <p className="text-xs text-muted mt-1">12 partecipanti · Modalità Campionato</p>
-
-              <div className="mt-6 rounded-2xl bg-brand-blue-50 border border-brand-blue/15 p-4 flex items-center justify-between">
+              {/* Float badge — invite code */}
+              <div className="absolute -left-6 md:-left-12 top-28 bg-white rounded-2xl border border-line shadow-card p-4 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-brand-blue-50 grid place-items-center text-brand-blue font-bold">
+                  #
+                </div>
                 <div>
-                  <p className="text-[11px] uppercase tracking-widest text-brand-blue font-bold">
-                    Codice invito
+                  <p className="text-[10px] uppercase tracking-widest text-muted font-bold">
+                    Codice lega
                   </p>
-                  <p className="font-display text-2xl md:text-3xl font-bold text-brand-blue tracking-[0.2em] mt-1">
+                  <p className="text-sm font-display font-bold text-brand-blue tracking-widest">
                     FP-7X92
                   </p>
                 </div>
-                <button
-                  className="h-10 w-10 rounded-xl bg-white border border-brand-blue/20 grid place-items-center text-brand-blue hover:bg-brand-blue hover:text-white transition-colors"
-                  aria-label="Copia codice"
-                  data-testid="invite-copy-btn"
-                >
-                  <Copy size={16} />
-                </button>
               </div>
 
-              <div className="mt-6 space-y-2">
-                {[
-                  { pos: 1, name: "Marco R.", pts: 47, diff: "+3" },
-                  { pos: 2, name: "Luca B.", pts: 44, diff: "+1" },
-                  { pos: 3, name: "Sara T.", pts: 41, diff: "0" },
-                  { pos: 4, name: "Tu", pts: 39, diff: "-2", you: true },
-                ].map((r) => (
-                  <div
-                    key={r.pos}
-                    className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm border ${
-                      r.you
-                        ? "bg-brand-orange-50 border-brand-orange/25"
-                        : "bg-bg-soft border-line"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`h-7 w-7 rounded-full grid place-items-center text-xs font-bold ${
-                          r.pos === 1
-                            ? "bg-brand-yellow text-ink"
-                            : r.you
-                              ? "bg-brand-orange text-white"
-                              : "bg-white text-muted border border-line"
-                        }`}
-                      >
-                        {r.pos}
-                      </span>
-                      <span className="font-semibold text-ink2">{r.name}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`text-xs font-semibold ${
-                          r.diff.startsWith("+")
-                            ? "text-emerald-600"
-                            : r.diff.startsWith("-")
-                              ? "text-red-500"
-                              : "text-muted"
-                        }`}
-                      >
-                        {r.diff}
-                      </span>
-                      <span className="font-display font-bold text-ink tabular-nums">
-                        {r.pts}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+              {/* Float badge — trophy */}
+              <div className="absolute -right-4 md:-right-10 bottom-32 bg-white rounded-2xl border border-line shadow-card p-3 flex items-center gap-2">
+                <span className="h-9 w-9 rounded-full bg-brand-orange-50 grid place-items-center text-xl">
+                  🏆
+                </span>
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted font-bold">
+                    1° posto
+                  </p>
+                  <p className="text-sm font-display font-bold text-ink">64 pt</p>
+                </div>
               </div>
+
+              <div className="absolute -z-10 inset-0 rounded-[44px] bg-brand-blue/10 blur-3xl" />
             </div>
-            {/* Decorative glow */}
-            <div className="absolute -z-10 inset-0 rounded-[32px] bg-brand-blue/10 blur-3xl" />
           </motion.div>
         </div>
       </div>

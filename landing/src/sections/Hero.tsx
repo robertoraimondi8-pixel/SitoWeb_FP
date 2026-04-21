@@ -98,7 +98,7 @@ export function Hero() {
             </motion.div>
           </div>
 
-          {/* Right — floating app mockup */}
+          {/* Right — real app screenshot in phone frame */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -109,80 +109,38 @@ export function Hero() {
             <div className="absolute -z-10 h-[360px] w-[360px] rounded-full bg-white border border-line2" />
 
             <div className="relative animate-float">
-              <div className="relative rounded-[44px] border-[10px] border-ink bg-ink shadow-blue w-[280px] h-[560px] overflow-hidden">
-                <div className="absolute top-0 inset-x-0 h-6 bg-ink flex items-center justify-center">
-                  <div className="h-1.5 w-16 rounded-full bg-white/20" />
-                </div>
-                <div className="pt-8 h-full bg-gradient-to-br from-brand-blue via-brand-blue-700 to-brand-blue-900 p-4 flex flex-col">
-                  <div className="flex items-center gap-2 mb-4">
-                    <img src="/brand-icon.png" alt="" className="h-8 w-8 rounded-lg" />
-                    <span className="font-display text-white font-bold">FantaPronostic</span>
-                  </div>
-
-                  <p className="text-[10px] uppercase tracking-widest text-white/50 font-semibold mb-2">
-                    Giornata 28 · LIVE
-                  </p>
-                  <div className="rounded-2xl bg-white/10 border border-white/15 p-3 backdrop-blur-sm mb-2">
-                    <div className="flex items-center justify-between text-white text-sm font-semibold">
-                      <span>Juventus</span>
-                      <span className="text-brand-yellow font-display font-bold">2-1</span>
-                      <span>Milan</span>
-                    </div>
-                    <div className="mt-2 flex gap-1">
-                      <span className="flex-1 text-[10px] text-center py-1 rounded-md bg-brand-orange text-white font-bold">
-                        1
-                      </span>
-                      <span className="flex-1 text-[10px] text-center py-1 rounded-md bg-white/10 text-white/70">
-                        X
-                      </span>
-                      <span className="flex-1 text-[10px] text-center py-1 rounded-md bg-white/10 text-white/70">
-                        2
-                      </span>
-                    </div>
-                  </div>
-                  <div className="rounded-2xl bg-white/10 border border-white/15 p-3 backdrop-blur-sm mb-2">
-                    <div className="flex items-center justify-between text-white text-sm font-semibold">
-                      <span>Inter</span>
-                      <span className="text-white/50 text-xs">20:45</span>
-                      <span>Napoli</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-auto rounded-2xl bg-brand-orange p-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-white/80 font-bold">
-                        La tua posizione
-                      </p>
-                      <p className="font-display text-white font-bold text-2xl">#2 su 12</p>
-                    </div>
-                    <span className="text-3xl">🏆</span>
-                  </div>
-                </div>
+              <div className="relative rounded-[44px] border-[10px] border-ink bg-ink shadow-blue w-[280px] h-[580px] overflow-hidden">
+                {/* Notch */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-28 bg-ink rounded-b-2xl z-20" />
+                {/* Screenshot */}
+                <img
+                  src="/app-screen-predictions.jpg"
+                  alt="FantaPronostic app — Pronostici Giornata 1"
+                  className="h-full w-full object-cover object-top"
+                />
               </div>
 
-              {/* LIVE badge on the phone */}
-              <div className="absolute -left-8 top-20 bg-white rounded-2xl border border-line shadow-card p-3 flex items-center gap-2 animate-float">
+              {/* LIVE badge */}
+              <div className="absolute -left-8 top-24 bg-white rounded-2xl border border-line shadow-card p-3 flex items-center gap-2 animate-float">
                 <span className="relative flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-60" />
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
                 </span>
                 <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted font-bold">
-                    LIVE
-                  </p>
-                  <p className="text-sm font-display font-bold text-ink">72'</p>
+                  <p className="text-[10px] uppercase tracking-widest text-muted font-bold">LIVE</p>
+                  <p className="text-sm font-display font-bold text-ink">Giornata 1</p>
                 </div>
               </div>
 
-              <div className="absolute -right-8 bottom-24 bg-white rounded-2xl border border-line shadow-card p-3 flex items-center gap-2">
-                <span className="h-8 w-8 rounded-full bg-brand-blue-50 grid place-items-center text-brand-blue">
-                  ✓
+              <div className="absolute -right-10 bottom-32 bg-white rounded-2xl border border-line shadow-card p-3 flex items-center gap-2">
+                <span className="h-8 w-8 rounded-full bg-brand-orange-50 grid place-items-center text-brand-orange font-bold">
+                  +6
                 </span>
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-muted font-bold">
-                    1X2 OK
+                    Speciale x3
                   </p>
-                  <p className="text-sm font-display font-bold text-ink">+3 pt</p>
+                  <p className="text-sm font-display font-bold text-ink">punti triplicati</p>
                 </div>
               </div>
             </div>
