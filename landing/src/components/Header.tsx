@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowRight, LogOut } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { useAuthUser } from "@/lib/authStorage";
 import { cn } from "@/lib/cn";
 
 export function Header() {
   const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [user, logout] = useAuthUser();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -71,22 +73,43 @@ export function Header() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            {user ? (
+              <div
+                className="inline-flex items-center gap-1.5 rounded-full bg-bg-soft px-2.5 sm:px-4 py-1.5 sm:py-2"
+                data-testid="header-user-badge"
+              >
+                <span className="text-xs sm:text-sm font-semibold text-ink whitespace-nowrap">
+                  Ciao {user.first_name}
+                </span>
+                <button
+                  onClick={logout}
+                  className="text-ink2 hover:text-brand-blue transition-colors"
+                  aria-label="Esci"
+                  data-testid="header-logout"
+                >
+                  <LogOut size={14} />
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center text-xs sm:text-sm font-semibold text-ink2 hover:text-brand-blue transition-colors"
+                  data-testid="header-login-cta"
+                >
+                  Accedi
+                </Link>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-ink2 hover:text-brand-blue hover:border-brand-blue transition-colors"
+                  data-testid="header-register-cta"
+                >
+                  Registrati
+                </Link>
+              </>
+            )}
             <LanguageSwitcher compact />
-            <Link
-              to="/login"
-              className="hidden sm:inline-flex items-center text-sm font-semibold text-ink2 hover:text-brand-blue transition-colors"
-              data-testid="header-login-cta"
-            >
-              Accedi
-            </Link>
-            <Link
-              to="/register"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink2 hover:text-brand-blue hover:border-brand-blue transition-colors"
-              data-testid="header-register-cta"
-            >
-              Registrati
-            </Link>
             <a
               href="#download"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-brand-orange px-4 py-2 text-sm font-semibold text-white hover:bg-brand-orange-600 transition-colors shadow-cta"
@@ -122,22 +145,6 @@ export function Header() {
                 {l.label}
               </a>
             ))}
-            <Link
-              to="/login"
-              onClick={() => setOpen(false)}
-              className="rounded-xl px-4 py-3 text-sm font-semibold text-ink2 hover:bg-bg-soft hover:text-brand-blue"
-              data-testid="mobile-nav-login"
-            >
-              Accedi
-            </Link>
-            <Link
-              to="/register"
-              onClick={() => setOpen(false)}
-              className="rounded-xl px-4 py-3 text-sm font-semibold text-ink2 hover:bg-bg-soft hover:text-brand-blue"
-              data-testid="mobile-nav-register"
-            >
-              Registrati
-            </Link>
             <a
               href="#download"
               onClick={() => setOpen(false)}

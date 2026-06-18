@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
+import { setStoredUser } from "@/lib/authStorage";
 
 const BACKEND_URL =
   (import.meta as any).env?.VITE_BACKEND_URL ||
@@ -39,7 +40,9 @@ export default function LoginPage() {
         return;
       }
 
-      setFirstName(data?.user?.first_name || "");
+      const fn = data?.user?.first_name || "";
+      setFirstName(fn);
+      setStoredUser({ first_name: fn });
       setView("done");
     } catch {
       setError("Errore di connessione. Riprova.");

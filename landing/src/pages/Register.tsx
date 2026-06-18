@@ -11,6 +11,7 @@ type Step = "form" | "verify" | "done";
 type FormState = {
   email: string;
   password: string;
+  confirmPassword: string;
   first_name: string;
   last_name: string;
   username: string;
@@ -26,6 +27,7 @@ type FormState = {
 const initialForm: FormState = {
   email: "",
   password: "",
+  confirmPassword: "",
   first_name: "",
   last_name: "",
   username: "",
@@ -53,6 +55,10 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
+    if (form.password !== form.confirmPassword) {
+      setError("Le password non coincidono");
+      return;
+    }
     if (!form.accepted_privacy) {
       setError("È necessario accettare la Privacy Policy");
       return;
@@ -208,14 +214,24 @@ export default function RegisterPage() {
                 testid="register-input-email"
               />
 
-              <Field
-                label="Password (min. 8 caratteri)"
-                type="password"
-                value={form.password}
-                onChange={(v) => update("password", v)}
-                testid="register-input-password"
-                minLength={8}
-              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field
+                  label="Password (min. 8 caratteri)"
+                  type="password"
+                  value={form.password}
+                  onChange={(v) => update("password", v)}
+                  testid="register-input-password"
+                  minLength={8}
+                />
+                <Field
+                  label="Conferma password"
+                  type="password"
+                  value={form.confirmPassword}
+                  onChange={(v) => update("confirmPassword", v)}
+                  testid="register-input-confirm-password"
+                  minLength={8}
+                />
+              </div>
 
               <Field
                 label="Username (opzionale)"
