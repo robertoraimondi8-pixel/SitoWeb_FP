@@ -6,12 +6,15 @@ const BACKEND_URL =
   (import.meta as any).env?.VITE_BACKEND_URL ||
   "https://fanta-auth-fix.preview.emergentagent.com";
 
+type View = "login" | "forgot" | "done" | "forgot-done";
+
 export default function LoginPage() {
+  const [view, setView] = useState<View>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [done, setDone] = useState(false);
+  const [firstName, setFirstName] = useState("");
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -32,11 +35,36 @@ export default function LoginPage() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(data?.detail || "Email o password non validi.");
+        setError(data?.detail || "Email o password non validi");
         return;
       }
 
-      setDone(true);
+      setFirstName(data?.user?.first_name || "");
+      setView("done");
+    } catch {
+      setError("Errore di connessione. Riprova.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSubmitForgot = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      if (res.status === 429) {
+        setError("Troppi tentativi, riprova tra qualche minuto.");
+        return;
+      }
+
+      setView("forgot-done");
     } catch {
       setError("Errore di connessione. Riprova.");
     } finally {
@@ -68,71 +96,168 @@ export default function LoginPage() {
 
       <main className="container-x py-16 md:py-20">
         <div className="max-w-xl mx-auto">
-          <p className="overline">Bentornato</p>
-          <h1 className="font-display font-bold text-4xl md:text-5xl mt-4 tracking-tightest text-ink">
-            Accedi
-          </h1>
-          <p className="mt-4 text-muted text-base leading-relaxed">
-            Accedi al tuo account FantaPronostic.
-          </p>
-
-          {!done && (
-            <form
-              onSubmit={onSubmit}
-              className="mt-10 card p-6 md:p-8 flex flex-col gap-4"
-              data-testid="login-form"
-            >
-              <Field
-                label="Email"
-                type="email"
-                value={email}
-                onChange={setEmail}
-                testid="login-input-email"
-              />
-
-              <Field
-                label="Password"
-                type="password"
-                value={password}
-                onChange={setPassword}
-                testid="login-input-password"
-              />
-
-              {error && (
-                <p className="text-sm text-red-600 font-medium" data-testid="login-error">
-                  {error}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary justify-center mt-2 disabled:opacity-70 disabled:cursor-wait"
-                data-testid="login-submit"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Accesso in corso…
-                  </>
-                ) : (
-                  <>
-                    Accedi
-                    <ArrowRight size={18} />
-                  </>
-                )}
-              </button>
-
-              <p className="text-sm text-ink2 text-center mt-2">
-                Non hai un account?{" "}
-                <Link to="/register" className="text-brand-blue font-semibold hover:underline">
-                  Registrati
-                </Link>
+          {view === "login" && (
+            <>
+              <p className="overline">Bentornato</p>
+              <h1 className="font-display font-bold text-4xl md:text-5xl mt-4 tracking-tightest text-ink">
+                Accedi
+              </h1>
+              <p className="mt-4 text-muted text-base leading-relaxed">
+                Accedi al tuo account FantaPronostic.
               </p>
-            </form>
+
+              <form
+                onSubmit={onSubmit}
+                className="mt-10 card p-6 md:p-8 flex flex-col gap-4"
+                data-testid="login-form"
+              >
+                <Field
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={setEmail}
+                  testid="login-input-email"
+                />
+
+                <Field
+                  label="Password"
+                  type="password"
+                  value={password}
+                  onChange={setPassword}
+                  testid="login-input-password"
+                />
+
+                {error && (
+                  <p className="text-sm text-red-600 font-medium" data-testid="login-error">
+                    {error}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary justify-center mt-2 disabled:opacity-70 disabled:cursor-wait"
+                  data-testid="login-submit"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Accesso in corso…
+                    </>
+                  ) : (
+                    <>
+                      Accedi
+                      <ArrowRight size={18} />
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError("");
+                    setView("forgot");
+                  }}
+                  className="text-sm font-semibold text-brand-blue hover:underline self-center"
+                  data-testid="login-forgot-link"
+                >
+                  Password dimenticata?
+                </button>
+
+                <p className="text-sm text-ink2 text-center mt-2">
+                  Non hai un account?{" "}
+                  <Link to="/register" className="text-brand-blue font-semibold hover:underline">
+                    Registrati
+                  </Link>
+                </p>
+              </form>
+            </>
           )}
 
-          {done && (
+          {view === "forgot" && (
+            <>
+              <p className="overline">Recupera l'accesso</p>
+              <h1 className="font-display font-bold text-4xl md:text-5xl mt-4 tracking-tightest text-ink">
+                Password dimenticata?
+              </h1>
+              <p className="mt-4 text-muted text-base leading-relaxed">
+                Inserisci la tua email: se è registrata riceverai le istruzioni per reimpostare
+                la password.
+              </p>
+
+              <form
+                onSubmit={onSubmitForgot}
+                className="mt-10 card p-6 md:p-8 flex flex-col gap-4"
+                data-testid="forgot-form"
+              >
+                <Field
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={setEmail}
+                  testid="forgot-input-email"
+                />
+
+                {error && (
+                  <p className="text-sm text-red-600 font-medium" data-testid="forgot-error">
+                    {error}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary justify-center mt-2 disabled:opacity-70 disabled:cursor-wait"
+                  data-testid="forgot-submit"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Invio in corso…
+                    </>
+                  ) : (
+                    <>
+                      Invia istruzioni
+                      <ArrowRight size={18} />
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError("");
+                    setView("login");
+                  }}
+                  className="text-sm font-semibold text-ink2 hover:text-brand-blue self-center"
+                  data-testid="forgot-back-link"
+                >
+                  Torna al login
+                </button>
+              </form>
+            </>
+          )}
+
+          {view === "forgot-done" && (
+            <div
+              className="mt-10 card p-8 flex flex-col items-center text-center gap-4"
+              data-testid="forgot-success"
+            >
+              <div className="h-14 w-14 rounded-full bg-brand-orange-50 grid place-items-center text-brand-orange">
+                <Check size={28} />
+              </div>
+              <h2 className="font-display font-bold text-2xl text-ink">Controlla la tua email</h2>
+              <p className="text-muted text-sm leading-relaxed">
+                Se l'indirizzo è registrato, riceverai a breve le istruzioni per reimpostare la
+                password.
+              </p>
+              <Link to="/login" className="btn-blue" data-testid="forgot-success-back">
+                Torna al login
+              </Link>
+            </div>
+          )}
+
+          {view === "done" && (
             <div
               className="mt-10 card p-8 flex flex-col items-center text-center gap-4"
               data-testid="login-success"
@@ -140,7 +265,9 @@ export default function LoginPage() {
               <div className="h-14 w-14 rounded-full bg-brand-orange-50 grid place-items-center text-brand-orange">
                 <Check size={28} />
               </div>
-              <h2 className="font-display font-bold text-2xl text-ink">Accesso effettuato!</h2>
+              <h2 className="font-display font-bold text-2xl text-ink">
+                Bentornato{firstName ? ` ${firstName}` : ""}!
+              </h2>
               <p className="text-muted text-sm leading-relaxed">
                 Apri l'app FantaPronostic per continuare a pronosticare.
               </p>
