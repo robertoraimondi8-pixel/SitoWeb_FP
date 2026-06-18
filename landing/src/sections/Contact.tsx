@@ -46,10 +46,10 @@ export function Contact() {
                   @
                 </span>
                 <a
-                  href="mailto:support@fantapronostic.com"
+                  href="mailto:info@fantapronostic.com"
                   className="text-ink2 font-medium hover:text-brand-blue transition-colors"
                 >
-                  support@fantapronostic.com
+                  info@fantapronostic.com
                 </a>
               </div>
             </div>

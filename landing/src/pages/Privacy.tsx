@@ -129,10 +129,10 @@ export default function PrivacyPage() {
                 Per esercitare questi diritti è possibile contattare il supporto
                 scrivendo a{" "}
                 <a
-                  href="mailto:support@fantapronostic.com"
+                  href="mailto:info@fantapronostic.com"
                   className="text-brand-blue font-semibold hover:underline"
                 >
-                  support@fantapronostic.com
+                  info@fantapronostic.com
                 </a>
                 .
               </p>
@@ -148,10 +148,10 @@ export default function PrivacyPage() {
                 Per richieste relative alla privacy è possibile contattare il supporto
                 tramite l'indirizzo email{" "}
                 <a
-                  href="mailto:support@fantapronostic.com"
+                  href="mailto:info@fantapronostic.com"
                   className="text-brand-blue font-semibold hover:underline"
                 >
-                  support@fantapronostic.com
+                  info@fantapronostic.com
                 </a>
                 .
               </p>
