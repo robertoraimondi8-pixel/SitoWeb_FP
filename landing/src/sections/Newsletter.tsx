@@ -3,17 +3,37 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, Check, Mail } from "lucide-react";
 
-export function Newsletter() {
-  const { t } = useTranslation();
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+const BACKEND_URL =
+  (import.meta as any).env?.VITE_BACKEND_URL ||
+  "https://fanta-auth-fix.preview.emergentagent.com";
 
-  const onSubmit = (e: FormEvent) => {
+export function Newsletter() {
+  const { t, i18n } = useTranslation();
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
+
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!email) return;
-    setSent(true);
-    setTimeout(() => setSent(false), 4000);
-    setEmail("");
+    if (!email || status === "loading") return;
+    setStatus("loading");
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/newsletter/subscribe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          language: (i18n.language || "it").slice(0, 2),
+          source: "landing",
+        }),
+      });
+      if (!res.ok) throw new Error("subscribe failed");
+      setStatus("ok");
+      setEmail("");
+      setTimeout(() => setStatus("idle"), 5000);
+    } catch (err) {
+      setStatus("err");
+      setTimeout(() => setStatus("idle"), 5000);
+    }
   };
 
   return (
@@ -75,14 +95,19 @@ export function Newsletter() {
               />
               <button
                 type="submit"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange px-7 py-4 font-semibold text-white hover:bg-brand-orange-600 transition-colors whitespace-nowrap shadow-cta"
+                disabled={status === "loading"}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange px-7 py-4 font-semibold text-white hover:bg-brand-orange-600 transition-colors whitespace-nowrap shadow-cta disabled:opacity-70 disabled:cursor-wait"
                 data-testid="newsletter-submit"
               >
-                {sent ? (
+                {status === "ok" ? (
                   <>
                     <Check size={18} />
                     {t("newsletter.success")}
                   </>
+                ) : status === "err" ? (
+                  <>Riprova</>
+                ) : status === "loading" ? (
+                  <>Invio…</>
                 ) : (
                   <>
                     {t("newsletter.cta")}
