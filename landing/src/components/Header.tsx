@@ -74,6 +74,13 @@ export function Header() {
           <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher compact />
             <Link
+              to="/login"
+              className="hidden sm:inline-flex items-center text-sm font-semibold text-ink2 hover:text-brand-blue transition-colors"
+              data-testid="header-login-cta"
+            >
+              Accedi
+            </Link>
+            <Link
               to="/register"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink2 hover:text-brand-blue hover:border-brand-blue transition-colors"
               data-testid="header-register-cta"
@@ -115,6 +122,14 @@ export function Header() {
                 {l.label}
               </a>
             ))}
+            <Link
+              to="/login"
+              onClick={() => setOpen(false)}
+              className="rounded-xl px-4 py-3 text-sm font-semibold text-ink2 hover:bg-bg-soft hover:text-brand-blue"
+              data-testid="mobile-nav-login"
+            >
+              Accedi
+            </Link>
             <Link
               to="/register"
               onClick={() => setOpen(false)}
