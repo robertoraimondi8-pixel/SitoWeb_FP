@@ -94,36 +94,46 @@ export function Newsletter() {
 
             <p className="mt-4 text-xs text-white/60">{t("newsletter.privacy")}</p>
 
-            {/* Store badges */}
+            {/* Store badges — live links */}
             <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
-              <div
-                className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 opacity-80 backdrop-blur-sm cursor-not-allowed"
+              <a
+                href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 hover:bg-white hover:border-white transition-all backdrop-blur-sm"
                 data-testid="app-store-badge"
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="text-white">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" className="text-white group-hover:text-ink transition-colors">
                   <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09M12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
                 </svg>
                 <div className="text-left">
-                  <p className="text-[10px] uppercase tracking-wider text-white/60">
-                    {t("footer.coming_soon")}
+                  <p className="text-[10px] uppercase tracking-wider text-white/70 group-hover:text-ink/60 transition-colors">
+                    Scarica su
                   </p>
-                  <p className="text-sm font-semibold text-white leading-tight">App Store</p>
+                  <p className="text-base font-semibold text-white group-hover:text-ink leading-tight transition-colors">
+                    App Store
+                  </p>
                 </div>
-              </div>
-              <div
-                className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 opacity-80 backdrop-blur-sm cursor-not-allowed"
+              </a>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.fantapronostic.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 hover:bg-white hover:border-white transition-all backdrop-blur-sm"
                 data-testid="play-store-badge"
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="text-white">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" className="text-white group-hover:text-ink transition-colors">
                   <path d="M3.6 20.84V3.16c0-.77.85-1.24 1.5-.83l14.57 8.84c.61.37.61 1.26 0 1.63L5.1 21.66c-.65.41-1.5-.06-1.5-.82M13.64 12 5.6 7.12v9.75L13.64 12z" />
                 </svg>
                 <div className="text-left">
-                  <p className="text-[10px] uppercase tracking-wider text-white/60">
-                    {t("footer.coming_soon")}
+                  <p className="text-[10px] uppercase tracking-wider text-white/70 group-hover:text-ink/60 transition-colors">
+                    Disponibile su
                   </p>
-                  <p className="text-sm font-semibold text-white leading-tight">Google Play</p>
+                  <p className="text-base font-semibold text-white group-hover:text-ink leading-tight transition-colors">
+                    Google Play
+                  </p>
                 </div>
-              </div>
+              </a>
             </div>
           </div>
         </motion.div>

@@ -195,7 +195,7 @@ const en = {
       },
       {
         q: "Is the app available on iOS and Android?",
-        a: "We're finalizing the App Store and Google Play launch. Subscribe to the newsletter to be the first to know.",
+        a: "Yes, FantaPronostic is available on the App Store and Google Play. Search \"FantaPronostic\" on your store or download directly from the buttons on this site.",
       },
       {
         q: "Can I change my league mode after creating it?",

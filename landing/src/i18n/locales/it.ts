@@ -198,7 +198,7 @@ const it = {
       },
       {
         q: "L'app è disponibile su iOS e Android?",
-        a: "Stiamo finalizzando il lancio su App Store e Google Play. Iscriviti alla newsletter per essere avvisato al rilascio.",
+        a: "Sì, FantaPronostic è disponibile su App Store e Google Play. Cerca \"FantaPronostic\" sul tuo store o scarica direttamente dai pulsanti sul sito.",
       },
       {
         q: "Posso cambiare modalità alla lega dopo averla creata?",

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Instagram, Twitter, Youtube } from "lucide-react";
+import { Instagram } from "lucide-react";
 
 export function Footer() {
   const { t } = useTranslation();
@@ -63,13 +63,17 @@ export function Footer() {
               </p>
               <div className="flex items-center gap-2">
                 {[
-                  { Icon: Instagram, href: "#", id: "instagram" },
-                  { Icon: Twitter, href: "#", id: "twitter" },
-                  { Icon: Youtube, href: "#", id: "youtube" },
+                  {
+                    Icon: Instagram,
+                    href: "https://www.instagram.com/fantapronostic?igsh=MW85NHV5b3djZTc0aA%3D%3D&utm_source=qr",
+                    id: "instagram",
+                  },
                 ].map(({ Icon, href, id }) => (
                   <a
                     key={id}
                     href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="h-10 w-10 rounded-full border border-white/15 bg-white/5 grid place-items-center text-white/70 hover:text-white hover:border-brand-orange hover:bg-brand-orange/20 transition-colors"
                     data-testid={`social-${id}`}
                     aria-label={id}

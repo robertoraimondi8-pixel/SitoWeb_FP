@@ -61,7 +61,10 @@
         {
           "color": "#F5A623"
         }
-      ]
+      ],
+      "expo-font",
+      "expo-localization",
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {

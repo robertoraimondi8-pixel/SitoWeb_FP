@@ -195,7 +195,7 @@ const es = {
       },
       {
         q: "¿Está la app en iOS y Android?",
-        a: "Estamos finalizando el lanzamiento. Suscríbete al boletín para ser el primero en saberlo.",
+        a: "Sí, FantaPronostic está disponible en App Store y Google Play. Busca \"FantaPronostic\" en tu tienda o descarga directamente desde los botones del sitio.",
       },
       {
         q: "¿Puedo cambiar la modalidad después?",
