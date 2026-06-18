@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { cn } from "@/lib/cn";
@@ -72,6 +73,13 @@ export function Header() {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher compact />
+            <Link
+              to="/register"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink2 hover:text-brand-blue hover:border-brand-blue transition-colors"
+              data-testid="header-register-cta"
+            >
+              Registrati
+            </Link>
             <a
               href="#download"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-brand-orange px-4 py-2 text-sm font-semibold text-white hover:bg-brand-orange-600 transition-colors shadow-cta"
@@ -107,6 +115,14 @@ export function Header() {
                 {l.label}
               </a>
             ))}
+            <Link
+              to="/register"
+              onClick={() => setOpen(false)}
+              className="rounded-xl px-4 py-3 text-sm font-semibold text-ink2 hover:bg-bg-soft hover:text-brand-blue"
+              data-testid="mobile-nav-register"
+            >
+              Registrati
+            </Link>
             <a
               href="#download"
               onClick={() => setOpen(false)}
