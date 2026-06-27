@@ -379,23 +379,6 @@ export default function LeaguePage() {
 
                   <div className="h-px bg-line" />
 
-                  {/* What's included */}
-                  <ul className="flex flex-col gap-2.5">
-                    {[
-                      "Accesso illimitato per tutta la stagione",
-                      "Classifica in tempo reale",
-                      "Carta Jolly e bonus speciali",
-                      "Partecipazione al montepremi",
-                    ].map((item) => (
-                      <li key={item} className="flex items-center gap-2.5 text-sm text-ink2">
-                        <CheckCircle2 size={15} className="text-brand-orange shrink-0" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="h-px bg-line" />
-
                   {/* Email inputs */}
                   <div className="flex flex-col gap-4">
                     <div>
