@@ -15,7 +15,6 @@ import {
   Target,
   Lock,
 } from "lucide-react";
-import { getStoredUser } from "@/lib/authStorage";
 
 const BACKEND_URL =
   (import.meta as any).env?.VITE_BACKEND_URL ||
@@ -23,10 +22,10 @@ const BACKEND_URL =
 
 // ─── Configura qui la lega ─────────────────────────────────────────────────
 const LEAGUE = {
-  name: "Lega FantaPronostic",       // TODO: nome definitivo
+  name: "Kopa x FP",
   season: "Stagione 2025/26",
-  price: 20,                          // TODO: prezzo in EUR
-  spots: 20,                          // TODO: posti disponibili
+  price: 20,                          // TODO: imposta entry_fee nella lega dal pannello admin
+  spots: 20,                          // TODO: posti totali
   spotsLeft: 14,                      // TODO: aggiorna dinamicamente
   leagueId: "7e044748-6221-495e-af7a-6d6b9e11bcde",
   prizes: [
@@ -66,8 +65,6 @@ export default function LeaguePage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const storedUser = getStoredUser();
 
   useEffect(() => {
     window.scrollTo(0, 0);
