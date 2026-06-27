@@ -265,12 +265,7 @@ export default function LeaguePage() {
                     <Trophy size={18} className="text-brand-orange" />
                     <span className="text-sm font-semibold text-ink">Montepremi €{totalPrizePool}</span>
                   </div>
-                  <div className="flex items-center gap-2 rounded-2xl bg-bg-soft border border-line px-4 py-3">
-                    <Users size={18} className="text-brand-blue" />
-                    <span className="text-sm font-semibold text-ink">
-                      {LEAGUE.spotsLeft} posti su {LEAGUE.spots} disponibili
-                    </span>
-                  </div>
+
                   <div className="flex items-center gap-2 rounded-2xl bg-bg-soft border border-line px-4 py-3">
                     <CalendarDays size={18} className="text-ink2" />
                     <span className="text-sm font-semibold text-ink">Serie A 2025/26</span>
@@ -372,27 +367,8 @@ export default function LeaguePage() {
                       </span>
                       <span className="text-muted text-sm mb-2">una tantum</span>
                     </div>
-                    <p className="text-xs text-muted mt-2">
-                      {LEAGUE.spotsLeft} posti rimanenti su {LEAGUE.spots}
-                    </p>
+
                   </div>
-
-                  <div className="h-px bg-line" />
-
-                  {/* What's included */}
-                  <ul className="flex flex-col gap-2.5">
-                    {[
-                      "Accesso illimitato per tutta la stagione",
-                      "Classifica in tempo reale",
-                      "Carta Jolly e bonus speciali",
-                      "Partecipazione al montepremi",
-                    ].map((item) => (
-                      <li key={item} className="flex items-center gap-2.5 text-sm text-ink2">
-                        <CheckCircle2 size={15} className="text-brand-orange shrink-0" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
 
                   <div className="h-px bg-line" />
 
