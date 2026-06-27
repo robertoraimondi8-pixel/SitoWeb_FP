@@ -145,7 +145,7 @@ export function Header() {
                 {l.label}
               </a>
             ))}
-            <
+            <a
               href="#download"
               onClick={() => setOpen(false)}
               className="mt-2 btn-primary justify-center"
