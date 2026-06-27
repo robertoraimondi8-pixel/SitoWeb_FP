@@ -24,9 +24,9 @@ const BACKEND_URL =
 const LEAGUE = {
   name: "Kopa x FP",
   season: "Stagione 2025/26",
-  price: 20,                          // TODO: imposta entry_fee nella lega dal pannello admin
-  spots: 20,                          // TODO: posti totali
-  spotsLeft: 14,                      // TODO: aggiorna dinamicamente
+  price: 60,
+  spots: 20,        // TODO: aggiorna se cambia il numero di posti
+  spotsLeft: 14,    // TODO: aggiorna man mano che si iscrivono
   leagueId: "7e044748-6221-495e-af7a-6d6b9e11bcde",
   prizes: [
     { place: 1, label: "1° Posto", amount: 150, icon: "🥇" },
@@ -135,7 +135,6 @@ export default function LeaguePage() {
         </div>
       </header>
 
-      {/* Payment feedback banners */}
       {paymentStatus === "success" && (
         <div className="bg-green-50 border-b border-green-200">
           <div className="container-x py-4 flex items-center gap-3 text-green-800">
