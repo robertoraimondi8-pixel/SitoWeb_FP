@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import Privacy from "./pages/Privacy";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import LeaguePage from "./pages/LeaguePage";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/lega" element={<LeaguePage />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </BrowserRouter>
