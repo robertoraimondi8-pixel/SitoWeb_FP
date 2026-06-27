@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Menu, X, ArrowRight, LogOut, Trophy } from "lucide-react";
+import { Menu, X, ArrowRight, LogOut } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useAuthUser } from "@/lib/authStorage";
 import { cn } from "@/lib/cn";
@@ -71,14 +71,6 @@ export function Header() {
                 {l.label}
               </a>
             ))}
-            <Link
-              to="/lega"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-orange hover:text-brand-orange-600 transition-colors"
-              data-testid="nav-link-lega"
-            >
-              <Trophy size={14} />
-              Kopa x FP
-            </Link>
           </nav>
 
           <div className="flex items-center gap-1.5 sm:gap-3">
@@ -153,15 +145,6 @@ export function Header() {
                 {l.label}
               </a>
             ))}
-            <Link
-              to="/lega"
-              onClick={() => setOpen(false)}
-              className="rounded-xl px-4 py-3 text-sm font-semibold text-brand-orange hover:bg-brand-orange/10 flex items-center gap-2"
-              data-testid="mobile-nav-lega"
-            >
-              <Trophy size={15} />
-              Kopa x FP — Iscriviti
-            </Link>
             <a
               href="#download"
               onClick={() => setOpen(false)}
