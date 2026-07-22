@@ -16,6 +16,8 @@ export const SUPER_LEAGUE = {
   price: 39,
   prizePool: "oltre 5.000€",
   leagueId: "451b4232-2402-492e-9702-351f4c4b03b9",
+  // Sfondo hero (stadio notturno), servito dal repo in public/.
+  heroImage: "/stadium-hero.png",
   // Apertura iscrizioni (attiva il pagamento) e inizio competizione.
   // Formato ISO. La pagina passa in modalità "pagamento" a partire da openingDate.
   openingDate: "2026-08-04T00:00:00",
