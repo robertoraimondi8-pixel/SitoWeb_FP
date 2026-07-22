@@ -16,6 +16,10 @@ export const SUPER_LEAGUE = {
   price: 39,
   prizePool: "oltre 5.000€",
   leagueId: "451b4232-2402-492e-9702-351f4c4b03b9",
+  // Sfondo hero (generato con Higgsfield, ospitato sul loro CDN).
+  // Nota: idealmente va scaricato in public/ quando la policy di rete lo permette.
+  heroImage:
+    "https://d8j0ntlcm91z4.cloudfront.net/user_3FEIeMUVpKpDKSxptELTEyv0Qud/hf_20260722_105102_7ddfe7a7-c20e-48af-aa8b-23fa287a5f35.png",
   // Apertura iscrizioni (attiva il pagamento) e inizio competizione.
   // Formato ISO. La pagina passa in modalità "pagamento" a partire da openingDate.
   openingDate: "2026-08-04T00:00:00",

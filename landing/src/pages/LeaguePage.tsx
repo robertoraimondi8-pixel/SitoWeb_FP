@@ -194,20 +194,18 @@ export default function LeaguePage() {
       ) : (
         <main>
           {/* ── HERO ─────────────────────────────────────────────────────── */}
-          <section
-            className="relative overflow-hidden"
-            style={{
-              background:
-                "radial-gradient(120% 90% at 50% 0%, #14315f 0%, #0a1f45 45%, #050f24 100%)",
-            }}
-          >
-            {/* Stars */}
+          <section className="relative overflow-hidden bg-[#050f24]">
+            {/* Foto stadio (Higgsfield) */}
             <div
-              className="absolute inset-0 opacity-40 pointer-events-none"
+              className="absolute inset-0 bg-cover bg-center pointer-events-none"
+              style={{ backgroundImage: `url(${SUPER_LEAGUE.heroImage})` }}
+            />
+            {/* Overlay scuro per leggibilità del testo */}
+            <div
+              className="absolute inset-0 pointer-events-none"
               style={{
-                backgroundImage:
-                  "radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 60% 20%, #fff, transparent), radial-gradient(1px 1px at 80% 40%, #fff, transparent), radial-gradient(1px 1px at 35% 15%, #fff, transparent), radial-gradient(1px 1px at 90% 25%, #fff, transparent)",
-                backgroundSize: "100% 100%",
+                background:
+                  "linear-gradient(180deg, rgba(5,15,36,0.72) 0%, rgba(5,15,36,0.45) 35%, rgba(5,15,36,0.75) 78%, rgba(5,15,36,0.94) 100%)",
               }}
             />
             <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-brand-orange/20 blur-[120px] pointer-events-none" />
