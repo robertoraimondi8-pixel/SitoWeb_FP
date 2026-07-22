@@ -550,6 +550,55 @@ export default function LeaguePage() {
               </div>
             </div>
           </section>
+
+          {/* ── FAQ ──────────────────────────────────────────────────────── */}
+          <section className="bg-white border-t border-line">
+            <div className="container-x py-16">
+              <div className="max-w-2xl mx-auto">
+                <p className="overline text-center">FAQ</p>
+                <h2 className="font-display font-bold text-3xl text-center text-ink mt-3 tracking-tightest">
+                  Domande frequenti
+                </h2>
+                <div className="mt-8 flex flex-col gap-6">
+                  {[
+                    {
+                      q: "Cosa acquisto esattamente?",
+                      a: "Acquisti il Piano editoriale digitale 2026/2027 (contenuti statistici, approfondimenti e aggiornamenti della stagione). L'accesso alla Super League 2026/2027 è incluso nel piano: dopo il pagamento ricevi via email il prodotto e il codice da riscattare nell'app.",
+                    },
+                    {
+                      q: "Come funziona lo sconto del 10%?",
+                      a: "Se ti sei pre-iscritto ricevi un codice sconto personale via email. Inseriscilo nel campo 'Codice sconto' al momento dell'acquisto (o arrivi già col codice dal link email): lo sconto viene applicato automaticamente al checkout. Se non hai un codice, paghi il prezzo pieno.",
+                    },
+                    {
+                      q: "Non ho ancora l'app. Posso acquistare lo stesso?",
+                      a: "Sì. Completa l'acquisto con la tua email, poi scarica FantaPronostic, registrati o accedi e inserisci il codice ricevuto via email per entrare nella Super League.",
+                    },
+                    {
+                      q: "Il pagamento si rinnova automaticamente?",
+                      a: "No. È un pagamento unico per la stagione 2026/2027, senza rinnovo automatico e senza addebiti ricorrenti.",
+                    },
+                    {
+                      q: "Come vengono selezionate le partite?",
+                      a: "Ogni giornata è composta indicativamente da 12 partite scelte da FantaPronostic, anche da campionati e competizioni differenti. L'elenco viene pubblicato nell'app prima dell'apertura dei pronostici.",
+                    },
+                    {
+                      q: "Come ricevo il premio se vinco?",
+                      a: "A fine stagione i vincitori vengono contattati all'email dell'account. I premi finali (Apple Pack, MacBook, PS5) vengono consegnati previa verifica dell'identità. Consulta il regolamento per tutti i dettagli.",
+                    },
+                    {
+                      q: "Posso partecipare con più account?",
+                      a: "No. Ogni acquisto dà accesso a un solo account e la partecipazione con account multipli, dati falsi o sistemi automatizzati comporta l'esclusione senza rimborso.",
+                    },
+                  ].map((faq, i) => (
+                    <div key={i} className="border-b border-line pb-6 last:border-0">
+                      <h3 className="font-semibold text-ink text-base">{faq.q}</h3>
+                      <p className="mt-2 text-sm text-muted leading-relaxed">{faq.a}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
         </main>
       )}
 
