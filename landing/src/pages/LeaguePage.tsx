@@ -349,6 +349,20 @@ export default function LeaguePage() {
                   <ArrowRight size={16} />
                 </a>
               </div>
+
+              {/* Main sponsor */}
+              <div className="mt-12 flex flex-col items-center gap-3">
+                <span className="text-white/40 text-[10px] font-bold uppercase tracking-[0.25em]">
+                  Main Sponsor
+                </span>
+                <a href={SPONSOR.url} target="_blank" rel="noopener noreferrer" aria-label={SPONSOR.name}>
+                  <img
+                    src={SPONSOR.logo}
+                    alt={SPONSOR.name}
+                    className="h-14 w-14 object-contain opacity-90 hover:opacity-100 transition-opacity"
+                  />
+                </a>
+              </div>
             </div>
           </section>
 
