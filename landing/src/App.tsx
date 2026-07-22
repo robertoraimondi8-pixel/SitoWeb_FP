@@ -14,6 +14,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/lega" element={<LeaguePage />} />
+        <Route path="/super-league" element={<LeaguePage />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </BrowserRouter>
