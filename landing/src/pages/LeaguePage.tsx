@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Trophy,
-  Users,
   CalendarDays,
   ShieldCheck,
   CheckCircle2,
@@ -25,14 +24,12 @@ const BACKEND_URL =
 
 // ─── Configura qui la lega ────────────────────────────────────────────────────
 const LEAGUE = {
-  name: "Kopa x FP",
-  season: "Stagione 2025/26",
-  price: 60,
-  spots: 20,
-  spotsLeft: 14,        // TODO: aggiorna man mano che si iscrivono
-  leagueId: "7e044748-6221-495e-af7a-6d6b9e11bcde",
+  name: "FantaPronostic Super League",
+  season: "Al via il 4 settembre",
+  price: 39,
+  leagueId: "451b4232-2402-492e-9702-351f4c4b03b9",
   prizes: [
-    { place: 1, label: "1° Posto", amount: 150, icon: "🥇" },
+    { place: 1, label: "1° Posto", amount: 150, icon: "🥇" },  // TODO: premi reali
     { place: 2, label: "2° Posto", amount: 70,  icon: "🥈" },
     { place: 3, label: "3° Posto", amount: 30,  icon: "🥉" },
   ],
@@ -70,12 +67,16 @@ export default function LeaguePage() {
 
   const [email, setEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
+  const [discountCode, setDiscountCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    // Pre-compila il codice sconto se arriva dal link email (?codice=XXX)
+    const codeFromUrl = searchParams.get("codice");
+    if (codeFromUrl) setDiscountCode(codeFromUrl.trim());
+  }, [searchParams]);
 
   const totalPrizePool = LEAGUE.prizes.reduce((s, p) => s + p.amount, 0);
 
@@ -91,15 +92,22 @@ export default function LeaguePage() {
     setError("");
     setLoading(true);
     try {
+      const path = window.location.pathname;
+      const body: Record<string, unknown> = {
+        email: email.trim(),
+        league_id: LEAGUE.leagueId,
+        success_url: `${window.location.origin}${path}?payment=success`,
+        cancel_url: `${window.location.origin}${path}?payment=cancelled`,
+      };
+      // Campo opzionale: se l'utente ha un codice sconto lo passiamo al backend,
+      // che lo valida e applica lo sconto. Se invalido/scaduto, il backend
+      // procede comunque a prezzo pieno (nessun errore da gestire qui).
+      if (discountCode.trim()) body.discount_code = discountCode.trim();
+
       const res = await fetch(`${BACKEND_URL}/api/payments/create-checkout-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          league_id: LEAGUE.leagueId,
-          success_url: `${window.location.origin}/lega?payment=success`,
-          cancel_url: `${window.location.origin}/lega?payment=cancelled`,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -268,7 +276,7 @@ export default function LeaguePage() {
 
                   <div className="flex items-center gap-2 rounded-2xl bg-bg-soft border border-line px-4 py-3">
                     <CalendarDays size={18} className="text-ink2" />
-                    <span className="text-sm font-semibold text-ink">Serie A 2025/26</span>
+                    <span className="text-sm font-semibold text-ink">Al via il 4 settembre</span>
                   </div>
                 </div>
               </div>
@@ -399,6 +407,25 @@ export default function LeaguePage() {
                         className="w-full rounded-2xl border border-line bg-bg-soft px-5 py-3.5 text-ink placeholder:text-muted focus:outline-none focus:border-brand-blue focus:bg-white transition-colors"
                         data-testid="league-input-confirm-email"
                       />
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase tracking-widest text-muted font-bold mb-2 block">
+                        Codice sconto (facoltativo)
+                      </label>
+                      <input
+                        type="text"
+                        value={discountCode}
+                        onChange={(e) => setDiscountCode(e.target.value)}
+                        placeholder="Es. SUPER10-XXXXXX"
+                        className="w-full rounded-2xl border border-line bg-bg-soft px-5 py-3.5 text-ink placeholder:text-muted uppercase focus:outline-none focus:border-brand-blue focus:bg-white transition-colors"
+                        data-testid="league-input-discount"
+                      />
+                      {discountCode.trim() && (
+                        <p className="text-xs text-green-700 font-medium mt-2 flex items-center gap-1.5">
+                          <CheckCircle2 size={12} className="shrink-0" />
+                          Codice applicato: lo sconto verrà calcolato al checkout.
+                        </p>
+                      )}
                     </div>
                     <p className="text-xs text-muted flex items-start gap-1.5">
                       <Lock size={11} className="shrink-0 mt-0.5" />
