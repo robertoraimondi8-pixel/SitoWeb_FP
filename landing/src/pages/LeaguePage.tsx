@@ -366,11 +366,13 @@ export default function LeaguePage() {
                 ))}
               </div>
 
-              <p className="text-center text-white/45 text-xs mt-8 max-w-xl mx-auto">
-                Le immagini dei premi sono puramente illustrative e non rappresentano
-                necessariamente il prodotto reale (colore, modello, configurazione e versione
-                possono variare). I marchi e i prodotti appartengono ai rispettivi titolari.
-              </p>
+              {PRIZES.some((p) => p.image) && (
+                <p className="text-center text-white/45 text-xs mt-8 max-w-xl mx-auto">
+                  Le immagini dei premi sono puramente illustrative e non rappresentano
+                  necessariamente il prodotto reale (colore, modello, configurazione e versione
+                  possono variare). I marchi e i prodotti appartengono ai rispettivi titolari.
+                </p>
+              )}
             </div>
           </section>
 

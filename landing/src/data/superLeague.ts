@@ -41,7 +41,7 @@ export const PRIZES = [
     title: "Apple Pack",
     items: ["iPhone 18 Pro", "AirPods 4 ANC", "Apple Watch"],
     icon: "🥇",
-    image: "/prizes/iphone.png",
+    image: "", // metti "/prizes/iphone.png" quando la foto è pronta
   },
   {
     place: 2,
@@ -49,7 +49,7 @@ export const PRIZES = [
     title: 'MacBook Neo 13"',
     items: [],
     icon: "🥈",
-    image: "/prizes/macbook.png",
+    image: "", // metti "/prizes/macbook.png" quando la foto è pronta
   },
   {
     place: 3,
@@ -57,7 +57,7 @@ export const PRIZES = [
     title: "PlayStation 5 Slim",
     items: [],
     icon: "🥉",
-    image: "/prizes/ps5.png",
+    image: "", // metti "/prizes/ps5.png" quando la foto è pronta
   },
 ];
 
