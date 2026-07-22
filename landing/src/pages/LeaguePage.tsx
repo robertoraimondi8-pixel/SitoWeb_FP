@@ -317,8 +317,7 @@ export default function LeaguePage() {
                   <CalendarDays size={15} className="text-brand-orange" />
                   Si parte il <strong className="text-white">{SUPER_LEAGUE.startLabel}</strong>
                   <span className="text-white/30">·</span>
-                  Piano editoriale + accesso da{" "}
-                  <strong className="text-white">{SUPER_LEAGUE.price}€</strong>
+                  <strong className="text-white">Pass {SUPER_LEAGUE.price}€</strong>
                 </p>
               </motion.div>
 
@@ -363,6 +362,82 @@ export default function LeaguePage() {
                   />
                 </a>
               </div>
+            </div>
+          </section>
+
+          {/* ══ PREMI (scuro, accento) ═════════════════════════════════════ */}
+          <section
+            className="relative overflow-hidden section-pad"
+            style={{
+              background:
+                "radial-gradient(120% 100% at 50% 0%, #14315f 0%, #0a1f45 55%, #050f24 100%)",
+            }}
+          >
+            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[520px] h-[300px] rounded-full bg-brand-orange/15 blur-[120px]" />
+            <div className="container-x relative">
+              {/* Bonus Shopy Cool — primi 100 iscritti */}
+              <motion.div
+                {...reveal}
+                className="max-w-3xl mx-auto mb-10 rounded-3xl border border-brand-orange/40 bg-white/[0.06] backdrop-blur-sm p-6 md:p-7 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left"
+              >
+                <a
+                  href={SPONSOR.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={SPONSOR.name}
+                  className="shrink-0"
+                >
+                  <span className="grid place-items-center h-20 w-20 rounded-2xl bg-white">
+                    <img src={SPONSOR.logo} alt={SPONSOR.name} className="h-16 w-16 object-contain" />
+                  </span>
+                </a>
+                <div className="flex-1">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-orange px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white">
+                    <Gift size={12} />
+                    Bonus primi {SPONSOR.perkLimit} iscritti
+                  </span>
+                  <p className="mt-3 font-display font-bold text-xl md:text-2xl text-white leading-tight">
+                    Buono {SPONSOR.name} da{" "}
+                    <span className="text-brand-orange">{SPONSOR.voucher}€</span>
+                  </p>
+                  <p className="mt-1 text-sm text-white/70">
+                    Su una spesa minima di {SPONSOR.minSpend}€ · valido online e in negozio.
+                    Riservato ai primi {SPONSOR.perkLimit} iscritti alla Super League.
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div {...reveal} className="max-w-5xl mx-auto">
+                <img
+                  src={SUPER_LEAGUE.prizesImage}
+                  alt="I premi in palio della FantaPronostic Super League: 1° Apple Pack (iPhone Pro, AirPods, Apple Watch), 2° MacBook Neo 13, 3° PlayStation 5 Slim"
+                  className="w-full h-auto rounded-3xl border border-white/10 shadow-[0_30px_80px_-24px_rgba(0,0,0,0.6)]"
+                />
+              </motion.div>
+
+              <p className="text-center text-white/40 text-xs mt-6 max-w-xl mx-auto">
+                Montepremi {SUPER_LEAGUE.prizePool}. Le immagini dei premi sono puramente illustrative
+                e non rappresentano necessariamente il prodotto reale (colore, modello e
+                configurazione possono variare). I marchi appartengono ai rispettivi titolari.
+              </p>
+
+              {/* Premio settimanale */}
+              <motion.div
+                {...reveal}
+                className="mt-10 max-w-4xl mx-auto rounded-3xl bg-white/[0.05] border border-white/12 p-6 flex items-start gap-4 backdrop-blur-sm"
+              >
+                <div className="h-11 w-11 rounded-2xl bg-brand-orange/15 grid place-items-center text-brand-orange shrink-0">
+                  <Gift size={20} />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-white">Premio settimanale</h3>
+                  <p className="text-sm text-white/60 mt-1 leading-relaxed">
+                    Ogni giornata, chi ottiene il punteggio più alto vince l'accesso gratuito
+                    all'edizione successiva della Super League. Dalla seconda vittoria consecutiva,
+                    un buono Amazon da 20€.
+                  </p>
+                </div>
+              </motion.div>
             </div>
           </section>
 
@@ -445,8 +520,8 @@ export default function LeaguePage() {
                 {[
                   {
                     icon: <ShieldCheck size={22} />,
-                    title: "Acquista il Piano",
-                    desc: "Acquista il Piano editoriale digitale (39€). Ricevi il prodotto e il codice di accesso via email.",
+                    title: "Acquista il Pass",
+                    desc: "Acquista il Pass (39€) e ricevi via email il codice di ingresso alla lega.",
                   },
                   {
                     icon: <Zap size={22} />,
@@ -476,82 +551,6 @@ export default function LeaguePage() {
                   </motion.div>
                 ))}
               </div>
-            </div>
-          </section>
-
-          {/* ══ PREMI (scuro, accento) ═════════════════════════════════════ */}
-          <section
-            className="relative overflow-hidden section-pad"
-            style={{
-              background:
-                "radial-gradient(120% 100% at 50% 0%, #14315f 0%, #0a1f45 55%, #050f24 100%)",
-            }}
-          >
-            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[520px] h-[300px] rounded-full bg-brand-orange/15 blur-[120px]" />
-            <div className="container-x relative">
-              {/* Bonus Shopy Cool — primi 100 iscritti */}
-              <motion.div
-                {...reveal}
-                className="max-w-3xl mx-auto mb-10 rounded-3xl border border-brand-orange/40 bg-white/[0.06] backdrop-blur-sm p-6 md:p-7 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left"
-              >
-                <a
-                  href={SPONSOR.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={SPONSOR.name}
-                  className="shrink-0"
-                >
-                  <span className="grid place-items-center h-20 w-20 rounded-2xl bg-white">
-                    <img src={SPONSOR.logo} alt={SPONSOR.name} className="h-16 w-16 object-contain" />
-                  </span>
-                </a>
-                <div className="flex-1">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-orange px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white">
-                    <Gift size={12} />
-                    Bonus primi {SPONSOR.perkLimit} iscritti
-                  </span>
-                  <p className="mt-3 font-display font-bold text-xl md:text-2xl text-white leading-tight">
-                    Buono {SPONSOR.name} da{" "}
-                    <span className="text-brand-orange">{SPONSOR.voucher}€</span>
-                  </p>
-                  <p className="mt-1 text-sm text-white/70">
-                    Su una spesa minima di {SPONSOR.minSpend}€ · valido online e in negozio.
-                    Riservato ai primi {SPONSOR.perkLimit} iscritti alla Super League.
-                  </p>
-                </div>
-              </motion.div>
-
-              <motion.div {...reveal} className="max-w-5xl mx-auto">
-                <img
-                  src={SUPER_LEAGUE.prizesImage}
-                  alt="I premi in palio della FantaPronostic Super League: 1° Apple Pack (iPhone Pro, AirPods, Apple Watch), 2° MacBook Neo 13, 3° PlayStation 5 Slim"
-                  className="w-full h-auto rounded-3xl border border-white/10 shadow-[0_30px_80px_-24px_rgba(0,0,0,0.6)]"
-                />
-              </motion.div>
-
-              <p className="text-center text-white/40 text-xs mt-6 max-w-xl mx-auto">
-                Montepremi {SUPER_LEAGUE.prizePool}. Le immagini dei premi sono puramente illustrative
-                e non rappresentano necessariamente il prodotto reale (colore, modello e
-                configurazione possono variare). I marchi appartengono ai rispettivi titolari.
-              </p>
-
-              {/* Premio settimanale */}
-              <motion.div
-                {...reveal}
-                className="mt-10 max-w-4xl mx-auto rounded-3xl bg-white/[0.05] border border-white/12 p-6 flex items-start gap-4 backdrop-blur-sm"
-              >
-                <div className="h-11 w-11 rounded-2xl bg-brand-orange/15 grid place-items-center text-brand-orange shrink-0">
-                  <Gift size={20} />
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-white">Premio settimanale</h3>
-                  <p className="text-sm text-white/60 mt-1 leading-relaxed">
-                    Ogni giornata, chi ottiene il punteggio più alto vince l'accesso gratuito
-                    all'edizione successiva della Super League. Dalla seconda vittoria consecutiva,
-                    un buono Amazon da 20€.
-                  </p>
-                </div>
-              </motion.div>
             </div>
           </section>
 
