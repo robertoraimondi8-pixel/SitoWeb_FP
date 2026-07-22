@@ -5,7 +5,7 @@ import { setStoredUser } from "@/lib/authStorage";
 
 const BACKEND_URL =
   (import.meta as any).env?.VITE_BACKEND_URL ||
-  "https://fanta-auth-fix.preview.emergentagent.com";
+  "https://api.fantapronostic.com";
 
 type View = "login" | "forgot" | "done" | "forgot-done";
 

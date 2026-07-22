@@ -24,7 +24,7 @@ import { SUPER_LEAGUE, LEAGUES, SCORING, REGOLAMENTO, SPONSOR } from "@/data/sup
 
 const BACKEND_URL =
   (import.meta as any).env?.VITE_BACKEND_URL ||
-  "https://fanta-auth-fix.preview.emergentagent.com";
+  "https://api.fantapronostic.com";
 
 // ─── Countdown ────────────────────────────────────────────────────────────────
 function useCountdown(targetIso: string) {
@@ -829,7 +829,10 @@ function PreRegisterCard({
             />
           </div>
           {preStatus === "err" && (
-            <p className="text-sm text-red-600 font-medium">Inserisci un'email valida e riprova.</p>
+            <p className="text-sm text-red-600 font-medium">
+              Non è stato possibile completare la pre-iscrizione. Controlla l'email e la connessione,
+              poi riprova.
+            </p>
           )}
           <button
             onClick={onPreRegister}

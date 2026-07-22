@@ -5,7 +5,7 @@ import { ArrowRight, Check, Mail } from "lucide-react";
 
 const BACKEND_URL =
   (import.meta as any).env?.VITE_BACKEND_URL ||
-  "https://fanta-auth-fix.preview.emergentagent.com";
+  "https://api.fantapronostic.com";
 
 export function Newsletter() {
   const { t, i18n } = useTranslation();
