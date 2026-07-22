@@ -132,7 +132,7 @@ export default function LeaguePage() {
         success_url: `${window.location.origin}${path}?payment=success`,
         cancel_url: `${window.location.origin}${path}?payment=cancelled`,
       };
-      if (discountCode.trim()) body.discount_code = discountCode.trim();
+      if (discountCode.trim()) body.discount_code = discountCode.trim().toUpperCase();
 
       const res = await fetch(`${BACKEND_URL}/api/payments/create-checkout-session`, {
         method: "POST",
