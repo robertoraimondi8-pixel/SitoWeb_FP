@@ -103,7 +103,9 @@ export default function LeaguePage() {
   const [preAlready, setPreAlready] = useState(false);
 
   const countdown = useCountdown(SUPER_LEAGUE.openingDate);
-  const isOpen = countdown.isOver;
+  // Override per test: /super-league?pay=1 mostra subito il pagamento Stripe.
+  const forcePay = searchParams.get("pay") === "1";
+  const isOpen = countdown.isOver || forcePay;
 
   useEffect(() => {
     window.scrollTo(0, 0);
