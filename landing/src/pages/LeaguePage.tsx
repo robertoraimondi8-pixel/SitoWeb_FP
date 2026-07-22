@@ -339,20 +339,8 @@ export default function LeaguePage() {
                       </span>
                     )}
 
-                    {/* Immagine premio o icona */}
-                    {p.image ? (
-                      <div className="h-32 w-full grid place-items-center">
-                        <img src={p.image} alt={p.title} className="max-h-32 max-w-full object-contain" />
-                      </div>
-                    ) : (
-                      <div
-                        className={`h-24 w-24 rounded-2xl grid place-items-center text-5xl ${
-                          p.place === 1 ? "bg-brand-orange/10" : "bg-bg-soft"
-                        }`}
-                      >
-                        {p.icon}
-                      </div>
-                    )}
+                    {/* Immagine premio (con fallback automatico all'icona) */}
+                    <PrizeMedia image={p.image} icon={p.icon} title={p.title} highlight={p.place === 1} />
 
                     <div>
                       <span className="text-xs font-bold uppercase tracking-widest text-muted">
@@ -377,6 +365,12 @@ export default function LeaguePage() {
                   </div>
                 ))}
               </div>
+
+              <p className="text-center text-white/45 text-xs mt-8 max-w-xl mx-auto">
+                Le immagini dei premi sono puramente illustrative e non rappresentano
+                necessariamente il prodotto reale (colore, modello, configurazione e versione
+                possono variare). I marchi e i prodotti appartengono ai rispettivi titolari.
+              </p>
             </div>
           </section>
 
@@ -607,6 +601,42 @@ export default function LeaguePage() {
           © {new Date().getFullYear()} FantaPronostic. Tutti i diritti riservati.
         </div>
       </footer>
+    </div>
+  );
+}
+
+// ─── Prize media (immagine con fallback all'icona) ────────────────────────────
+function PrizeMedia({
+  image,
+  icon,
+  title,
+  highlight,
+}: {
+  image: string;
+  icon: string;
+  title: string;
+  highlight: boolean;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (image && !failed) {
+    return (
+      <div className="h-36 w-full grid place-items-center">
+        <img
+          src={image}
+          alt={title}
+          onError={() => setFailed(true)}
+          className="max-h-36 max-w-full object-contain"
+        />
+      </div>
+    );
+  }
+  return (
+    <div
+      className={`h-24 w-24 rounded-2xl grid place-items-center text-5xl ${
+        highlight ? "bg-brand-orange/10" : "bg-bg-soft"
+      }`}
+    >
+      {icon}
     </div>
   );
 }
