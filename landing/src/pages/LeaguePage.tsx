@@ -99,6 +99,8 @@ export default function LeaguePage() {
 
   const [preEmail, setPreEmail] = useState("");
   const [preStatus, setPreStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
+  const [preCode, setPreCode] = useState("");
+  const [preAlready, setPreAlready] = useState(false);
 
   const countdown = useCountdown(SUPER_LEAGUE.openingDate);
   const isOpen = countdown.isOver;
@@ -156,16 +158,19 @@ export default function LeaguePage() {
     }
     setPreStatus("loading");
     try {
-      const res = await fetch(`${BACKEND_URL}/api/newsletter/subscribe`, {
+      const res = await fetch(`${BACKEND_URL}/api/leagues/pre-register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: preEmail.trim(),
+          league_id: SUPER_LEAGUE.leagueId,
           language: "it",
-          source: "super-league-preiscrizione",
         }),
       });
-      if (!res.ok) throw new Error();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.ok) throw new Error();
+      setPreCode(data?.code || "");
+      setPreAlready(Boolean(data?.already_registered));
       setPreStatus("ok");
       setPreEmail("");
     } catch {
@@ -637,6 +642,8 @@ export default function LeaguePage() {
                     preEmail={preEmail}
                     setPreEmail={setPreEmail}
                     preStatus={preStatus}
+                    preCode={preCode}
+                    preAlready={preAlready}
                     onPreRegister={handlePreRegister}
                   />
                 )}
@@ -755,11 +762,15 @@ function PreRegisterCard({
   preEmail,
   setPreEmail,
   preStatus,
+  preCode,
+  preAlready,
   onPreRegister,
 }: {
   preEmail: string;
   setPreEmail: (v: string) => void;
   preStatus: "idle" | "loading" | "ok" | "err";
+  preCode: string;
+  preAlready: boolean;
   onPreRegister: () => void;
 }) {
   return (
@@ -785,10 +796,23 @@ function PreRegisterCard({
           <div className="h-12 w-12 rounded-full bg-green-100 grid place-items-center text-green-600">
             <CheckCircle2 size={24} />
           </div>
-          <p className="font-semibold text-ink">Pre-iscrizione registrata!</p>
-          <p className="text-sm text-muted">
-            Ti avviseremo all'apertura delle iscrizioni con il tuo codice sconto.
+          <p className="font-semibold text-ink">
+            {preAlready ? "Sei già pre-iscritto!" : "Controlla la tua email!"}
           </p>
+          <p className="text-sm text-muted">
+            Ti abbiamo inviato il tuo <strong>codice sconto del 10%</strong>. Se non lo trovi,
+            controlla lo spam.
+          </p>
+          {preCode && (
+            <div className="mt-1 w-full rounded-2xl border border-dashed border-brand-orange/50 bg-brand-orange/5 px-4 py-3">
+              <p className="text-[11px] uppercase tracking-widest text-muted font-bold">
+                Il tuo codice
+              </p>
+              <p className="mt-1 font-display font-bold text-xl text-brand-orange tabular-nums select-all">
+                {preCode}
+              </p>
+            </div>
+          )}
         </div>
       ) : (
         <>
