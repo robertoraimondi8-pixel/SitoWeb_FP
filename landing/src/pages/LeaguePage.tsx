@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
@@ -8,7 +9,6 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
-  Star,
   Zap,
   Target,
   Lock,
@@ -18,14 +18,9 @@ import {
   ChevronDown,
   Gift,
   Newspaper,
+  CalendarDays,
 } from "lucide-react";
-import {
-  SUPER_LEAGUE,
-  LEAGUES,
-  PRIZES,
-  SCORING,
-  REGOLAMENTO,
-} from "@/data/superLeague";
+import { SUPER_LEAGUE, LEAGUES, PRIZES, SCORING, REGOLAMENTO } from "@/data/superLeague";
 
 const BACKEND_URL =
   (import.meta as any).env?.VITE_BACKEND_URL ||
@@ -40,27 +35,56 @@ function useCountdown(targetIso: string) {
   }, []);
   const target = new Date(targetIso).getTime();
   const diff = Math.max(0, target - now);
-  const days = Math.floor(diff / 86400000);
-  const hours = Math.floor((diff % 86400000) / 3600000);
-  const minutes = Math.floor((diff % 3600000) / 60000);
-  const seconds = Math.floor((diff % 60000) / 1000);
-  return { days, hours, minutes, seconds, isOver: diff === 0 };
+  return {
+    days: Math.floor(diff / 86400000),
+    hours: Math.floor((diff % 86400000) / 3600000),
+    minutes: Math.floor((diff % 3600000) / 60000),
+    seconds: Math.floor((diff % 60000) / 1000),
+    isOver: diff === 0,
+  };
 }
 
 function CountdownBox({ value, label }: { value: number; label: string }) {
   return (
-    <div className="flex flex-col items-center">
-      <div className="min-w-[64px] rounded-2xl bg-white/10 border border-white/20 backdrop-blur-sm px-3 py-3 text-center">
-        <span className="font-display font-bold text-3xl md:text-4xl text-white tabular-nums">
+    <div className="flex flex-col items-center gap-2">
+      <div className="min-w-[62px] md:min-w-[76px] rounded-2xl bg-white/[0.07] border border-white/15 px-3 py-3.5 text-center backdrop-blur-md">
+        <span className="font-display font-bold text-3xl md:text-[40px] leading-none text-white tabular-nums">
           {String(value).padStart(2, "0")}
         </span>
       </div>
-      <span className="mt-2 text-[11px] uppercase tracking-widest font-bold text-white/60">
+      <span className="text-[10px] md:text-[11px] uppercase tracking-[0.18em] font-bold text-white/50">
         {label}
       </span>
     </div>
   );
 }
+
+// Hand-drawn underline (stessa cifra stilistica della Home)
+function Underline({ color = "#F58220" }: { color?: string }) {
+  return (
+    <svg
+      className="absolute -bottom-2.5 left-0 w-full"
+      viewBox="0 0 200 12"
+      fill="none"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M2 9C40 3 80 3 120 5C160 7 180 7 198 3"
+        stroke={color}
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+const reveal = {
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-80px" },
+  transition: { duration: 0.55 },
+};
 
 export default function LeaguePage() {
   const [searchParams] = useSearchParams();
@@ -73,12 +97,10 @@ export default function LeaguePage() {
   const [error, setError] = useState("");
   const [openArticle, setOpenArticle] = useState<number | null>(null);
 
-  // Pre-iscrizione (fase prima dell'apertura)
   const [preEmail, setPreEmail] = useState("");
   const [preStatus, setPreStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
 
   const countdown = useCountdown(SUPER_LEAGUE.openingDate);
-  // Le iscrizioni (pagamento) sono aperte quando il countdown è terminato.
   const isOpen = countdown.isOver;
 
   useEffect(() => {
@@ -86,8 +108,6 @@ export default function LeaguePage() {
     const codeFromUrl = searchParams.get("codice");
     if (codeFromUrl) setDiscountCode(codeFromUrl.trim());
   }, [searchParams]);
-
-  const totalPrizeMax = 9; // punti max partita ordinaria
 
   const handlePay = async () => {
     if (!email.trim() || !email.includes("@")) {
@@ -120,11 +140,8 @@ export default function LeaguePage() {
         setError(data?.detail || "Errore durante la creazione del pagamento. Riprova.");
         return;
       }
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        setError("Risposta non valida dal server. Riprova.");
-      }
+      if (data?.url) window.location.href = data.url;
+      else setError("Risposta non valida dal server. Riprova.");
     } catch {
       setError("Errore di connessione. Riprova.");
     } finally {
@@ -157,26 +174,26 @@ export default function LeaguePage() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-soft" data-testid="league-page">
-      {/* Header */}
-      <header className="bg-white border-b border-line">
-        <div className="container-x py-5 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5" data-testid="league-header-logo">
-            <img src="/brand-icon.png" alt="FantaPronostic" className="h-9 w-9 rounded-xl" />
-            <span className="font-display font-bold text-[17px] tracking-tight">
-              <span className="text-brand-orange">Fanta</span>
-              <span className="text-brand-blue">Pronostic</span>
-            </span>
-          </Link>
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-ink2 hover:text-brand-blue transition-colors"
-          >
-            <ArrowLeft size={16} />
-            Torna alla home
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen bg-bg-base">
+      {paymentStatus === "success" && (
+        <header className="bg-white border-b border-line">
+          <div className="container-x py-5 flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2.5">
+              <img src="/brand-icon.png" alt="FantaPronostic" className="h-9 w-9 rounded-xl" />
+              <span className="font-display font-bold text-[17px] tracking-tight text-ink">
+                Fanta<span className="text-brand-orange">Pronostic</span>
+              </span>
+            </Link>
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-ink2 hover:text-brand-blue transition-colors"
+            >
+              <ArrowLeft size={16} />
+              Home
+            </Link>
+          </div>
+        </header>
+      )}
 
       {paymentStatus === "cancelled" && (
         <div className="bg-amber-50 border-b border-amber-200">
@@ -193,290 +210,355 @@ export default function LeaguePage() {
         <SuccessScreen />
       ) : (
         <main>
-          {/* ── HERO ─────────────────────────────────────────────────────── */}
-          <section className="relative overflow-hidden bg-[#050f24]">
-            {/* Foto stadio (Higgsfield) */}
+          {/* ══ HERO (scuro, cinematografico) ══════════════════════════════ */}
+          <section className="relative overflow-hidden bg-[#050f24] min-h-[92vh] flex items-center">
             <div
-              className="absolute inset-0 bg-cover bg-center pointer-events-none"
+              className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: `url(${SUPER_LEAGUE.heroImage})` }}
             />
-            {/* Overlay scuro per leggibilità del testo */}
             <div
-              className="absolute inset-0 pointer-events-none"
+              className="absolute inset-0"
               style={{
                 background:
-                  "linear-gradient(180deg, rgba(5,15,36,0.72) 0%, rgba(5,15,36,0.45) 35%, rgba(5,15,36,0.75) 78%, rgba(5,15,36,0.94) 100%)",
+                  "linear-gradient(180deg, rgba(5,15,36,0.80) 0%, rgba(5,15,36,0.42) 32%, rgba(5,15,36,0.72) 74%, #050f24 100%)",
               }}
             />
-            <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-brand-orange/20 blur-[120px] pointer-events-none" />
+            <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[620px] h-[380px] rounded-full bg-brand-orange/20 blur-[130px]" />
 
-            <div className="container-x py-16 md:py-24 relative text-center">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-1.5 text-xs font-bold text-white/90 uppercase tracking-widest mb-6 backdrop-blur-sm">
-                <Star size={12} className="text-brand-orange" />
-                {SUPER_LEAGUE.season}
-              </span>
-
-              <h1 className="font-display font-black text-5xl md:text-7xl tracking-tightest text-white leading-[0.95] uppercase">
-                FantaPronostic
-                <br />
-                <span className="text-brand-orange">Super League</span>
-              </h1>
-
-              <div className="mt-8 inline-flex items-center gap-2.5 rounded-full bg-brand-orange px-6 py-3 shadow-cta">
-                <Trophy size={20} className="text-white" />
-                <span className="font-display font-bold text-lg md:text-xl text-white">
-                  Montepremi {SUPER_LEAGUE.prizePool}
-                </span>
+            {/* Top bar sopra la foto */}
+            <div className="absolute top-0 inset-x-0 z-20">
+              <div className="container-x py-5 flex items-center justify-between">
+                <Link to="/" className="flex items-center gap-2.5">
+                  <img src="/brand-icon.png" alt="FantaPronostic" className="h-9 w-9 rounded-xl" />
+                  <span className="font-display font-bold text-[17px] tracking-tight text-white">
+                    Fanta<span className="text-brand-orange">Pronostic</span>
+                  </span>
+                </Link>
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white transition-colors"
+                >
+                  <ArrowLeft size={16} />
+                  Home
+                </Link>
               </div>
+            </div>
 
-              {!isOpen && (
-                <div className="mt-5 flex justify-center">
+            <div className="relative z-10 container-x py-28 md:py-32 text-center">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-4 py-1.5 text-[11px] font-bold text-white/90 uppercase tracking-[0.18em] backdrop-blur-md"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-brand-orange" />
+                {SUPER_LEAGUE.season}
+              </motion.div>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 28 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.08 }}
+                className="mt-7 font-display font-bold text-[44px] sm:text-6xl md:text-7xl lg:text-[86px] leading-[0.92] tracking-tightest text-white uppercase text-balance"
+              >
+                FantaPronostic
+                <span className="block relative w-fit mx-auto text-brand-orange">
+                  Super League
+                  <Underline />
+                </span>
+              </motion.h1>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.22 }}
+                className="mt-9 flex flex-col items-center gap-4"
+              >
+                <div className="inline-flex items-center gap-2.5 rounded-full bg-brand-orange px-6 py-3 shadow-cta">
+                  <Trophy size={20} className="text-white" />
+                  <span className="font-display font-bold text-lg md:text-xl text-white">
+                    Montepremi {SUPER_LEAGUE.prizePool}
+                  </span>
+                </div>
+                {!isOpen && (
                   <a
                     href="#acquista"
-                    className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-brand-orange/60 px-5 py-2.5 backdrop-blur-sm hover:bg-white/15 transition-colors"
-                    data-testid="hero-prereg-badge"
+                    className="group inline-flex items-center gap-2 rounded-full bg-white/[0.07] border border-brand-orange/50 px-5 py-2.5 backdrop-blur-md hover:bg-white/[0.12] transition-colors"
                   >
-                    <span className="text-lg">🎟️</span>
-                    <span className="text-sm md:text-base font-bold text-white">
+                    <span className="text-base">🎟️</span>
+                    <span className="text-sm md:text-[15px] font-bold text-white">
                       Pre-iscriviti ora e ottieni il{" "}
                       <span className="text-brand-orange">10% di sconto</span>
                     </span>
+                    <ArrowRight size={15} className="text-white/70 group-hover:translate-x-0.5 transition-transform" />
                   </a>
-                </div>
-              )}
+                )}
+              </motion.div>
 
               {/* Countdown */}
-              <div className="mt-10">
-                <p className="text-white/70 text-sm font-semibold uppercase tracking-widest mb-4">
-                  {isOpen ? "Iscrizioni aperte!" : "Apertura iscrizioni tra"}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.34 }}
+                className="mt-11"
+              >
+                <p className="text-white/55 text-xs font-bold uppercase tracking-[0.2em] mb-4">
+                  {isOpen ? "Iscrizioni aperte" : "Apertura iscrizioni tra"}
                 </p>
                 {!isOpen && (
-                  <div className="flex items-center justify-center gap-3 md:gap-4">
+                  <div className="flex items-center justify-center gap-2.5 md:gap-3.5">
                     <CountdownBox value={countdown.days} label="Giorni" />
                     <CountdownBox value={countdown.hours} label="Ore" />
                     <CountdownBox value={countdown.minutes} label="Min" />
                     <CountdownBox value={countdown.seconds} label="Sec" />
                   </div>
                 )}
-                <p className="mt-5 text-white/80 text-sm">
-                  Si parte il <strong className="text-white">{SUPER_LEAGUE.startLabel}</strong> ·
+                <p className="mt-6 inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-white/75">
+                  <CalendarDays size={15} className="text-brand-orange" />
+                  Si parte il <strong className="text-white">{SUPER_LEAGUE.startLabel}</strong>
+                  <span className="text-white/30">·</span>
                   Piano editoriale + accesso da{" "}
                   <strong className="text-white">{SUPER_LEAGUE.price}€</strong>
                 </p>
-              </div>
+              </motion.div>
 
               {/* 5 leghe */}
-              <div className="mt-12">
-                <p className="text-white/70 text-sm font-semibold uppercase tracking-widest mb-4">
-                  Pronostica le partite delle 5 grandi leghe europee
+              <motion.div {...reveal} transition={{ duration: 0.6, delay: 0.1 }} className="mt-12">
+                <p className="text-white/45 text-[11px] font-bold uppercase tracking-[0.2em] mb-4">
+                  Le partite delle 5 grandi leghe europee
                 </p>
-                <div className="flex items-center justify-center gap-3 md:gap-4 flex-wrap">
+                <div className="flex items-center justify-center gap-2 md:gap-2.5 flex-wrap">
                   {LEAGUES.map((l) => (
                     <div
                       key={l.name}
-                      className="flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-2 backdrop-blur-sm"
+                      className="flex items-center gap-2 rounded-full bg-white/[0.07] border border-white/12 px-3.5 py-2 backdrop-blur-md"
                     >
-                      <span className="text-xl">{l.flag}</span>
-                      <span className="text-sm font-semibold text-white">{l.name}</span>
+                      <span className="text-lg leading-none">{l.flag}</span>
+                      <span className="text-[13px] font-semibold text-white/90">{l.name}</span>
                     </div>
                   ))}
                 </div>
-                <p className="mt-4 text-white/50 text-xs max-w-md mx-auto">
-                  Le partite potranno appartenere a campionati e competizioni differenti,
-                  selezionate da FantaPronostic.
-                </p>
-              </div>
+              </motion.div>
 
-              {/* CTA scroll */}
-              <a
-                href="#acquista"
-                className="mt-10 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-ink hover:bg-white/90 transition-colors"
-                data-testid="hero-cta"
-              >
-                {isOpen ? "Acquista ora" : "Pre-iscriviti e risparmia il 10%"}
-                <ArrowRight size={16} />
-              </a>
+              <div className="mt-11">
+                <a
+                  href="#acquista"
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-ink hover:-translate-y-0.5 transition-transform shadow-soft"
+                >
+                  {isOpen ? "Acquista ora" : "Pre-iscriviti e risparmia il 10%"}
+                  <ArrowRight size={16} />
+                </a>
+              </div>
             </div>
           </section>
 
-          {/* ── PREMI ────────────────────────────────────────────────────── */}
-          <section className="relative overflow-hidden py-16 md:py-20"
+          {/* ══ COME SI GIOCA (chiaro) ═════════════════════════════════════ */}
+          <section className="section-pad bg-bg-soft">
+            <div className="container-x">
+              <motion.div {...reveal} className="text-center max-w-2xl mx-auto">
+                <p className="overline justify-center">Come si gioca</p>
+                <h2 className="mt-4 font-display font-bold text-3xl md:text-5xl tracking-tightest text-ink text-balance">
+                  Multipronostico, tutti contro tutti
+                </h2>
+                <p className="mt-4 text-muted leading-relaxed">
+                  Ogni giornata circa 12 partite selezionate da FantaPronostic. Per ogni partita puoi
+                  indovinare più pronostici: ognuno vale punti separatamente.
+                </p>
+              </motion.div>
+
+              <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-4xl mx-auto items-start">
+                {/* Punteggi */}
+                <motion.div {...reveal} className="card p-7">
+                  <h3 className="font-display font-bold text-lg text-ink">Punti per pronostico</h3>
+                  <ul className="mt-5 flex flex-col divide-y divide-line">
+                    {SCORING.map((s) => (
+                      <li key={s.label} className="flex items-center justify-between py-3">
+                        <span className="text-sm text-ink2">{s.label}</span>
+                        <span className="chip-orange">
+                          {s.points} {s.points === 1 ? "punto" : "punti"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-4 flex items-center justify-between rounded-2xl bg-bg-soft px-4 py-3">
+                    <span className="text-sm font-semibold text-ink">Massimo per partita</span>
+                    <span className="font-display font-bold text-ink tabular-nums">9 punti</span>
+                  </div>
+                </motion.div>
+
+                {/* X3 + regole chiave */}
+                <motion.div {...reveal} transition={{ duration: 0.55, delay: 0.08 }} className="flex flex-col gap-4">
+                  <div className="card p-7 flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-brand-orange/10 grid place-items-center shrink-0 font-display font-bold text-brand-orange">
+                      x3
+                    </div>
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-ink">Partite X3</h3>
+                      <p className="mt-1.5 text-sm text-muted leading-relaxed">
+                        Alcune partite hanno il moltiplicatore x3: tutti i punti di quella partita
+                        valgono il triplo, fino a <strong className="text-ink">27 punti</strong>.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="card p-7 flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-brand-blue/10 grid place-items-center shrink-0 text-brand-blue">
+                      <Lock size={20} />
+                    </div>
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-ink">Pronostici bloccati</h3>
+                      <p className="mt-1.5 text-sm text-muted leading-relaxed">
+                        Inserisci i pronostici entro il fischio d'inizio della prima partita. Dopo, la
+                        giornata si blocca e non è più modificabile.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </section>
+
+          {/* ══ COME PARTECIPARE (chiaro) ══════════════════════════════════ */}
+          <section className="section-pad">
+            <div className="container-x">
+              <motion.div {...reveal} className="text-center max-w-xl mx-auto">
+                <p className="overline justify-center">In 3 passi</p>
+                <h2 className="mt-4 font-display font-bold text-3xl md:text-5xl tracking-tightest text-ink">
+                  Come partecipare
+                </h2>
+              </motion.div>
+
+              <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                {[
+                  {
+                    icon: <ShieldCheck size={22} />,
+                    title: "Acquista il Piano",
+                    desc: "Acquista il Piano editoriale digitale (39€). Ricevi il prodotto e il codice di accesso via email.",
+                  },
+                  {
+                    icon: <Zap size={22} />,
+                    title: "Scarica l'app",
+                    desc: "Scarica FantaPronostic, registrati o accedi e inserisci il codice ricevuto via email.",
+                  },
+                  {
+                    icon: <Target size={22} />,
+                    title: "Pronostica e vinci",
+                    desc: "Ogni giornata inserisci i tuoi pronostici, scala la classifica e conquista i premi.",
+                  },
+                ].map((s, i) => (
+                  <motion.div
+                    key={i}
+                    {...reveal}
+                    transition={{ duration: 0.55, delay: i * 0.08 }}
+                    className="card p-7 relative"
+                  >
+                    <span className="absolute top-6 right-7 font-display font-bold text-4xl text-line2/80 tabular-nums">
+                      {i + 1}
+                    </span>
+                    <div className="h-12 w-12 rounded-2xl bg-brand-orange/10 grid place-items-center text-brand-orange">
+                      {s.icon}
+                    </div>
+                    <h3 className="mt-5 font-display font-bold text-lg text-ink">{s.title}</h3>
+                    <p className="mt-2 text-sm text-muted leading-relaxed">{s.desc}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* ══ PREMI (scuro, accento) ═════════════════════════════════════ */}
+          <section
+            className="relative overflow-hidden section-pad"
             style={{
               background:
                 "radial-gradient(120% 100% at 50% 0%, #14315f 0%, #0a1f45 55%, #050f24 100%)",
             }}
           >
-            <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[500px] h-[300px] rounded-full bg-brand-orange/15 blur-[120px] pointer-events-none" />
+            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[520px] h-[300px] rounded-full bg-brand-orange/15 blur-[120px]" />
             <div className="container-x relative">
-              <p className="text-center text-brand-orange text-xs font-bold uppercase tracking-[0.2em]">
-                Premi finali
-              </p>
-              <h2 className="font-display font-bold text-3xl md:text-5xl text-center text-white mt-3 tracking-tightest">
-                Cosa puoi vincere
-              </h2>
-              <p className="text-center text-white/60 mt-3 max-w-md mx-auto">
-                Montepremi {SUPER_LEAGUE.prizePool}. I premi vengono assegnati ai tre migliori
-                classificati a fine stagione.
-              </p>
+              <motion.div {...reveal} className="text-center max-w-lg mx-auto">
+                <p className="text-brand-orange text-[11px] font-bold uppercase tracking-[0.22em]">
+                  Premi finali
+                </p>
+                <h2 className="mt-3 font-display font-bold text-3xl md:text-5xl tracking-tightest text-white text-balance">
+                  Cosa puoi vincere
+                </h2>
+                <p className="mt-4 text-white/60 leading-relaxed">
+                  Montepremi {SUPER_LEAGUE.prizePool}. I premi vengono assegnati ai tre migliori
+                  classificati a fine stagione.
+                </p>
+              </motion.div>
 
-              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto md:items-end">
-                {PRIZES.map((p) => (
-                  <div
+              <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto md:items-end">
+                {PRIZES.map((p, i) => (
+                  <motion.div
                     key={p.place}
-                    className={`relative rounded-3xl p-6 flex flex-col items-center gap-4 text-center border transition-transform hover:-translate-y-1 ${
+                    {...reveal}
+                    transition={{ duration: 0.55, delay: i * 0.08 }}
+                    className={`relative rounded-3xl p-7 flex flex-col items-center gap-4 text-center border ${
                       p.place === 1
-                        ? "md:order-2 md:-mt-6 bg-gradient-to-b from-white to-white border-brand-orange shadow-[0_20px_60px_-15px_rgba(255,122,0,0.5)] ring-1 ring-brand-orange/40"
+                        ? "md:order-2 md:-mt-8 bg-white border-brand-orange shadow-[0_24px_70px_-18px_rgba(245,130,32,0.55)] ring-1 ring-brand-orange/30"
                         : p.place === 2
-                        ? "md:order-1 bg-white/95 border-white/20"
-                        : "md:order-3 bg-white/95 border-white/20"
+                        ? "md:order-1 bg-white/[0.96] border-white/15"
+                        : "md:order-3 bg-white/[0.96] border-white/15"
                     }`}
                   >
                     {p.place === 1 && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-orange px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white whitespace-nowrap">
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-orange px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white whitespace-nowrap">
                         Premio top
                       </span>
                     )}
-
-                    {/* Immagine premio (con fallback automatico all'icona) */}
                     <PrizeMedia image={p.image} icon={p.icon} title={p.title} highlight={p.place === 1} />
-
                     <div>
-                      <span className="text-xs font-bold uppercase tracking-widest text-muted">
+                      <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
                         {p.label}
                       </span>
-                      <h3 className="font-display font-bold text-xl text-ink mt-1">{p.title}</h3>
+                      <h3 className="mt-1 font-display font-bold text-xl text-ink">{p.title}</h3>
                     </div>
-
                     {p.items.length > 0 && (
                       <ul className="flex flex-col gap-1.5 w-full">
                         {p.items.map((it) => (
-                          <li
-                            key={it}
-                            className="text-sm text-ink2 flex items-center justify-center gap-1.5"
-                          >
+                          <li key={it} className="text-sm text-ink2 flex items-center justify-center gap-1.5">
                             <CheckCircle2 size={13} className="text-brand-orange shrink-0" />
                             {it}
                           </li>
                         ))}
                       </ul>
                     )}
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
               {PRIZES.some((p) => p.image) && (
-                <p className="text-center text-white/45 text-xs mt-8 max-w-xl mx-auto">
+                <p className="text-center text-white/40 text-xs mt-8 max-w-xl mx-auto">
                   Le immagini dei premi sono puramente illustrative e non rappresentano
-                  necessariamente il prodotto reale (colore, modello, configurazione e versione
-                  possono variare). I marchi e i prodotti appartengono ai rispettivi titolari.
+                  necessariamente il prodotto reale (colore, modello e configurazione possono
+                  variare). I marchi appartengono ai rispettivi titolari.
                 </p>
               )}
-            </div>
-          </section>
 
-          {/* ── PREMIO SETTIMANALE ───────────────────────────────────────── */}
-          <section className="container-x py-10">
-
-            {/* Premio settimanale */}
-            <div className="mt-6 max-w-4xl mx-auto card p-6 flex items-start gap-4 bg-brand-blue/5 border-brand-blue/20">
-              <div className="h-11 w-11 rounded-xl bg-brand-blue/10 grid place-items-center text-brand-blue shrink-0">
-                <Gift size={20} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-ink">Premio settimanale</h3>
-                <p className="text-sm text-muted mt-1 leading-relaxed">
-                  Ogni giornata, chi ottiene il punteggio più alto vince l'accesso gratuito
-                  all'edizione successiva della Super League. Dalla seconda vittoria consecutiva,
-                  un buono Amazon da 20€.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* ── COME SI GIOCA ────────────────────────────────────────────── */}
-          <section className="bg-white border-y border-line">
-            <div className="container-x py-16">
-              <p className="overline text-center">Come si gioca</p>
-              <h2 className="font-display font-bold text-3xl md:text-4xl text-center text-ink mt-3 tracking-tightest">
-                Multipronostico, tutti contro tutti
-              </h2>
-              <p className="text-center text-muted mt-3 max-w-xl mx-auto">
-                Ogni giornata ~12 partite selezionate da FantaPronostic. Per ogni partita puoi
-                indovinare più pronostici: ognuno vale punti separatamente.
-              </p>
-
-              {/* Scoring table */}
-              <div className="mt-10 max-w-lg mx-auto card p-6">
-                <h3 className="font-display font-bold text-lg text-ink mb-4">Punteggi per partita</h3>
-                <ul className="flex flex-col gap-3">
-                  {SCORING.map((s) => (
-                    <li key={s.label} className="flex items-center justify-between">
-                      <span className="text-sm text-ink2">{s.label}</span>
-                      <span className="font-display font-bold text-brand-orange">
-                        {s.points} {s.points === 1 ? "punto" : "punti"}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="h-px bg-line my-4" />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-ink">Massimo per partita</span>
-                  <span className="font-display font-bold text-ink">{totalPrizeMax} punti</span>
+              {/* Premio settimanale */}
+              <motion.div
+                {...reveal}
+                className="mt-10 max-w-4xl mx-auto rounded-3xl bg-white/[0.05] border border-white/12 p-6 flex items-start gap-4 backdrop-blur-sm"
+              >
+                <div className="h-11 w-11 rounded-2xl bg-brand-orange/15 grid place-items-center text-brand-orange shrink-0">
+                  <Gift size={20} />
                 </div>
-                <div className="mt-4 rounded-2xl bg-brand-orange/10 p-4 flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-brand-orange/20 grid place-items-center text-brand-orange shrink-0 font-display font-bold text-sm">
-                    x3
-                  </div>
-                  <p className="text-sm text-ink2 leading-relaxed">
-                    <strong>Partite X3:</strong> alcune partite hanno il moltiplicatore x3. Tutti i
-                    punti di quella partita valgono il triplo (fino a 27 punti).
+                <div>
+                  <h3 className="font-display font-bold text-white">Premio settimanale</h3>
+                  <p className="text-sm text-white/60 mt-1 leading-relaxed">
+                    Ogni giornata, chi ottiene il punteggio più alto vince l'accesso gratuito
+                    all'edizione successiva della Super League. Dalla seconda vittoria consecutiva,
+                    un buono Amazon da 20€.
                   </p>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </section>
 
-          {/* ── COME PARTECIPARE ─────────────────────────────────────────── */}
-          <section className="container-x py-16">
-            <p className="overline text-center">In 3 passi</p>
-            <h2 className="font-display font-bold text-3xl md:text-4xl text-center text-ink mt-3 tracking-tightest">
-              Come partecipare
-            </h2>
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              {[
-                {
-                  icon: <ShieldCheck size={24} />,
-                  title: "Acquista il Pass",
-                  desc: "Acquista il Piano editoriale digitale (39€). Ricevi il prodotto e il codice di accesso via email.",
-                },
-                {
-                  icon: <Zap size={24} />,
-                  title: "Scarica l'app",
-                  desc: "Scarica FantaPronostic, registrati o accedi e inserisci il codice ricevuto via email.",
-                },
-                {
-                  icon: <Target size={24} />,
-                  title: "Pronostica e vinci",
-                  desc: "Ogni giornata inserisci i tuoi pronostici, scala la classifica e conquista i premi.",
-                },
-              ].map((s, i) => (
-                <div key={i} className="flex flex-col items-center text-center gap-4">
-                  <div className="h-14 w-14 rounded-2xl bg-brand-orange/10 grid place-items-center text-brand-orange">
-                    {s.icon}
-                  </div>
-                  <span className="text-xs font-bold uppercase tracking-widest text-muted">
-                    Step {i + 1}
-                  </span>
-                  <h3 className="font-display font-bold text-lg text-ink">{s.title}</h3>
-                  <p className="text-sm text-muted leading-relaxed">{s.desc}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* ── ACQUISTA / PRE-ISCRIZIONE ────────────────────────────────── */}
-          <section id="acquista" className="bg-white border-t border-line scroll-mt-20">
-            <div className="container-x py-16">
+          {/* ══ ACQUISTA / PRE-ISCRIZIONE (chiaro) ═════════════════════════ */}
+          <section id="acquista" className="section-pad bg-bg-soft scroll-mt-16">
+            <div className="container-x">
               <div className="max-w-md mx-auto">
                 {isOpen ? (
                   <PurchaseCard
@@ -502,29 +584,30 @@ export default function LeaguePage() {
             </div>
           </section>
 
-          {/* ── REGOLAMENTO ──────────────────────────────────────────────── */}
-          <section className="container-x py-16">
-            <div className="max-w-2xl mx-auto">
-              <p className="overline text-center">Regolamento</p>
-              <h2 className="font-display font-bold text-3xl text-center text-ink mt-3 tracking-tightest">
-                Regolamento completo
-              </h2>
-              <p className="text-center text-muted mt-3 mb-8">
-                Super League 2026/2027 · {REGOLAMENTO.length} articoli
-              </p>
+          {/* ══ REGOLAMENTO (chiaro) ═══════════════════════════════════════ */}
+          <section className="section-pad">
+            <div className="container-x">
+              <motion.div {...reveal} className="max-w-2xl mx-auto text-center">
+                <p className="overline justify-center">Regolamento</p>
+                <h2 className="mt-4 font-display font-bold text-3xl md:text-4xl tracking-tightest text-ink">
+                  Regolamento completo
+                </h2>
+                <p className="mt-3 text-muted">
+                  Super League 2026/2027 · {REGOLAMENTO.length} articoli
+                </p>
+              </motion.div>
 
-              <div className="flex flex-col gap-2">
+              <div className="mt-10 max-w-2xl mx-auto flex flex-col gap-2.5">
                 {REGOLAMENTO.map((art) => {
                   const open = openArticle === art.n;
                   return (
                     <div key={art.n} className="card overflow-hidden">
                       <button
                         onClick={() => setOpenArticle(open ? null : art.n)}
-                        className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-bg-soft transition-colors"
-                        data-testid={`regolamento-art-${art.n}`}
+                        className="w-full flex items-center justify-between gap-3 p-5 text-left hover:bg-bg-soft transition-colors"
                       >
                         <span className="text-sm font-semibold text-ink">
-                          <span className="text-brand-orange">Art. {art.n}</span> — {art.title}
+                          <span className="text-brand-orange">Art. {art.n}</span> · {art.title}
                         </span>
                         <ChevronDown
                           size={18}
@@ -532,7 +615,7 @@ export default function LeaguePage() {
                         />
                       </button>
                       {open && (
-                        <div className="px-4 pb-4 -mt-1">
+                        <div className="px-5 pb-5 -mt-1">
                           <p className="text-sm text-ink2 leading-relaxed whitespace-pre-line">
                             {art.body}
                           </p>
@@ -545,51 +628,22 @@ export default function LeaguePage() {
             </div>
           </section>
 
-          {/* ── FAQ ──────────────────────────────────────────────────────── */}
-          <section className="bg-white border-t border-line">
-            <div className="container-x py-16">
-              <div className="max-w-2xl mx-auto">
-                <p className="overline text-center">FAQ</p>
-                <h2 className="font-display font-bold text-3xl text-center text-ink mt-3 tracking-tightest">
+          {/* ══ FAQ (chiaro) ═══════════════════════════════════════════════ */}
+          <section className="section-pad bg-bg-soft">
+            <div className="container-x">
+              <motion.div {...reveal} className="max-w-2xl mx-auto text-center">
+                <p className="overline justify-center">FAQ</p>
+                <h2 className="mt-4 font-display font-bold text-3xl md:text-4xl tracking-tightest text-ink">
                   Domande frequenti
                 </h2>
-                <div className="mt-8 flex flex-col gap-6">
-                  {[
-                    {
-                      q: "Cosa acquisto esattamente?",
-                      a: "Acquisti il Piano editoriale digitale 2026/2027 (contenuti statistici, approfondimenti e aggiornamenti della stagione). L'accesso alla Super League 2026/2027 è incluso nel piano: dopo il pagamento ricevi via email il prodotto e il codice da riscattare nell'app.",
-                    },
-                    {
-                      q: "Come funziona lo sconto del 10%?",
-                      a: "Se ti sei pre-iscritto ricevi un codice sconto personale via email. Inseriscilo nel campo 'Codice sconto' al momento dell'acquisto (o arrivi già col codice dal link email): lo sconto viene applicato automaticamente al checkout. Se non hai un codice, paghi il prezzo pieno.",
-                    },
-                    {
-                      q: "Non ho ancora l'app. Posso acquistare lo stesso?",
-                      a: "Sì. Completa l'acquisto con la tua email, poi scarica FantaPronostic, registrati o accedi e inserisci il codice ricevuto via email per entrare nella Super League.",
-                    },
-                    {
-                      q: "Il pagamento si rinnova automaticamente?",
-                      a: "No. È un pagamento unico per la stagione 2026/2027, senza rinnovo automatico e senza addebiti ricorrenti.",
-                    },
-                    {
-                      q: "Come vengono selezionate le partite?",
-                      a: "Ogni giornata è composta indicativamente da 12 partite scelte da FantaPronostic, anche da campionati e competizioni differenti. L'elenco viene pubblicato nell'app prima dell'apertura dei pronostici.",
-                    },
-                    {
-                      q: "Come ricevo il premio se vinco?",
-                      a: "A fine stagione i vincitori vengono contattati all'email dell'account. I premi finali (Apple Pack, MacBook, PS5) vengono consegnati previa verifica dell'identità. Consulta il regolamento per tutti i dettagli.",
-                    },
-                    {
-                      q: "Posso partecipare con più account?",
-                      a: "No. Ogni acquisto dà accesso a un solo account e la partecipazione con account multipli, dati falsi o sistemi automatizzati comporta l'esclusione senza rimborso.",
-                    },
-                  ].map((faq, i) => (
-                    <div key={i} className="border-b border-line pb-6 last:border-0">
-                      <h3 className="font-semibold text-ink text-base">{faq.q}</h3>
-                      <p className="mt-2 text-sm text-muted leading-relaxed">{faq.a}</p>
-                    </div>
-                  ))}
-                </div>
+              </motion.div>
+              <div className="mt-10 max-w-2xl mx-auto flex flex-col gap-6">
+                {FAQ.map((faq, i) => (
+                  <div key={i} className="border-b border-line pb-6 last:border-0">
+                    <h3 className="font-semibold text-ink text-base">{faq.q}</h3>
+                    <p className="mt-2 text-sm text-muted leading-relaxed">{faq.a}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </section>
@@ -604,6 +658,37 @@ export default function LeaguePage() {
     </div>
   );
 }
+
+const FAQ = [
+  {
+    q: "Cosa acquisto esattamente?",
+    a: "Acquisti il Piano editoriale digitale 2026/2027 (contenuti statistici, approfondimenti e aggiornamenti della stagione). L'accesso alla Super League 2026/2027 è incluso nel piano: dopo il pagamento ricevi via email il prodotto e il codice da riscattare nell'app.",
+  },
+  {
+    q: "Come funziona lo sconto del 10%?",
+    a: "Se ti sei pre-iscritto ricevi un codice sconto personale via email. Inseriscilo nel campo 'Codice sconto' al momento dell'acquisto (o arrivi già col codice dal link email): lo sconto viene applicato automaticamente al checkout. Se non hai un codice, paghi il prezzo pieno.",
+  },
+  {
+    q: "Non ho ancora l'app. Posso acquistare lo stesso?",
+    a: "Sì. Completa l'acquisto con la tua email, poi scarica FantaPronostic, registrati o accedi e inserisci il codice ricevuto via email per entrare nella Super League.",
+  },
+  {
+    q: "Il pagamento si rinnova automaticamente?",
+    a: "No. È un pagamento unico per la stagione 2026/2027, senza rinnovo automatico e senza addebiti ricorrenti.",
+  },
+  {
+    q: "Come vengono selezionate le partite?",
+    a: "Ogni giornata è composta indicativamente da 12 partite scelte da FantaPronostic, anche da campionati e competizioni differenti. L'elenco viene pubblicato nell'app prima dell'apertura dei pronostici.",
+  },
+  {
+    q: "Come ricevo il premio se vinco?",
+    a: "A fine stagione i vincitori vengono contattati all'email dell'account. I premi finali (Apple Pack, MacBook, PS5) vengono consegnati previa verifica dell'identità. Consulta il regolamento per tutti i dettagli.",
+  },
+  {
+    q: "Posso partecipare con più account?",
+    a: "No. Ogni acquisto dà accesso a un solo account e la partecipazione con account multipli, dati falsi o sistemi automatizzati comporta l'esclusione senza rimborso.",
+  },
+];
 
 // ─── Prize media (immagine con fallback all'icona) ────────────────────────────
 function PrizeMedia({
@@ -693,19 +778,15 @@ function PreRegisterCard({
               onChange={(e) => setPreEmail(e.target.value)}
               placeholder="nome@esempio.it"
               className="w-full rounded-2xl border border-line bg-bg-soft px-5 py-3.5 text-ink placeholder:text-muted focus:outline-none focus:border-brand-blue focus:bg-white transition-colors"
-              data-testid="prereg-input-email"
             />
           </div>
           {preStatus === "err" && (
-            <p className="text-sm text-red-600 font-medium">
-              Inserisci un'email valida e riprova.
-            </p>
+            <p className="text-sm text-red-600 font-medium">Inserisci un'email valida e riprova.</p>
           )}
           <button
             onClick={onPreRegister}
             disabled={preStatus === "loading"}
             className="btn-primary justify-center disabled:opacity-70 disabled:cursor-wait"
-            data-testid="prereg-button"
           >
             {preStatus === "loading" ? (
               <>
@@ -750,12 +831,8 @@ function PurchaseCard({
   return (
     <div className="card p-8 flex flex-col gap-5">
       <div className="text-center">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted mb-2">
-          Cosa ricevi
-        </p>
-        <div className="flex items-end justify-center gap-1">
-          <span className="font-display font-bold text-5xl text-ink">€{SUPER_LEAGUE.price}</span>
-        </div>
+        <p className="text-xs font-bold uppercase tracking-widest text-muted mb-2">Cosa ricevi</p>
+        <div className="font-display font-bold text-5xl text-ink">€{SUPER_LEAGUE.price}</div>
         <p className="text-xs text-muted mt-2">Pagamento unico · nessun rinnovo automatico</p>
       </div>
 
@@ -763,15 +840,15 @@ function PurchaseCard({
         <div className="flex items-start gap-3">
           <CheckCircle2 size={17} className="text-brand-orange shrink-0 mt-0.5" />
           <span className="text-sm text-ink2 leading-relaxed">
-            <strong className="text-ink">Piano editoriale digitale 2026/2027</strong> — contenuti
-            statistici, approfondimenti e aggiornamenti di tutta la stagione
+            <strong className="text-ink">Piano editoriale digitale 2026/2027</strong> — contenuti,
+            statistiche e approfondimenti di tutta la stagione
           </span>
         </div>
         <div className="flex items-start gap-3">
           <CheckCircle2 size={17} className="text-brand-orange shrink-0 mt-0.5" />
           <span className="text-sm text-ink2 leading-relaxed">
-            <strong className="text-ink">Accesso alla Super League 2026/2027</strong> — incluso nel
-            piano, con codice riscattabile nell'app
+            <strong className="text-ink">Accesso alla Super League 2026/2027</strong> — incluso, con
+            codice riscattabile nell'app
           </span>
         </div>
       </div>
@@ -789,7 +866,6 @@ function PurchaseCard({
             onChange={(e) => setEmail(e.target.value)}
             placeholder="nome@esempio.it"
             className="w-full rounded-2xl border border-line bg-bg-soft px-5 py-3.5 text-ink placeholder:text-muted focus:outline-none focus:border-brand-blue focus:bg-white transition-colors"
-            data-testid="league-input-email"
           />
         </div>
         <div>
@@ -802,7 +878,6 @@ function PurchaseCard({
             onChange={(e) => setConfirmEmail(e.target.value)}
             placeholder="nome@esempio.it"
             className="w-full rounded-2xl border border-line bg-bg-soft px-5 py-3.5 text-ink placeholder:text-muted focus:outline-none focus:border-brand-blue focus:bg-white transition-colors"
-            data-testid="league-input-confirm-email"
           />
         </div>
         <div>
@@ -815,7 +890,6 @@ function PurchaseCard({
             onChange={(e) => setDiscountCode(e.target.value)}
             placeholder="Es. SUPER10-XXXXXX"
             className="w-full rounded-2xl border border-line bg-bg-soft px-5 py-3.5 text-ink placeholder:text-muted uppercase focus:outline-none focus:border-brand-blue focus:bg-white transition-colors"
-            data-testid="league-input-discount"
           />
           {discountCode.trim() && (
             <p className="text-xs text-green-700 font-medium mt-2 flex items-center gap-1.5">
@@ -830,17 +904,12 @@ function PurchaseCard({
         </p>
       </div>
 
-      {error && (
-        <p className="text-sm text-red-600 font-medium" data-testid="league-error">
-          {error}
-        </p>
-      )}
+      {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
 
       <button
         onClick={onPay}
         disabled={loading}
         className="btn-primary justify-center disabled:opacity-70 disabled:cursor-wait"
-        data-testid="league-pay-button"
       >
         {loading ? (
           <>
@@ -866,7 +935,7 @@ function PurchaseCard({
 // ─── Success screen ───────────────────────────────────────────────────────────
 function SuccessScreen() {
   return (
-    <main className="container-x py-16 md:py-24">
+    <main className="container-x py-24 md:py-28">
       <div className="max-w-lg mx-auto">
         <div className="card p-8 md:p-10 flex flex-col items-center text-center gap-6">
           <div className="h-16 w-16 rounded-full bg-green-100 grid place-items-center text-green-600">
@@ -876,7 +945,9 @@ function SuccessScreen() {
             <h1 className="font-display font-bold text-3xl text-ink tracking-tightest">
               Pagamento effettuato!
             </h1>
-            <p className="mt-2 text-muted text-sm">Benvenuto nella Super League. Ecco cosa fare adesso:</p>
+            <p className="mt-2 text-muted text-sm">
+              Benvenuto nella Super League. Ecco cosa fare adesso:
+            </p>
           </div>
 
           <div className="w-full flex flex-col gap-4 text-left">
@@ -908,7 +979,6 @@ function SuccessScreen() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-blue text-xs px-3 py-1.5"
-                    data-testid="success-ios-link"
                   >
                     App Store
                   </a>
@@ -917,7 +987,6 @@ function SuccessScreen() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-primary text-xs px-3 py-1.5"
-                    data-testid="success-android-link"
                   >
                     Google Play
                   </a>
