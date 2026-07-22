@@ -231,6 +231,22 @@ export default function LeaguePage() {
                 </span>
               </div>
 
+              {!isOpen && (
+                <div className="mt-5 flex justify-center">
+                  <a
+                    href="#acquista"
+                    className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-brand-orange/60 px-5 py-2.5 backdrop-blur-sm hover:bg-white/15 transition-colors"
+                    data-testid="hero-prereg-badge"
+                  >
+                    <span className="text-lg">🎟️</span>
+                    <span className="text-sm md:text-base font-bold text-white">
+                      Pre-iscriviti ora e ottieni il{" "}
+                      <span className="text-brand-orange">10% di sconto</span>
+                    </span>
+                  </a>
+                </div>
+              )}
+
               {/* Countdown */}
               <div className="mt-10">
                 <p className="text-white/70 text-sm font-semibold uppercase tracking-widest mb-4">
@@ -245,7 +261,8 @@ export default function LeaguePage() {
                   </div>
                 )}
                 <p className="mt-5 text-white/80 text-sm">
-                  Si parte il <strong className="text-white">{SUPER_LEAGUE.startLabel}</strong> · Pass{" "}
+                  Si parte il <strong className="text-white">{SUPER_LEAGUE.startLabel}</strong> ·
+                  Piano editoriale + accesso da{" "}
                   <strong className="text-white">{SUPER_LEAGUE.price}€</strong>
                 </p>
               </div>
@@ -278,48 +295,89 @@ export default function LeaguePage() {
                 className="mt-10 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-ink hover:bg-white/90 transition-colors"
                 data-testid="hero-cta"
               >
-                {isOpen ? "Acquista il Pass" : "Pre-iscriviti ora"}
+                {isOpen ? "Acquista ora" : "Pre-iscriviti e risparmia il 10%"}
                 <ArrowRight size={16} />
               </a>
             </div>
           </section>
 
           {/* ── PREMI ────────────────────────────────────────────────────── */}
-          <section className="container-x py-16">
-            <p className="overline text-center">Premi finali</p>
-            <h2 className="font-display font-bold text-3xl md:text-4xl text-center text-ink mt-3 tracking-tightest">
-              Cosa puoi vincere
-            </h2>
-            <p className="text-center text-muted mt-3 max-w-md mx-auto">
-              I premi vengono assegnati al termine della stagione ai tre migliori classificati.
-            </p>
+          <section className="relative overflow-hidden py-16 md:py-20"
+            style={{
+              background:
+                "radial-gradient(120% 100% at 50% 0%, #14315f 0%, #0a1f45 55%, #050f24 100%)",
+            }}
+          >
+            <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[500px] h-[300px] rounded-full bg-brand-orange/15 blur-[120px] pointer-events-none" />
+            <div className="container-x relative">
+              <p className="text-center text-brand-orange text-xs font-bold uppercase tracking-[0.2em]">
+                Premi finali
+              </p>
+              <h2 className="font-display font-bold text-3xl md:text-5xl text-center text-white mt-3 tracking-tightest">
+                Cosa puoi vincere
+              </h2>
+              <p className="text-center text-white/60 mt-3 max-w-md mx-auto">
+                Montepremi {SUPER_LEAGUE.prizePool}. I premi vengono assegnati ai tre migliori
+                classificati a fine stagione.
+              </p>
 
-            <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-              {PRIZES.map((p) => (
-                <div
-                  key={p.place}
-                  className={`card p-6 text-center flex flex-col items-center gap-3 ${
-                    p.place === 1 ? "border-brand-orange shadow-cta ring-2 ring-brand-orange/20" : ""
-                  }`}
-                >
-                  <span className="text-5xl">{p.icon}</span>
-                  <span className="text-xs font-bold uppercase tracking-widest text-muted">
-                    {p.label}
-                  </span>
-                  <span className="font-display font-bold text-xl text-ink">{p.title}</span>
-                  {p.items.length > 0 && (
-                    <ul className="flex flex-col gap-1 mt-1">
-                      {p.items.map((it) => (
-                        <li key={it} className="text-sm text-ink2 flex items-center justify-center gap-1.5">
-                          <CheckCircle2 size={13} className="text-brand-orange shrink-0" />
-                          {it}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
+              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto md:items-end">
+                {PRIZES.map((p) => (
+                  <div
+                    key={p.place}
+                    className={`relative rounded-3xl p-6 flex flex-col items-center gap-4 text-center border transition-transform hover:-translate-y-1 ${
+                      p.place === 1
+                        ? "md:order-2 md:-mt-6 bg-gradient-to-b from-white to-white border-brand-orange shadow-[0_20px_60px_-15px_rgba(255,122,0,0.5)] ring-1 ring-brand-orange/40"
+                        : p.place === 2
+                        ? "md:order-1 bg-white/95 border-white/20"
+                        : "md:order-3 bg-white/95 border-white/20"
+                    }`}
+                  >
+                    {p.place === 1 && (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-orange px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white whitespace-nowrap">
+                        Premio top
+                      </span>
+                    )}
+
+                    {/* Immagine premio (con fallback automatico all'icona) */}
+                    <PrizeMedia image={p.image} icon={p.icon} title={p.title} highlight={p.place === 1} />
+
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted">
+                        {p.label}
+                      </span>
+                      <h3 className="font-display font-bold text-xl text-ink mt-1">{p.title}</h3>
+                    </div>
+
+                    {p.items.length > 0 && (
+                      <ul className="flex flex-col gap-1.5 w-full">
+                        {p.items.map((it) => (
+                          <li
+                            key={it}
+                            className="text-sm text-ink2 flex items-center justify-center gap-1.5"
+                          >
+                            <CheckCircle2 size={13} className="text-brand-orange shrink-0" />
+                            {it}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {PRIZES.some((p) => p.image) && (
+                <p className="text-center text-white/45 text-xs mt-8 max-w-xl mx-auto">
+                  Le immagini dei premi sono puramente illustrative e non rappresentano
+                  necessariamente il prodotto reale (colore, modello, configurazione e versione
+                  possono variare). I marchi e i prodotti appartengono ai rispettivi titolari.
+                </p>
+              )}
             </div>
+          </section>
+
+          {/* ── PREMIO SETTIMANALE ───────────────────────────────────────── */}
+          <section className="container-x py-10">
 
             {/* Premio settimanale */}
             <div className="mt-6 max-w-4xl mx-auto card p-6 flex items-start gap-4 bg-brand-blue/5 border-brand-blue/20">
@@ -488,6 +546,55 @@ export default function LeaguePage() {
               </div>
             </div>
           </section>
+
+          {/* ── FAQ ──────────────────────────────────────────────────────── */}
+          <section className="bg-white border-t border-line">
+            <div className="container-x py-16">
+              <div className="max-w-2xl mx-auto">
+                <p className="overline text-center">FAQ</p>
+                <h2 className="font-display font-bold text-3xl text-center text-ink mt-3 tracking-tightest">
+                  Domande frequenti
+                </h2>
+                <div className="mt-8 flex flex-col gap-6">
+                  {[
+                    {
+                      q: "Cosa acquisto esattamente?",
+                      a: "Acquisti il Piano editoriale digitale 2026/2027 (contenuti statistici, approfondimenti e aggiornamenti della stagione). L'accesso alla Super League 2026/2027 è incluso nel piano: dopo il pagamento ricevi via email il prodotto e il codice da riscattare nell'app.",
+                    },
+                    {
+                      q: "Come funziona lo sconto del 10%?",
+                      a: "Se ti sei pre-iscritto ricevi un codice sconto personale via email. Inseriscilo nel campo 'Codice sconto' al momento dell'acquisto (o arrivi già col codice dal link email): lo sconto viene applicato automaticamente al checkout. Se non hai un codice, paghi il prezzo pieno.",
+                    },
+                    {
+                      q: "Non ho ancora l'app. Posso acquistare lo stesso?",
+                      a: "Sì. Completa l'acquisto con la tua email, poi scarica FantaPronostic, registrati o accedi e inserisci il codice ricevuto via email per entrare nella Super League.",
+                    },
+                    {
+                      q: "Il pagamento si rinnova automaticamente?",
+                      a: "No. È un pagamento unico per la stagione 2026/2027, senza rinnovo automatico e senza addebiti ricorrenti.",
+                    },
+                    {
+                      q: "Come vengono selezionate le partite?",
+                      a: "Ogni giornata è composta indicativamente da 12 partite scelte da FantaPronostic, anche da campionati e competizioni differenti. L'elenco viene pubblicato nell'app prima dell'apertura dei pronostici.",
+                    },
+                    {
+                      q: "Come ricevo il premio se vinco?",
+                      a: "A fine stagione i vincitori vengono contattati all'email dell'account. I premi finali (Apple Pack, MacBook, PS5) vengono consegnati previa verifica dell'identità. Consulta il regolamento per tutti i dettagli.",
+                    },
+                    {
+                      q: "Posso partecipare con più account?",
+                      a: "No. Ogni acquisto dà accesso a un solo account e la partecipazione con account multipli, dati falsi o sistemi automatizzati comporta l'esclusione senza rimborso.",
+                    },
+                  ].map((faq, i) => (
+                    <div key={i} className="border-b border-line pb-6 last:border-0">
+                      <h3 className="font-semibold text-ink text-base">{faq.q}</h3>
+                      <p className="mt-2 text-sm text-muted leading-relaxed">{faq.a}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
         </main>
       )}
 
@@ -496,6 +603,42 @@ export default function LeaguePage() {
           © {new Date().getFullYear()} FantaPronostic. Tutti i diritti riservati.
         </div>
       </footer>
+    </div>
+  );
+}
+
+// ─── Prize media (immagine con fallback all'icona) ────────────────────────────
+function PrizeMedia({
+  image,
+  icon,
+  title,
+  highlight,
+}: {
+  image: string;
+  icon: string;
+  title: string;
+  highlight: boolean;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (image && !failed) {
+    return (
+      <div className="h-36 w-full grid place-items-center">
+        <img
+          src={image}
+          alt={title}
+          onError={() => setFailed(true)}
+          className="max-h-36 max-w-full object-contain"
+        />
+      </div>
+    );
+  }
+  return (
+    <div
+      className={`h-24 w-24 rounded-2xl grid place-items-center text-5xl ${
+        highlight ? "bg-brand-orange/10" : "bg-bg-soft"
+      }`}
+    >
+      {icon}
     </div>
   );
 }
@@ -610,19 +753,29 @@ function PurchaseCard({
     <div className="card p-8 flex flex-col gap-5">
       <div className="text-center">
         <p className="text-xs font-bold uppercase tracking-widest text-muted mb-2">
-          Piano editoriale digitale
+          Cosa ricevi
         </p>
         <div className="flex items-end justify-center gap-1">
-          <span className="text-muted text-lg mb-1">Pass</span>
           <span className="font-display font-bold text-5xl text-ink">€{SUPER_LEAGUE.price}</span>
         </div>
         <p className="text-xs text-muted mt-2">Pagamento unico · nessun rinnovo automatico</p>
       </div>
 
-      <div className="rounded-2xl bg-bg-soft border border-line p-4 text-xs text-ink2 leading-relaxed">
-        Acquisti il prodotto editoriale <strong>{SUPER_LEAGUE.productName}</strong>, che include
-        l'accesso alla Super League 2026/2027. Riceverai il prodotto e il codice di accesso via
-        email.
+      <div className="rounded-2xl bg-bg-soft border border-line p-4 flex flex-col gap-3">
+        <div className="flex items-start gap-3">
+          <CheckCircle2 size={17} className="text-brand-orange shrink-0 mt-0.5" />
+          <span className="text-sm text-ink2 leading-relaxed">
+            <strong className="text-ink">Piano editoriale digitale 2026/2027</strong> — contenuti
+            statistici, approfondimenti e aggiornamenti di tutta la stagione
+          </span>
+        </div>
+        <div className="flex items-start gap-3">
+          <CheckCircle2 size={17} className="text-brand-orange shrink-0 mt-0.5" />
+          <span className="text-sm text-ink2 leading-relaxed">
+            <strong className="text-ink">Accesso alla Super League 2026/2027</strong> — incluso nel
+            piano, con codice riscattabile nell'app
+          </span>
+        </div>
       </div>
 
       <div className="h-px bg-line" />
@@ -698,7 +851,7 @@ function PurchaseCard({
           </>
         ) : (
           <>
-            Acquista il Pass — €{SUPER_LEAGUE.price}
+            Acquista il Piano — €{SUPER_LEAGUE.price}
             <ArrowRight size={18} />
           </>
         )}
