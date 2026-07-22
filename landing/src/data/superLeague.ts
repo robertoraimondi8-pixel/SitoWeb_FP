@@ -18,12 +18,22 @@ export const SUPER_LEAGUE = {
   leagueId: "451b4232-2402-492e-9702-351f4c4b03b9",
   // Sfondo hero (stadio notturno), servito dal repo in public/.
   heroImage: "/stadium-hero.png",
+  // Grafica composita dei premi (I premi in palio), servita dal repo.
+  prizesImage: "/prizes.jpg",
   // Apertura iscrizioni (attiva il pagamento) e inizio competizione.
   // Formato ISO. La pagina passa in modalità "pagamento" a partire da openingDate.
   openingDate: "2026-08-04T00:00:00",
   startDate: "2026-09-04T00:00:00",
   startLabel: "4 settembre 2026",
   openingLabel: "4 agosto 2026",
+};
+
+export const SPONSOR = {
+  name: "Shopy Cool",
+  logo: "/shopycool-logo.png",
+  url: "https://www.shopycoolstore.it/",
+  // Vantaggio riservato ai primi iscritti
+  perkLimit: 100,
 };
 
 export const LEAGUES = [

@@ -20,7 +20,7 @@ import {
   Newspaper,
   CalendarDays,
 } from "lucide-react";
-import { SUPER_LEAGUE, LEAGUES, PRIZES, SCORING, REGOLAMENTO } from "@/data/superLeague";
+import { SUPER_LEAGUE, LEAGUES, SCORING, REGOLAMENTO, SPONSOR } from "@/data/superLeague";
 
 const BACKEND_URL =
   (import.meta as any).env?.VITE_BACKEND_URL ||
@@ -349,6 +349,20 @@ export default function LeaguePage() {
                   <ArrowRight size={16} />
                 </a>
               </div>
+
+              {/* Main sponsor */}
+              <div className="mt-12 flex flex-col items-center gap-3">
+                <span className="text-white/40 text-[10px] font-bold uppercase tracking-[0.25em]">
+                  Main Sponsor
+                </span>
+                <a href={SPONSOR.url} target="_blank" rel="noopener noreferrer" aria-label={SPONSOR.name}>
+                  <img
+                    src={SPONSOR.logo}
+                    alt={SPONSOR.name}
+                    className="h-14 w-14 object-contain opacity-90 hover:opacity-100 transition-opacity"
+                  />
+                </a>
+              </div>
             </div>
           </section>
 
@@ -475,66 +489,19 @@ export default function LeaguePage() {
           >
             <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[520px] h-[300px] rounded-full bg-brand-orange/15 blur-[120px]" />
             <div className="container-x relative">
-              <motion.div {...reveal} className="text-center max-w-lg mx-auto">
-                <p className="text-brand-orange text-[11px] font-bold uppercase tracking-[0.22em]">
-                  Premi finali
-                </p>
-                <h2 className="mt-3 font-display font-bold text-3xl md:text-5xl tracking-tightest text-white text-balance">
-                  Cosa puoi vincere
-                </h2>
-                <p className="mt-4 text-white/60 leading-relaxed">
-                  Montepremi {SUPER_LEAGUE.prizePool}. I premi vengono assegnati ai tre migliori
-                  classificati a fine stagione.
-                </p>
+              <motion.div {...reveal} className="max-w-5xl mx-auto">
+                <img
+                  src={SUPER_LEAGUE.prizesImage}
+                  alt="I premi in palio della FantaPronostic Super League: 1° Apple Pack (iPhone Pro, AirPods, Apple Watch), 2° MacBook Neo 13, 3° PlayStation 5 Slim"
+                  className="w-full h-auto rounded-3xl border border-white/10 shadow-[0_30px_80px_-24px_rgba(0,0,0,0.6)]"
+                />
               </motion.div>
 
-              <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto md:items-end">
-                {PRIZES.map((p, i) => (
-                  <motion.div
-                    key={p.place}
-                    {...reveal}
-                    transition={{ duration: 0.55, delay: i * 0.08 }}
-                    className={`relative rounded-3xl p-7 flex flex-col items-center gap-4 text-center border ${
-                      p.place === 1
-                        ? "md:order-2 md:-mt-8 bg-white border-brand-orange shadow-[0_24px_70px_-18px_rgba(245,130,32,0.55)] ring-1 ring-brand-orange/30"
-                        : p.place === 2
-                        ? "md:order-1 bg-white/[0.96] border-white/15"
-                        : "md:order-3 bg-white/[0.96] border-white/15"
-                    }`}
-                  >
-                    {p.place === 1 && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-orange px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white whitespace-nowrap">
-                        Premio top
-                      </span>
-                    )}
-                    <PrizeMedia image={p.image} icon={p.icon} title={p.title} highlight={p.place === 1} />
-                    <div>
-                      <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
-                        {p.label}
-                      </span>
-                      <h3 className="mt-1 font-display font-bold text-xl text-ink">{p.title}</h3>
-                    </div>
-                    {p.items.length > 0 && (
-                      <ul className="flex flex-col gap-1.5 w-full">
-                        {p.items.map((it) => (
-                          <li key={it} className="text-sm text-ink2 flex items-center justify-center gap-1.5">
-                            <CheckCircle2 size={13} className="text-brand-orange shrink-0" />
-                            {it}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-
-              {PRIZES.some((p) => p.image) && (
-                <p className="text-center text-white/40 text-xs mt-8 max-w-xl mx-auto">
-                  Le immagini dei premi sono puramente illustrative e non rappresentano
-                  necessariamente il prodotto reale (colore, modello e configurazione possono
-                  variare). I marchi appartengono ai rispettivi titolari.
-                </p>
-              )}
+              <p className="text-center text-white/40 text-xs mt-6 max-w-xl mx-auto">
+                Montepremi {SUPER_LEAGUE.prizePool}. Le immagini dei premi sono puramente illustrative
+                e non rappresentano necessariamente il prodotto reale (colore, modello e
+                configurazione possono variare). I marchi appartengono ai rispettivi titolari.
+              </p>
 
               {/* Premio settimanale */}
               <motion.div
@@ -551,6 +518,64 @@ export default function LeaguePage() {
                     all'edizione successiva della Super League. Dalla seconda vittoria consecutiva,
                     un buono Amazon da 20€.
                   </p>
+                </div>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* ══ MAIN SPONSOR — SHOPY COOL (chiaro) ═════════════════════════ */}
+          <section className="section-pad">
+            <div className="container-x">
+              <motion.div
+                {...reveal}
+                className="max-w-4xl mx-auto rounded-3xl border border-brand-orange/25 overflow-hidden"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #FFF6EE 0%, #FFFFFF 55%, #FFF9F3 100%)",
+                }}
+              >
+                <div className="p-8 md:p-10 flex flex-col md:flex-row items-center gap-8">
+                  {/* Logo */}
+                  <div className="shrink-0">
+                    <a href={SPONSOR.url} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={SPONSOR.logo}
+                        alt={SPONSOR.name}
+                        className="h-28 w-28 md:h-32 md:w-32 object-contain"
+                      />
+                    </a>
+                  </div>
+
+                  {/* Testo */}
+                  <div className="flex-1 text-center md:text-left">
+                    <p className="overline justify-center md:justify-start">Main Sponsor</p>
+                    <h2 className="mt-3 font-display font-bold text-2xl md:text-3xl tracking-tightest text-ink">
+                      In collaborazione con{" "}
+                      <span className="text-brand-orange">Shopy Cool</span>
+                    </h2>
+                    <p className="mt-3 text-muted leading-relaxed">
+                      La Super League nasce insieme a Shopy Cool. I{" "}
+                      <strong className="text-ink">primi {SPONSOR.perkLimit} iscritti</strong>{" "}
+                      ricevono un <strong className="text-ink">buono sconto esclusivo</strong>, da
+                      usare sullo store online e nel punto vendita Shopy Cool.
+                    </p>
+
+                    <div className="mt-5 flex flex-col sm:flex-row items-center gap-3 md:justify-start justify-center">
+                      <span className="chip-orange">
+                        <Gift size={13} />
+                        Riservato ai primi {SPONSOR.perkLimit} iscritti
+                      </span>
+                      <a
+                        href={SPONSOR.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-primary"
+                      >
+                        Visita Shopy Cool
+                        <ArrowRight size={16} />
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </div>
@@ -689,42 +714,6 @@ const FAQ = [
     a: "No. Ogni acquisto dà accesso a un solo account e la partecipazione con account multipli, dati falsi o sistemi automatizzati comporta l'esclusione senza rimborso.",
   },
 ];
-
-// ─── Prize media (immagine con fallback all'icona) ────────────────────────────
-function PrizeMedia({
-  image,
-  icon,
-  title,
-  highlight,
-}: {
-  image: string;
-  icon: string;
-  title: string;
-  highlight: boolean;
-}) {
-  const [failed, setFailed] = useState(false);
-  if (image && !failed) {
-    return (
-      <div className="h-36 w-full grid place-items-center">
-        <img
-          src={image}
-          alt={title}
-          onError={() => setFailed(true)}
-          className="max-h-36 max-w-full object-contain"
-        />
-      </div>
-    );
-  }
-  return (
-    <div
-      className={`h-24 w-24 rounded-2xl grid place-items-center text-5xl ${
-        highlight ? "bg-brand-orange/10" : "bg-bg-soft"
-      }`}
-    >
-      {icon}
-    </div>
-  );
-}
 
 // ─── Pre-iscrizione card ──────────────────────────────────────────────────────
 function PreRegisterCard({
