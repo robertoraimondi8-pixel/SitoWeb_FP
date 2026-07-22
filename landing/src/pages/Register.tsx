@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 
 const BACKEND_URL =
   (import.meta as any).env?.VITE_BACKEND_URL ||
-  "https://fanta-auth-fix.preview.emergentagent.com";
+  "https://api.fantapronostic.com";
 
 type Step = "form" | "verify" | "done";
 
