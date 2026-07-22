@@ -259,7 +259,7 @@ export default function LeaguePage() {
                 initial={{ opacity: 0, y: 28 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.08 }}
-                className="mt-7 font-display font-bold text-[44px] sm:text-6xl md:text-7xl lg:text-[86px] leading-[0.92] tracking-tightest text-white uppercase text-balance"
+                className="mt-7 font-display font-bold text-[clamp(1.9rem,7.4vw,5.375rem)] leading-[0.92] tracking-tightest text-white uppercase"
               >
                 FantaPronostic
                 <span className="block relative w-fit mx-auto text-brand-orange">
@@ -489,6 +489,38 @@ export default function LeaguePage() {
           >
             <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[520px] h-[300px] rounded-full bg-brand-orange/15 blur-[120px]" />
             <div className="container-x relative">
+              {/* Bonus Shopy Cool — primi 100 iscritti */}
+              <motion.div
+                {...reveal}
+                className="max-w-3xl mx-auto mb-10 rounded-3xl border border-brand-orange/40 bg-white/[0.06] backdrop-blur-sm p-6 md:p-7 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left"
+              >
+                <a
+                  href={SPONSOR.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={SPONSOR.name}
+                  className="shrink-0"
+                >
+                  <span className="grid place-items-center h-20 w-20 rounded-2xl bg-white">
+                    <img src={SPONSOR.logo} alt={SPONSOR.name} className="h-16 w-16 object-contain" />
+                  </span>
+                </a>
+                <div className="flex-1">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-orange px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white">
+                    <Gift size={12} />
+                    Bonus primi {SPONSOR.perkLimit} iscritti
+                  </span>
+                  <p className="mt-3 font-display font-bold text-xl md:text-2xl text-white leading-tight">
+                    Buono {SPONSOR.name} da{" "}
+                    <span className="text-brand-orange">{SPONSOR.voucher}€</span>
+                  </p>
+                  <p className="mt-1 text-sm text-white/70">
+                    Su una spesa minima di {SPONSOR.minSpend}€ · valido online e in negozio.
+                    Riservato ai primi {SPONSOR.perkLimit} iscritti alla Super League.
+                  </p>
+                </div>
+              </motion.div>
+
               <motion.div {...reveal} className="max-w-5xl mx-auto">
                 <img
                   src={SUPER_LEAGUE.prizesImage}
@@ -556,8 +588,12 @@ export default function LeaguePage() {
                     <p className="mt-3 text-muted leading-relaxed">
                       La Super League nasce insieme a Shopy Cool. I{" "}
                       <strong className="text-ink">primi {SPONSOR.perkLimit} iscritti</strong>{" "}
-                      ricevono un <strong className="text-ink">buono sconto esclusivo</strong>, da
-                      usare sullo store online e nel punto vendita Shopy Cool.
+                      ricevono un{" "}
+                      <strong className="text-ink">
+                        buono Shopy Cool da {SPONSOR.voucher}€
+                      </strong>{" "}
+                      (su una spesa minima di {SPONSOR.minSpend}€), da usare sullo store online e nel
+                      punto vendita Shopy Cool.
                     </p>
 
                     <div className="mt-5 flex flex-col sm:flex-row items-center gap-3 md:justify-start justify-center">

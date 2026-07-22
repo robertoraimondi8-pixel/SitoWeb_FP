@@ -34,6 +34,8 @@ export const SPONSOR = {
   url: "https://www.shopycoolstore.it/",
   // Vantaggio riservato ai primi iscritti
   perkLimit: 100,
+  voucher: 39, // valore del buono in €
+  minSpend: 600, // spesa minima in €
 };
 
 export const LEAGUES = [
