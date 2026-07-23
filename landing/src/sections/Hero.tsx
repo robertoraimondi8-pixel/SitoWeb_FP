@@ -7,7 +7,7 @@ export function Hero() {
   return (
     <section
       id="top"
-      className="relative overflow-hidden pt-28 md:pt-32 pb-20"
+      className="relative overflow-hidden pt-10 md:pt-14 pb-20"
       data-testid="hero-section"
     >
       {/* Background */}
