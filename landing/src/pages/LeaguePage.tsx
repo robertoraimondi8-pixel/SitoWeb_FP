@@ -294,8 +294,8 @@ export default function LeaguePage() {
                   >
                     <span className="text-base">🎟️</span>
                     <span className="text-sm md:text-[15px] font-bold text-white">
-                      Pre-iscriviti ora e ottieni il{" "}
-                      <span className="text-brand-orange">10% di sconto</span>
+                      Pre-iscriviti ora: <span className="text-brand-orange">10% di sconto</span> +
+                      buono <span className="text-brand-orange">Shopy Cool da 39€</span>
                     </span>
                     <ArrowRight size={15} className="text-white/70 group-hover:translate-x-0.5 transition-transform" />
                   </a>
@@ -309,9 +309,14 @@ export default function LeaguePage() {
                 transition={{ duration: 0.6, delay: 0.34 }}
                 className="mt-11"
               >
-                <p className="text-white/55 text-xs font-bold uppercase tracking-[0.2em] mb-4">
-                  {isOpen ? "Iscrizioni aperte" : "Apertura iscrizioni tra"}
+                <p className="text-white/55 text-xs font-bold uppercase tracking-[0.2em] mb-2">
+                  {isOpen ? "Iscrizioni aperte" : "Apertura iscrizioni"}
                 </p>
+                {!isOpen && (
+                  <p className="font-display font-bold text-2xl md:text-3xl text-white mb-5">
+                    {SUPER_LEAGUE.openingLabel}
+                  </p>
+                )}
                 {!isOpen && (
                   <div className="flex items-center justify-center gap-2.5 md:gap-3.5">
                     <CountdownBox value={countdown.days} label="Giorni" />
@@ -404,12 +409,16 @@ export default function LeaguePage() {
                     Bonus primi {SPONSOR.perkLimit} iscritti
                   </span>
                   <p className="mt-3 font-display font-bold text-xl md:text-2xl text-white leading-tight">
-                    Buono {SPONSOR.name} da{" "}
-                    <span className="text-brand-orange">{SPONSOR.voucher}€</span>
+                    Per i primi {SPONSOR.perkLimit} è come entrare{" "}
+                    <span className="text-brand-orange">gratis</span>
                   </p>
-                  <p className="mt-1 text-sm text-white/70">
-                    Su una spesa minima di {SPONSOR.minSpend}€ · valido online e in negozio.
-                    Riservato ai primi {SPONSOR.perkLimit} iscritti alla Super League.
+                  <p className="mt-2 text-sm text-white/80 leading-relaxed">
+                    Paghi il Pass <strong className="text-white">{SUPER_LEAGUE.price}€</strong> e
+                    ricevi un buono <strong className="text-white">{SPONSOR.name} da {SPONSOR.voucher}€</strong>{" "}
+                    — di pari valore. In pratica il tuo ingresso ti torna in acquisti.
+                  </p>
+                  <p className="mt-1.5 text-xs text-white/50">
+                    Buono valido su una spesa minima di {SPONSOR.minSpend}€, online e in negozio Shopy Cool.
                   </p>
                 </div>
               </motion.div>
@@ -784,13 +793,15 @@ function PreRegisterCard({
         <h3 className="font-display font-bold text-2xl text-ink">Pre-iscriviti ora</h3>
         <p className="text-sm text-muted mt-2 leading-relaxed">
           Le iscrizioni aprono il <strong>{SUPER_LEAGUE.openingLabel}</strong>. Pre-iscriviti
-          adesso: è gratis e ti dà diritto al <strong>10% di sconto</strong> sul Pass.
+          adesso: è gratis, ti dà il <strong>10% di sconto</strong> sul Pass e, per i primi{" "}
+          <strong>100</strong>, un <strong>buono Shopy Cool da 39€</strong>.
         </p>
       </div>
 
       <div className="rounded-2xl bg-brand-orange/5 border border-brand-orange/20 p-4 text-xs text-ink2 leading-relaxed">
-        La pre-iscrizione non comporta alcun pagamento: dà solo diritto allo sconto del 10% quando
-        le iscrizioni saranno aperte.
+        La pre-iscrizione non comporta alcun pagamento: dà diritto allo sconto del 10% e, per i
+        primi 100, al buono Shopy Cool da 39€ (su spesa minima di 600€) — di fatto è come entrare
+        gratis.
       </div>
 
       {preStatus === "ok" ? (
