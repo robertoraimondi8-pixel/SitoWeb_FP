@@ -39,11 +39,11 @@ export const SPONSOR = {
 };
 
 export const LEAGUES = [
-  { flag: "🇮🇹", name: "Serie A" },
-  { flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", name: "Premier League" },
-  { flag: "🇪🇸", name: "LaLiga" },
-  { flag: "🇩🇪", name: "Bundesliga" },
-  { flag: "🇫🇷", name: "Ligue 1" },
+  { code: "it", name: "Serie A" },
+  { code: "en", name: "Premier League" },
+  { code: "es", name: "LaLiga" },
+  { code: "de", name: "Bundesliga" },
+  { code: "fr", name: "Ligue 1" },
 ];
 
 // Per aggiungere le foto reali dei premi: metti i file in landing/public/prizes/
