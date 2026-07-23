@@ -108,7 +108,8 @@ L'Organizzatore potrà non programmare giornate durante le soste dei campionati,
   {
     n: 4,
     title: "Requisiti di partecipazione",
-    body: `Per partecipare è necessario: avere un account FantaPronostic attivo; acquistare il Piano editoriale digitale 2026/2027; inserire correttamente il codice o utilizzare il collegamento ricevuto dopo il pagamento; rispettare il presente regolamento e le condizioni di utilizzo dell'app.
+    body: `Le iscrizioni sono aperte a tutte le persone maggiorenni cittadine o residenti in uno degli Stati membri dell'Unione Europea.
+Per partecipare è necessario: avere un account FantaPronostic attivo; acquistare il Piano editoriale digitale 2026/2027; inserire correttamente il codice o utilizzare il collegamento ricevuto dopo il pagamento; rispettare il presente regolamento e le condizioni di utilizzo dell'app.
 Ogni partecipante può utilizzare un solo account. Non è consentita la partecipazione mediante account duplicati, identità false, sistemi automatizzati o account intestati a soggetti diversi dall'effettivo partecipante.
 L'Organizzatore potrà richiedere al vincitore la verifica dell'identità prima della consegna del premio.`,
   },
