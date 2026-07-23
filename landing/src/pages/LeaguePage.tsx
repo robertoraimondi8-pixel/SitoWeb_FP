@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { track } from "@vercel/analytics";
 import {
   ArrowLeft,
   ArrowRight,
@@ -161,6 +162,10 @@ export default function LeaguePage() {
     if (codeFromUrl) setDiscountCode(codeFromUrl.trim());
   }, [searchParams]);
 
+  useEffect(() => {
+    track("lega_view");
+  }, []);
+
   const handlePay = async () => {
     if (!email.trim() || !email.includes("@")) {
       setError("Inserisci un'email valida.");
@@ -172,6 +177,7 @@ export default function LeaguePage() {
     }
     setError("");
     setLoading(true);
+    track("checkout_click", { discount: Boolean(discountCode.trim()) });
     try {
       const path = window.location.pathname;
       const body: Record<string, unknown> = {
@@ -223,6 +229,7 @@ export default function LeaguePage() {
       setPreAlready(Boolean(data?.already_registered));
       setPreStatus("ok");
       setPreEmail("");
+      track("preregister", { already: Boolean(data?.already_registered) });
     } catch {
       setPreStatus("err");
     }
@@ -1046,6 +1053,9 @@ function PurchaseCard({
 
 // ─── Success screen ───────────────────────────────────────────────────────────
 function SuccessScreen() {
+  useEffect(() => {
+    track("payment_success");
+  }, []);
   return (
     <main className="container-x py-24 md:py-28">
       <div className="max-w-lg mx-auto">
