@@ -79,6 +79,54 @@ function Underline({ color = "#F58220" }: { color?: string }) {
   );
 }
 
+// Bandiere SVG (le emoji-bandiera non si vedono su Windows/desktop)
+function Flag({ code }: { code: string }) {
+  const common = "block h-4 w-6 rounded-[3px] ring-1 ring-black/10 shrink-0";
+  switch (code) {
+    case "it":
+      return (
+        <svg viewBox="0 0 3 2" className={common} aria-hidden="true">
+          <rect width="1" height="2" x="0" fill="#009246" />
+          <rect width="1" height="2" x="1" fill="#fff" />
+          <rect width="1" height="2" x="2" fill="#CE2B37" />
+        </svg>
+      );
+    case "fr":
+      return (
+        <svg viewBox="0 0 3 2" className={common} aria-hidden="true">
+          <rect width="1" height="2" x="0" fill="#0055A4" />
+          <rect width="1" height="2" x="1" fill="#fff" />
+          <rect width="1" height="2" x="2" fill="#EF4135" />
+        </svg>
+      );
+    case "de":
+      return (
+        <svg viewBox="0 0 3 3" className={common} aria-hidden="true">
+          <rect width="3" height="1" y="0" fill="#000" />
+          <rect width="3" height="1" y="1" fill="#DD0000" />
+          <rect width="3" height="1" y="2" fill="#FFCE00" />
+        </svg>
+      );
+    case "es":
+      return (
+        <svg viewBox="0 0 3 2" className={common} aria-hidden="true">
+          <rect width="3" height="2" fill="#AA151B" />
+          <rect width="3" height="1" y="0.5" fill="#F1BF00" />
+        </svg>
+      );
+    case "en":
+      return (
+        <svg viewBox="0 0 5 3" className={common} aria-hidden="true">
+          <rect width="5" height="3" fill="#fff" />
+          <rect width="5" height="0.6" y="1.2" fill="#CE1124" />
+          <rect width="0.6" height="3" x="2.2" fill="#CE1124" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 const reveal = {
   initial: { opacity: 0, y: 24 },
   whileInView: { opacity: 1, y: 0 },
@@ -344,7 +392,7 @@ export default function LeaguePage() {
                       key={l.name}
                       className="flex items-center gap-2 rounded-full bg-white/[0.07] border border-white/12 px-3.5 py-2 backdrop-blur-md"
                     >
-                      <span className="text-lg leading-none">{l.flag}</span>
+                      <Flag code={l.code} />
                       <span className="text-[13px] font-semibold text-white/90">{l.name}</span>
                     </div>
                   ))}
