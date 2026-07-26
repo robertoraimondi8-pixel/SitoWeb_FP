@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Users, ArrowRight, Gift, Plane } from "lucide-react";
-import { COMMUNITY_LEAGUE } from "@/data/communityLeague";
 
 export function CommunityLeagueBanner() {
   return (
@@ -44,15 +43,14 @@ export function CommunityLeagueBanner() {
                   <span className="text-white">League</span>
                 </h2>
 
-                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/80">
+                <div className="mt-4 flex flex-col gap-2 text-sm text-white/80">
                   <span className="inline-flex items-center gap-2">
-                    <Gift size={15} className="text-brand-orange" />
-                    {COMMUNITY_LEAGUE.weeklyPrize} ogni settimana
+                    <Gift size={15} className="text-brand-orange shrink-0" />
+                    Buono Amazon di 20€ ogni settimana per il miglior punteggio
                   </span>
-                  <span className="text-white/30">·</span>
                   <span className="inline-flex items-center gap-2">
-                    <Plane size={15} className="text-brand-orange" />
-                    Weekend x2 al 1° posto
+                    <Plane size={15} className="text-brand-orange shrink-0" />
+                    Weekend in una capitale europea per 2 persone
                   </span>
                 </div>
 
