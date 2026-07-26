@@ -1,5 +1,6 @@
 import { Header } from "../components/Header";
 import { SuperLeagueBanner } from "../sections/SuperLeagueBanner";
+import { CommunityLeagueBanner } from "../sections/CommunityLeagueBanner";
 import { Hero } from "../sections/Hero";
 import { Marquee } from "../sections/Marquee";
 import { ValueSection } from "../sections/ValueSection";
@@ -20,6 +21,7 @@ export default function Home() {
       <Header />
       <main>
         <SuperLeagueBanner />
+        <CommunityLeagueBanner />
         <Hero />
         <Marquee />
         <ValueSection />
