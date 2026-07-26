@@ -12,12 +12,12 @@ export const COMMUNITY_LEAGUE = {
 // Capitani creator. Per aggiungere i loghi: metti i file in
 // landing/public/captains/ (es. pippofootball.png) e imposta "image".
 export const CAPTAINS = [
-  { name: "PippoFootball", image: "/captains/pippofootball.png" },
-  { name: "I Difensori del Fanta", image: "/captains/difensori-del-fanta.png" },
-  { name: "La Napoli Bene", image: "/captains/la-napoli-bene.png" },
-  { name: "Footbolandia", image: "/captains/footbolandia.png" },
-  { name: "Calcio Bello da Dio", image: "/captains/cbdd.png" },
-  { name: "Extra Time", image: "/captains/extra-time.png" },
+  { name: "PippoFootball", image: "/captains/pippofootball.jpg" },
+  { name: "I Difensori del Fanta", image: "/captains/difensori-del-fanta.jpg" },
+  { name: "La Napoli Bene", image: "/captains/la-napoli-bene.jpg" },
+  { name: "Footbolandia", image: "/captains/footbolandia.jpg" },
+  { name: "Calcio Bello da Dio", image: "/captains/cbdd.jpg" },
+  { name: "Extra Time", image: "/captains/extra-time.jpg" },
 ];
 
 export const COMMUNITY_SCORING = [
