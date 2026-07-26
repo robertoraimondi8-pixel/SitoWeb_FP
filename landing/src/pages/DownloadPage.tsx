@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
-import { ArrowRight, Trophy } from "lucide-react";
+import { ArrowRight, Trophy, Users } from "lucide-react";
 
 const IOS_URL = "https://apps.apple.com/it/app/fantapronostic/id6760613936";
 const ANDROID_URL = "https://play.google.com/store/apps/details?id=com.fantapronostic.app";
@@ -105,17 +105,29 @@ export default function DownloadPage() {
             </p>
           )}
 
-          {/* Link Super League */}
-          <Link
-            to="/lega"
-            onClick={() => track("download_to_lega")}
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-brand-orange/10 border border-brand-orange/30 px-5 py-2.5 text-sm font-bold text-brand-orange-600 hover:bg-brand-orange/15 transition-colors"
-            data-testid="download-lega-link"
-          >
-            <Trophy size={15} />
-            Scopri la Super League
-            <ArrowRight size={15} />
-          </Link>
+          {/* Link alle leghe */}
+          <div className="mt-8 flex flex-col gap-3">
+            <Link
+              to="/lega"
+              onClick={() => track("download_to_lega")}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange/10 border border-brand-orange/30 px-5 py-2.5 text-sm font-bold text-brand-orange-600 hover:bg-brand-orange/15 transition-colors"
+              data-testid="download-lega-link"
+            >
+              <Trophy size={15} />
+              Scopri la Super League
+              <ArrowRight size={15} />
+            </Link>
+            <Link
+              to="/community"
+              onClick={() => track("download_to_community")}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-green-600/10 border border-green-600/30 px-5 py-2.5 text-sm font-bold text-green-700 hover:bg-green-600/15 transition-colors"
+              data-testid="download-community-link"
+            >
+              <Users size={15} />
+              Community League — gratis
+              <ArrowRight size={15} />
+            </Link>
+          </div>
 
           <div className="mt-8">
             <Link to="/" className="text-xs font-semibold text-muted hover:text-brand-blue transition-colors">
