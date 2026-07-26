@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Trophy, ArrowRight, Sparkles } from "lucide-react";
+import { Trophy, ArrowRight, Sparkles, CalendarDays } from "lucide-react";
 import { SUPER_LEAGUE } from "@/data/superLeague";
 
 export function SuperLeagueBanner() {
@@ -45,13 +45,15 @@ export function SuperLeagueBanner() {
                   <span className="text-brand-orange">Super League</span>
                 </h2>
 
-                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/80">
+                <div className="mt-4 flex flex-col gap-2 text-sm text-white/80">
                   <span className="inline-flex items-center gap-2 font-semibold text-white">
                     <Trophy size={16} className="text-brand-orange" />
                     Montepremi {SUPER_LEAGUE.prizePool}
                   </span>
-                  <span className="text-white/30">·</span>
-                  <span>Al via il {SUPER_LEAGUE.startLabel}</span>
+                  <span className="inline-flex items-center gap-2">
+                    <CalendarDays size={15} className="text-brand-orange shrink-0" />
+                    Iscrizioni dal 4 agosto · Start lega 4 settembre
+                  </span>
                 </div>
 
                 <p className="mt-3 text-sm text-white/70 max-w-xl">

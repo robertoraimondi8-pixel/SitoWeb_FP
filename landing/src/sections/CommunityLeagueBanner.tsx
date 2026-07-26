@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Users, ArrowRight, Gift, Plane } from "lucide-react";
+import { Users, ArrowRight, Gift, Plane, CalendarDays } from "lucide-react";
+import { COMMUNITY_LEAGUE } from "@/data/communityLeague";
 
 export function CommunityLeagueBanner() {
   return (
@@ -44,6 +45,10 @@ export function CommunityLeagueBanner() {
                 </h2>
 
                 <div className="mt-4 flex flex-col gap-2 text-sm text-white/80">
+                  <span className="inline-flex items-center gap-2 font-semibold text-white">
+                    <CalendarDays size={15} className="text-brand-orange shrink-0" />
+                    Start: {COMMUNITY_LEAGUE.startLabel}
+                  </span>
                   <span className="inline-flex items-center gap-2">
                     <Gift size={15} className="text-brand-orange shrink-0" />
                     Buono Amazon di 20€ ogni settimana per il miglior punteggio

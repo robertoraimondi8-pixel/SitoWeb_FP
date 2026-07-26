@@ -13,6 +13,7 @@ import {
   Star,
   ShieldCheck,
   Trophy,
+  CalendarDays,
 } from "lucide-react";
 import {
   COMMUNITY_LEAGUE,
@@ -161,6 +162,16 @@ export default function CommunityLeaguePage() {
               La lega gratuita di FantaPronostic. Scegli la community del tuo capitano preferito,
               pronostica ogni giornata e vinci premi settimanali e finali.
             </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.28 }}
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-4 py-2 backdrop-blur-md text-sm font-semibold text-white"
+            >
+              <CalendarDays size={15} className="text-brand-orange" />
+              Start: {COMMUNITY_LEAGUE.startLabel}
+            </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}

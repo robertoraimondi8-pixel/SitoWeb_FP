@@ -5,6 +5,7 @@
 export const COMMUNITY_LEAGUE = {
   name: "Community League",
   season: "Stagione 2026/2027",
+  startLabel: "22/08/2026",
   weeklyPrize: "Buono Amazon da 20€",
   finalPrize: "Un weekend per 2 in una capitale europea",
 };
