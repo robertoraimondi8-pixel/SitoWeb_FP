@@ -12,12 +12,12 @@ export const COMMUNITY_LEAGUE = {
 // Capitani creator. Per aggiungere i loghi: metti i file in
 // landing/public/captains/ (es. pippofootball.png) e imposta "image".
 export const CAPTAINS = [
-  { name: "PippoFootball", image: "" },
-  { name: "I Difensori del Fanta", image: "" },
-  { name: "La Napoli Bene", image: "" },
-  { name: "Footbolandia", image: "" },
-  { name: "Calcio Bello da Dio", image: "" },
-  { name: "Extra Time", image: "" },
+  { name: "PippoFootball", image: "/captains/pippofootball.png" },
+  { name: "I Difensori del Fanta", image: "/captains/difensori-del-fanta.png" },
+  { name: "La Napoli Bene", image: "/captains/la-napoli-bene.png" },
+  { name: "Footbolandia", image: "/captains/footbolandia.png" },
+  { name: "Calcio Bello da Dio", image: "/captains/cbdd.png" },
+  { name: "Extra Time", image: "/captains/extra-time.png" },
 ];
 
 export const COMMUNITY_SCORING = [
@@ -47,7 +47,8 @@ La partecipazione è aperta a tutte le persone maggiorenni cittadine o residenti
   {
     n: 4,
     title: "Pronostici e punteggio",
-    body: `Per ogni partita il partecipante può inserire: esito finale 1X2 (2 punti); risultato esatto (5 punti); Goal/No Goal (1 punto); Over/Under 2,5 (1 punto). Ogni tipologia viene valutata separatamente, quindi nella stessa partita si possono ottenere punti per più pronostici corretti. Il punteggio massimo per una partita ordinaria è 9 punti. I pronostici errati assegnano zero punti e non comportano penalità.`,
+    body: `Per ogni partita il partecipante può inserire: esito finale 1X2 (2 punti); risultato esatto (5 punti); Goal/No Goal (1 punto); Over/Under 2,5 (1 punto). Ogni tipologia viene valutata separatamente, quindi nella stessa partita si possono ottenere punti per più pronostici corretti. Il punteggio massimo per una partita ordinaria è 9 punti. I pronostici errati assegnano zero punti e non comportano penalità.
+Ogni settimana una partita della giornata sarà designata come partita X3: tutti i punti ottenuti in quella partita vengono moltiplicati per tre (fino a 27 punti). La partita X3 è chiaramente contrassegnata nell'app prima della chiusura dei pronostici.`,
   },
   {
     n: 5,
