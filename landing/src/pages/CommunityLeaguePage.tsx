@@ -315,6 +315,15 @@ export default function CommunityLeaguePage() {
                 Multipronostico: nella stessa partita puoi ottenere punti per più pronostici corretti
                 (max 9 punti a partita).
               </p>
+              <div className="mt-4 rounded-2xl bg-brand-orange/10 p-4 flex items-start gap-3">
+                <div className="h-9 w-9 rounded-lg bg-brand-orange/20 grid place-items-center text-brand-orange shrink-0 font-display font-bold text-sm">
+                  x3
+                </div>
+                <p className="text-sm text-ink2 leading-relaxed">
+                  <strong>Ogni settimana</strong> una partita è designata <strong>X3</strong>: i suoi
+                  punti valgono il triplo (fino a 27 punti).
+                </p>
+              </div>
             </div>
           </div>
         </section>

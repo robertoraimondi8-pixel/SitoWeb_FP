@@ -52,7 +52,7 @@ export function CommunityLeagueBanner() {
                   <span className="text-white/30">·</span>
                   <span className="inline-flex items-center gap-2">
                     <Plane size={15} className="text-brand-orange" />
-                    Weekend per 2 al 1° posto
+                    Weekend x2 al 1° posto
                   </span>
                 </div>
 
