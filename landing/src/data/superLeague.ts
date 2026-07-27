@@ -116,16 +116,16 @@ L'Organizzatore potrà richiedere al vincitore la verifica dell'identità prima 
   {
     n: 5,
     title: "Modalità di gioco",
-    body: `La Super League si svolge in modalità tutti contro tutti e multipronostico: tutti i pronostici correttamente indovinati concorrono all'assegnazione del punteggio.
-Ogni giornata sarà composta, indicativamente, da 12 partite selezionate direttamente da FantaPronostic. Le partite potranno appartenere a campionati e competizioni differenti e saranno scelte dall'Organizzatore tra gli eventi disponibili nel calendario calcistico.
+    body: `La Super League si svolge in modalità tutti contro tutti con formato misto: alcune partite sono a pronostico singolo, altre a multipronostico. Tutti i pronostici correttamente indovinati concorrono all'assegnazione del punteggio.
+Ogni giornata sarà composta, indicativamente, da 12 partite selezionate direttamente da FantaPronostic. Per ogni partita, l'app indicherà chiaramente se è a pronostico singolo o multipronostico prima dell'apertura dei pronostici. Le partite potranno appartenere a campionati e competizioni differenti e saranno scelte dall'Organizzatore tra gli eventi disponibili nel calendario calcistico.
 L'elenco delle partite sarà pubblicato nell'app prima dell'apertura dei pronostici.`,
   },
   {
     n: 6,
     title: "Pronostici disponibili",
-    body: `Per ogni partita il partecipante potrà inserire i seguenti pronostici: esito finale 1X2; risultato esatto; Goal/No Goal; Over/Under 2,5.
-Ogni tipologia di pronostico viene valutata separatamente. Pertanto, all'interno della stessa partita, il partecipante può ottenere punti per più pronostici corretti.
-Esempio: un partecipante pronostica vittoria della squadra di casa, risultato esatto 2-1, Goal e Over 2,5. Se la partita termina effettivamente 2-1, saranno assegnati i punti previsti per tutte e quattro le tipologie correttamente indovinate.`,
+    body: `Le tipologie di pronostico previste sono: esito finale 1X2; risultato esatto; Goal/No Goal; Over/Under 2,5.
+Nelle partite a multipronostico il partecipante può inserire più tipologie di pronostico sulla stessa partita: ogni tipologia viene valutata separatamente, quindi si possono ottenere punti per più pronostici corretti. Esempio: pronosticando vittoria della squadra di casa, risultato esatto 2-1, Goal e Over 2,5, se la partita termina 2-1 vengono assegnati i punti di tutte e quattro le tipologie corrette.
+Nelle partite a pronostico singolo è invece previsto un solo pronostico per partita, secondo la tipologia indicata dall'app per quella partita.`,
   },
   {
     n: 7,

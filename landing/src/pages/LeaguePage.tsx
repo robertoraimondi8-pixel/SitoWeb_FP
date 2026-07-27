@@ -518,11 +518,12 @@ export default function LeaguePage() {
               <motion.div {...reveal} className="text-center max-w-2xl mx-auto">
                 <p className="overline justify-center">Come si gioca</p>
                 <h2 className="mt-4 font-display font-bold text-3xl md:text-5xl tracking-tightest text-ink text-balance">
-                  Multipronostico, tutti contro tutti
+                  Formato misto, tutti contro tutti
                 </h2>
                 <p className="mt-4 text-muted leading-relaxed">
-                  Ogni giornata circa 12 partite selezionate da FantaPronostic. Per ogni partita puoi
-                  indovinare più pronostici: ognuno vale punti separatamente.
+                  Ogni giornata circa 12 partite selezionate da FantaPronostic. Alcune partite sono a
+                  pronostico singolo, altre a multipronostico (più pronostici sulla stessa partita,
+                  ognuno vale punti separatamente).
                 </p>
               </motion.div>
 
