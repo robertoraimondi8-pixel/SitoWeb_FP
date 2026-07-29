@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
 import { trackDownload } from "@/lib/trackDownload";
-import { openAppStore } from "@/lib/storeLinks";
 import {
   ArrowLeft,
   ArrowRight,
@@ -24,7 +23,6 @@ import {
   COMMUNITY_REGOLAMENTO,
 } from "@/data/communityLeague";
 
-const IOS_URL = "https://apps.apple.com/it/app/fantapronostic/id6760613936";
 const ANDROID_URL = "https://play.google.com/store/apps/details?id=com.fantapronostic.app";
 
 const reveal = {
@@ -74,12 +72,11 @@ export default function CommunityLeaguePage() {
   const DownloadCta = (
     <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
       <a
-        href={IOS_URL}
+        href="https://api.fantapronostic.com/join/6N89SG75"
         rel="noopener noreferrer"
-        onClick={(e) => {
+        onClick={() => {
           trackDownload("click_appstore");
           track("community_ios_click");
-          openAppStore(e);
         }}
         className="btn-blue"
       >
