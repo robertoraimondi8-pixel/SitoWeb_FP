@@ -17,15 +17,22 @@ function isIOS(): boolean {
   return /iPhone|iPad|iPod/i.test(ua);
 }
 
-// Da usare come onClick del pulsante App Store. Su iOS forza l'apertura dell'app
-// store tramite itms-apps://, così funziona anche nella WebView di Instagram.
+// Da usare come onClick del pulsante App Store. Su iOS prova ad aprire l'app
+// App Store con lo schema itms-apps://; se viene bloccato (es. WebView di
+// Instagram) dopo un attimo carica comunque la pagina https dell'App Store,
+// così il tocco non resta mai "morto". Su desktop/Android lascia il link nativo.
 export function openAppStore(e?: { preventDefault: () => void }) {
   try {
-    if (isIOS()) {
-      e?.preventDefault();
-      window.location.href = IOS_URL_SCHEME;
-    }
+    if (!isIOS()) return;
+    e?.preventDefault();
+    // Tentativo 1: apri direttamente l'app App Store.
+    window.location.href = IOS_URL_SCHEME;
+    // Tentativo 2 (fallback): se dopo ~1.2s siamo ancora qui, lo schema è stato
+    // bloccato → carica la pagina App Store, da cui si può comunque installare.
+    window.setTimeout(() => {
+      window.location.href = IOS_URL;
+    }, 1200);
   } catch {
-    // Se qualcosa va storto lasciamo il comportamento nativo del link https.
+    // In caso di errore lasciamo il comportamento nativo del link https.
   }
 }
