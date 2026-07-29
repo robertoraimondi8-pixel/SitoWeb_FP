@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { trackPageview } from "@/lib/trackDownload";
 import Home from "./pages/Home";
 import Privacy from "./pages/Privacy";
 import Login from "./pages/Login";
@@ -8,9 +10,19 @@ import DownloadPage from "./pages/DownloadPage";
 import CommunityLeaguePage from "./pages/CommunityLeaguePage";
 import AdminAnalytics from "./pages/AdminAnalytics";
 
+// Registra una visita interna ad ogni cambio pagina (SPA).
+function RouteTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    trackPageview();
+  }, [location.pathname, location.search]);
+  return null;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
+      <RouteTracker />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/privacy" element={<Privacy />} />
