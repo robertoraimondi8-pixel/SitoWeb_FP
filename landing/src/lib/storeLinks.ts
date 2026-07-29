@@ -12,27 +12,11 @@ export const IOS_URL_SCHEME =
 export const ANDROID_URL =
   "https://play.google.com/store/apps/details?id=com.fantapronostic.app";
 
-function isIOS(): boolean {
-  const ua = navigator.userAgent || "";
-  return /iPhone|iPad|iPod/i.test(ua);
-}
-
-// Da usare come onClick del pulsante App Store. Su iOS prova ad aprire l'app
-// App Store con lo schema itms-apps://; se viene bloccato (es. WebView di
-// Instagram) dopo un attimo carica comunque la pagina https dell'App Store,
-// così il tocco non resta mai "morto". Su desktop/Android lascia il link nativo.
-export function openAppStore(e?: { preventDefault: () => void }) {
-  try {
-    if (!isIOS()) return;
-    e?.preventDefault();
-    // Tentativo 1: apri direttamente l'app App Store.
-    window.location.href = IOS_URL_SCHEME;
-    // Tentativo 2 (fallback): se dopo ~1.2s siamo ancora qui, lo schema è stato
-    // bloccato → carica la pagina App Store, da cui si può comunque installare.
-    window.setTimeout(() => {
-      window.location.href = IOS_URL;
-    }, 1200);
-  } catch {
-    // In caso di errore lasciamo il comportamento nativo del link https.
-  }
+// NB: dentro il browser interno di Instagram su iPhone, Apple impedisce di
+// aprire l'App Store via codice (itms-apps://, redirect, ecc.). Ogni tentativo
+// JS non fa che creare "tocchi morti". Perciò NON intercettiamo il click: il
+// link https nativo è la soluzione più compatibile. Questa funzione resta come
+// no-op per non rompere le pagine che la richiamano.
+export function openAppStore(_e?: { preventDefault: () => void }) {
+  // Nessuna intercettazione: lasciamo agire il link https nativo.
 }
