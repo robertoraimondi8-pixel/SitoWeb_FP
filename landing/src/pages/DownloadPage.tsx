@@ -28,13 +28,33 @@ function GooglePlayLogo({ className = "" }: { className?: string }) {
 
 export default function DownloadPage() {
   const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
+  // true quando la pagina è aperta dentro il browser interno di un'app
+  // (Instagram, Facebook, ecc.): su iOS lì l'App Store spesso non si apre.
+  const [inAppBrowser, setInAppBrowser] = useState(false);
 
   useEffect(() => {
     const ua = navigator.userAgent || "";
-    if (/iPhone|iPad|iPod/i.test(ua)) setPlatform("ios");
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    if (isIOS) setPlatform("ios");
     else if (/Android/i.test(ua)) setPlatform("android");
+    // Rileva le WebView social più comuni.
+    const inApp = /Instagram|FBAN|FBAV|FB_IAB|Line\/|Twitter|TikTok|Snapchat|Pinterest/i.test(ua);
+    setInAppBrowser(isIOS && inApp);
     track("download_page_view");
   }, []);
+
+  const SafariHint = inAppBrowser ? (
+    <div className="mb-4 rounded-2xl border border-brand-orange/40 bg-brand-orange/10 px-4 py-3 text-left">
+      <p className="text-sm font-bold text-brand-orange-600">
+        Per scaricare da iPhone apri in Safari
+      </p>
+      <p className="mt-1 text-xs text-ink2 leading-relaxed">
+        Tocca il pulsante <span className="font-bold">•••</span> in alto a destra e scegli{" "}
+        <span className="font-bold">"Apri in Safari"</span>, poi premi App Store. Da Instagram
+        l'App Store non può aprirsi direttamente.
+      </p>
+    </div>
+  ) : null;
 
   const StoreButtons = (
     <div className="flex flex-col gap-3 w-full">
@@ -100,7 +120,10 @@ export default function DownloadPage() {
           </p>
 
           {/* Store */}
-          <div className="mt-8">{StoreButtons}</div>
+          <div className="mt-8">
+            {SafariHint}
+            {StoreButtons}
+          </div>
 
           {platform !== "other" && (
             <p className="mt-3 text-xs text-muted">
