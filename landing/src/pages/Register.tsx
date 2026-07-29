@@ -1,4 +1,5 @@
 import { useState, FormEvent } from "react";
+import { openAppStore } from "@/lib/storeLinks";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 
@@ -415,6 +416,7 @@ export default function RegisterPage() {
                 <a
                   href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
                   rel="noopener noreferrer"
+                  onClick={openAppStore}
                   className="btn-blue"
                   data-testid="register-success-ios"
                 >

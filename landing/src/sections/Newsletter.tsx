@@ -1,4 +1,5 @@
 import { useState, FormEvent } from "react";
+import { openAppStore } from "@/lib/storeLinks";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, Check, Mail } from "lucide-react";
@@ -124,6 +125,7 @@ export function Newsletter() {
               <a
                 href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
                 rel="noopener noreferrer"
+                onClick={openAppStore}
                 className="group flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 hover:bg-white hover:border-white transition-all backdrop-blur-sm"
                 data-testid="app-store-badge"
               >

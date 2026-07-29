@@ -3,10 +3,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
 import { trackDownload } from "@/lib/trackDownload";
+import { IOS_URL, ANDROID_URL, openAppStore } from "@/lib/storeLinks";
 import { ArrowRight, Trophy, Users } from "lucide-react";
-
-const IOS_URL = "https://apps.apple.com/it/app/fantapronostic/id6760613936";
-const ANDROID_URL = "https://play.google.com/store/apps/details?id=com.fantapronostic.app";
 
 // Loghi store come SVG (si vedono ovunque, niente immagini esterne)
 function AppleLogo({ className = "" }: { className?: string }) {
@@ -43,9 +41,10 @@ export default function DownloadPage() {
       <a
         href={IOS_URL}
         rel="noopener noreferrer"
-        onClick={() => {
+        onClick={(e) => {
           trackDownload("click_appstore");
           track("download_ios_click");
+          openAppStore(e);
         }}
         className="group flex items-center justify-center gap-3 rounded-2xl bg-ink px-6 py-4 text-white transition-transform hover:-translate-y-0.5 shadow-soft"
         data-testid="download-ios"

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { openAppStore } from "@/lib/storeLinks";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
@@ -1100,6 +1101,7 @@ function SuccessScreen() {
                   <a
                     href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
                     rel="noopener noreferrer"
+                    onClick={openAppStore}
                     className="btn-blue text-xs px-3 py-1.5"
                   >
                     App Store

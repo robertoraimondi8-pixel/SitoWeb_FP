@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
 import { trackDownload } from "@/lib/trackDownload";
+import { openAppStore } from "@/lib/storeLinks";
 import {
   ArrowLeft,
   ArrowRight,
@@ -75,9 +76,10 @@ export default function CommunityLeaguePage() {
       <a
         href={IOS_URL}
         rel="noopener noreferrer"
-        onClick={() => {
+        onClick={(e) => {
           trackDownload("click_appstore");
           track("community_ios_click");
+          openAppStore(e);
         }}
         className="btn-blue"
       >
