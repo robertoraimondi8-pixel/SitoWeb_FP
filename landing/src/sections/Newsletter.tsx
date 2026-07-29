@@ -123,7 +123,6 @@ export function Newsletter() {
             <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
               <a
                 href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
-                target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 hover:bg-white hover:border-white transition-all backdrop-blur-sm"
                 data-testid="app-store-badge"
@@ -142,7 +141,6 @@ export function Newsletter() {
               </a>
               <a
                 href="https://play.google.com/store/apps/details?id=com.fantapronostic.app"
-                target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 hover:bg-white hover:border-white transition-all backdrop-blur-sm"
                 data-testid="play-store-badge"

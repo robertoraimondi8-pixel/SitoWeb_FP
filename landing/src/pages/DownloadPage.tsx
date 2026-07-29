@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
+import { trackDownload } from "@/lib/trackDownload";
 import { ArrowRight, Trophy, Users } from "lucide-react";
 
 const IOS_URL = "https://apps.apple.com/it/app/fantapronostic/id6760613936";
@@ -41,9 +42,11 @@ export default function DownloadPage() {
     <div className="flex flex-col gap-3 w-full">
       <a
         href={IOS_URL}
-        target="_blank"
         rel="noopener noreferrer"
-        onClick={() => track("download_ios_click")}
+        onClick={() => {
+          trackDownload("click_appstore");
+          track("download_ios_click");
+        }}
         className="group flex items-center justify-center gap-3 rounded-2xl bg-ink px-6 py-4 text-white transition-transform hover:-translate-y-0.5 shadow-soft"
         data-testid="download-ios"
       >
@@ -56,9 +59,11 @@ export default function DownloadPage() {
 
       <a
         href={ANDROID_URL}
-        target="_blank"
         rel="noopener noreferrer"
-        onClick={() => track("download_android_click")}
+        onClick={() => {
+          trackDownload("click_googleplay");
+          track("download_android_click");
+        }}
         className="group flex items-center justify-center gap-3 rounded-2xl bg-white border border-line px-6 py-4 text-ink transition-transform hover:-translate-y-0.5 shadow-soft"
         data-testid="download-android"
       >

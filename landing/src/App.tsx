@@ -6,6 +6,7 @@ import Register from "./pages/Register";
 import LeaguePage from "./pages/LeaguePage";
 import DownloadPage from "./pages/DownloadPage";
 import CommunityLeaguePage from "./pages/CommunityLeaguePage";
+import AdminAnalytics from "./pages/AdminAnalytics";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/app" element={<DownloadPage />} />
         <Route path="/scarica" element={<DownloadPage />} />
         <Route path="/download" element={<DownloadPage />} />
+        <Route path="/admin/analytics" element={<AdminAnalytics />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </BrowserRouter>

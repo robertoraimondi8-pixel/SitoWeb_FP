@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
+import { trackDownload } from "@/lib/trackDownload";
 import {
   ArrowLeft,
   ArrowRight,
@@ -73,18 +74,22 @@ export default function CommunityLeaguePage() {
     <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
       <a
         href={IOS_URL}
-        target="_blank"
         rel="noopener noreferrer"
-        onClick={() => track("community_ios_click")}
+        onClick={() => {
+          trackDownload("click_appstore");
+          track("community_ios_click");
+        }}
         className="btn-blue"
       >
         Scarica su App Store
       </a>
       <a
         href={ANDROID_URL}
-        target="_blank"
         rel="noopener noreferrer"
-        onClick={() => track("community_android_click")}
+        onClick={() => {
+          trackDownload("click_googleplay");
+          track("community_android_click");
+        }}
         className="btn-primary"
       >
         Scarica su Google Play

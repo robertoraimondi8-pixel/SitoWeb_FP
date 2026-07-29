@@ -1099,7 +1099,6 @@ function SuccessScreen() {
                 <div className="flex flex-wrap gap-2">
                   <a
                     href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
-                    target="_blank"
                     rel="noopener noreferrer"
                     className="btn-blue text-xs px-3 py-1.5"
                   >
@@ -1107,7 +1106,6 @@ function SuccessScreen() {
                   </a>
                   <a
                     href="https://play.google.com/store/apps/details?id=com.fantapronostic.app"
-                    target="_blank"
                     rel="noopener noreferrer"
                     className="btn-primary text-xs px-3 py-1.5"
                   >
