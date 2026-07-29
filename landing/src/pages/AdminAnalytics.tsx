@@ -8,10 +8,11 @@ const BACKEND_URL =
 const TOKEN_KEY = "fp_analytics_token";
 
 type Summary = {
-  totals: { appstore: number; googleplay: number; total: number };
-  today: { appstore: number; googleplay: number; total: number };
+  totals: { appstore: number; googleplay: number; total: number; views: number };
+  today: { appstore: number; googleplay: number; total: number; views: number };
   creators: { creator: string; appstore: number; googleplay: number; total: number }[];
-  daily: { day: string; appstore: number; googleplay: number }[];
+  top_pages: { page: string; views: number }[];
+  daily: { day: string; appstore: number; googleplay: number; views: number }[];
   generated_at: string;
 };
 
@@ -135,13 +136,21 @@ export default function AdminAnalytics() {
           </div>
         ) : (
           <div className="flex flex-col gap-8">
-            {/* KPI */}
+            {/* KPI visite */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Kpi label="Visite (totale)" value={data.totals.views ?? 0} accent="blue" />
+              <Kpi label="Visite oggi" value={data.today.views ?? 0} accent="blue" />
+              <Kpi label="Totale click store" value={data.totals.total} accent="orange" />
+              <Kpi label="Click oggi" value={data.today.total} accent="orange"
+                   sub={`${data.today.appstore} iOS · ${data.today.googleplay} Android`} />
+            </div>
+
+            {/* KPI click */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Kpi label="App Store (totale)" value={data.totals.appstore} accent="ink" />
               <Kpi label="Google Play (totale)" value={data.totals.googleplay} accent="green" />
-              <Kpi label="Totale click" value={data.totals.total} accent="orange" />
-              <Kpi label="Oggi" value={data.today.total} accent="blue"
-                   sub={`${data.today.appstore} iOS · ${data.today.googleplay} Android`} />
+              <Kpi label="App Store oggi" value={data.today.appstore} accent="ink" />
+              <Kpi label="Google Play oggi" value={data.today.googleplay} accent="green" />
             </div>
 
             {/* Grafico giornaliero */}
@@ -180,6 +189,33 @@ export default function AdminAnalytics() {
                 <span>{data.daily[0]?.day.slice(5)}</span>
                 <span>{data.daily[data.daily.length - 1]?.day.slice(5)}</span>
               </div>
+            </div>
+
+            {/* Pagine più viste */}
+            <div className="card p-6">
+              <h2 className="font-display font-bold text-lg text-ink">Pagine più viste</h2>
+              {(!data.top_pages || data.top_pages.length === 0) ? (
+                <p className="mt-3 text-sm text-muted">Ancora nessuna visita registrata.</p>
+              ) : (
+                <div className="mt-4 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-muted border-b border-line">
+                        <th className="py-2 pr-4 font-semibold">Pagina</th>
+                        <th className="py-2 pl-4 font-semibold text-right">Visite</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.top_pages.map((p) => (
+                        <tr key={p.page} className="border-b border-line/60 last:border-0">
+                          <td className="py-2.5 pr-4 font-medium text-ink break-all">{p.page}</td>
+                          <td className="py-2.5 pl-4 text-right font-semibold tabular-nums">{p.views}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
             {/* Per creator */}

@@ -37,6 +37,44 @@ function getCreator(): string | null {
   }
 }
 
+// Invia al backend un evento generico (usa sendBeacon, fire-and-forget).
+function sendEvent(payload: Record<string, unknown>) {
+  try {
+    const url = `${BACKEND_URL}/api/analytics/track`;
+    const body = JSON.stringify(payload);
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(url, new Blob([body], { type: "application/json" }));
+    } else {
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true,
+      }).catch(() => {});
+    }
+  } catch {
+    // Il tracciamento non deve mai rompere la navigazione.
+  }
+}
+
+// Registra una visita di pagina. Da chiamare ad ogni cambio route.
+export function trackPageview() {
+  try {
+    const ua = navigator.userAgent || "";
+    sendEvent({
+      event: "pageview",
+      creator: getCreator(),
+      referrer: document.referrer || null,
+      page: window.location.pathname + window.location.search,
+      device: detectDevice(ua),
+      os: detectOs(ua),
+      user_agent: ua,
+    });
+  } catch {
+    /* no-op */
+  }
+}
+
 export function trackDownload(event: DownloadEvent) {
   try {
     const ua = navigator.userAgent || "";
