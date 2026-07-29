@@ -74,7 +74,6 @@ export default function CommunityLeaguePage() {
     <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
       <a
         href={IOS_URL}
-        target="_blank"
         rel="noopener noreferrer"
         onClick={() => {
           trackDownload("click_appstore");
@@ -86,7 +85,6 @@ export default function CommunityLeaguePage() {
       </a>
       <a
         href={ANDROID_URL}
-        target="_blank"
         rel="noopener noreferrer"
         onClick={() => {
           trackDownload("click_googleplay");

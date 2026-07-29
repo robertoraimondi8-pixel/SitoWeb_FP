@@ -277,7 +277,6 @@ export default function LoginPage() {
               <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
                 <a
                   href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
-                  target="_blank"
                   rel="noopener noreferrer"
                   className="btn-blue"
                   data-testid="login-success-ios"
@@ -286,7 +285,6 @@ export default function LoginPage() {
                 </a>
                 <a
                   href="https://play.google.com/store/apps/details?id=com.fantapronostic.app"
-                  target="_blank"
                   rel="noopener noreferrer"
                   className="btn-primary"
                   data-testid="login-success-android"

@@ -42,7 +42,6 @@ export default function DownloadPage() {
     <div className="flex flex-col gap-3 w-full">
       <a
         href={IOS_URL}
-        target="_blank"
         rel="noopener noreferrer"
         onClick={() => {
           trackDownload("click_appstore");
@@ -60,7 +59,6 @@ export default function DownloadPage() {
 
       <a
         href={ANDROID_URL}
-        target="_blank"
         rel="noopener noreferrer"
         onClick={() => {
           trackDownload("click_googleplay");
