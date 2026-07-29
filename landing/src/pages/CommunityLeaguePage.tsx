@@ -72,7 +72,7 @@ export default function CommunityLeaguePage() {
   const DownloadCta = (
     <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
       <a
-        href="https://api.fantapronostic.com/join/6N89SG75"
+        href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
         rel="noopener noreferrer"
         onClick={() => {
           trackDownload("click_appstore");
