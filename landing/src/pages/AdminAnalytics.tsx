@@ -11,6 +11,7 @@ type Summary = {
   totals: { appstore: number; googleplay: number; total: number; views: number };
   today: { appstore: number; googleplay: number; total: number; views: number };
   creators: { creator: string; appstore: number; googleplay: number; total: number }[];
+  sources: { source: string; visits: number; clicks: number }[];
   top_pages: { page: string; views: number }[];
   daily: { day: string; appstore: number; googleplay: number; views: number }[];
   generated_at: string;
@@ -190,6 +191,36 @@ export default function AdminAnalytics() {
                 <span>{data.daily[data.daily.length - 1]?.day.slice(5)}</span>
               </div>
             </div>
+
+            {/* Provenienza social */}
+            {data.sources && data.sources.length > 0 && (
+              <div className="card p-6">
+                <h2 className="font-display font-bold text-lg text-ink">Provenienza social</h2>
+                <p className="mt-1 text-xs text-muted">
+                  Visite e click store da chi apre il sito dal browser interno dell'app.
+                </p>
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {data.sources.map((s) => (
+                    <div key={s.source} className="rounded-2xl border border-line bg-bg-soft p-4">
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted capitalize">
+                        {s.source}
+                      </p>
+                      <p className="mt-2 font-display font-bold text-2xl tabular-nums text-brand-blue">
+                        {s.visits} <span className="text-sm font-semibold text-muted">visite</span>
+                      </p>
+                      <p className="mt-0.5 text-sm text-ink2">
+                        {s.clicks} click store
+                        {s.visits > 0 && (
+                          <span className="text-muted">
+                            {" "}· {Math.round((s.clicks / s.visits) * 100)}% conversione
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Pagine più viste */}
             <div className="card p-6">
