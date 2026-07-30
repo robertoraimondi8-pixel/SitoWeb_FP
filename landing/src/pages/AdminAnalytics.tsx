@@ -9,9 +9,16 @@ const TOKEN_KEY = "fp_analytics_token";
 
 type Summary = {
   period?: { from: string | null; to: string | null; all_time: boolean };
-  totals: { appstore: number; googleplay: number; total: number; views: number; visitors: number };
+  totals: {
+    appstore: number;
+    googleplay: number;
+    total: number;
+    views: number;
+    visitors: number;
+    clickers?: number;
+  };
   creators: { creator: string; appstore: number; googleplay: number; total: number }[];
-  sources: { source: string; visits: number; visitors?: number; clicks: number }[];
+  sources: { source: string; visits: number; visitors?: number; clicks: number; clickers?: number }[];
   top_pages: { page: string; views: number }[];
   daily: { day: string; appstore: number; googleplay: number; views: number }[];
   generated_at: string;
@@ -244,7 +251,7 @@ export default function AdminAnalytics() {
               <Kpi label="Click store totali" value={data.totals.total} accent="orange"
                    sub={
                      (data.totals.visitors ?? 0) > 0
-                       ? `${Math.round((data.totals.total / data.totals.visitors) * 100)}% conversione · ${data.totals.appstore} iOS · ${data.totals.googleplay} Android`
+                       ? `${Math.round(((data.totals.clickers ?? 0) / data.totals.visitors) * 100)}% conversione · ${data.totals.appstore} iOS · ${data.totals.googleplay} Android`
                        : `${data.totals.appstore} iOS · ${data.totals.googleplay} Android`
                    } />
               <Kpi label="Click App Store" value={data.totals.appstore} accent="ink" />
@@ -311,7 +318,7 @@ export default function AdminAnalytics() {
                         {s.clicks} click store
                         {(s.visitors ?? 0) > 0 && (
                           <span className="text-muted">
-                            {" "}· {Math.round((s.clicks / (s.visitors as number)) * 100)}% conversione
+                            {" "}· {Math.round(((s.clickers ?? 0) / (s.visitors as number)) * 100)}% conversione
                           </span>
                         )}
                       </p>
