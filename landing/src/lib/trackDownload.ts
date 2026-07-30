@@ -37,6 +37,24 @@ function getCreator(): string | null {
   }
 }
 
+// ID anonimo persistente per contare i VISITATORI UNICI (persone), non solo le
+// pagine viste. Non contiene dati personali: è un identificativo casuale.
+function getVisitorId(): string | null {
+  try {
+    let vid = localStorage.getItem("fp_vid");
+    if (!vid) {
+      vid =
+        (window.crypto && "randomUUID" in window.crypto
+          ? window.crypto.randomUUID()
+          : "v-" + Math.random().toString(36).slice(2) + Date.now().toString(36));
+      localStorage.setItem("fp_vid", vid);
+    }
+    return vid;
+  } catch {
+    return null;
+  }
+}
+
 // Invia al backend un evento generico (usa sendBeacon, fire-and-forget).
 function sendEvent(payload: Record<string, unknown>) {
   try {
@@ -64,6 +82,7 @@ export function trackPageview() {
     sendEvent({
       event: "pageview",
       creator: getCreator(),
+      visitor_id: getVisitorId(),
       referrer: document.referrer || null,
       page: window.location.pathname + window.location.search,
       device: detectDevice(ua),
@@ -81,6 +100,7 @@ export function trackDownload(event: DownloadEvent) {
     const payload = {
       event,
       creator: getCreator(),
+      visitor_id: getVisitorId(),
       referrer: document.referrer || null,
       page: window.location.pathname + window.location.search,
       device: detectDevice(ua),
