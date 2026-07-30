@@ -244,16 +244,28 @@ export default function AdminAnalytics() {
               </p>
             </div>
 
-            {/* KPI */}
+            {/* KPI — visite */}
+            <div className="grid grid-cols-2 gap-4">
+              <Kpi label="Pagine aperte" value={data.totals.views ?? 0} accent="blue"
+                   sub="quante volte le pagine sono state aperte (anche più volte dalla stessa persona)" />
+              <Kpi label="Visitatori (persone)" value={data.totals.visitors ?? 0} accent="blue"
+                   sub="persone diverse · conteggio attivo dall'ultimo aggiornamento" />
+            </div>
+
+            {/* KPI — click */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Kpi label="Visitatori unici" value={data.totals.visitors ?? 0} accent="blue"
-                   sub={`${data.totals.views ?? 0} pagine viste`} />
               <Kpi label="Click store totali" value={data.totals.total} accent="orange"
-                   sub={
-                     (data.totals.visitors ?? 0) > 0
-                       ? `${Math.round(((data.totals.clickers ?? 0) / data.totals.visitors) * 100)}% conversione · ${data.totals.appstore} iOS · ${data.totals.googleplay} Android`
-                       : `${data.totals.appstore} iOS · ${data.totals.googleplay} Android`
-                   } />
+                   sub={`${data.totals.appstore} iOS · ${data.totals.googleplay} Android`} />
+              <Kpi
+                label="Conversione"
+                value={
+                  (data.totals.visitors ?? 0) > 0
+                    ? `${Math.round(((data.totals.clickers ?? 0) / data.totals.visitors) * 100)}%`
+                    : "—"
+                }
+                accent="orange"
+                sub="persone che hanno cliccato ÷ visitatori"
+              />
               <Kpi label="Click App Store" value={data.totals.appstore} accent="ink" />
               <Kpi label="Click Google Play" value={data.totals.googleplay} accent="green" />
             </div>
@@ -410,7 +422,7 @@ function Kpi({
   accent,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   sub?: string;
   accent: "ink" | "green" | "orange" | "blue";
 }) {
