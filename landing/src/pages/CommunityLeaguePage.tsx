@@ -72,6 +72,8 @@ function slugify(s: string) {
 export default function CommunityLeaguePage() {
   const [openArticle, setOpenArticle] = useState<number | null>(null);
   const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
+  // La barra CTA fissa compare solo dopo aver superato il hero (dove c'è già il pulsante).
+  const [showStickyCta, setShowStickyCta] = useState(false);
   // Capitano corrispondente al ?creator= del link (per personalizzare la pagina).
   const [myCaptain, setMyCaptain] = useState<(typeof CAPTAINS)[number] | null>(null);
 
@@ -99,6 +101,11 @@ export default function CommunityLeaguePage() {
       /* no-op */
     }
     track("community_view");
+
+    const onScroll = () => setShowStickyCta(window.scrollY > window.innerHeight * 0.9);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   // CTA unico: su mobile porta direttamente allo store giusto.
@@ -116,10 +123,10 @@ export default function CommunityLeaguePage() {
           href={smartUrl}
           rel="noopener noreferrer"
           onClick={onSmartClick}
-          className="inline-flex items-center justify-center gap-2.5 rounded-full bg-brand-orange px-10 py-4 font-display font-bold text-lg text-white shadow-cta hover:-translate-y-0.5 transition-transform w-full max-w-sm"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange px-6 py-4 font-display font-bold text-base text-white shadow-cta hover:-translate-y-0.5 transition-transform w-full max-w-sm whitespace-nowrap"
         >
           SCARICA GRATIS ED ENTRA
-          <ArrowRight size={19} />
+          <ArrowRight size={17} className="shrink-0" />
         </a>
       ) : (
         // Desktop: impossibile sapere il telefono → due pulsanti classici.
@@ -522,8 +529,8 @@ export default function CommunityLeaguePage() {
         </section>
       </main>
 
-      {/* Barra CTA fissa su mobile: il pulsante resta sempre a portata di pollice. */}
-      {platform !== "other" && (
+      {/* Barra CTA fissa su mobile: compare solo dopo aver scrollato oltre il hero. */}
+      {platform !== "other" && showStickyCta && (
         <div className="fixed bottom-0 inset-x-0 z-40 md:hidden p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-white via-white/90 to-transparent">
           <a
             href={smartUrl}
