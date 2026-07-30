@@ -11,7 +11,7 @@ type Summary = {
   period?: { from: string | null; to: string | null; all_time: boolean };
   totals: { appstore: number; googleplay: number; total: number; views: number; visitors: number };
   creators: { creator: string; appstore: number; googleplay: number; total: number }[];
-  sources: { source: string; visits: number; clicks: number }[];
+  sources: { source: string; visits: number; visitors?: number; clicks: number }[];
   top_pages: { page: string; views: number }[];
   daily: { day: string; appstore: number; googleplay: number; views: number }[];
   generated_at: string;
@@ -303,13 +303,15 @@ export default function AdminAnalytics() {
                         {s.source}
                       </p>
                       <p className="mt-2 font-display font-bold text-2xl tabular-nums text-brand-blue">
-                        {s.visits} <span className="text-sm font-semibold text-muted">visite</span>
+                        {s.visitors ?? 0}{" "}
+                        <span className="text-sm font-semibold text-muted">visitatori</span>
                       </p>
-                      <p className="mt-0.5 text-sm text-ink2">
+                      <p className="mt-0.5 text-xs text-muted">{s.visits} pagine viste</p>
+                      <p className="mt-1 text-sm text-ink2">
                         {s.clicks} click store
-                        {s.visits > 0 && (
+                        {(s.visitors ?? 0) > 0 && (
                           <span className="text-muted">
-                            {" "}· {Math.round((s.clicks / s.visits) * 100)}% conversione
+                            {" "}· {Math.round((s.clicks / (s.visitors as number)) * 100)}% conversione
                           </span>
                         )}
                       </p>
