@@ -8,14 +8,55 @@ const BACKEND_URL =
 const TOKEN_KEY = "fp_analytics_token";
 
 type Summary = {
+  period?: { from: string | null; to: string | null; all_time: boolean };
   totals: { appstore: number; googleplay: number; total: number; views: number };
-  today: { appstore: number; googleplay: number; total: number; views: number };
   creators: { creator: string; appstore: number; googleplay: number; total: number }[];
   sources: { source: string; visits: number; clicks: number }[];
   top_pages: { page: string; views: number }[];
   daily: { day: string; appstore: number; googleplay: number; views: number }[];
   generated_at: string;
 };
+
+type Preset = "today" | "7d" | "30d" | "all" | "custom";
+
+const PRESET_LABELS: Record<Preset, string> = {
+  today: "Oggi",
+  "7d": "7 giorni",
+  "30d": "30 giorni",
+  all: "Sempre",
+  custom: "Personalizzato",
+};
+
+function ymd(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate(),
+  ).padStart(2, "0")}`;
+}
+
+// Ritorna {from, to} (YYYY-MM-DD) per un preset. undefined = nessun limite.
+function rangeForPreset(
+  preset: Preset,
+  customFrom: string,
+  customTo: string,
+): { from?: string; to?: string } {
+  const now = new Date();
+  const today = ymd(now);
+  if (preset === "today") return { from: today, to: today };
+  if (preset === "7d") {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 6);
+    return { from: ymd(d), to: today };
+  }
+  if (preset === "30d") {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 29);
+    return { from: ymd(d), to: today };
+  }
+  if (preset === "custom") {
+    return { from: customFrom || undefined, to: customTo || undefined };
+  }
+  return {}; // all
+}
 
 export default function AdminAnalytics() {
   const [token, setToken] = useState<string>(() => localStorage.getItem(TOKEN_KEY) || "");
@@ -24,13 +65,20 @@ export default function AdminAnalytics() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const load = async (t: string) => {
+  const [preset, setPreset] = useState<Preset>("30d");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+
+  const load = async (t: string, p: Preset, cFrom: string, cTo: string) => {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${BACKEND_URL}/api/analytics/summary`, {
-        headers: { "X-Analytics-Token": t },
-      });
+      const { from, to } = rangeForPreset(p, cFrom, cTo);
+      const qs = new URLSearchParams();
+      if (from) qs.set("from", from);
+      if (to) qs.set("to", to);
+      const url = `${BACKEND_URL}/api/analytics/summary${qs.toString() ? `?${qs}` : ""}`;
+      const res = await fetch(url, { headers: { "X-Analytics-Token": t } });
       if (res.status === 401) {
         setError("Token non valido.");
         setData(null);
@@ -49,10 +97,17 @@ export default function AdminAnalytics() {
     }
   };
 
+  const reload = () => {
+    if (token) load(token, preset, customFrom, customTo);
+  };
+
   useEffect(() => {
-    if (token) load(token);
+    if (!token) return;
+    // Per "custom" ricarica solo quando entrambe le date sono presenti.
+    if (preset === "custom" && (!customFrom || !customTo)) return;
+    load(token, preset, customFrom, customTo);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, preset, customFrom, customTo]);
 
   const onLogin = () => {
     const t = tokenInput.trim();
@@ -111,7 +166,7 @@ export default function AdminAnalytics() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => load(token)}
+              onClick={reload}
               className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-semibold text-ink2 hover:bg-bg-soft"
             >
               {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
@@ -137,26 +192,63 @@ export default function AdminAnalytics() {
           </div>
         ) : (
           <div className="flex flex-col gap-8">
-            {/* KPI visite */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Kpi label="Visite (totale)" value={data.totals.views ?? 0} accent="blue" />
-              <Kpi label="Visite oggi" value={data.today.views ?? 0} accent="blue" />
-              <Kpi label="Totale click store" value={data.totals.total} accent="orange" />
-              <Kpi label="Click oggi" value={data.today.total} accent="orange"
-                   sub={`${data.today.appstore} iOS · ${data.today.googleplay} Android`} />
+            {/* Filtri periodo */}
+            <div className="card p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                {(["today", "7d", "30d", "all", "custom"] as Preset[]).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPreset(p)}
+                    className={`rounded-full px-4 py-1.5 text-sm font-semibold border transition-colors ${
+                      preset === p
+                        ? "bg-brand-blue text-white border-brand-blue"
+                        : "border-line text-ink2 hover:bg-bg-soft"
+                    }`}
+                  >
+                    {PRESET_LABELS[p]}
+                  </button>
+                ))}
+                {preset === "custom" && (
+                  <div className="flex items-center gap-2 ml-1">
+                    <input
+                      type="date"
+                      value={customFrom}
+                      onChange={(e) => setCustomFrom(e.target.value)}
+                      className="rounded-xl border border-line bg-bg-soft px-3 py-1.5 text-sm text-ink"
+                    />
+                    <span className="text-muted text-sm">→</span>
+                    <input
+                      type="date"
+                      value={customTo}
+                      onChange={(e) => setCustomTo(e.target.value)}
+                      className="rounded-xl border border-line bg-bg-soft px-3 py-1.5 text-sm text-ink"
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="mt-2 text-xs text-muted">
+                Periodo:{" "}
+                <span className="font-semibold text-ink2">
+                  {data.period?.all_time
+                    ? "sempre (tutti i dati)"
+                    : `${data.period?.from || "inizio"} → ${data.period?.to || "oggi"}`}
+                </span>
+                {" · "}i numeri qui sotto sono riferiti a questo periodo.
+              </p>
             </div>
 
-            {/* KPI click */}
+            {/* KPI */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Kpi label="App Store (totale)" value={data.totals.appstore} accent="ink" />
-              <Kpi label="Google Play (totale)" value={data.totals.googleplay} accent="green" />
-              <Kpi label="App Store oggi" value={data.today.appstore} accent="ink" />
-              <Kpi label="Google Play oggi" value={data.today.googleplay} accent="green" />
+              <Kpi label="Visite sito" value={data.totals.views ?? 0} accent="blue" />
+              <Kpi label="Click store totali" value={data.totals.total} accent="orange"
+                   sub={`${data.totals.appstore} iOS · ${data.totals.googleplay} Android`} />
+              <Kpi label="Click App Store" value={data.totals.appstore} accent="ink" />
+              <Kpi label="Click Google Play" value={data.totals.googleplay} accent="green" />
             </div>
 
             {/* Grafico giornaliero */}
             <div className="card p-6">
-              <h2 className="font-display font-bold text-lg text-ink">Ultimi 30 giorni</h2>
+              <h2 className="font-display font-bold text-lg text-ink">Andamento giornaliero (click store)</h2>
               <div className="mt-2 flex items-center gap-4 text-xs text-muted">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-sm bg-ink" /> App Store
