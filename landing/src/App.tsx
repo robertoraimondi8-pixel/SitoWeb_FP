@@ -14,6 +14,8 @@ import AdminAnalytics from "./pages/AdminAnalytics";
 function RouteTracker() {
   const location = useLocation();
   useEffect(() => {
+    // Non tracciare il traffico interno (pannello admin, login).
+    if (/^\/(admin|login)/i.test(location.pathname)) return;
     trackPageview();
   }, [location.pathname, location.search]);
   return null;

@@ -9,7 +9,7 @@ const TOKEN_KEY = "fp_analytics_token";
 
 type Summary = {
   period?: { from: string | null; to: string | null; all_time: boolean };
-  totals: { appstore: number; googleplay: number; total: number; views: number };
+  totals: { appstore: number; googleplay: number; total: number; views: number; visitors: number };
   creators: { creator: string; appstore: number; googleplay: number; total: number }[];
   sources: { source: string; visits: number; clicks: number }[];
   top_pages: { page: string; views: number }[];
@@ -239,9 +239,14 @@ export default function AdminAnalytics() {
 
             {/* KPI */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Kpi label="Visite sito" value={data.totals.views ?? 0} accent="blue" />
+              <Kpi label="Visitatori unici" value={data.totals.visitors ?? 0} accent="blue"
+                   sub={`${data.totals.views ?? 0} pagine viste`} />
               <Kpi label="Click store totali" value={data.totals.total} accent="orange"
-                   sub={`${data.totals.appstore} iOS · ${data.totals.googleplay} Android`} />
+                   sub={
+                     (data.totals.visitors ?? 0) > 0
+                       ? `${Math.round((data.totals.total / data.totals.visitors) * 100)}% conversione · ${data.totals.appstore} iOS · ${data.totals.googleplay} Android`
+                       : `${data.totals.appstore} iOS · ${data.totals.googleplay} Android`
+                   } />
               <Kpi label="Click App Store" value={data.totals.appstore} accent="ink" />
               <Kpi label="Click Google Play" value={data.totals.googleplay} accent="green" />
             </div>
