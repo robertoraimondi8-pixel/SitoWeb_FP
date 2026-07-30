@@ -61,38 +61,80 @@ function CaptainAvatar({ name, image }: { name: string; image: string }) {
   );
 }
 
+const IOS_URL = "https://apps.apple.com/it/app/fantapronostic/id6760613936";
+
 export default function CommunityLeaguePage() {
   const [openArticle, setOpenArticle] = useState<number | null>(null);
+  const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    const ua = navigator.userAgent || "";
+    if (/iPhone|iPad|iPod/i.test(ua)) setPlatform("ios");
+    else if (/Android/i.test(ua)) setPlatform("android");
     track("community_view");
   }, []);
 
+  // CTA unico: su mobile porta direttamente allo store giusto.
+  const smartUrl = platform === "android" ? ANDROID_URL : IOS_URL;
+  const onSmartClick = () => {
+    trackDownload(platform === "android" ? "click_googleplay" : "click_appstore");
+    track("community_smart_cta_click");
+  };
+
   const DownloadCta = (
-    <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-      <a
-        href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
-        rel="noopener noreferrer"
-        onClick={() => {
-          trackDownload("click_appstore");
-          track("community_ios_click");
-        }}
-        className="btn-blue"
-      >
-        Scarica su App Store
-      </a>
-      <a
-        href={ANDROID_URL}
-        rel="noopener noreferrer"
-        onClick={() => {
-          trackDownload("click_googleplay");
-          track("community_android_click");
-        }}
-        className="btn-primary"
-      >
-        Scarica su Google Play
-      </a>
+    <div className="flex flex-col items-center gap-3">
+      {platform !== "other" ? (
+        // Mobile: un solo pulsante grande, lo store è un mezzo non il beneficio.
+        <a
+          href={smartUrl}
+          rel="noopener noreferrer"
+          onClick={onSmartClick}
+          className="inline-flex items-center justify-center gap-2.5 rounded-full bg-brand-orange px-10 py-4 font-display font-bold text-lg text-white shadow-cta hover:-translate-y-0.5 transition-transform w-full max-w-sm"
+        >
+          SCARICA GRATIS ED ENTRA
+          <ArrowRight size={19} />
+        </a>
+      ) : (
+        // Desktop: impossibile sapere il telefono → due pulsanti classici.
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <a
+            href={IOS_URL}
+            rel="noopener noreferrer"
+            onClick={() => {
+              trackDownload("click_appstore");
+              track("community_ios_click");
+            }}
+            className="btn-blue"
+          >
+            Scarica su App Store
+          </a>
+          <a
+            href={ANDROID_URL}
+            rel="noopener noreferrer"
+            onClick={() => {
+              trackDownload("click_googleplay");
+              track("community_android_click");
+            }}
+            className="btn-primary"
+          >
+            Scarica su Google Play
+          </a>
+        </div>
+      )}
+      <p className="text-white/70 text-[13px] font-semibold tracking-wide">
+        Gratis · Nessuna carta richiesta · Ti bastano 2 minuti
+      </p>
+      {platform !== "other" && (
+        <a
+          href={smartUrl}
+          rel="noopener noreferrer"
+          onClick={onSmartClick}
+          className="text-white/60 text-xs underline underline-offset-2 hover:text-white"
+        >
+          Hai già l'app? Aprila e cerca "Community League"
+        </a>
+      )}
     </div>
   );
 
@@ -140,31 +182,40 @@ export default function CommunityLeaguePage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-[12px] font-bold uppercase tracking-[0.15em] text-green-800"
+              className="flex items-center justify-center gap-2 flex-wrap"
             >
-              <Star size={12} className="text-green-700" />
-              Iscrizione gratuita
+              <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-[12px] font-bold uppercase tracking-[0.15em] text-green-800">
+                <Star size={12} className="text-green-700" />
+                100% Gratis
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-1.5 text-[12px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur-md">
+                <Users size={12} className="text-brand-orange" />
+                {CAPTAINS.length} creator in gara
+              </span>
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.08 }}
-              className="mt-7 font-display font-black text-[clamp(2.4rem,10vw,6rem)] leading-[0.9] tracking-tightest uppercase"
+              className="mt-7 font-display font-black text-[clamp(2rem,8.2vw,4.6rem)] leading-[0.95] tracking-tightest uppercase"
             >
-              <span className="text-brand-orange">Community</span>
+              <span className="text-white">Entra </span>
+              <span className="text-brand-orange">gratis</span>
               <br />
-              <span className="text-white">League</span>
+              <span className="text-white">nella Community League</span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.22 }}
-              className="mt-6 text-white/80 text-base md:text-lg max-w-xl mx-auto leading-relaxed"
+              className="mt-6 text-white/85 text-base md:text-lg max-w-xl mx-auto leading-relaxed"
             >
-              La lega gratuita di FantaPronostic. Scegli la community del tuo capitano preferito,
-              pronostica ogni giornata e vinci premi settimanali e finali.
+              Scegli il tuo creator preferito, pronostica la Serie A come una schedina e vinci:{" "}
+              <strong className="text-white">buono Amazon da 20€ ogni settimana</strong> e un{" "}
+              <strong className="text-white">weekend in una capitale europea per 2</strong> in
+              palio alla fine.
             </motion.p>
 
             <motion.div
@@ -201,18 +252,18 @@ export default function CommunityLeaguePage() {
               {[
                 {
                   icon: <ShieldCheck size={22} />,
-                  title: "Iscriviti gratis",
-                  desc: "Scarica FantaPronostic e iscriviti alla Community League: è completamente gratuito.",
+                  title: "Scarica l'app",
+                  desc: "Scarica FantaPronostic gratis da App Store o Google Play: ci vogliono 2 minuti.",
                 },
                 {
                   icon: <Users size={22} />,
-                  title: "Scegli il capitano",
-                  desc: "Seleziona la community del creator che preferisci: i tuoi punti fanno classifica anche per lei.",
+                  title: "Registrati gratis",
+                  desc: "Crea il tuo account senza carta di credito e cerca la Community League.",
                 },
                 {
                   icon: <Target size={22} />,
-                  title: "Pronostica e vinci",
-                  desc: "Ogni giornata inserisci i pronostici sulle partite di Serie A e prova a vincere i premi.",
+                  title: "Scegli il capitano ed entra",
+                  desc: "Seleziona la community del tuo creator, pronostica la Serie A e vinci i premi.",
                 },
               ].map((s, i) => (
                 <motion.div
