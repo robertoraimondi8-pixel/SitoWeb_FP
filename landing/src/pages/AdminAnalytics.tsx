@@ -306,6 +306,13 @@ function OverviewTab({
       </div>
 
       <Section
+        title="Accessi e click per pagina"
+        description="Persone uniche, non aperture: ogni visitatore conta una volta per pagina. La quota è sul totale dei visitatori del periodo, il CTR è calcolato sulla stessa pagina."
+      >
+        <PagesBreakdown rows={(overview.pages || []) as PageRow[]} />
+      </Section>
+
+      <Section
         title="Andamento nel tempo"
         description="Seleziona una o più metriche. Le linee arancioni tratteggiate sono le annotazioni."
         actions={
@@ -395,6 +402,74 @@ function RateGrid({ rates, basis }: { rates: Record<string, number | null>; basi
           formula={BASIS_HELP[basis]}
           note={v === null ? "Denominatore non disponibile" : undefined}
         />
+      ))}
+    </div>
+  );
+}
+
+type PageRow = {
+  path: string;
+  label: string;
+  visitors: number;
+  views: number;
+  clickers: number;
+  clicks: number;
+  share: number | null;
+  ctr: number | null;
+};
+
+/** Per-page audience at a glance: a share bar for volume, a CTR column for quality. */
+function PagesBreakdown({ rows }: { rows: PageRow[] }) {
+  if (!rows.length)
+    return <p className="text-sm text-[#8ea0c9]">Nessuna visita registrata nel periodo selezionato.</p>;
+
+  return (
+    <div className="flex flex-col gap-2">
+      {rows.map((r) => (
+        <div
+          key={r.path}
+          className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3"
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-white">{r.label}</p>
+              <p className="truncate text-[11px] text-[#8ea0c9]">{r.path}</p>
+            </div>
+            <div className="flex items-baseline gap-5 tabular-nums">
+              <span className="text-right">
+                <span className="block text-[10px] uppercase tracking-wider text-[#8ea0c9]">Visitatori</span>
+                <span className="font-display font-bold text-white">
+                  {formatValue(r.visitors)}
+                </span>
+              </span>
+              <span className="text-right">
+                <span className="block text-[10px] uppercase tracking-wider text-[#8ea0c9]">Quota</span>
+                <span className="font-display font-bold text-white">
+                  {formatValue(r.share, "pct")}
+                </span>
+              </span>
+              <span className="text-right">
+                <span className="block text-[10px] uppercase tracking-wider text-[#8ea0c9]">Click</span>
+                <span className="font-display font-bold text-white">
+                  {formatValue(r.clickers)}
+                </span>
+              </span>
+              <span className="text-right">
+                <span className="block text-[10px] uppercase tracking-wider text-[#8ea0c9]">CTR</span>
+                <span className="font-display font-bold text-[#F58220]">
+                  {formatValue(r.ctr, "pct")}
+                </span>
+              </span>
+            </div>
+          </div>
+          {/* Share bar: width is the page's slice of the period's audience. */}
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full bg-[#F58220]"
+              style={{ width: `${Math.min(r.share ?? 0, 100)}%` }}
+            />
+          </div>
+        </div>
       ))}
     </div>
   );
