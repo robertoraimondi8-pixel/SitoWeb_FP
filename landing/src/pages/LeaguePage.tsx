@@ -208,7 +208,10 @@ export default function LeaguePage() {
       const body: Record<string, unknown> = {
         email: email.trim(),
         league_id: SUPER_LEAGUE.leagueId,
-        success_url: `${window.location.origin}${path}?payment=success`,
+        // {CHECKOUT_SESSION_ID} è un segnaposto che Stripe sostituisce al
+        // ritorno: senza di esso la pagina di successo non può recuperare il
+        // codice d'accesso reale e resterebbe con il solo messaggio email.
+        success_url: `${window.location.origin}${path}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${window.location.origin}${path}?payment=cancelled`,
         metadata: creatorParam ? { creator: creatorParam } : undefined,
       };
@@ -1099,36 +1102,74 @@ function PurchaseCard({
 
 // ─── Success screen ───────────────────────────────────────────────────────────
 function SuccessScreen() {
-  const [copiedCode, setCopiedCode] = useState(false);
-  const accessCode = "SUPER-XXXX-XXXX"; // Placeholder — il backend lo passerà via URL
+  const [searchParams] = useSearchParams();
+  const sessionId = (searchParams.get("session_id") || "").trim();
+
+  // Il codice d'accesso nasce nel webhook Stripe, che arriva pochi istanti dopo
+  // il ritorno sul sito. Finché non c'è, si aspetta: mai un valore inventato.
+  const [state, setState] = useState<"loading" | "ready" | "email">(
+    sessionId.startsWith("cs_") ? "loading" : "email",
+  );
+  const [access, setAccess] = useState<{ code: string; join_url?: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    track("payment_succeeded");
+    track("payment_success_page_view");
   }, []);
 
+  useEffect(() => {
+    if (!sessionId.startsWith("cs_")) return;
+    let stopped = false;
+    const deadline = Date.now() + 20000;   // ~20s, poi si rimanda all'email
+
+    const poll = async () => {
+      try {
+        const res = await fetch(
+          `${BACKEND_URL}/api/payments/session-code?session_id=${encodeURIComponent(sessionId)}`,
+        );
+        const data = await res.json().catch(() => ({}));
+        if (stopped) return;
+        if (res.ok && data?.status === "ready" && data?.code) {
+          setAccess({ code: data.code, join_url: data.join_url });
+          setState("ready");
+          return;
+        }
+      } catch {
+        /* rete instabile: si riprova finché resta tempo */
+      }
+      if (stopped) return;
+      if (Date.now() >= deadline) setState("email");
+      else setTimeout(poll, 2000);
+    };
+
+    poll();
+    return () => {
+      stopped = true;
+    };
+  }, [sessionId]);
+
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(accessCode);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
+    if (!access?.code) return;
+    navigator.clipboard.writeText(access.code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <main className="container-x py-16 md:py-24">
-      <div className="max-w-2xl mx-auto">
+      <div className="mx-auto max-w-2xl">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="card p-8 md:p-12 flex flex-col items-center text-center gap-8"
+          className="card flex flex-col items-center gap-8 p-8 text-center md:p-12"
         >
-          {/* Success icon */}
-          <div className="h-20 w-20 rounded-full bg-green-100 grid place-items-center text-green-600">
+          <div className="grid h-20 w-20 place-items-center rounded-full bg-green-100 text-green-600">
             <CheckCircle2 size={40} />
           </div>
 
-          {/* Header */}
           <div>
-            <h1 className="font-display font-bold text-4xl md:text-5xl text-ink tracking-tightest">
+            <h1 className="font-display font-bold text-4xl tracking-tightest text-ink md:text-5xl">
               Pagamento completato!
             </h1>
             <p className="mt-3 text-lg text-muted">
@@ -1136,85 +1177,104 @@ function SuccessScreen() {
             </p>
           </div>
 
-          {/* Email confirmazione */}
-          <div className="w-full rounded-2xl border border-line bg-bg-soft p-6 text-left">
-            <p className="text-xs uppercase tracking-widest text-muted font-bold mb-2">Email di conferma</p>
-            <p className="font-semibold text-ink">Controlla anche lo spam</p>
-            <p className="text-sm text-muted mt-1 leading-relaxed">
-              Ti abbiamo inviato il prodotto editoriale e il codice univoco per entrare nella Super League.
-            </p>
-          </div>
-
-          {/* Access code prominente */}
-          <div className="w-full rounded-2xl border-2 border-brand-orange bg-brand-orange/5 p-8">
-            <p className="text-xs uppercase tracking-widest text-muted font-bold mb-3">Il tuo codice di accesso</p>
-            <div className="font-display font-bold text-3xl text-brand-orange tabular-nums mb-4 select-all">
-              {accessCode}
+          {/* Codice d'accesso: mostrato solo quando è quello vero. */}
+          {state === "loading" && (
+            <div className="flex w-full items-center gap-3 rounded-2xl border border-line bg-bg-soft p-6 text-left">
+              <Loader2 size={20} className="shrink-0 animate-spin text-brand-orange" />
+              <p className="text-sm text-ink2">
+                Stiamo preparando il tuo codice d'accesso… ci vogliono pochi secondi.
+              </p>
             </div>
-            <button
-              onClick={handleCopyCode}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-brand-orange px-6 py-3 font-semibold text-white hover:bg-brand-orange/90 transition-colors"
-            >
-              {copiedCode ? (
-                <>
-                  <CheckCircle2 size={18} />
-                  Codice copiato!
-                </>
-              ) : (
-                <>
-                  📋 Copia codice
-                </>
-              )}
-            </button>
+          )}
+
+          {state === "ready" && access && (
+            <div className="w-full rounded-2xl border-2 border-brand-orange bg-brand-orange/5 p-8">
+              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted">
+                Il tuo codice di accesso
+              </p>
+              <div className="mb-4 select-all font-display font-bold text-3xl tracking-[0.15em] text-brand-orange">
+                {access.code}
+              </div>
+              <button
+                onClick={handleCopyCode}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-orange px-6 py-3 font-semibold text-white transition-colors hover:bg-brand-orange/90"
+              >
+                {copied ? (
+                  <>
+                    <CheckCircle2 size={18} />
+                    Codice copiato!
+                  </>
+                ) : (
+                  <>📋 Copia codice</>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Nessun session_id, o webhook in ritardo: l'email resta la via sicura. */}
+          {state === "email" && (
+            <div className="w-full rounded-2xl border border-line bg-bg-soft p-6 text-left">
+              <div className="mb-2 flex items-center gap-2">
+                <Mail size={18} className="text-brand-orange" />
+                <p className="font-semibold text-ink">Ti abbiamo inviato il codice per email</p>
+              </div>
+              <p className="text-sm leading-relaxed text-muted">
+                Controlla la posta (anche lo spam): trovi il prodotto editoriale e il codice univoco
+                per entrare nella Super League. Se non arriva entro qualche minuto, scrivici.
+              </p>
+            </div>
+          )}
+
+          {/* Ingresso in lega: il link diretto esiste solo con il codice vero. */}
+          <div className="flex w-full flex-col gap-3">
+            {state === "ready" && access?.join_url ? (
+              <a
+                href={access.join_url}
+                onClick={() => track("deeplink_click", { placement: "success_screen" })}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-8 py-4 font-display font-bold text-lg text-white transition-colors hover:bg-ink/90"
+              >
+                Apri FantaPronostic ed entra nella lega
+                <ArrowRight size={20} />
+              </a>
+            ) : (
+              <p className="text-sm text-muted">
+                Scarica l'app e inserisci il codice ricevuto per entrare nella lega.
+              </p>
+            )}
           </div>
 
-          {/* CTA principale: app */}
-          <div className="w-full flex flex-col gap-3">
-            <a
-              href="fantapronostic://super-league-redeem"
-              onClick={() => track("deeplink_click", { placement: "success_screen" })}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-8 py-4 font-display font-bold text-lg text-white hover:bg-ink/90 transition-colors"
-            >
-              Apri FantaPronostic ed entra nella lega
-              <ArrowRight size={20} />
-            </a>
-            <p className="text-xs text-muted">
-              Se hai già l'app, si aprirà sulla pagina di riscatto.
-            </p>
-          </div>
-
-          {/* App store fallback */}
-          <div className="w-full flex flex-col gap-3 pt-4 border-t border-line">
+          <div className="flex w-full flex-col gap-3 border-t border-line pt-4">
             <p className="text-sm font-semibold text-muted">Non hai ancora l'app?</p>
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <a
                 href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
                 rel="noopener noreferrer"
                 onClick={openAppStore}
-                className="flex-1 btn-blue justify-center text-sm"
+                className="btn-blue flex-1 justify-center text-sm"
               >
                 Scarica su App Store
               </a>
               <a
                 href="https://play.google.com/store/apps/details?id=com.fantapronostic.app"
                 rel="noopener noreferrer"
-                className="flex-1 btn-primary justify-center text-sm"
+                className="btn-primary flex-1 justify-center text-sm"
               >
                 Scarica su Google Play
               </a>
             </div>
           </div>
 
-          {/* Support */}
-          <div className="w-full rounded-2xl bg-bg-soft border border-line p-6 text-center">
-            <p className="text-sm font-semibold text-ink mb-1">Hai problemi?</p>
+          <div className="w-full rounded-2xl border border-line bg-bg-soft p-6 text-center">
+            <p className="mb-1 text-sm font-semibold text-ink">Hai problemi?</p>
             <p className="text-xs text-muted">
-              Contatta il nostro supporto: <a href="mailto:support@fantapronostic.com" className="text-brand-blue hover:underline">support@fantapronostic.com</a>
+              Contatta il nostro supporto:{" "}
+              <a href="mailto:support@fantapronostic.com" className="text-brand-blue hover:underline">
+                support@fantapronostic.com
+              </a>
             </p>
           </div>
 
-          {/* Back to home */}
-          <Link to="/" className="text-sm font-semibold text-muted hover:text-brand-blue transition-colors">
+          <Link to="/" className="text-sm font-semibold text-muted transition-colors hover:text-brand-blue">
             Torna alla home
           </Link>
         </motion.div>
