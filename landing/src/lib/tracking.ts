@@ -160,6 +160,12 @@ export type TrackOptions = {
   cta_placement?: string;
   project_type?: string;
   league_id?: string;
+  /**
+   * Captain the user picked inside the league. This is NOT the creator who sent
+   * the visit — that one comes from the URL and is sent as `creator`. Keeping
+   * the two apart avoids crediting an acquisition that never happened.
+   */
+  selected_creator?: string;
   meta?: Record<string, unknown>;
 };
 
@@ -174,7 +180,8 @@ export function trackEvent(event: WebEvent, options: TrackOptions = {}) {
       session_id: getSessionId(),
       project_type: options.project_type ?? detectProject(),
       league_id: options.league_id ?? null,
-      creator: last.creator || first.creator || null,
+      creator: last.creator || first.creator || null,   // acquisition creator
+      selected_creator: options.selected_creator ?? null,
       utm_source: last.utm_source ?? null,
       utm_medium: last.utm_medium ?? null,
       utm_campaign: last.utm_campaign ?? null,

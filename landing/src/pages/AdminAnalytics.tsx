@@ -378,32 +378,90 @@ function OverviewTab({
   );
 }
 
+const BASIS_HELP: Record<string, string> = {
+  event:
+    "Metrica PER DATA EVENTO: conta ciò che è accaduto dentro il periodo selezionato.",
+  cohort:
+    "Metrica PER COORTE DI ACQUISIZIONE: segue le persone acquisite nel periodo, " +
+    "anche quando completano il passaggio successivo più tardi.",
+};
+
+function RateGrid({ rates, basis }: { rates: Record<string, number | null>; basis: string }) {
+  return (
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+      {Object.entries(rates).map(([k, v]) => (
+        <Kpi
+          key={k} label={k.replace(/_/g, " ")} value={v} format="pct"
+          formula={BASIS_HELP[basis]}
+          note={v === null ? "Denominatore non disponibile" : undefined}
+        />
+      ))}
+    </div>
+  );
+}
+
 function FunnelTab({ data }: { data: Record<string, any> }) {
   const f = data.funnel;
   if (!f) return <Loading />;
+  const web = f.web_funnel;
+  const app = f.app_funnel;
+  const attributed = f.attributed_funnel;
+  const totals = f.unattributed_totals;
+
   return (
     <>
-      <Section
-        title="Funnel principale"
-        description="Persone uniche per fase. Le fasi senza dati indicano l'evento mancante invece di mostrare zero."
-      >
-        <FunnelChart steps={f.steps as FunnelStep[]} />
-      </Section>
-      <Section title="Tassi di conversione">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-          {Object.entries(f.rates as Record<string, number | null>).map(([k, v]) => (
-            <Kpi key={k} label={k.replace(/_/g, " ")} value={v} format="pct"
-                 note={v === null ? "Denominatore non disponibile" : undefined} />
-          ))}
+      <Banner level="info">
+        I funnel restano <strong>separati di proposito</strong>. Il funnel web identifica le
+        persone con <code>anonymous_id</code>, quello app con <code>user_id</code>: finché non
+        esiste il collegamento tra i due, unirli produrrebbe percentuali costruite su
+        popolazioni diverse.
+      </Banner>
+
+      <Section title={web.label}
+               description={`Identità: ${web.identity} · ${BASIS_HELP[web.basis]}`}>
+        <FunnelChart steps={web.steps as FunnelStep[]} />
+        <div className="mt-4">
+          <RateGrid rates={web.rates} basis={web.basis} />
         </div>
-        {f.blocked?.length > 0 && (
-          <div className="mt-4 flex flex-col gap-2">
-            {f.blocked.map((b: string) => (
-              <Banner key={b} level="warn">{b}</Banner>
-            ))}
+      </Section>
+
+      <Section title={app.label}
+               description={`Identità: ${app.identity} · ${BASIS_HELP[app.basis]} · coorte di ${app.cohort_size} utenti`}>
+        <FunnelChart steps={app.steps as FunnelStep[]} />
+        <div className="mt-4">
+          <RateGrid rates={app.rates} basis={app.basis} />
+        </div>
+      </Section>
+
+      <Section title={attributed.label}
+               description="Solo le persone per cui il collegamento web→app esiste davvero.">
+        {attributed.available ? (
+          <FunnelChart steps={attributed.steps as FunnelStep[]} />
+        ) : (
+          <div className="flex flex-col gap-3">
+            <Unavailable reason={attributed.missing} />
+            <Kpi label="Copertura attribuzione" value={attributed.coverage} format="pct"
+                 formula="Utenti con identità verificata ÷ visitatori web unici" />
           </div>
         )}
       </Section>
+
+      <Section title={totals.label} description={totals.note}>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Kpi label="Registrazioni" value={totals.registrations} formula={BASIS_HELP.event} />
+          <Kpi label="Ingressi lega" value={totals.league_joins} formula={BASIS_HELP.event} />
+          <Kpi label="Con pronostico" value={totals.predicting_users} formula={BASIS_HELP.event} />
+          <Kpi label="Acquisti" value={totals.purchases} formula={BASIS_HELP.event} />
+        </div>
+      </Section>
+
+      {f.blocked?.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {f.blocked.map((b: string) => (
+            <Banner key={b} level="warn">{b}</Banner>
+          ))}
+        </div>
+      )}
     </>
   );
 }
@@ -414,7 +472,7 @@ function CreatorsTab({ data }: { data: Record<string, any> }) {
   return (
     <Section
       title="Campagne e creator"
-      description="Il creator migliore non è chi porta più visite, ma chi porta persone che entrano e giocano."
+      description={`${c.creator_meaning}. Il creator migliore non è chi porta più visite, ma chi porta persone che entrano e giocano.`}
     >
       <DataTable
         columns={[
@@ -430,10 +488,15 @@ function CreatorsTab({ data }: { data: Record<string, any> }) {
           { key: "purchases", label: "Vendite", align: "right", tooltip: "Da codice creator su pagamento Stripe" },
           { key: "revenue", label: "Ricavi", align: "right", format: "eur" },
         ]}
-        rows={c.rows}
+        rows={c.rows.map((r: any) => ({
+          ...r,
+          key: r.key === "(nessuno)" ? "Creator di acquisizione non disponibile" : r.key,
+        }))}
       />
       {c.unavailable_columns && (
         <div className="mt-4 flex flex-col gap-2">
+          <Banner level="info">{c.acquisition_attribution_note}</Banner>
+          <Banner level="info">{c.sales_attribution_note}</Banner>
           <Banner level="warn">
             Colonne non ancora disponibili:{" "}
             {Object.entries(c.unavailable_columns as Record<string, string>)

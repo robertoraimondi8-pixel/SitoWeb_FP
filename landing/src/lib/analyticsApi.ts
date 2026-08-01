@@ -3,12 +3,16 @@
 // Auth note: the dashboard no longer holds a shared token in localStorage. It
 // logs in with a password and the server replies with an httpOnly session
 // cookie, so no secret is ever readable by JS, present in the URL or bundled.
-// Every call therefore uses `credentials: "include"`.
+//
+// Transport: these calls go to a RELATIVE path, which Vercel rewrites to the
+// backend (see vercel.json). That keeps them same-origin with the dashboard, so
+// the session cookie is first-party — it works regardless of whether the
+// backend runs on api.fantapronostic.com or on *.up.railway.app, and it does
+// not need SameSite=None. Set VITE_ANALYTICS_API_BASE only to bypass the proxy
+// (e.g. local development against a remote backend).
 
-const BACKEND_URL =
-  (import.meta as any).env?.VITE_BACKEND_URL || "https://api.fantapronostic.com";
-
-const BASE = `${BACKEND_URL}/api/analytics`;
+const BASE =
+  (import.meta as any).env?.VITE_ANALYTICS_API_BASE || "/api/analytics";
 
 export class AuthError extends Error {}
 
