@@ -42,7 +42,7 @@ export default function DownloadPage() {
         href={IOS_URL}
         rel="noopener noreferrer"
         onClick={(e) => {
-          trackDownload("click_appstore");
+          trackDownload("click_appstore", "download_page");
           track("download_ios_click");
           openAppStore(e);
         }}
@@ -60,7 +60,7 @@ export default function DownloadPage() {
         href={ANDROID_URL}
         rel="noopener noreferrer"
         onClick={() => {
-          trackDownload("click_googleplay");
+          trackDownload("click_googleplay", "download_page");
           track("download_android_click");
         }}
         className="group flex items-center justify-center gap-3 rounded-2xl bg-white border border-line px-6 py-4 text-ink transition-transform hover:-translate-y-0.5 shadow-soft"
