@@ -157,15 +157,30 @@ export default function LeaguePage() {
   const forcePay = searchParams.get("pay") === "1";
   const isOpen = countdown.isOver || forcePay;
 
+  // Creator personalizzazione (da URL o session)
+  const creatorParam = searchParams.get("creator");
+  const [mobileSlideIndex, setMobileSlideIndex] = useState(0);
+  const [showStickyCta, setShowStickyCta] = useState(false);
+
   useEffect(() => {
     window.scrollTo(0, 0);
     const codeFromUrl = searchParams.get("codice");
     if (codeFromUrl) setDiscountCode(codeFromUrl.trim());
-  }, [searchParams]);
 
-  useEffect(() => {
-    track("lega_view");
-  }, []);
+    // Track landing view
+    if (creatorParam) {
+      track("creator_landing_view", { creator: creatorParam });
+    } else {
+      track("landing_view");
+    }
+
+    // Sticky CTA visibility
+    const handleScroll = () => {
+      setShowStickyCta(window.scrollY > window.innerHeight * 0.8);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [searchParams]);
 
   const handlePay = async () => {
     if (!email.trim() || !email.includes("@")) {
@@ -178,7 +193,7 @@ export default function LeaguePage() {
     }
     setError("");
     setLoading(true);
-    track("checkout_click", { discount: Boolean(discountCode.trim()) });
+    track("checkout_started", { discount: Boolean(discountCode.trim()), creator: creatorParam || null });
     try {
       const path = window.location.pathname;
       const body: Record<string, unknown> = {
@@ -186,6 +201,7 @@ export default function LeaguePage() {
         league_id: SUPER_LEAGUE.leagueId,
         success_url: `${window.location.origin}${path}?payment=success`,
         cancel_url: `${window.location.origin}${path}?payment=cancelled`,
+        metadata: creatorParam ? { creator: creatorParam } : undefined,
       };
       if (discountCode.trim()) body.discount_code = discountCode.trim().toUpperCase();
 
@@ -199,7 +215,10 @@ export default function LeaguePage() {
         setError(data?.detail || "Errore durante la creazione del pagamento. Riprova.");
         return;
       }
-      if (data?.url) window.location.href = data.url;
+      if (data?.url) {
+        track("purchase_cta_click", { creator: creatorParam || null });
+        window.location.href = data.url;
+      }
       else setError("Risposta non valida dal server. Riprova.");
     } catch {
       setError("Errore di connessione. Riprova.");
@@ -273,8 +292,8 @@ export default function LeaguePage() {
         <SuccessScreen />
       ) : (
         <main>
-          {/* ══ HERO (scuro, cinematografico) ══════════════════════════════ */}
-          <section className="relative overflow-hidden bg-[#050f24] min-h-[92vh] flex items-center">
+          {/* ══ HERO (NEW: 2 colonne desktop, premi centrali) ═══════════════ */}
+          <section className="relative overflow-hidden bg-[#050f24] min-h-screen flex items-center pt-20 md:pt-0">
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: `url(${SUPER_LEAGUE.heroImage})` }}
@@ -283,12 +302,12 @@ export default function LeaguePage() {
               className="absolute inset-0"
               style={{
                 background:
-                  "linear-gradient(180deg, rgba(5,15,36,0.80) 0%, rgba(5,15,36,0.42) 32%, rgba(5,15,36,0.72) 74%, #050f24 100%)",
+                  "linear-gradient(180deg, rgba(5,15,36,0.82) 0%, rgba(5,15,36,0.50) 35%, rgba(5,15,36,0.78) 75%, #050f24 100%)",
               }}
             />
             <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[620px] h-[380px] rounded-full bg-brand-orange/20 blur-[130px]" />
 
-            {/* Top bar sopra la foto */}
+            {/* Top bar */}
             <div className="absolute top-0 inset-x-0 z-20">
               <div className="container-x py-5 flex items-center justify-between">
                 <Link to="/" className="flex items-center gap-2.5">
@@ -307,246 +326,261 @@ export default function LeaguePage() {
               </div>
             </div>
 
-            <div className="relative z-10 container-x py-28 md:py-32 text-center">
+            {/* Main content: 2 colonne su desktop */}
+            <div className="relative z-10 container-x py-12 md:py-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+
+                {/* COLONNA SX: Testo, benefici, CTA */}
+                <motion.div
+                  initial={{ opacity: 0, x: -24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.7 }}
+                  className="flex flex-col gap-6 text-center md:text-left"
+                >
+                  {/* Badge */}
+                  <div className="flex justify-center md:justify-start">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-4 py-1.5 text-[11px] font-bold text-white/90 uppercase tracking-[0.18em] backdrop-blur-md">
+                      <span className="h-1.5 w-1.5 rounded-full bg-brand-orange" />
+                      {SUPER_LEAGUE.season}
+                    </div>
+                  </div>
+
+                  {/* Titolo */}
+                  <h1 className="font-display font-bold text-[clamp(2.2rem,5vw,3.5rem)] leading-[0.95] tracking-tightest text-white">
+                    FantaPronostic
+                    <span className="block relative w-fit text-brand-orange">
+                      Super League 2026/2027
+                      <Underline />
+                    </span>
+                  </h1>
+
+                  {/* Sottotitolo con promessa */}
+                  <p className="text-white/85 text-base md:text-lg leading-relaxed max-w-md">
+                    Pronostica le partite delle 5 grandi leghe europee, scala la classifica e gioca per{" "}
+                    <strong className="text-white">oltre 5.000€ in premi</strong>.
+                  </p>
+
+                  {/* Premi in evidenza (visibili su mobile come riga) */}
+                  <p className="text-sm md:text-base text-brand-orange font-semibold">
+                    In palio: <strong className="text-white">Apple Pack · MacBook · PlayStation 5</strong> + premi settimanali
+                  </p>
+
+                  {/* Info cruciali */}
+                  <div className="flex flex-col gap-2 text-sm text-white/75 md:text-base">
+                    <p className="flex items-center justify-center md:justify-start gap-2">
+                      <CalendarDays size={16} className="text-brand-orange shrink-0" />
+                      <strong className="text-white">Inizio 4 settembre 2026</strong>
+                    </p>
+                    <p className="flex items-center justify-center md:justify-start gap-2">
+                      <span className="text-base">💰</span>
+                      <strong className="text-white">Pass stagione 39€ · Pagamento unico</strong>
+                    </p>
+                    <p className="flex items-center justify-center md:justify-start gap-2">
+                      <span className="text-base">✓</span>
+                      <strong className="text-white">Nessun rinnovo automatico</strong>
+                    </p>
+                  </div>
+
+                  {/* CTA Principale */}
+                  <div className="flex flex-col items-center md:items-start gap-4 pt-4">
+                    <a
+                      href="#acquista"
+                      onClick={() => track("purchase_cta_click", { placement: "hero", creator: creatorParam })}
+                      className="inline-flex items-center gap-2 rounded-full bg-brand-orange px-8 py-4 font-display font-bold text-base text-white shadow-cta hover:-translate-y-1 transition-transform w-full md:w-auto justify-center md:justify-start"
+                    >
+                      Acquista il Pass — 39€
+                      <ArrowRight size={18} />
+                    </a>
+                    <p className="text-xs text-white/60 flex items-center justify-center md:justify-start gap-1.5">
+                      <ShieldCheck size={13} />
+                      Pagamento sicuro con Stripe · Accesso inviato subito · Nessun rinnovo
+                    </p>
+                  </div>
+
+                  {creatorParam && (
+                    <p className="text-xs text-brand-orange font-semibold mt-2">
+                      Invito di <strong className="text-white">{creatorParam}</strong>
+                    </p>
+                  )}
+                </motion.div>
+
+                {/* COLONNA DX: Premi (desktop) oppure slider (mobile) */}
+                <motion.div
+                  initial={{ opacity: 0, x: 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.7, delay: 0.1 }}
+                  className="hidden md:flex flex-col items-center gap-6"
+                >
+                  {/* Desktop: mostra i premi fissi */}
+                  <img
+                    src={SUPER_LEAGUE.prizesImage}
+                    alt="Premi: 1° Apple Pack, 2° MacBook, 3° PlayStation 5"
+                    className="w-full max-w-sm rounded-2xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]"
+                  />
+                  <p className="text-xs text-white/50 text-center">
+                    I modelli e le configurazioni possono variare.
+                  </p>
+                </motion.div>
+              </div>
+
+              {/* Mobile: slider compatto dei premi (solo visibile su mobile) */}
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-4 py-1.5 text-[11px] font-bold text-white/90 uppercase tracking-[0.18em] backdrop-blur-md"
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="md:hidden flex flex-col items-center gap-4 mt-8"
               >
-                <span className="h-1.5 w-1.5 rounded-full bg-brand-orange" />
-                {SUPER_LEAGUE.season}
-              </motion.div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 28 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.08 }}
-                className="mt-7 font-display font-bold text-[clamp(1.9rem,7.4vw,5.375rem)] leading-[0.92] tracking-tightest text-white uppercase"
-              >
-                FantaPronostic
-                <span className="block relative w-fit mx-auto text-brand-orange">
-                  Super League
-                  <Underline />
-                </span>
-              </motion.h1>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.22 }}
-                className="mt-9 flex flex-col items-center gap-4"
-              >
-                <div className="inline-flex items-center gap-2.5 rounded-full bg-brand-orange px-6 py-3 shadow-cta">
-                  <Trophy size={20} className="text-white" />
-                  <span className="font-display font-bold text-lg md:text-xl text-white">
-                    Montepremi {SUPER_LEAGUE.prizePool}
-                  </span>
-                </div>
-                {!isOpen && (
-                  <a
-                    href="#acquista"
-                    className="group inline-flex items-center gap-2 rounded-full bg-white/[0.07] border border-brand-orange/50 px-5 py-2.5 backdrop-blur-md hover:bg-white/[0.12] transition-colors"
-                  >
-                    <span className="text-base">🎟️</span>
-                    <span className="text-sm md:text-[15px] font-bold text-white">
-                      Pre-iscriviti ora: <span className="text-brand-orange">10% di sconto</span> +
-                      buono <span className="text-brand-orange">Shopy Cool da 39€</span>
-                    </span>
-                    <ArrowRight size={15} className="text-white/70 group-hover:translate-x-0.5 transition-transform" />
-                  </a>
-                )}
-              </motion.div>
-
-              {/* Countdown */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.34 }}
-                className="mt-11"
-              >
-                <p className="text-white/55 text-xs font-bold uppercase tracking-[0.2em] mb-2">
-                  {isOpen ? "Iscrizioni aperte" : "Apertura iscrizioni"}
-                </p>
-                {!isOpen && (
-                  <p className="font-display font-bold text-2xl md:text-3xl text-white mb-5">
-                    {SUPER_LEAGUE.openingLabel}
-                  </p>
-                )}
-                {!isOpen && (
-                  <div className="flex items-center justify-center gap-2.5 md:gap-3.5">
-                    <CountdownBox value={countdown.days} label="Giorni" />
-                    <CountdownBox value={countdown.hours} label="Ore" />
-                    <CountdownBox value={countdown.minutes} label="Min" />
-                    <CountdownBox value={countdown.seconds} label="Sec" />
-                  </div>
-                )}
-                <p className="mt-6 inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-white/75">
-                  <CalendarDays size={15} className="text-brand-orange" />
-                  Si parte il <strong className="text-white">{SUPER_LEAGUE.startLabel}</strong>
-                  <span className="text-white/30">·</span>
-                  <strong className="text-white">Pass {SUPER_LEAGUE.price}€</strong>
-                </p>
-              </motion.div>
-
-              {/* 5 leghe */}
-              <motion.div {...reveal} transition={{ duration: 0.6, delay: 0.1 }} className="mt-12">
-                <p className="text-white/45 text-[11px] font-bold uppercase tracking-[0.2em] mb-4">
-                  Le partite delle 5 grandi leghe europee
-                </p>
-                <div className="flex items-center justify-center gap-2 md:gap-2.5 flex-wrap">
-                  {LEAGUES.map((l) => (
-                    <div
-                      key={l.name}
-                      className="flex items-center gap-2 rounded-full bg-white/[0.07] border border-white/12 px-3.5 py-2 backdrop-blur-md"
-                    >
-                      <Flag code={l.code} />
-                      <span className="text-[13px] font-semibold text-white/90">{l.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-
-              <div className="mt-11">
-                <a
-                  href="#acquista"
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-ink hover:-translate-y-0.5 transition-transform shadow-soft"
-                >
-                  {isOpen ? "Acquista ora" : "Pre-iscriviti e risparmia il 10%"}
-                  <ArrowRight size={16} />
-                </a>
-              </div>
-
-              {/* Scarica l'app */}
-              <motion.div {...reveal} transition={{ duration: 0.6, delay: 0.16 }} className="mt-8">
-                <p className="text-white/45 text-[11px] font-bold uppercase tracking-[0.2em] mb-3">
-                  Scarica l'app gratis
-                </p>
-                <div className="flex items-center justify-center gap-3 flex-wrap">
-                  <a
-                    href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
-                    rel="noopener noreferrer"
-                    onClick={openAppStore}
-                    className="inline-flex items-center gap-2.5 rounded-2xl bg-white px-5 py-3 text-ink hover:-translate-y-0.5 transition-transform shadow-soft"
-                  >
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor" aria-hidden="true">
-                      <path d="M16.365 1.43c0 1.14-.417 2.2-1.114 2.99-.84.95-2.2 1.68-3.34 1.59-.14-1.12.42-2.28 1.06-3.01.72-.82 2.02-1.46 3.13-1.55.02.06.03.12.03.18l.174-.19zM20.5 17.02c-.55 1.27-.82 1.83-1.53 2.95-.99 1.57-2.39 3.52-4.12 3.53-1.54.02-1.93-.99-4.02-.98-2.09.01-2.52.99-4.06.97-1.73-.02-3.05-1.78-4.04-3.35C-.98 15.7-.29 9.7 2.65 8.15c1.13-.6 2.16-.6 3.34-.6 1.2 0 1.96.6 3.34.6 1.34 0 2.15-.6 3.55-.6 1.06 0 2.18.29 3 .99-2.64 1.45-2.21 5.22.62 6.48-.13.42-.29.83-.6 1.6z" />
-                    </svg>
-                    <span className="text-left leading-tight">
-                      <span className="block text-[10px] uppercase tracking-widest text-ink2">Scarica su</span>
-                      <span className="block font-display font-bold text-base -mt-0.5">App Store</span>
-                    </span>
-                  </a>
-                  <a
-                    href="https://play.google.com/store/apps/details?id=com.fantapronostic.app"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 rounded-2xl bg-white/[0.08] border border-white/15 px-5 py-3 text-white backdrop-blur-md hover:bg-white/[0.14] transition-colors"
-                  >
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true">
-                      <path d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.4 1.12l.06.06 9.6-9.6v-.22L3.66 2.24l-.06.06z" fill="#00D2FF" />
-                      <path d="M16.5 15.6l-3.2-3.2v-.22l3.2-3.2.07.04 3.8 2.16c1.08.61 1.08 1.62 0 2.24l-3.8 2.16-.07.04z" fill="#FFCE00" />
-                      <path d="M16.57 15.56L13.3 12.3l-9.6 9.6c.36.38.94.42 1.6.05l11.27-6.39z" fill="#FF3B30" />
-                      <path d="M16.57 9.04L5.3 2.65c-.66-.38-1.24-.33-1.6.05l9.6 9.6 3.27-3.26z" fill="#00C853" />
-                    </svg>
-                    <span className="text-left leading-tight">
-                      <span className="block text-[10px] uppercase tracking-widest text-white/60">Scarica su</span>
-                      <span className="block font-display font-bold text-base -mt-0.5">Google Play</span>
-                    </span>
-                  </a>
-                </div>
-              </motion.div>
-
-              {/* Main sponsor */}
-              <div className="mt-12 flex flex-col items-center gap-3">
-                <span className="text-white/40 text-[10px] font-bold uppercase tracking-[0.25em]">
-                  Main Sponsor
-                </span>
-                <a href={SPONSOR.url} target="_blank" rel="noopener noreferrer" aria-label={SPONSOR.name}>
+                <div className="relative w-full max-w-xs overflow-hidden rounded-2xl">
                   <img
-                    src={SPONSOR.logo}
-                    alt={SPONSOR.name}
-                    className="h-14 w-14 object-contain opacity-90 hover:opacity-100 transition-opacity"
+                    src={SUPER_LEAGUE.prizesImage}
+                    alt="Premi"
+                    className="w-full h-auto"
                   />
-                </a>
-              </div>
+                </div>
+                <p className="text-xs text-white/50 text-center">
+                  Swipe per i dettagli premi
+                </p>
+              </motion.div>
             </div>
           </section>
 
-          {/* ══ PREMI (scuro, accento) ═════════════════════════════════════ */}
-          <section
-            className="relative overflow-hidden section-pad"
-            style={{
-              background:
-                "radial-gradient(120% 100% at 50% 0%, #14315f 0%, #0a1f45 55%, #050f24 100%)",
-            }}
-          >
-            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[520px] h-[300px] rounded-full bg-brand-orange/15 blur-[120px]" />
-            <div className="container-x relative">
-              {/* Bonus Shopy Cool — primi 100 iscritti */}
-              <motion.div
-                {...reveal}
-                className="max-w-3xl mx-auto mb-10 rounded-3xl border border-brand-orange/40 bg-white/[0.06] backdrop-blur-sm p-6 md:p-7 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left"
-              >
-                <a
-                  href={SPONSOR.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={SPONSOR.name}
-                  className="shrink-0"
-                >
-                  <span className="grid place-items-center h-20 w-20 rounded-2xl bg-white">
-                    <img src={SPONSOR.logo} alt={SPONSOR.name} className="h-16 w-16 object-contain" />
-                  </span>
-                </a>
-                <div className="flex-1">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-orange px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white">
-                    <Gift size={12} />
-                    Bonus primi {SPONSOR.perkLimit} iscritti
-                  </span>
-                  <p className="mt-3 font-display font-bold text-xl md:text-2xl text-white leading-tight">
-                    Per i primi {SPONSOR.perkLimit} è come entrare{" "}
-                    <span className="text-brand-orange">gratis</span>
-                  </p>
-                  <p className="mt-2 text-sm text-white/80 leading-relaxed">
-                    Paghi il Pass <strong className="text-white">{SUPER_LEAGUE.price}€</strong> e
-                    ricevi un buono <strong className="text-white">{SPONSOR.name} da {SPONSOR.voucher}€</strong>{" "}
-                    — di pari valore. In pratica il tuo ingresso ti torna in acquisti.
-                  </p>
-                  <p className="mt-1.5 text-xs text-white/50">
-                    Buono valido su una spesa minima di {SPONSOR.minSpend}€, online e in negozio Shopy Cool.
-                  </p>
-                </div>
+          {/* ══ PREMI COMPLETI (subito dopo hero, chiaro e trasparente) ═════ */}
+          <section className="section-pad bg-white">
+            <div className="container-x">
+              <motion.div {...reveal} className="text-center max-w-2xl mx-auto mb-12">
+                <p className="overline justify-center">I premi in palio</p>
+                <h2 className="mt-4 font-display font-bold text-3xl md:text-5xl tracking-tightest text-ink">
+                  Montepremi oltre 5.000€
+                </h2>
+                <p className="mt-4 text-muted leading-relaxed">
+                  Competisci per tutta la stagione 2026/2027 e vinci premi importanti, dal primo giorno.
+                </p>
               </motion.div>
 
-              <motion.div {...reveal} className="max-w-5xl mx-auto">
-                <img
-                  src={SUPER_LEAGUE.prizesImage}
-                  alt="I premi in palio della FantaPronostic Super League: 1° Apple Pack (iPhone Pro, AirPods, Apple Watch), 2° MacBook Neo 13, 3° PlayStation 5 Slim"
-                  className="w-full h-auto rounded-3xl border border-white/10 shadow-[0_30px_80px_-24px_rgba(0,0,0,0.6)]"
-                />
-              </motion.div>
-
-              <p className="text-center text-white/40 text-xs mt-6 max-w-xl mx-auto">
-                Montepremi {SUPER_LEAGUE.prizePool}. Le immagini dei premi sono puramente illustrative
-                e non rappresentano necessariamente il prodotto reale (colore, modello e
-                configurazione possono variare). I marchi appartengono ai rispettivi titolari.
-              </p>
+              {/* Tre premi principali */}
+              <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                {[
+                  {
+                    pos: "1°",
+                    name: "Apple Pack",
+                    desc: "iPhone Pro · AirPods Pro · Apple Watch",
+                    color: "border-brand-orange ring-2 ring-brand-orange/20 shadow-cta",
+                  },
+                  {
+                    pos: "2°",
+                    name: "MacBook Neo 13",
+                    desc: "Laptop premium per la nuova era",
+                    color: "border-brand-blue ring-2 ring-brand-blue/20",
+                  },
+                  {
+                    pos: "3°",
+                    name: "PlayStation 5 Slim",
+                    desc: "Console next-gen ultima generazione",
+                    color: "border-purple-500 ring-2 ring-purple-500/20",
+                  },
+                ].map((prize, i) => (
+                  <motion.div
+                    key={i}
+                    {...reveal}
+                    transition={{ duration: 0.55, delay: i * 0.08 }}
+                    className={`card p-8 text-center flex flex-col gap-4 border-2 ${prize.color}`}
+                  >
+                    <span className="font-display font-bold text-5xl text-ink/40">{prize.pos}</span>
+                    <h3 className="font-display font-bold text-2xl text-ink">{prize.name}</h3>
+                    <p className="text-sm text-muted leading-relaxed flex-1">{prize.desc}</p>
+                    <p className="text-xs text-muted/70 border-t border-line pt-4">
+                      Consegnato al termine della stagione
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
 
               {/* Premio settimanale */}
               <motion.div
                 {...reveal}
-                className="mt-10 max-w-4xl mx-auto rounded-3xl bg-white/[0.05] border border-white/12 p-6 flex items-start gap-4 backdrop-blur-sm"
+                className="mt-12 max-w-2xl mx-auto rounded-3xl border-2 border-brand-orange/30 bg-brand-orange/5 p-8"
               >
-                <div className="h-11 w-11 rounded-2xl bg-brand-orange/15 grid place-items-center text-brand-orange shrink-0">
-                  <Gift size={20} />
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-brand-orange/20 grid place-items-center text-brand-orange shrink-0 font-display font-bold text-xl">
+                    🎁
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-2xl text-ink">Premio settimanale</h3>
+                    <p className="mt-2 text-ink2 leading-relaxed">
+                      Ogni giornata, il punteggio più alto vince un accesso gratuito all'edizione successiva della Super League. Dalla seconda vittoria consecutiva, un buono Amazon da 20€.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-display font-bold text-white">Premio settimanale</h3>
-                  <p className="text-sm text-white/60 mt-1 leading-relaxed">
-                    Ogni giornata, chi ottiene il punteggio più alto vince l'accesso gratuito
-                    all'edizione successiva della Super League. Dalla seconda vittoria consecutiva,
-                    un buono Amazon da 20€.
+              </motion.div>
+
+              {/* Nota trasparenza */}
+              <p className="text-center text-muted text-xs mt-10 max-w-2xl mx-auto">
+                I modelli e le configurazioni esatte dei premi possono variare in base alla disponibilità al momento dell'assegnazione.
+                Consulta il regolamento per tutti i dettagli di consegna e vincoli.
+              </p>
+            </div>
+          </section>
+
+          {/* ══ FASCIA FIDUCIA (minimalista) ════════════════════════════════ */}
+          <section className="bg-ink py-6 md:py-8">
+            <div className="container-x">
+              <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10 text-center md:text-left">
+                <div className="flex flex-col items-center gap-2">
+                  <ShieldCheck size={20} className="text-brand-orange" />
+                  <p className="text-xs text-white/80">
+                    <strong>Pagamento sicuro</strong>
+                    <br />
+                    Stripe certificato
                   </p>
+                </div>
+                <div className="h-10 w-px bg-white/15 hidden md:block" />
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-2xl">💰</span>
+                  <p className="text-xs text-white/80">
+                    <strong>Accesso immediato</strong>
+                    <br />
+                    Codice inviato subito
+                  </p>
+                </div>
+                <div className="h-10 w-px bg-white/15 hidden md:block" />
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-2xl">✓</span>
+                  <p className="text-xs text-white/80">
+                    <strong>Nessun rinnovo</strong>
+                    <br />
+                    Pagamento unico
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+
+          {/* ══ VIDEO/DEMO DELL'APP (chiaro) ═══════════════════════════════ */}
+          <section className="section-pad">
+            <div className="container-x">
+              <motion.div {...reveal} className="text-center max-w-2xl mx-auto mb-12">
+                <p className="overline justify-center">Entra in lega</p>
+                <h2 className="mt-4 font-display font-bold text-3xl md:text-5xl tracking-tightest text-ink">
+                  Mettiti alla prova ogni settimana
+                </h2>
+                <p className="mt-4 text-muted leading-relaxed">
+                  Circa 12 partite selezionate a giornata, pronostici singoli e multipli, partite X3 e classifica aggiornata durante la stagione.
+                </p>
+              </motion.div>
+
+              {/* Placeholder video/mockup */}
+              <motion.div {...reveal} className="max-w-4xl mx-auto rounded-3xl overflow-hidden bg-gradient-to-b from-brand-orange/10 to-transparent border border-line">
+                <div className="aspect-video bg-ink/5 flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-4 text-center">
+                    <div className="h-20 w-20 rounded-full bg-brand-orange/20 grid place-items-center text-brand-orange">
+                      <Smartphone size={40} />
+                    </div>
+                    <p className="text-lg font-semibold text-ink">Demo dell'app in arrivo</p>
+                    <p className="text-sm text-muted max-w-xs">
+                      Video interattivo che mostra apertura dell'app, pagina Super League, pronostici, classifica.
+                    </p>
+                  </div>
                 </div>
               </motion.div>
             </div>
@@ -728,12 +762,18 @@ export default function LeaguePage() {
             </div>
           </section>
 
-          {/* ══ ACQUISTA / PRE-ISCRIZIONE (chiaro) ═════════════════════════ */}
+          {/* ══ CHECKOUT (NEW: 2 colonne su desktop) ═══════════════════════ */}
           <section id="acquista" className="section-pad bg-bg-soft scroll-mt-16">
             <div className="container-x">
-              <div className="max-w-md mx-auto">
+              <motion.div {...reveal} className="text-center max-w-2xl mx-auto mb-12">
+                <h2 className="font-display font-bold text-3xl md:text-4xl tracking-tightest text-ink">
+                  Entra nella Super League
+                </h2>
+              </motion.div>
+
+              <div className="max-w-5xl mx-auto">
                 {isOpen ? (
-                  <PurchaseCard
+                  <CheckoutLayout
                     email={email}
                     setEmail={setEmail}
                     confirmEmail={confirmEmail}
@@ -745,16 +785,66 @@ export default function LeaguePage() {
                     onPay={handlePay}
                   />
                 ) : (
-                  <PreRegisterCard
-                    preEmail={preEmail}
-                    setPreEmail={setPreEmail}
-                    preStatus={preStatus}
-                    preCode={preCode}
-                    preAlready={preAlready}
-                    onPreRegister={handlePreRegister}
-                  />
+                  <div className="max-w-md mx-auto">
+                    <PreRegisterCard
+                      preEmail={preEmail}
+                      setPreEmail={setPreEmail}
+                      preStatus={preStatus}
+                      preCode={preCode}
+                      preAlready={preAlready}
+                      onPreRegister={handlePreRegister}
+                    />
+                  </div>
                 )}
               </div>
+            </div>
+          </section>
+
+          {/* ══ BONUS SHOPY COOL (dopo checkout, secundario) ════════════════ */}
+          <section className="section-pad">
+            <div className="container-x">
+              <motion.div
+                {...reveal}
+                className="max-w-3xl mx-auto rounded-3xl border border-brand-orange/20 bg-brand-orange/5 overflow-hidden"
+              >
+                <div className="p-8 md:p-10 flex flex-col md:flex-row items-center gap-8">
+                  {/* Logo */}
+                  <div className="shrink-0">
+                    <a href={SPONSOR.url} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={SPONSOR.logo}
+                        alt={SPONSOR.name}
+                        className="h-24 w-24 md:h-28 md:w-28 object-contain"
+                      />
+                    </a>
+                  </div>
+
+                  {/* Testo */}
+                  <div className="flex-1 text-center md:text-left">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-orange px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white md:mb-2">
+                      <Gift size={12} />
+                      Bonus primi {SPONSOR.perkLimit} iscritti
+                    </span>
+                    <h3 className="mt-2 font-display font-bold text-2xl text-ink">
+                      Bonus {SPONSOR.name}
+                    </h3>
+                    <p className="mt-2 text-muted leading-relaxed">
+                      I primi {SPONSOR.perkLimit} iscritti ricevono un buono {SPONSOR.name} da{" "}
+                      <strong>{SPONSOR.voucher}€</strong> (su spesa minima di {SPONSOR.minSpend}€), da usare
+                      online e in negozio.
+                    </p>
+                    <a
+                      href={SPONSOR.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-orange hover:text-brand-orange/80 transition-colors"
+                    >
+                      Scopri di più su Shopy Cool
+                      <ArrowRight size={16} />
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </section>
 
@@ -822,10 +912,29 @@ export default function LeaguePage() {
             </div>
           </section>
         </main>
+
+        {/* Sticky CTA bar su mobile (appare dopo scroll) */}
+        {isOpen && showStickyCta && (
+          <div className="fixed bottom-0 inset-x-0 z-40 md:hidden border-t border-line bg-white">
+            <div className="container-x py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold text-ink">Pass Super League</p>
+                <p className="text-xs text-muted">39€ · Pagamento unico</p>
+              </div>
+              <a
+                href="#acquista"
+                onClick={() => track("purchase_cta_click", { placement: "sticky_bar", creator: creatorParam })}
+                className="btn-primary whitespace-nowrap px-6 py-3 text-sm font-bold"
+              >
+                Acquista
+              </a>
+            </div>
+          </div>
+        )}
       )}
 
       <footer className="border-t border-line bg-white">
-        <div className="container-x py-8 text-center text-xs text-muted">
+        <div className="container-x py-8 pb-24 md:pb-8 text-center text-xs text-muted">
           © {new Date().getFullYear()} FantaPronostic. Tutti i diritti riservati.
         </div>
       </footer>
@@ -966,6 +1075,103 @@ function PreRegisterCard({
   );
 }
 
+// ─── Checkout Layout (2 colonne desktop) ──────────────────────────────────────
+function CheckoutLayout({
+  email,
+  setEmail,
+  confirmEmail,
+  setConfirmEmail,
+  discountCode,
+  setDiscountCode,
+  loading,
+  error,
+  onPay,
+}: {
+  email: string;
+  setEmail: (v: string) => void;
+  confirmEmail: string;
+  setConfirmEmail: (v: string) => void;
+  discountCode: string;
+  setDiscountCode: (v: string) => void;
+  loading: boolean;
+  error: string;
+  onPay: () => void;
+}) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+      {/* Colonna SX: Benefits e info */}
+      <motion.div
+        initial={{ opacity: 0, x: -24 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6 }}
+        className="flex flex-col gap-8"
+      >
+        <div>
+          <h3 className="font-display font-bold text-2xl text-ink mb-6">
+            Cosa ricevi
+          </h3>
+          <ul className="flex flex-col gap-5">
+            <li className="flex items-start gap-4">
+              <Trophy size={20} className="text-brand-orange shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-ink">Montepremi {SUPER_LEAGUE.prizePool}</p>
+                <p className="text-sm text-muted mt-1">Competisci per tutta la stagione 2026/2027</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-4">
+              <Gift size={20} className="text-brand-orange shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-ink">Premi settimanali</p>
+                <p className="text-sm text-muted mt-1">Accesso gratuito stagione prossima, poi buoni Amazon 20€</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-4">
+              <Newspaper size={20} className="text-brand-orange shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-ink">Piano editoriale digitale incluso</p>
+                <p className="text-sm text-muted mt-1">Contenuti statistici e approfondimenti della stagione</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-4">
+              <CheckCircle2 size={20} className="text-brand-orange shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-ink">Pagamento unico · Nessun rinnovo</p>
+                <p className="text-sm text-muted mt-1">39€ una volta sola, senza addebiti ricorrenti</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-4">
+              <Zap size={20} className="text-brand-orange shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-ink">Accesso inviato immediatamente</p>
+                <p className="text-sm text-muted mt-1">Codice univoco via email, riscattabile subito nell'app</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </motion.div>
+
+      {/* Colonna DX: Form pagamento */}
+      <motion.div
+        initial={{ opacity: 0, x: 24 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+      >
+        <PurchaseCard
+          email={email}
+          setEmail={setEmail}
+          confirmEmail={confirmEmail}
+          setConfirmEmail={setConfirmEmail}
+          discountCode={discountCode}
+          setDiscountCode={setDiscountCode}
+          loading={loading}
+          error={error}
+          onPay={onPay}
+        />
+      </motion.div>
+    </div>
+  );
+}
+
 // ─── Purchase card ────────────────────────────────────────────────────────────
 function PurchaseCard({
   email,
@@ -988,33 +1194,20 @@ function PurchaseCard({
   error: string;
   onPay: () => void;
 }) {
+  const [showDiscount, setShowDiscount] = useState(false);
+
   return (
-    <div className="card p-8 flex flex-col gap-5">
-      <div className="text-center">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted mb-2">Cosa ricevi</p>
-        <div className="font-display font-bold text-5xl text-ink">€{SUPER_LEAGUE.price}</div>
-        <p className="text-xs text-muted mt-2">Pagamento unico · nessun rinnovo automatico</p>
+    <div className="card p-8 md:p-10 flex flex-col gap-6">
+      {/* Prezzo in evidenza */}
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest text-muted mb-2">Pass Super League 2026/2027</p>
+        <div className="font-display font-bold text-6xl text-ink">€{SUPER_LEAGUE.price}</div>
+        <p className="text-sm text-muted mt-3 leading-relaxed">
+          Il Pass comprende il Piano editoriale digitale 2026/2027 e l'accesso alla FantaPronostic Super League.
+        </p>
       </div>
 
-      <div className="rounded-2xl bg-bg-soft border border-line p-4 flex flex-col gap-3">
-        <div className="flex items-start gap-3">
-          <CheckCircle2 size={17} className="text-brand-orange shrink-0 mt-0.5" />
-          <span className="text-sm text-ink2 leading-relaxed">
-            <strong className="text-ink">Piano editoriale digitale 2026/2027</strong> — contenuti,
-            statistiche e approfondimenti di tutta la stagione
-          </span>
-        </div>
-        <div className="flex items-start gap-3">
-          <CheckCircle2 size={17} className="text-brand-orange shrink-0 mt-0.5" />
-          <span className="text-sm text-ink2 leading-relaxed">
-            <strong className="text-ink">Accesso alla Super League 2026/2027</strong> — incluso, con
-            codice riscattabile nell'app
-          </span>
-        </div>
-      </div>
-
-      <div className="h-px bg-line" />
-
+      {/* Form */}
       <div className="flex flex-col gap-4">
         <div>
           <label className="text-xs uppercase tracking-widest text-muted font-bold mb-2 block">
@@ -1028,48 +1221,47 @@ function PurchaseCard({
             className="w-full rounded-2xl border border-line bg-bg-soft px-5 py-3.5 text-ink placeholder:text-muted focus:outline-none focus:border-brand-blue focus:bg-white transition-colors"
           />
         </div>
-        <div>
-          <label className="text-xs uppercase tracking-widest text-muted font-bold mb-2 block">
-            Conferma email
-          </label>
-          <input
-            type="email"
-            value={confirmEmail}
-            onChange={(e) => setConfirmEmail(e.target.value)}
-            placeholder="nome@esempio.it"
-            className="w-full rounded-2xl border border-line bg-bg-soft px-5 py-3.5 text-ink placeholder:text-muted focus:outline-none focus:border-brand-blue focus:bg-white transition-colors"
-          />
-        </div>
-        <div>
-          <label className="text-xs uppercase tracking-widest text-muted font-bold mb-2 block">
-            Codice sconto (facoltativo)
-          </label>
-          <input
-            type="text"
-            value={discountCode}
-            onChange={(e) => setDiscountCode(e.target.value)}
-            placeholder="Es. SUPER10-XXXXXX"
-            className="w-full rounded-2xl border border-line bg-bg-soft px-5 py-3.5 text-ink placeholder:text-muted uppercase focus:outline-none focus:border-brand-blue focus:bg-white transition-colors"
-          />
-          {discountCode.trim() && (
-            <p className="text-xs text-green-700 font-medium mt-2 flex items-center gap-1.5">
-              <CheckCircle2 size={12} className="shrink-0" />
-              Codice applicato: lo sconto verrà calcolato al checkout.
-            </p>
-          )}
-        </div>
-        <p className="text-xs text-muted flex items-start gap-1.5">
-          <Lock size={11} className="shrink-0 mt-0.5" />
-          Riceverai il prodotto e il codice di accesso su questa email.
-        </p>
+
+        {/* Collapsible: Codice sconto */}
+        {!showDiscount && (
+          <button
+            type="button"
+            onClick={() => setShowDiscount(true)}
+            className="text-sm text-muted hover:text-brand-blue transition-colors text-left font-semibold"
+          >
+            Hai un codice sconto?
+          </button>
+        )}
+
+        {showDiscount && (
+          <div>
+            <label className="text-xs uppercase tracking-widest text-muted font-bold mb-2 block">
+              Codice sconto
+            </label>
+            <input
+              type="text"
+              value={discountCode}
+              onChange={(e) => setDiscountCode(e.target.value)}
+              placeholder="Es. SUPER10-XXXXXX"
+              className="w-full rounded-2xl border border-line bg-bg-soft px-5 py-3.5 text-ink placeholder:text-muted uppercase focus:outline-none focus:border-brand-blue focus:bg-white transition-colors"
+            />
+            {discountCode.trim() && (
+              <p className="text-xs text-green-700 font-medium mt-2 flex items-center gap-1.5">
+                <CheckCircle2 size={12} className="shrink-0" />
+                Codice applicato: lo sconto verrà calcolato al checkout.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
 
+      {/* CTA Principale */}
       <button
         onClick={onPay}
         disabled={loading}
-        className="btn-primary justify-center disabled:opacity-70 disabled:cursor-wait"
+        className="btn-primary justify-center disabled:opacity-70 disabled:cursor-wait py-4 text-base font-bold"
       >
         {loading ? (
           <>
@@ -1078,15 +1270,16 @@ function PurchaseCard({
           </>
         ) : (
           <>
-            Acquista il Piano — €{SUPER_LEAGUE.price}
+            Continua al pagamento sicuro — €{SUPER_LEAGUE.price}
             <ArrowRight size={18} />
           </>
         )}
       </button>
 
+      {/* Security badge */}
       <p className="text-center text-xs text-muted flex items-center justify-center gap-1.5">
         <ShieldCheck size={13} />
-        Pagamento sicuro tramite Stripe · Nessun dato della carta salvato sul sito
+        Pagamento sicuro Stripe · Nessun dato della carta salvato
       </p>
     </div>
   );
@@ -1094,86 +1287,125 @@ function PurchaseCard({
 
 // ─── Success screen ───────────────────────────────────────────────────────────
 function SuccessScreen() {
+  const [copiedCode, setCopiedCode] = useState(false);
+  const accessCode = "SUPER-XXXX-XXXX"; // Placeholder — il backend lo passerà via URL
+
   useEffect(() => {
-    track("payment_success");
+    track("payment_succeeded");
   }, []);
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(accessCode);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
   return (
-    <main className="container-x py-24 md:py-28">
-      <div className="max-w-lg mx-auto">
-        <div className="card p-8 md:p-10 flex flex-col items-center text-center gap-6">
-          <div className="h-16 w-16 rounded-full bg-green-100 grid place-items-center text-green-600">
-            <CheckCircle2 size={32} />
+    <main className="container-x py-16 md:py-24">
+      <div className="max-w-2xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="card p-8 md:p-12 flex flex-col items-center text-center gap-8"
+        >
+          {/* Success icon */}
+          <div className="h-20 w-20 rounded-full bg-green-100 grid place-items-center text-green-600">
+            <CheckCircle2 size={40} />
           </div>
+
+          {/* Header */}
           <div>
-            <h1 className="font-display font-bold text-3xl text-ink tracking-tightest">
-              Pagamento effettuato!
+            <h1 className="font-display font-bold text-4xl md:text-5xl text-ink tracking-tightest">
+              Pagamento completato!
             </h1>
-            <p className="mt-2 text-muted text-sm">
-              Benvenuto nella Super League. Ecco cosa fare adesso:
+            <p className="mt-3 text-lg text-muted">
+              Il tuo accesso alla Super League è pronto.
             </p>
           </div>
 
-          <div className="w-full flex flex-col gap-4 text-left">
-            <div className="flex items-start gap-4 rounded-2xl bg-bg-soft border border-line p-4">
-              <div className="h-10 w-10 rounded-xl bg-brand-orange/10 grid place-items-center text-brand-orange shrink-0">
-                <Mail size={20} />
-              </div>
-              <div>
-                <p className="font-semibold text-sm text-ink">Controlla la tua email</p>
-                <p className="text-xs text-muted mt-0.5 leading-relaxed">
-                  Ti arriverà una mail con il prodotto editoriale e il codice univoco per entrare
-                  nella lega. Controlla anche la cartella spam.
-                </p>
-              </div>
-            </div>
+          {/* Email confirmazione */}
+          <div className="w-full rounded-2xl border border-line bg-bg-soft p-6 text-left">
+            <p className="text-xs uppercase tracking-widest text-muted font-bold mb-2">Email di conferma</p>
+            <p className="font-semibold text-ink">Controlla anche lo spam</p>
+            <p className="text-sm text-muted mt-1 leading-relaxed">
+              Ti abbiamo inviato il prodotto editoriale e il codice univoco per entrare nella Super League.
+            </p>
+          </div>
 
-            <div className="flex items-start gap-4 rounded-2xl bg-bg-soft border border-line p-4">
-              <div className="h-10 w-10 rounded-xl bg-brand-blue/10 grid place-items-center text-brand-blue shrink-0">
-                <Smartphone size={20} />
-              </div>
-              <div>
-                <p className="font-semibold text-sm text-ink">Scarica l'app</p>
-                <p className="text-xs text-muted mt-0.5 mb-3 leading-relaxed">
-                  Scarica FantaPronostic, registrati o accedi al tuo account.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <a
-                    href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
-                    rel="noopener noreferrer"
-                    onClick={openAppStore}
-                    className="btn-blue text-xs px-3 py-1.5"
-                  >
-                    App Store
-                  </a>
-                  <a
-                    href="https://play.google.com/store/apps/details?id=com.fantapronostic.app"
-                    rel="noopener noreferrer"
-                    className="btn-primary text-xs px-3 py-1.5"
-                  >
-                    Google Play
-                  </a>
-                </div>
-              </div>
+          {/* Access code prominente */}
+          <div className="w-full rounded-2xl border-2 border-brand-orange bg-brand-orange/5 p-8">
+            <p className="text-xs uppercase tracking-widest text-muted font-bold mb-3">Il tuo codice di accesso</p>
+            <div className="font-display font-bold text-3xl text-brand-orange tabular-nums mb-4 select-all">
+              {accessCode}
             </div>
+            <button
+              onClick={handleCopyCode}
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-brand-orange px-6 py-3 font-semibold text-white hover:bg-brand-orange/90 transition-colors"
+            >
+              {copiedCode ? (
+                <>
+                  <CheckCircle2 size={18} />
+                  Codice copiato!
+                </>
+              ) : (
+                <>
+                  📋 Copia codice
+                </>
+              )}
+            </button>
+          </div>
 
-            <div className="flex items-start gap-4 rounded-2xl bg-bg-soft border border-line p-4">
-              <div className="h-10 w-10 rounded-xl bg-brand-orange/10 grid place-items-center text-brand-orange shrink-0">
-                <Key size={20} />
-              </div>
-              <div>
-                <p className="font-semibold text-sm text-ink">Accedi alla lega</p>
-                <p className="text-xs text-muted mt-0.5 leading-relaxed">
-                  Usa il tuo codice univoco per entrare nella Super League dall'app. Il codice è
-                  valido una volta sola.
-                </p>
-              </div>
+          {/* CTA principale: app */}
+          <div className="w-full flex flex-col gap-3">
+            <a
+              href="fantapronostic://super-league-redeem"
+              onClick={() => track("deeplink_click", { placement: "success_screen" })}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-8 py-4 font-display font-bold text-lg text-white hover:bg-ink/90 transition-colors"
+            >
+              Apri FantaPronostic ed entra nella lega
+              <ArrowRight size={20} />
+            </a>
+            <p className="text-xs text-muted">
+              Se hai già l'app, si aprirà sulla pagina di riscatto.
+            </p>
+          </div>
+
+          {/* App store fallback */}
+          <div className="w-full flex flex-col gap-3 pt-4 border-t border-line">
+            <p className="text-sm font-semibold text-muted">Non hai ancora l'app?</p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a
+                href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
+                rel="noopener noreferrer"
+                onClick={openAppStore}
+                className="flex-1 btn-blue justify-center text-sm"
+              >
+                Scarica su App Store
+              </a>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.fantapronostic.app"
+                rel="noopener noreferrer"
+                className="flex-1 btn-primary justify-center text-sm"
+              >
+                Scarica su Google Play
+              </a>
             </div>
           </div>
 
-          <Link to="/" className="text-sm font-semibold text-ink2 hover:text-brand-blue transition-colors">
+          {/* Support */}
+          <div className="w-full rounded-2xl bg-bg-soft border border-line p-6 text-center">
+            <p className="text-sm font-semibold text-ink mb-1">Hai problemi?</p>
+            <p className="text-xs text-muted">
+              Contatta il nostro supporto: <a href="mailto:support@fantapronostic.com" className="text-brand-blue hover:underline">support@fantapronostic.com</a>
+            </p>
+          </div>
+
+          {/* Back to home */}
+          <Link to="/" className="text-sm font-semibold text-muted hover:text-brand-blue transition-colors">
             Torna alla home
           </Link>
-        </div>
+        </motion.div>
       </div>
     </main>
   );
