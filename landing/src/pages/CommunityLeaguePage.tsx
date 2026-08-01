@@ -176,19 +176,48 @@ export default function CommunityLeaguePage() {
   );
 
   // CTA ripetuto a fine sezione: chi scrolla non deve tornare in alto per cliccare.
-  const RepeatCta = (
-    <div className="mt-10 text-center">
-      <a
-        href={smartUrl}
-        rel="noopener noreferrer"
-        onClick={onSmartClick}
-        className="inline-flex items-center justify-center gap-2.5 rounded-full bg-brand-orange px-9 py-4 font-display font-bold text-base text-white shadow-cta hover:-translate-y-0.5 transition-transform"
-      >
-        SCARICA GRATIS ED ENTRA
-        <ArrowRight size={17} />
-      </a>
-    </div>
-  );
+  // Quando il dispositivo non è riconosciuto (desktop o user agent insolito) NON si
+  // può indovinare lo store: si mostrano entrambi, altrimenti gli utenti Android
+  // finirebbero sull'App Store.
+  const RepeatCta =
+    platform === "other" ? (
+      <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a
+          href={IOS_URL}
+          rel="noopener noreferrer"
+          onClick={() => {
+            trackDownload("click_appstore");
+            track("community_ios_click");
+          }}
+          className="btn-blue"
+        >
+          Scarica su App Store
+        </a>
+        <a
+          href={ANDROID_URL}
+          rel="noopener noreferrer"
+          onClick={() => {
+            trackDownload("click_googleplay");
+            track("community_android_click");
+          }}
+          className="btn-primary"
+        >
+          Scarica su Google Play
+        </a>
+      </div>
+    ) : (
+      <div className="mt-10 text-center">
+        <a
+          href={smartUrl}
+          rel="noopener noreferrer"
+          onClick={onSmartClick}
+          className="inline-flex items-center justify-center gap-2.5 rounded-full bg-brand-orange px-9 py-4 font-display font-bold text-base text-white shadow-cta hover:-translate-y-0.5 transition-transform"
+        >
+          SCARICA GRATIS ED ENTRA
+          <ArrowRight size={17} />
+        </a>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-bg-base">
