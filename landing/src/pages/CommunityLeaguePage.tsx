@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
-import { trackDownload } from "@/lib/trackDownload";
+import { trackDownload, trackEvent } from "@/lib/trackDownload";
 import {
   ArrowLeft,
   ArrowRight,
@@ -110,8 +110,9 @@ export default function CommunityLeaguePage() {
 
   // CTA unico: su mobile porta direttamente allo store giusto.
   const smartUrl = platform === "android" ? ANDROID_URL : IOS_URL;
-  const onSmartClick = () => {
-    trackDownload(platform === "android" ? "click_googleplay" : "click_appstore");
+  // `placement` distingue quale CTA ha convertito (hero, ripetuto, barra fissa).
+  const onSmartClick = (placement: string) => () => {
+    trackDownload(platform === "android" ? "click_googleplay" : "click_appstore", placement);
     track("community_smart_cta_click");
   };
 
@@ -122,7 +123,7 @@ export default function CommunityLeaguePage() {
         <a
           href={smartUrl}
           rel="noopener noreferrer"
-          onClick={onSmartClick}
+          onClick={onSmartClick("hero_mobile")}
           className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange px-6 py-4 font-display font-bold text-base text-white shadow-cta hover:-translate-y-0.5 transition-transform w-full max-w-sm whitespace-nowrap"
         >
           SCARICA GRATIS ED ENTRA
@@ -135,7 +136,7 @@ export default function CommunityLeaguePage() {
             href={IOS_URL}
             rel="noopener noreferrer"
             onClick={() => {
-              trackDownload("click_appstore");
+              trackDownload("click_appstore", "hero_desktop");
               track("community_ios_click");
             }}
             className="btn-blue"
@@ -146,7 +147,7 @@ export default function CommunityLeaguePage() {
             href={ANDROID_URL}
             rel="noopener noreferrer"
             onClick={() => {
-              trackDownload("click_googleplay");
+              trackDownload("click_googleplay", "hero_desktop");
               track("community_android_click");
             }}
             className="btn-primary"
@@ -161,7 +162,10 @@ export default function CommunityLeaguePage() {
       {platform !== "other" && (
         <a
           href={APP_DEEP_LINK}
-          onClick={() => track("community_deeplink_click")}
+          onClick={() => {
+            trackEvent("deeplink_click", { cta_placement: "hero_existing_user" });
+            track("community_deeplink_click");
+          }}
           className={`inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold transition-colors ${
             dark
               ? "bg-white/10 border border-white/25 text-white backdrop-blur-md hover:bg-white/20"
@@ -186,7 +190,7 @@ export default function CommunityLeaguePage() {
           href={IOS_URL}
           rel="noopener noreferrer"
           onClick={() => {
-            trackDownload("click_appstore");
+            trackDownload("click_appstore", "repeat_cta");
             track("community_ios_click");
           }}
           className="btn-blue"
@@ -197,7 +201,7 @@ export default function CommunityLeaguePage() {
           href={ANDROID_URL}
           rel="noopener noreferrer"
           onClick={() => {
-            trackDownload("click_googleplay");
+            trackDownload("click_googleplay", "repeat_cta");
             track("community_android_click");
           }}
           className="btn-primary"
@@ -210,7 +214,7 @@ export default function CommunityLeaguePage() {
         <a
           href={smartUrl}
           rel="noopener noreferrer"
-          onClick={onSmartClick}
+          onClick={onSmartClick("repeat_cta")}
           className="inline-flex items-center justify-center gap-2.5 rounded-full bg-brand-orange px-9 py-4 font-display font-bold text-base text-white shadow-cta hover:-translate-y-0.5 transition-transform"
         >
           SCARICA GRATIS ED ENTRA
@@ -564,7 +568,7 @@ export default function CommunityLeaguePage() {
           <a
             href={smartUrl}
             rel="noopener noreferrer"
-            onClick={onSmartClick}
+            onClick={onSmartClick("sticky_bar")}
             className="flex items-center justify-center gap-2 rounded-full bg-brand-orange px-6 py-3.5 font-display font-bold text-white shadow-cta"
           >
             SCARICA GRATIS ED ENTRA

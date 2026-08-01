@@ -1,5 +1,14 @@
 {
   "rewrites": [
-    { "source": "/((?!_vercel/).*)", "destination": "/index.html" }
+    {
+      "comment": "Same-origin proxy for the admin analytics API. Keeping these calls on www.fantapronostic.com makes the session cookie first-party, so it does not depend on the backend's own domain and needs no SameSite=None.",
+      "source": "/api/analytics/:path*",
+      "destination": "https://api.fantapronostic.com/api/analytics/:path*"
+    },
+    {
+      "comment": "SPA fallback. Excludes /_vercel (Web Analytics) and /api (proxied above).",
+      "source": "/((?!_vercel/|api/).*)",
+      "destination": "/index.html"
+    }
   ]
 }
