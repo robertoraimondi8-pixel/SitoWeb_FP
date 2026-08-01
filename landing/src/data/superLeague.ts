@@ -22,7 +22,10 @@ export const SUPER_LEAGUE = {
   prizesImage: "/prizes.jpg",
   // Apertura iscrizioni (attiva il pagamento) e inizio competizione.
   // Formato ISO. La pagina passa in modalità "pagamento" a partire da openingDate.
-  openingDate: "2026-08-04T00:00:00",
+  // Data nel passato: la fase di pre-iscrizione è chiusa e il pagamento è già
+  // attivo per tutti, senza bisogno di ?pay=1. Per riaprire la pre-iscrizione
+  // basta rimettere qui una data futura.
+  openingDate: "2026-07-31T00:00:00",
   startDate: "2026-09-04T00:00:00",
   startLabel: "4 settembre 2026",
   openingLabel: "4 agosto 2026",
