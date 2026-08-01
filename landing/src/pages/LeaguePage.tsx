@@ -291,6 +291,7 @@ export default function LeaguePage() {
       {paymentStatus === "success" ? (
         <SuccessScreen />
       ) : (
+        <>
         <main>
           {/* ══ HERO (NEW: 2 colonne desktop, premi centrali) ═══════════════ */}
           <section className="relative overflow-hidden bg-[#050f24] min-h-screen flex items-center pt-20 md:pt-0">
@@ -931,6 +932,7 @@ export default function LeaguePage() {
             </div>
           </div>
         )}
+        </>
       )}
 
       <footer className="border-t border-line bg-white">
