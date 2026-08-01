@@ -22,7 +22,9 @@ import {
   Newspaper,
   CalendarDays,
 } from "lucide-react";
-import { SUPER_LEAGUE, LEAGUES, SCORING, REGOLAMENTO, SPONSOR } from "@/data/superLeague";
+import {
+  SUPER_LEAGUE, LEAGUES, SCORING, REGOLAMENTO, SPONSOR, findSuperLeagueCreator,
+} from "@/data/superLeague";
 
 const BACKEND_URL =
   (import.meta as any).env?.VITE_BACKEND_URL ||
@@ -157,19 +159,26 @@ export default function LeaguePage() {
   const forcePay = searchParams.get("pay") === "1";
   const isOpen = countdown.isOver || forcePay;
 
-  // Creator personalizzazione (da URL o session)
+  // Creator del link: ?creator=<slug>. Se riconosciuto, la pagina lo cita e
+  // precompila il suo codice sconto, così l'utente non deve digitarlo.
   const creatorParam = searchParams.get("creator");
+  const creator = findSuperLeagueCreator(creatorParam);
   const [showStickyCta, setShowStickyCta] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // ?codice= esplicito ha la precedenza sul codice del creator.
     const codeFromUrl = searchParams.get("codice");
     if (codeFromUrl) setDiscountCode(codeFromUrl.trim());
+    else if (creator?.code) setDiscountCode(creator.code);
 
     // Track landing view
     if (creatorParam) {
-      track("creator_landing_view", { creator: creatorParam });
+      track("creator_landing_view", {
+        creator: creator?.slug || creatorParam,
+        recognised: Boolean(creator),
+      });
     } else {
       track("landing_view");
     }
@@ -385,9 +394,17 @@ export default function LeaguePage() {
                   </p>
                 </div>
 
-                {creatorParam && (
+                {creator && (
                   <p className="text-xs font-semibold text-brand-orange">
-                    Invito di <strong className="text-white">{creatorParam}</strong>
+                    Sei arrivato da <strong className="text-white">{creator.name}</strong>
+                    {creator.code && (
+                      <>
+                        {" · "}
+                        <span className="text-white">
+                          il suo codice sconto è già inserito
+                        </span>
+                      </>
+                    )}
                   </p>
                 )}
               </motion.div>
@@ -934,8 +951,18 @@ function PurchaseCard({
   error: string;
   onPay: () => void;
 }) {
-  const [showDiscount, setShowDiscount] = useState(false);
+  // Con un codice già presente (link creator o ?codice=) il campo nasce aperto:
+  // l'utente deve poter vedere e correggere ciò che sta per essere applicato.
+  const [showDiscount, setShowDiscount] = useState(Boolean(discountCode));
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const prefilled = useRef(Boolean(discountCode));
+
+  useEffect(() => {
+    if (discountCode && !prefilled.current) {
+      prefilled.current = true;
+      setShowDiscount(true);
+    }
+  }, [discountCode]);
 
   // checkout_form_view: registrato una sola volta, quando il form entra davvero
   // nello schermo — non al montaggio, altrimenti conterebbe anche chi non scorre.

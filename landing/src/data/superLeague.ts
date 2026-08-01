@@ -38,6 +38,38 @@ export const SPONSOR = {
   minSpend: 600, // spesa minima in €
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Creator Super League. Il link personalizzato è /super-league?creator=<slug>:
+// la pagina saluta il creator e, se presente, precompila il suo codice sconto.
+//
+// `code` deve esistere in creator_codes_col (pannello admin → Codici creator)
+// con enabled: true. Se il codice non è configurato lato server il checkout
+// procede a prezzo pieno senza errori, quindi va verificato prima di inviare
+// i link. Chi non ha codice va lasciato a null: il campo resta vuoto.
+// ─────────────────────────────────────────────────────────────────────────────
+export type SuperLeagueCreator = { slug: string; name: string; code: string | null };
+
+export const SUPER_LEAGUE_CREATORS: SuperLeagueCreator[] = [
+  { slug: "alessandro-carta", name: "Alessandro Carta", code: "CARTA5" },
+  { slug: "universo-del-fanta", name: "Universo del Fanta", code: "UNIFANTA5" },
+  { slug: "ste-finari", name: "Ste Finari", code: "FINARI5" },
+  { slug: "elitalo", name: "Elitalo", code: "ELITALO5" },
+  { slug: "acmdevil", name: "ACMDevil", code: "ACM5" },
+  { slug: "che-fantallenatore-sei", name: "Che Fantallenatore Sei", code: null },
+  { slug: "chiara-rattazzi", name: "Chiara Rattazzi", code: null },
+];
+
+/** Confronto tollerante: "Ste Finari", "ste-finari" e "stefinari" coincidono. */
+export function findSuperLeagueCreator(raw: string | null): SuperLeagueCreator | null {
+  if (!raw) return null;
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const key = norm(raw);
+  if (!key) return null;
+  return (
+    SUPER_LEAGUE_CREATORS.find((c) => norm(c.slug) === key || norm(c.name) === key) || null
+  );
+}
+
 export const LEAGUES = [
   { code: "it", name: "Serie A" },
   { code: "en", name: "Premier League" },
