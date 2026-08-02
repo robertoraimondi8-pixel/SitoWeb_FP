@@ -58,6 +58,7 @@ export const SUPER_LEAGUE_CREATORS: SuperLeagueCreator[] = [
   { slug: "ste-finari", name: "Ste Finari", code: "FINARI5" },
   { slug: "elitalo", name: "Elitalo", code: "ELITALO5" },
   { slug: "acmdevil", name: "ACMDevil", code: "ACM5" },
+  { slug: "ilio", name: "Ilio", code: "ILIO" },
   { slug: "che-fantallenatore-sei", name: "Che Fantallenatore Sei", code: null },
   { slug: "chiara-rattazzi", name: "Chiara Rattazzi", code: null },
 ];
