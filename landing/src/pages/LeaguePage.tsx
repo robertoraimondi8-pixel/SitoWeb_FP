@@ -399,7 +399,7 @@ export default function LeaguePage() {
 
                 {creator && (
                   <p className="text-xs font-semibold text-brand-orange">
-                    Sei arrivato da <strong className="text-white">{creator.name}</strong>
+                    Sei stato invitato da: <strong className="text-white">{creator.name}</strong>
                     {creator.code && (
                       <>
                         {" · "}
