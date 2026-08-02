@@ -1268,8 +1268,8 @@ function SuccessScreen() {
             <p className="mb-1 text-sm font-semibold text-ink">Hai problemi?</p>
             <p className="text-xs text-muted">
               Contatta il nostro supporto:{" "}
-              <a href="mailto:support@fantapronostic.com" className="text-brand-blue hover:underline">
-                support@fantapronostic.com
+              <a href="mailto:info@fantapronostic.com" className="text-brand-blue hover:underline">
+                info@fantapronostic.com
               </a>
             </p>
           </div>
