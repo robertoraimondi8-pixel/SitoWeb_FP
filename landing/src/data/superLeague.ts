@@ -60,6 +60,7 @@ export const SUPER_LEAGUE_CREATORS: SuperLeagueCreator[] = [
   { slug: "acmdevil", name: "ACMDevil", code: "ACM5" },
   { slug: "ilio", name: "Ilio", code: "ILIO" },
   { slug: "andrea-destasio", name: "Andrea Destasio", code: "DESTASIO5" },
+  { slug: "gag-football", name: "GAG Football", code: "GAG5" },
   { slug: "che-fantallenatore-sei", name: "Che Fantallenatore Sei", code: null },
   { slug: "chiara-rattazzi", name: "Chiara Rattazzi", code: null },
 ];
