@@ -3,6 +3,10 @@ import { openAppStore, IOS_URL, ANDROID_URL } from "@/lib/storeLinks";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
+// Tracciamento proprietario: alimenta /admin/analytics. `track` qui sopra e'
+// Vercel Analytics, un sistema separato che non arriva alla nostra dashboard;
+// resta invariato, questo si aggiunge accanto.
+import { trackEvent, trackStoreClick } from "@/lib/tracking";
 import {
   ArrowLeft,
   ArrowRight,
@@ -209,6 +213,11 @@ export default function LeaguePage() {
     setError("");
     setLoading(true);
     track("checkout_started", { discount: Boolean(discountCode.trim()), creator: creatorParam || null });
+    // Passo "Checkout iniziato" del funnel Super League.
+    trackEvent("checkout_started", {
+      league_id: SUPER_LEAGUE.leagueId,
+      meta: { discount: Boolean(discountCode.trim()) },
+    });
     try {
       const path = window.location.pathname;
       const body: Record<string, unknown> = {
@@ -235,6 +244,8 @@ export default function LeaguePage() {
       }
       if (data?.url) {
         track("purchase_cta_click", { creator: creatorParam || null });
+        // Ultimo passo misurabile prima di uscire dal sito verso Stripe.
+        trackEvent("checkout_redirected", { league_id: SUPER_LEAGUE.leagueId });
         window.location.href = data.url;
       }
       else setError("Risposta non valida dal server. Riprova.");
@@ -411,7 +422,7 @@ export default function LeaguePage() {
                         rel="noopener noreferrer"
                         onClick={() => {
                           openAppStore();
-                          track("store_cta_click", { store: "apple", cta_placement: "hero_secondary" });
+                          trackStoreClick("apple", "hero_secondary");
                         }}
                         className="font-semibold text-white/80 underline underline-offset-2 hover:text-white"
                       >
@@ -421,7 +432,7 @@ export default function LeaguePage() {
                       <a
                         href={ANDROID_URL}
                         rel="noopener noreferrer"
-                        onClick={() => track("store_cta_click", { store: "google", cta_placement: "hero_secondary" })}
+                        onClick={() => trackStoreClick("google", "hero_secondary")}
                         className="font-semibold text-white/80 underline underline-offset-2 hover:text-white"
                       >
                         Google Play
@@ -433,10 +444,7 @@ export default function LeaguePage() {
                       rel="noopener noreferrer"
                       onClick={() => {
                         if (platform === "ios") openAppStore();
-                        track("store_cta_click", {
-                          store: platform === "android" ? "google" : "apple",
-                          cta_placement: "hero_secondary",
-                        });
+                        trackStoreClick(platform === "android" ? "google" : "apple", "hero_secondary");
                       }}
                       className="text-xs font-semibold text-white/60 underline underline-offset-2 transition-colors hover:text-white"
                     >
@@ -542,7 +550,10 @@ export default function LeaguePage() {
               <div className="mx-auto mt-5 max-w-2xl">
                 <button
                   type="button"
-                  onClick={() => setShowRules((v) => !v)}
+                  onClick={() => {
+                    if (!showRules) trackEvent("rules_opened");
+                    setShowRules((v) => !v);
+                  }}
                   className="card flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-bg-soft"
                 >
                   <span className="text-sm font-semibold text-ink">Scopri punteggio e regole</span>
@@ -1278,7 +1289,10 @@ function SuccessScreen() {
             {state === "ready" && access?.join_url ? (
               <a
                 href={access.join_url}
-                onClick={() => track("deeplink_click", { placement: "success_screen" })}
+                onClick={() => {
+                  track("deeplink_click", { placement: "success_screen" });
+                  trackEvent("deeplink_click", { cta_placement: "success_screen" });
+                }}
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-8 py-4 font-display font-bold text-lg text-white transition-colors hover:bg-ink/90"
               >
                 Apri FantaPronostic ed entra nella lega
@@ -1297,7 +1311,10 @@ function SuccessScreen() {
               <a
                 href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
                 rel="noopener noreferrer"
-                onClick={openAppStore}
+                onClick={() => {
+                  openAppStore();
+                  trackStoreClick("apple", "success_screen");
+                }}
                 className="btn-blue flex-1 justify-center text-sm"
               >
                 Scarica su App Store
@@ -1305,6 +1322,7 @@ function SuccessScreen() {
               <a
                 href="https://play.google.com/store/apps/details?id=com.fantapronostic.app"
                 rel="noopener noreferrer"
+                onClick={() => trackStoreClick("google", "success_screen")}
                 className="btn-primary flex-1 justify-center text-sm"
               >
                 Scarica su Google Play
