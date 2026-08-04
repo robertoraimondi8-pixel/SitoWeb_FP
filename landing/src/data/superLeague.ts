@@ -61,6 +61,9 @@ export const SUPER_LEAGUE_CREATORS: SuperLeagueCreator[] = [
   { slug: "ilio", name: "Ilio", code: "ILIO" },
   { slug: "andrea-destasio", name: "Andrea Destasio", code: "DESTASIO5" },
   { slug: "gag-football", name: "GAG Football", code: "GAG5" },
+  // Anche capitano della Community League: stesso slug, leghe diverse. Nel tab
+  // Creator le due righe si sommano, si separano col filtro Progetto.
+  { slug: "footbolandia", name: "Footbolandia", code: "DANIELE5" },
   { slug: "che-fantallenatore-sei", name: "Che Fantallenatore Sei", code: null },
   { slug: "chiara-rattazzi", name: "Chiara Rattazzi", code: null },
 ];
