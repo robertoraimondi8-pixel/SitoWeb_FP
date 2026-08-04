@@ -57,7 +57,7 @@ export const SUPER_LEAGUE_CREATORS: SuperLeagueCreator[] = [
   { slug: "universo-del-fanta", name: "Universo del Fanta", code: "UNIFANTA5" },
   { slug: "ste-finari", name: "Ste Finari", code: "FINARI5" },
   { slug: "elitalo", name: "Elitalo", code: "ELITALO5" },
-  { slug: "acmdevil", name: "ACMDevil", code: "ACM5" },
+  { slug: "acmdevil", name: "ACMDevil", code: "DEVIL5" },
   { slug: "ilio", name: "Ilio", code: "ILIO" },
   { slug: "andrea-destasio", name: "Andrea Destasio", code: "DESTASIO5" },
   { slug: "gag-football", name: "GAG Football", code: "GAG5" },
