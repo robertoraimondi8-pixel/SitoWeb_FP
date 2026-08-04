@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { openAppStore } from "@/lib/storeLinks";
+import { openAppStore, IOS_URL, ANDROID_URL } from "@/lib/storeLinks";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
@@ -165,9 +165,15 @@ export default function LeaguePage() {
   const creator = findSuperLeagueCreator(creatorParam);
   const [showStickyCta, setShowStickyCta] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  // Stesso rilevamento della Community League: su mobile un solo link, che
+  // punta allo store giusto. Su desktop non si può indovinare, quindi due.
+  const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    const ua = navigator.userAgent || "";
+    if (/iPhone|iPad|iPod/i.test(ua)) setPlatform("ios");
+    else if (/Android/i.test(ua)) setPlatform("android");
     // ?codice= esplicito ha la precedenza sul codice del creator.
     const codeFromUrl = searchParams.get("codice");
     if (codeFromUrl) setDiscountCode(codeFromUrl.trim());
@@ -395,6 +401,48 @@ export default function LeaguePage() {
                     <ShieldCheck size={13} />
                     Pagamento sicuro con Stripe · Accesso inviato subito · Nessun rinnovo
                   </p>
+
+                  {/* Secondario e discreto: l'obiettivo della pagina resta l'acquisto. */}
+                  {platform === "other" ? (
+                    <p className="text-xs text-white/50">
+                      Hai già il Pass?{" "}
+                      <a
+                        href={IOS_URL}
+                        rel="noopener noreferrer"
+                        onClick={() => {
+                          openAppStore();
+                          track("store_cta_click", { store: "apple", cta_placement: "hero_secondary" });
+                        }}
+                        className="font-semibold text-white/80 underline underline-offset-2 hover:text-white"
+                      >
+                        Scarica su App Store
+                      </a>{" "}
+                      o{" "}
+                      <a
+                        href={ANDROID_URL}
+                        rel="noopener noreferrer"
+                        onClick={() => track("store_cta_click", { store: "google", cta_placement: "hero_secondary" })}
+                        className="font-semibold text-white/80 underline underline-offset-2 hover:text-white"
+                      >
+                        Google Play
+                      </a>
+                    </p>
+                  ) : (
+                    <a
+                      href={platform === "android" ? ANDROID_URL : IOS_URL}
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        if (platform === "ios") openAppStore();
+                        track("store_cta_click", {
+                          store: platform === "android" ? "google" : "apple",
+                          cta_placement: "hero_secondary",
+                        });
+                      }}
+                      className="text-xs font-semibold text-white/60 underline underline-offset-2 transition-colors hover:text-white"
+                    >
+                      Hai già il Pass? Scarica l'app gratis
+                    </a>
+                  )}
                 </div>
 
                 {creator && (
