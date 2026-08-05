@@ -68,6 +68,7 @@ export const SUPER_LEAGUE_CREATORS: SuperLeagueCreator[] = [
   // vendita, che passa dal creator_code nei metadata della sessione Stripe.
   { slug: "cerrone", name: "Cerrone", code: "CERRONE" },
   { slug: "el-machico", name: "El Machico", code: "MACHICO" },
+  { slug: "probetting", name: "ProBetting", code: "PROBETTING" },
   { slug: "che-fantallenatore-sei", name: "Che Fantallenatore Sei", code: null },
   { slug: "chiara-rattazzi", name: "Chiara Rattazzi", code: null },
 ];
