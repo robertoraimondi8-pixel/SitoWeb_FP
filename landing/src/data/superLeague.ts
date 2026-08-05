@@ -67,7 +67,7 @@ export const SUPER_LEAGUE_CREATORS: SuperLeagueCreator[] = [
   // Codici a sconto 0: non riducono il prezzo, servono solo ad attribuire la
   // vendita, che passa dal creator_code nei metadata della sessione Stripe.
   { slug: "cerrone", name: "Cerrone", code: "CERRONE" },
-  { slug: "el-machico", name: "El Machico", code: "ELMACHICO" },
+  { slug: "el-machico", name: "El Machico", code: "MACHICO" },
   { slug: "che-fantallenatore-sei", name: "Che Fantallenatore Sei", code: null },
   { slug: "chiara-rattazzi", name: "Chiara Rattazzi", code: null },
 ];
