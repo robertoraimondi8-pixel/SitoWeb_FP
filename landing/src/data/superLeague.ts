@@ -64,6 +64,9 @@ export const SUPER_LEAGUE_CREATORS: SuperLeagueCreator[] = [
   // Anche capitano della Community League: stesso slug, leghe diverse. Nel tab
   // Creator le due righe si sommano, si separano col filtro Progetto.
   { slug: "footbolandia", name: "Footbolandia", code: "DANIELE5" },
+  // Codice senza sconto vero: serve solo ad attribuirgli le vendite. Attenzione,
+  // il pannello admin non accetta percent_off 0 e lo porta a 1 (creator_codes.py).
+  { slug: "cerrone", name: "Cerrone", code: "CERRONE" },
   { slug: "che-fantallenatore-sei", name: "Che Fantallenatore Sei", code: null },
   { slug: "chiara-rattazzi", name: "Chiara Rattazzi", code: null },
 ];
