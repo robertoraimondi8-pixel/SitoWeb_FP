@@ -73,6 +73,7 @@ export const SUPER_LEAGUE_CREATORS: SuperLeagueCreator[] = [
   { slug: "iltrampofficial", name: "IlTrampOfficial", code: "TRAMPO5" },
   // Il nome finisce per 5 come i codici scontati, ma questo e' a sconto 0.
   { slug: "fbetto", name: "Fbetto", code: "FBETTO5" },
+  { slug: "ilmaestro", name: "IlMaestro", code: "MAESTRO5" },
   { slug: "che-fantallenatore-sei", name: "Che Fantallenatore Sei", code: null },
   { slug: "chiara-rattazzi", name: "Chiara Rattazzi", code: null },
 ];
