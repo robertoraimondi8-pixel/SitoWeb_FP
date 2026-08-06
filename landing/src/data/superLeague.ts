@@ -70,6 +70,7 @@ export const SUPER_LEAGUE_CREATORS: SuperLeagueCreator[] = [
   { slug: "el-machico", name: "El Machico", code: "MACHICO" },
   { slug: "probetting", name: "ProBetting", code: "PROBETTING" },
   { slug: "aficommunity", name: "AFICommunity", code: "AFI5" },
+  { slug: "iltrampofficial", name: "IlTrampOfficial", code: "TRAMPO5" },
   { slug: "che-fantallenatore-sei", name: "Che Fantallenatore Sei", code: null },
   { slug: "chiara-rattazzi", name: "Chiara Rattazzi", code: null },
 ];
