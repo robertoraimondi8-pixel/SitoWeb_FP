@@ -206,6 +206,14 @@ const it = {
       },
     ],
   },
+  // Sezione #download. Le chiavi newsletter.* restano inutilizzate:
+  // il form e' sospeso per abuso da bot, non eliminato.
+  downloadSection: {
+    overline: "Scarica l'app",
+    title: "Gioca dove vuoi, quando vuoi.",
+    subtitle:
+      "Scarica FantaPronostic gratis su App Store e Google Play: bastano due minuti per iniziare a pronosticare.",
+  },
   newsletter: {
     overline: "Newsletter",
     title: "Iscriviti alla newsletter.",
