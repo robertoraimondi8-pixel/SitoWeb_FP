@@ -1,47 +1,23 @@
-import { useState, FormEvent } from "react";
+// Sezione "Scarica l'app" (ancora #download).
+//
+// Il form newsletter e' stato rimosso: le iscrizioni erano quasi tutte bot.
+// Restano i pulsanti degli store, che sono il vero scopo di questa sezione e
+// il bersaglio dei CTA "Scarica l'App" sparsi nel sito.
+// Per riattivarla: ripristinare il form dal git history e la chiamata a
+// POST /api/newsletter/subscribe, possibilmente con una protezione anti-bot.
 import { openAppStore } from "@/lib/storeLinks";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Check, Mail } from "lucide-react";
-
-const BACKEND_URL =
-  (import.meta as any).env?.VITE_BACKEND_URL ||
-  "https://api.fantapronostic.com";
+import { Download } from "lucide-react";
 
 export function Newsletter() {
-  const { t, i18n } = useTranslation();
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
-
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!email || status === "loading") return;
-    setStatus("loading");
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/newsletter/subscribe`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          language: (i18n.language || "it").slice(0, 2),
-          source: "landing",
-        }),
-      });
-      if (!res.ok) throw new Error("subscribe failed");
-      setStatus("ok");
-      setEmail("");
-      setTimeout(() => setStatus("idle"), 5000);
-    } catch (err) {
-      setStatus("err");
-      setTimeout(() => setStatus("idle"), 5000);
-    }
-  };
+  const { t } = useTranslation();
 
   return (
     <section
       id="download"
       className="relative section-pad overflow-hidden"
-      data-testid="newsletter-section"
+      data-testid="download-section"
     >
       <div className="container-x">
         <motion.div
@@ -67,61 +43,21 @@ export function Newsletter() {
 
           <div className="relative p-8 md:p-14 lg:p-20 flex flex-col items-center text-center text-white">
             <div className="h-14 w-14 rounded-2xl bg-white/15 border border-white/25 grid place-items-center mb-6 backdrop-blur-sm">
-              <Mail size={22} />
+              <Download size={22} />
             </div>
             <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] font-bold text-brand-yellow">
               <span className="inline-block h-[2px] w-8 bg-brand-yellow" />
-              {t("newsletter.overline")}
+              {t("downloadSection.overline")}
             </span>
             <h2 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-4 tracking-tightest max-w-3xl">
-              {t("newsletter.title")}
+              {t("downloadSection.title")}
             </h2>
             <p className="mt-5 text-white/80 text-base md:text-lg leading-relaxed max-w-xl">
-              {t("newsletter.subtitle")}
+              {t("downloadSection.subtitle")}
             </p>
 
-            <form
-              onSubmit={onSubmit}
-              className="mt-10 w-full max-w-xl flex flex-col sm:flex-row gap-3"
-              data-testid="newsletter-form"
-            >
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t("newsletter.placeholder")}
-                className="flex-1 rounded-full border border-white/20 bg-white/10 px-6 py-4 text-white placeholder:text-white/50 focus:outline-none focus:border-brand-yellow focus:bg-white/15 transition-colors backdrop-blur-sm"
-                data-testid="newsletter-input"
-              />
-              <button
-                type="submit"
-                disabled={status === "loading"}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange px-7 py-4 font-semibold text-white hover:bg-brand-orange-600 transition-colors whitespace-nowrap shadow-cta disabled:opacity-70 disabled:cursor-wait"
-                data-testid="newsletter-submit"
-              >
-                {status === "ok" ? (
-                  <>
-                    <Check size={18} />
-                    {t("newsletter.success")}
-                  </>
-                ) : status === "err" ? (
-                  <>Riprova</>
-                ) : status === "loading" ? (
-                  <>Invio…</>
-                ) : (
-                  <>
-                    {t("newsletter.cta")}
-                    <ArrowRight size={18} />
-                  </>
-                )}
-              </button>
-            </form>
-
-            <p className="mt-4 text-xs text-white/60">{t("newsletter.privacy")}</p>
-
             {/* Store badges — live links */}
-            <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <a
                 href="https://apps.apple.com/it/app/fantapronostic/id6760613936"
                 rel="noopener noreferrer"
