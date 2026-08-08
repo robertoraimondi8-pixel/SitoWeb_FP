@@ -7,6 +7,7 @@ import { track } from "@vercel/analytics";
 // Vercel Analytics, un sistema separato che non arriva alla nostra dashboard;
 // resta invariato, questo si aggiunge accanto.
 import { trackEvent, trackStoreClick } from "@/lib/tracking";
+import { newEventId, tiktokTrack } from "@/lib/tiktok";
 import {
   ArrowLeft,
   ArrowRight,
@@ -169,6 +170,11 @@ export default function LeaguePage() {
   const creator = findSuperLeagueCreator(creatorParam);
   const [showStickyCta, setShowStickyCta] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  // event_id del tentativo di checkout in corso, rigenerato a ogni tentativo.
+  // Serve alla deduplicazione TikTok quando lo stesso evento arriva anche dalla
+  // Events API. NB: per il Purchase la chiave giusta e' l'id di sessione Stripe,
+  // l'unico dato che conoscono sia il browser al ritorno sia il webhook.
+  const checkoutEventId = useRef(newEventId());
   // Stesso rilevamento della Community League: su mobile un solo link, che
   // punta allo store giusto. Su desktop non si può indovinare, quindi due.
   const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
@@ -193,6 +199,18 @@ export default function LeaguePage() {
       track("landing_view");
     }
 
+    // TikTok ViewContent: questa e' la scheda prodotto del Pass, servita sia da
+    // /lega sia da /super-league.
+    tiktokTrack("ViewContent", {
+      contents: [{
+        content_id: SUPER_LEAGUE.leagueId,
+        content_type: "product",
+        content_name: "Pass Super League 2026/2027",
+      }],
+      value: SUPER_LEAGUE.price,
+      currency: "EUR",
+    });
+
     // Sticky CTA visibility
     const handleScroll = () => {
       setShowStickyCta(window.scrollY > window.innerHeight * 0.8);
@@ -212,6 +230,7 @@ export default function LeaguePage() {
     }
     setError("");
     setLoading(true);
+    checkoutEventId.current = newEventId();   // un id per ogni tentativo
     track("checkout_started", { discount: Boolean(discountCode.trim()), creator: creatorParam || null });
     // Passo "Checkout iniziato" del funnel Super League.
     trackEvent("checkout_started", {
@@ -246,6 +265,17 @@ export default function LeaguePage() {
         track("purchase_cta_click", { creator: creatorParam || null });
         // Ultimo passo misurabile prima di uscire dal sito verso Stripe.
         trackEvent("checkout_redirected", { league_id: SUPER_LEAGUE.leagueId });
+        // TikTok InitiateCheckout: emesso qui, a sessione Stripe creata, non al
+        // click, cosi' non conta i tentativi finiti in errore.
+        tiktokTrack("InitiateCheckout", {
+          contents: [{
+            content_id: SUPER_LEAGUE.leagueId,
+            content_type: "product",
+            content_name: "Pass Super League 2026/2027",
+          }],
+          value: SUPER_LEAGUE.price,
+          currency: "EUR",
+        }, checkoutEventId.current);
         window.location.href = data.url;
       }
       else setError("Risposta non valida dal server. Riprova.");

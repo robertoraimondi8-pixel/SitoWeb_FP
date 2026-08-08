@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { trackPageview } from "@/lib/trackDownload";
+import { tiktokPageView } from "@/lib/tiktok";
 import Home from "./pages/Home";
 import Privacy from "./pages/Privacy";
 import Login from "./pages/Login";
@@ -20,6 +21,9 @@ function RouteTracker() {
     // Non tracciare il traffico interno (pannello admin, login).
     if (/^\/(admin|login)/i.test(location.pathname)) return;
     trackPageview();
+    // Il pixel e' gia' caricato da index.html: qui si emette solo il PageView,
+    // una volta per rotta. Il pixel non viene mai reinizializzato.
+    tiktokPageView();
   }, [location.pathname, location.search]);
   return null;
 }
