@@ -91,24 +91,10 @@ export function Header() {
                   <LogOut size={14} />
                 </button>
               </div>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="inline-flex items-center text-xs sm:text-sm font-semibold text-ink2 hover:text-brand-blue transition-colors"
-                  data-testid="header-login-cta"
-                >
-                  Accedi
-                </Link>
-                <Link
-                  to="/register"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-ink2 hover:text-brand-blue hover:border-brand-blue transition-colors"
-                  data-testid="header-register-cta"
-                >
-                  Registrati
-                </Link>
-              </>
-            )}
+            ) : null}
+            {/* Niente "Accedi" e "Registrati": account e registrazione vivono
+                nell'app, il sito porta al download. Chi e' gia' loggato vede
+                comunque il proprio badge qui sopra. */}
             <LanguageSwitcher compact />
             <a
               href="#download"
