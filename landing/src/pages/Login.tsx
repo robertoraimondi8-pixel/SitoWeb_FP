@@ -168,10 +168,12 @@ export default function LoginPage() {
                   Password dimenticata?
                 </button>
 
+                {/* La registrazione avviene solo nell'app: dal sito si accede,
+                    non ci si iscrive. */}
                 <p className="text-sm text-ink2 text-center mt-2">
                   Non hai un account?{" "}
-                  <Link to="/register" className="text-brand-blue font-semibold hover:underline">
-                    Registrati
+                  <Link to="/download" className="text-brand-blue font-semibold hover:underline">
+                    Scarica l'app e registrati lì
                   </Link>
                 </p>
               </form>

@@ -1,11 +1,10 @@
 import { Suspense, lazy, useEffect } from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { trackPageview } from "@/lib/trackDownload";
 import { tiktokPageView } from "@/lib/tiktok";
 import Home from "./pages/Home";
 import Privacy from "./pages/Privacy";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import LeaguePage from "./pages/LeaguePage";
 import DownloadPage from "./pages/DownloadPage";
 import CommunityLeaguePage from "./pages/CommunityLeaguePage";
@@ -36,7 +35,10 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* Registrazione rimossa dal sito: ci si iscrive solo dall'app. La
+            rotta rimanda al download invece di dare 404, cosi' i vecchi link
+            (email, segnalibri) portano comunque da qualche parte di utile. */}
+        <Route path="/register" element={<Navigate to="/download" replace />} />
         <Route path="/lega" element={<LeaguePage />} />
         <Route path="/super-league" element={<LeaguePage />} />
         <Route path="/community" element={<CommunityLeaguePage />} />
