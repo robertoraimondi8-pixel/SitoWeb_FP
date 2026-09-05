@@ -52,13 +52,21 @@ export function SuperLeagueBanner() {
                   </span>
                   <span className="inline-flex items-center gap-2">
                     <CalendarDays size={15} className="text-brand-orange shrink-0" />
-                    Iscrizioni aperte · Start lega {SUPER_LEAGUE.startLabel}
+                    {SUPER_LEAGUE.registrationsClosed
+                      ? `Stagione iniziata il ${SUPER_LEAGUE.startLabel}`
+                      : `Iscrizioni aperte · Start lega ${SUPER_LEAGUE.startLabel}`}
                   </span>
                 </div>
 
                 <p className="mt-3 text-sm text-white/70 max-w-xl">
-                  Pass stagione <strong className="text-white">{SUPER_LEAGUE.price}€</strong>,
-                  pagamento unico · nessun rinnovo automatico.
+                  {SUPER_LEAGUE.registrationsClosed ? (
+                    <>Iscrizioni chiuse. Hai già il Pass? Scarica l'app ed entra nella lega.</>
+                  ) : (
+                    <>
+                      Pass stagione <strong className="text-white">{SUPER_LEAGUE.price}€</strong>,
+                      pagamento unico · nessun rinnovo automatico.
+                    </>
+                  )}
                 </p>
               </motion.div>
             </div>
@@ -66,7 +74,7 @@ export function SuperLeagueBanner() {
             {/* CTA */}
             <div className="shrink-0">
               <span className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-ink shadow-soft transition-transform group-hover:-translate-y-0.5">
-                Iscriviti
+                {SUPER_LEAGUE.registrationsClosed ? "Scopri la lega" : "Iscriviti"}
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
               </span>
             </div>
