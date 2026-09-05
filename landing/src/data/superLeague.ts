@@ -28,6 +28,11 @@ export const SUPER_LEAGUE = {
   openingDate: "2026-07-31T00:00:00",
   startDate: "2026-09-04T00:00:00",
   startLabel: "4 settembre 2026",
+  // Iscrizioni chiuse: la stagione e' partita. La pagina resta raggiungibile —
+  // i link dei creator continuano a funzionare — ma il pagamento sparisce, cosi'
+  // nessuno puo' comprare un Pass per una lega gia' iniziata. Per riaprirle
+  // basta rimettere false.
+  registrationsClosed: true,
   openingLabel: "4 agosto 2026",
 };
 

@@ -160,9 +160,13 @@ export default function LeaguePage() {
   const [preAlready, setPreAlready] = useState(false);
 
   const countdown = useCountdown(SUPER_LEAGUE.openingDate);
+  // Iscrizioni chiuse: vince su tutto, ?pay=1 compreso. La pagina resta
+  // raggiungibile ma non deve esistere alcun modo di arrivare a Stripe per una
+  // lega gia' iniziata — un link vecchio non puo' riaprire il pagamento.
+  const closed = SUPER_LEAGUE.registrationsClosed;
   // Override per test: /super-league?pay=1 mostra subito il pagamento Stripe.
   const forcePay = searchParams.get("pay") === "1";
-  const isOpen = countdown.isOver || forcePay;
+  const isOpen = !closed && (countdown.isOver || forcePay);
 
   // Creator del link: ?creator=<slug>. Se riconosciuto, la pagina lo cita e
   // precompila il suo codice sconto, così l'utente non deve digitarlo.
@@ -220,6 +224,9 @@ export default function LeaguePage() {
   }, [searchParams]);
 
   const handlePay = async () => {
+    // Rete di sicurezza: a iscrizioni chiuse non si crea alcuna sessione Stripe,
+    // qualunque cosa sia rimasta in pagina.
+    if (closed) return;
     if (!email.trim() || !email.includes("@")) {
       setError("Inserisci un'email valida.");
       return;
@@ -430,18 +437,32 @@ export default function LeaguePage() {
 
                 {/* CTA: porta al form, non all'inizio della sezione. */}
                 <div className="mt-2 flex w-full flex-col items-center gap-3">
-                  <a
-                    href="#checkout-form"
-                    onClick={() => track("purchase_cta_click", { placement: "hero", creator: creatorParam })}
-                    className="flex min-h-[60px] w-[calc(100%-2rem)] max-w-md items-center justify-center gap-2 rounded-full bg-brand-orange px-8 font-display font-bold text-[17px] text-white shadow-cta transition-transform hover:-translate-y-1 sm:w-auto sm:px-10"
-                  >
-                    Acquista il Pass — 39€
-                    <ArrowRight size={19} />
-                  </a>
-                  <p className="flex items-center justify-center gap-1.5 text-xs text-white/60">
-                    <ShieldCheck size={13} />
-                    Pagamento sicuro con Stripe · Accesso inviato subito · Nessun rinnovo
-                  </p>
+                  {closed ? (
+                    <div className="w-[calc(100%-2rem)] max-w-md rounded-2xl border border-white/25 bg-white/10 px-6 py-4 text-center backdrop-blur-md">
+                      <p className="font-display font-bold text-[17px] text-white">
+                        Iscrizioni chiuse
+                      </p>
+                      <p className="mt-1 text-sm leading-snug text-white/75">
+                        La stagione è iniziata il {SUPER_LEAGUE.startLabel}: non è più
+                        possibile acquistare il Pass.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <a
+                        href="#checkout-form"
+                        onClick={() => track("purchase_cta_click", { placement: "hero", creator: creatorParam })}
+                        className="flex min-h-[60px] w-[calc(100%-2rem)] max-w-md items-center justify-center gap-2 rounded-full bg-brand-orange px-8 font-display font-bold text-[17px] text-white shadow-cta transition-transform hover:-translate-y-1 sm:w-auto sm:px-10"
+                      >
+                        Acquista il Pass — 39€
+                        <ArrowRight size={19} />
+                      </a>
+                      <p className="flex items-center justify-center gap-1.5 text-xs text-white/60">
+                        <ShieldCheck size={13} />
+                        Pagamento sicuro con Stripe · Accesso inviato subito · Nessun rinnovo
+                      </p>
+                    </>
+                  )}
 
                   {/* Secondario e discreto: l'obiettivo della pagina resta l'acquisto. */}
                   {platform === "other" ? (
@@ -627,11 +648,50 @@ export default function LeaguePage() {
           <section id="acquista" className="scroll-mt-16 bg-bg-soft py-10 md:py-14">
             <div className="container-x">
               <h2 className="mx-auto mb-6 max-w-2xl text-center font-display font-bold text-2xl md:text-4xl tracking-tightest text-ink">
-                Entra nella Super League
+                {closed ? "Iscrizioni chiuse" : "Entra nella Super League"}
               </h2>
 
               <div className="max-w-5xl mx-auto">
-                {isOpen ? (
+                {closed ? (
+                  <div className="mx-auto max-w-xl card p-8 text-center">
+                    <p className="text-ink2 leading-relaxed">
+                      La Super League {SUPER_LEAGUE.season} è iniziata il{" "}
+                      <strong className="text-ink">{SUPER_LEAGUE.startLabel}</strong> e le
+                      iscrizioni sono chiuse: il Pass non è più acquistabile.
+                    </p>
+                    <p className="mt-4 text-ink2 leading-relaxed">
+                      <strong className="text-ink">Hai già il Pass?</strong> Scarica l'app e
+                      inserisci il codice ricevuto via email per entrare nella lega.
+                    </p>
+                    <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                      <a
+                        href={IOS_URL}
+                        rel="noopener noreferrer"
+                        onClick={() => {
+                          openAppStore();
+                          trackStoreClick("apple", "closed_card");
+                        }}
+                        className="btn-blue justify-center"
+                      >
+                        Scarica su App Store
+                      </a>
+                      <a
+                        href={ANDROID_URL}
+                        rel="noopener noreferrer"
+                        onClick={() => trackStoreClick("google", "closed_card")}
+                        className="btn-primary justify-center"
+                      >
+                        Scarica su Google Play
+                      </a>
+                    </div>
+                    <p className="mt-6 text-sm text-muted">
+                      Problemi con il tuo accesso? Scrivi a{" "}
+                      <a href="mailto:info@fantapronostic.com" className="text-brand-blue hover:underline">
+                        info@fantapronostic.com
+                      </a>
+                    </p>
+                  </div>
+                ) : isOpen ? (
                   <CheckoutLayout
                     email={email}
                     setEmail={setEmail}
