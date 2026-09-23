@@ -125,13 +125,30 @@ function StoreNote({ tone = "dark" }: { tone?: "dark" | "light" }) {
   );
 }
 
-function Badge({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+/**
+ * Badge dell'hero. `strong` e' riservato a "Gratis": e' l'informazione che
+ * decide il click e deve leggersi per prima, quindi ha corpo maggiore e fondo
+ * pieno invece del vetro traslucido degli altri.
+ */
+function Badge({
+  children,
+  delay = 0,
+  strong = false,
+}: {
+  children: ReactNode;
+  delay?: number;
+  strong?: boolean;
+}) {
+  const style = strong
+    ? "border-transparent bg-gradient-to-r from-[#FFD24A] to-brand-orange px-4 py-1.5 text-[15px] uppercase tracking-wide text-[#3A1D00] shadow-[0_6px_20px_-6px_rgba(255,176,31,0.9)] sm:px-5 sm:py-2 sm:text-[17px]"
+    : "border-white/20 bg-white/[0.08] px-2.5 py-1 text-[11px] text-white backdrop-blur-md sm:px-3.5 sm:py-1.5 sm:text-[12px]";
+
   return (
     <motion.span
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay }}
-      className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/[0.08] px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-md sm:px-3.5 sm:py-1.5 sm:text-[12px]"
+      className={`inline-flex items-center gap-1 rounded-full border font-display font-bold ${style}`}
     >
       {children}
     </motion.span>
@@ -226,7 +243,7 @@ export default function ChampionsLeaguePage() {
 
           <div className="container-x relative z-10 flex flex-1 flex-col items-center justify-center gap-4 py-4 text-center [@media(max-height:660px)]:gap-2.5 sm:gap-6 sm:py-8">
             <div className="flex flex-wrap items-center justify-center gap-2">
-              <Badge delay={0.05}>🎟️ Gratis</Badge>
+              <Badge delay={0.05} strong>🎟️ Gratis</Badge>
               <Badge delay={0.12}>🏆 {LEAGUE.prizePool} premi</Badge>
               <Badge delay={0.19}>⚔️ Arena 1vs1</Badge>
             </div>
