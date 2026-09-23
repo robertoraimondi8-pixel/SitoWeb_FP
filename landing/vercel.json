@@ -5,6 +5,10 @@
       "destination": "https://api.fantapronostic.com/api/analytics/:path*"
     },
     {
+      "source": "/(fp-champions-league|champions-arena|community|community-league|super-league|lega|download|app|scarica)",
+      "destination": "/$1/index.html"
+    },
+    {
       "source": "/((?!_vercel/|api/).*)",
       "destination": "/index.html"
     }
