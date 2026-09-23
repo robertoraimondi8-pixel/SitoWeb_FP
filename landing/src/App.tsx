@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import LeaguePage from "./pages/LeaguePage";
 import DownloadPage from "./pages/DownloadPage";
 import CommunityLeaguePage from "./pages/CommunityLeaguePage";
+import ChampionsLeaguePage from "./pages/ChampionsLeaguePage";
 
 // La dashboard admin è caricata solo quando serve: i visitatori del sito
 // pubblico non devono scaricarne il codice.
@@ -41,6 +42,10 @@ export default function App() {
         <Route path="/register" element={<Navigate to="/download" replace />} />
         <Route path="/lega" element={<LeaguePage />} />
         <Route path="/super-league" element={<LeaguePage />} />
+        {/* Funnel social della F.P Champions League. L'alias /champions-arena
+            copre il nome alternativo usato nelle comunicazioni. */}
+        <Route path="/fp-champions-league" element={<ChampionsLeaguePage />} />
+        <Route path="/champions-arena" element={<ChampionsLeaguePage />} />
         <Route path="/community" element={<CommunityLeaguePage />} />
         <Route path="/community-league" element={<CommunityLeaguePage />} />
         <Route path="/app" element={<DownloadPage />} />
