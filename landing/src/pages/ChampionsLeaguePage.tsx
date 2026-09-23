@@ -218,6 +218,46 @@ export default function ChampionsLeaguePage() {
             }}
             aria-hidden="true"
           />
+          {/* Filigrana: pallone originale disegnato qui, non un marchio
+              esistente. Da' l'idea delle grandi notti europee senza usare
+              simboli di proprieta' altrui. */}
+          <svg
+            className="pointer-events-none absolute left-1/2 top-[18%] w-[135%] max-w-[680px] -translate-x-1/2 opacity-[0.07]"
+            viewBox="0 0 200 200"
+            fill="none"
+            aria-hidden="true"
+          >
+            <circle cx="100" cy="100" r="92" stroke="#fff" strokeWidth="2.5" />
+            <path
+              d="M100 38l31 22.5-11.8 36.4H80.8L69 60.5 100 38z"
+              stroke="#fff"
+              strokeWidth="2.5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M100 38V12M131 60.5l24.7-8M119.2 96.9l24.8 18M80.8 96.9L56 114.9M69 60.5l-24.7-8"
+              stroke="#fff"
+              strokeWidth="2.5"
+            />
+            <path
+              d="M144 114.9l9 25.6M56 114.9l-9 25.6M47 140.5l28 7.5 25-10.5 25 10.5 28-7.5"
+              stroke="#fff"
+              strokeWidth="2.5"
+              strokeLinejoin="round"
+            />
+          </svg>
+
+          {/* Fasci dei riflettori: notte di coppa, solo CSS */}
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-[60%] opacity-30"
+            style={{
+              background:
+                "conic-gradient(from 200deg at 22% -10%, transparent 0deg, rgba(120,180,255,0.28) 12deg, transparent 26deg), " +
+                "conic-gradient(from 110deg at 80% -10%, transparent 0deg, rgba(255,170,90,0.26) 12deg, transparent 26deg)",
+            }}
+            aria-hidden="true"
+          />
+
           {/* Bagliori: danno l'atmosfera notturna senza immagini extra */}
           <div className="fp-pulse pointer-events-none absolute -top-24 left-1/2 h-[320px] w-[560px] -translate-x-1/2 rounded-full bg-brand-orange/25 blur-[120px]" aria-hidden="true" />
           <div className="pointer-events-none absolute bottom-0 left-0 h-[260px] w-[360px] rounded-full bg-brand-blue/30 blur-[120px]" aria-hidden="true" />
@@ -247,6 +287,17 @@ export default function ChampionsLeaguePage() {
               <Badge delay={0.12}>🏆 {LEAGUE.prizePool} premi</Badge>
               <Badge delay={0.19}>⚔️ Arena 1vs1</Badge>
             </div>
+
+            {/* Dice subito su cosa si pronostica: e' la domanda che si fa chi
+                arriva da un social e non conosce la lega. */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.16 }}
+              className="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-yellow sm:text-[13px]"
+            >
+              Pronostici sulle partite di Champions League
+            </motion.p>
 
             <motion.h1
               initial={{ opacity: 0, y: 24 }}
@@ -297,6 +348,36 @@ export default function ChampionsLeaguePage() {
               <DownloadCta placement="hero" className="max-w-sm" />
               <StoreNote />
             </motion.div>
+          </div>
+        </section>
+
+        {/* ══ LE PARTITE ═════════════════════════════════════════════════ */}
+        {/* Rende concreto su cosa si gioca: le notti europee infrasettimanali.
+            Gli scudetti sono forme generiche, non squadre reali. */}
+        <section className="border-y border-white/10 bg-white/[0.03] py-7">
+          <div className="container-x">
+            <p className="text-center text-[11px] font-bold uppercase tracking-[0.2em] text-white/45">
+              Si gioca sulle notti di Champions
+            </p>
+            <div className="mx-auto mt-4 flex max-w-2xl flex-col gap-2 sm:flex-row">
+              {[
+                { day: "Martedì", time: "21:00" },
+                { day: "Mercoledì", time: "21:00" },
+                { day: "Ogni giornata", time: "1vs1" },
+              ].map((m) => (
+                <div
+                  key={m.day}
+                  className="flex flex-1 items-center justify-center gap-3 rounded-2xl border border-white/10 bg-[#081533]/60 px-4 py-3"
+                >
+                  <span className="grid h-7 w-7 place-items-center rounded-md bg-white/10 text-[13px]" aria-hidden="true">🛡️</span>
+                  <span className="font-display text-sm font-bold text-white/85">{m.day}</span>
+                  <span className="rounded-full bg-brand-orange/15 px-2.5 py-0.5 font-display text-xs font-bold text-brand-orange tabular-nums">
+                    {m.time}
+                  </span>
+                  <span className="grid h-7 w-7 place-items-center rounded-md bg-white/10 text-[13px]" aria-hidden="true">🛡️</span>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
