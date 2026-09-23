@@ -1,5 +1,5 @@
 import { Header } from "../components/Header";
-import { SuperLeagueBanner } from "../sections/SuperLeagueBanner";
+import { ChampionsBanner } from "../sections/ChampionsBanner";
 import { CommunityLeagueBanner } from "../sections/CommunityLeagueBanner";
 import { Hero } from "../sections/Hero";
 import { Marquee } from "../sections/Marquee";
@@ -20,7 +20,7 @@ export default function Home() {
     <div className="relative min-h-screen bg-bg-base text-ink overflow-x-clip" data-testid="app-root">
       <Header />
       <main>
-        <SuperLeagueBanner />
+        <ChampionsBanner />
         <CommunityLeagueBanner />
         <Hero />
         <Marquee />
