@@ -21,49 +21,12 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
-const SITE = "https://www.fantapronostic.com";
 
-/** Una voce per landing; `paths` elenca la rotta e i suoi alias. */
-const PAGES = [
-  {
-    paths: ["/fp-champions-league", "/champions-arena"],
-    title: "F.P Champions League | FantaPronostic",
-    description:
-      "Partecipa gratis alla F.P Champions League in modalità Arena 1vs1. " +
-      "Montepremi totale 500€ in buoni Amazon.",
-    image: "/og-fp-champions.jpg",
-    imageSize: { width: 1200, height: 630 },
-  },
-  {
-    paths: ["/community", "/community-league"],
-    title: "Community League | FantaPronostic",
-    description:
-      "La lega gratuita di FantaPronostic: scegli il tuo creator, pronostica la Serie A " +
-      "e vinci un buono Amazon da 20€ ogni settimana.",
-    image: "/logo-full.png",
-    imageSize: { width: 612, height: 408 },
-  },
-  {
-    paths: ["/super-league", "/lega"],
-    // Volutamente neutra su aperto/chiuso: lo stato cambia durante la stagione e
-    // un'anteprima sbagliata resta nelle cache dei social per giorni.
-    title: "FantaPronostic Super League | FantaPronostic",
-    description:
-      "La lega a premi di FantaPronostic: montepremi oltre 5.000€ e le partite " +
-      "delle 5 grandi leghe europee.",
-    image: "/prizes.jpg",
-    imageSize: { width: 1920, height: 1080 },
-  },
-  {
-    paths: ["/download", "/app", "/scarica"],
-    title: "Scarica FantaPronostic | App gratis per iOS e Android",
-    description:
-      "Scarica gratis FantaPronostic: pronostica le partite, sfida i tuoi amici " +
-      "nelle leghe e vinci premi reali.",
-    image: "/logo-full.png",
-    imageSize: { width: 612, height: 408 },
-  },
-];
+
+// Stessa tabella usata a runtime da src/lib/pageMeta.ts: titolo e descrizione
+// visti dal visitatore e quelli visti da un crawler non possono divergere.
+const META = JSON.parse(await readFile(join(ROOT, "src/data/pageMeta.json"), "utf8"));
+const PAGES = META.pages;
 
 /** Sostituisce un tag se c'e', senza inventarne di nuovi. */
 function replaceTag(html, pattern, replacement) {
@@ -78,6 +41,7 @@ function escapeAttr(value) {
 }
 
 function buildHtml(base, page, path) {
+  const SITE = META.site;
   const title = escapeAttr(page.title);
   const description = escapeAttr(page.description);
   const image = SITE + page.image;
@@ -89,8 +53,8 @@ function buildHtml(base, page, path) {
   html = replaceTag(html, /(<meta property="og:title" content=")[\s\S]*?(")/, `$1${title}$2`);
   html = replaceTag(html, /(<meta property="og:description" content=")[\s\S]*?(")/, `$1${description}$2`);
   html = replaceTag(html, /(<meta property="og:image" content=")[\s\S]*?(")/, `$1${image}$2`);
-  html = replaceTag(html, /(<meta property="og:image:width" content=")[\s\S]*?(")/, `$1${page.imageSize.width}$2`);
-  html = replaceTag(html, /(<meta property="og:image:height" content=")[\s\S]*?(")/, `$1${page.imageSize.height}$2`);
+  html = replaceTag(html, /(<meta property="og:image:width" content=")[\s\S]*?(")/, `$1${page.imageWidth}$2`);
+  html = replaceTag(html, /(<meta property="og:image:height" content=")[\s\S]*?(")/, `$1${page.imageHeight}$2`);
   html = replaceTag(html, /(<meta property="og:url" content=")[\s\S]*?(")/, `$1${url}$2`);
   html = replaceTag(html, /(<meta name="twitter:title" content=")[\s\S]*?(")/, `$1${title}$2`);
   html = replaceTag(html, /(<meta name="twitter:description" content=")[\s\S]*?(")/, `$1${description}$2`);

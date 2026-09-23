@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { trackPageview } from "@/lib/trackDownload";
 import { tiktokPageView } from "@/lib/tiktok";
+import { applyPageMeta } from "@/lib/pageMeta";
 import Home from "./pages/Home";
 import Privacy from "./pages/Privacy";
 import Login from "./pages/Login";
@@ -18,6 +19,11 @@ const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 function RouteTracker() {
   const location = useLocation();
   useEffect(() => {
+    // Titolo e descrizione della rotta corrente, anche per la home: sono
+    // gestiti qui e non dentro le pagine, cosi' nessuna pagina puo' lasciare
+    // i propri meta addosso alla successiva.
+    applyPageMeta(location.pathname);
+
     // Non tracciare il traffico interno (pannello admin, login).
     if (/^\/(admin|login)/i.test(location.pathname)) return;
     trackPageview();

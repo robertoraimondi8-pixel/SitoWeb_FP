@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 export default function PrivacyPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = "Privacy Policy — FantaPronostic";
+    // Il titolo lo imposta RouteTracker dalla tabella in data/pageMeta.json.
   }, []);
 
   return (
