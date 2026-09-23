@@ -5,7 +5,7 @@
       "destination": "https://api.fantapronostic.com/api/analytics/:path*"
     },
     {
-      "source": "/(fp-champions-league|champions-arena|community|community-league|super-league|lega|download|app|scarica)",
+      "source": "/(fp-champions-league|champions-arena|community|community-league|super-league|lega|download|app|scarica|privacy)",
       "destination": "/$1/index.html"
     },
     {

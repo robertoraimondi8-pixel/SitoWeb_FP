@@ -17,30 +17,6 @@ const LEAGUE = {
   stadium: "/stadium-hero.png",
 };
 
-const TITLE = `${LEAGUE.name} | FantaPronostic`;
-const DESCRIPTION =
-  "Partecipa gratis alla F.P Champions League in modalità Arena 1vs1. " +
-  "Montepremi totale 500€ in buoni Amazon.";
-
-/**
- * Titolo e descrizione della pagina, ripristinati all'uscita (come in Privacy).
- * Per le anteprime social conta invece l'HTML generato da scripts/social-meta.mjs:
- * i crawler non eseguono JavaScript.
- */
-function usePageMeta(title: string, description: string) {
-  useEffect(() => {
-    const previousTitle = document.title;
-    document.title = title;
-    const tag = document.querySelector('meta[name="description"]');
-    const previous = tag?.getAttribute("content") ?? null;
-    tag?.setAttribute("content", description);
-    return () => {
-      document.title = previousTitle;
-      if (tag && previous !== null) tag.setAttribute("content", previous);
-    };
-  }, [title, description]);
-}
-
 /**
  * Pulsante di download: su mobile porta allo store giusto, su desktop si sdoppia
  * perche' la piattaforma non e' deducibile. `placement` distingue nel
@@ -175,7 +151,6 @@ const OUTCOMES = [
 ];
 
 export default function ChampionsLeaguePage() {
-  usePageMeta(TITLE, DESCRIPTION);
   const [showSticky, setShowSticky] = useState(false);
 
   useEffect(() => {

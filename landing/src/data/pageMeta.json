@@ -1,0 +1,54 @@
+{
+  "site": "https://www.fantapronostic.com",
+  "default": {
+    "title": "FantaPronostic — Pronostica. Sfida. Domina.",
+    "ogTitle": "FantaPronostic — Sfida i tuoi amici sul calcio",
+    "description": "FantaPronostic — Il gioco dei pronostici calcistici dove sfidi davvero i tuoi amici. Crea la tua lega privata e domina la classifica.",
+    "ogDescription": "Pronostica ogni partita, sfida i tuoi amici nelle leghe e vinci premi reali. Scarica l'app gratis.",
+    "image": "/logo-full.png",
+    "imageWidth": 612,
+    "imageHeight": 408
+  },
+  "pages": [
+    {
+      "paths": ["/fp-champions-league", "/champions-arena"],
+      "title": "F.P Champions League | FantaPronostic",
+      "description": "Partecipa gratis alla F.P Champions League in modalità Arena 1vs1. Montepremi totale 500€ in buoni Amazon.",
+      "image": "/og-fp-champions.jpg",
+      "imageWidth": 1200,
+      "imageHeight": 630
+    },
+    {
+      "paths": ["/community", "/community-league"],
+      "title": "Community League | FantaPronostic",
+      "description": "La lega gratuita di FantaPronostic: scegli il tuo creator, pronostica la Serie A e vinci un buono Amazon da 20€ ogni settimana.",
+      "image": "/logo-full.png",
+      "imageWidth": 612,
+      "imageHeight": 408
+    },
+    {
+      "paths": ["/super-league", "/lega"],
+      "title": "FantaPronostic Super League | FantaPronostic",
+      "description": "La lega a premi di FantaPronostic: montepremi oltre 5.000€ e le partite delle 5 grandi leghe europee.",
+      "image": "/prizes.jpg",
+      "imageWidth": 1920,
+      "imageHeight": 1080
+    },
+    {
+      "paths": ["/download", "/app", "/scarica"],
+      "title": "Scarica FantaPronostic | App gratis per iOS e Android",
+      "description": "Scarica gratis FantaPronostic: pronostica le partite, sfida i tuoi amici nelle leghe e vinci premi reali.",
+      "image": "/logo-full.png",
+      "imageWidth": 612,
+      "imageHeight": 408
+    },
+    {
+      "paths": ["/privacy"],
+      "title": "Privacy Policy — FantaPronostic",
+      "description": "Come FantaPronostic tratta i dati personali degli utenti.",
+      "image": "/logo-full.png",
+      "imageWidth": 612,
+      "imageHeight": 408
+    }
+  ]
+}
