@@ -11,7 +11,7 @@ const LEAGUE = {
   name: "F.P Champions League",
   prizePool: "500€",
   bonus: "+10",
-  malus: "−10",
+  malus: "−5",
   hero: "/champions-hero.webp",        // hero visual: Pronox + coppa + starball
 };
 
@@ -160,7 +160,7 @@ const STEPS = [
 const OUTCOMES = [
   { label: "Vinci", value: "+10", note: "punti bonus", ring: "border-emerald-400/45 bg-emerald-400/10 text-emerald-300" },
   { label: "Pareggi", value: "0", note: "punti", ring: "border-white/20 bg-white/[0.05] text-white/80" },
-  { label: "Perdi", value: "−10", note: "punti malus", ring: "border-red-400/45 bg-red-400/10 text-red-300" },
+  { label: "Perdi", value: "−5", note: "punti malus", ring: "border-red-400/45 bg-red-400/10 text-red-300" },
 ];
 
 export default function ChampionsLeaguePage() {
