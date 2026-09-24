@@ -152,6 +152,7 @@ function detectOs(ua: string): string {
 function detectProject(path = window.location.pathname): string | null {
   if (/^\/community/i.test(path)) return "community";
   if (/^\/(lega|super-league)/i.test(path)) return "superleague";
+  if (/^\/(fp-champions-league|champions-arena)/i.test(path)) return "champions";
   return null;
 }
 
