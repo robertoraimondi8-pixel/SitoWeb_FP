@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
 import { trackDownload } from "@/lib/trackDownload";
 import { IOS_URL, ANDROID_URL, openAppStore } from "@/lib/storeLinks";
-import { ArrowRight, Trophy, Users } from "lucide-react";
+import { ArrowRight, Star, Users } from "lucide-react";
 
 // Loghi store come SVG (si vedono ovunque, niente immagini esterne)
 function AppleLogo({ className = "" }: { className?: string }) {
@@ -112,13 +112,13 @@ export default function DownloadPage() {
           {/* Link alle leghe */}
           <div className="mt-8 flex flex-col gap-3">
             <Link
-              to="/lega"
-              onClick={() => track("download_to_lega")}
+              to="/fp-champions-league"
+              onClick={() => track("download_to_champions")}
               className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange/10 border border-brand-orange/30 px-5 py-2.5 text-sm font-bold text-brand-orange-600 hover:bg-brand-orange/15 transition-colors"
-              data-testid="download-lega-link"
+              data-testid="download-champions-link"
             >
-              <Trophy size={15} />
-              Scopri la Super League
+              <Star size={15} />
+              F.P Champions League — gratis
               <ArrowRight size={15} />
             </Link>
             <Link
