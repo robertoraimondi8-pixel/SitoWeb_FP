@@ -32,6 +32,7 @@ const TABS = [
   { id: "funnel", label: "Funnel" },
   { id: "creators", label: "Campagne e creator" },
   { id: "community", label: "Community League" },
+  { id: "champions", label: "F.P Champions League" },
   { id: "superleague", label: "Super League" },
   { id: "engagement", label: "Engagement" },
   { id: "acquisition", label: "Acquisizione" },
@@ -88,6 +89,7 @@ export default function AdminAnalytics() {
       case "funnel": return ["funnel"];
       case "creators": return ["creators"];
       case "community": return ["overview", "funnel", "engagement"];
+      case "champions": return ["overview", "funnel", "engagement"];
       case "superleague": return ["superleague"];
       case "engagement": return ["engagement"];
       case "acquisition": return ["sources", "platforms"];
@@ -102,8 +104,9 @@ export default function AdminAnalytics() {
     setError("");
     try {
       const p = new URLSearchParams(params);
-      // The Community tab is the general view scoped to that project.
+      // Le schede di progetto sono la vista generale filtrata su quel progetto.
       if (tab === "community") p.set("project", "community");
+      if (tab === "champions") p.set("project", "champions");
       const sections = sectionsFor(tab);
       const results = await Promise.all(sections.map((s) => api.get<any>(s, p)));
       const next: Record<string, any> = {};
@@ -249,8 +252,19 @@ export default function AdminAnalytics() {
 
         {!error && (
           <>
-            {(tab === "overview" || tab === "community") && (
-              <OverviewTab data={data} params={params} onAnnotated={load} scoped={tab === "community"} />
+            {(tab === "overview" || tab === "community" || tab === "champions") && (
+              <OverviewTab
+                data={data}
+                params={params}
+                onAnnotated={load}
+                scope={
+                  tab === "community"
+                    ? { label: "Community League", path: "/community" }
+                    : tab === "champions"
+                    ? { label: "F.P Champions League", path: "/fp-champions-league" }
+                    : null
+                }
+              />
             )}
             {tab === "funnel" && <FunnelTab data={data} />}
             {tab === "creators" && <CreatorsTab data={data} />}
@@ -269,12 +283,12 @@ export default function AdminAnalytics() {
 // ── Sections ────────────────────────────────────────────────────────────────
 
 function OverviewTab({
-  data, params, onAnnotated, scoped,
+  data, params, onAnnotated, scope,
 }: {
   data: Record<string, any>;
   params: URLSearchParams;
   onAnnotated: () => void;
-  scoped: boolean;
+  scope: { label: string; path: string } | null;
 }) {
   const overview = data.overview;
   const ts = data.timeseries;
@@ -287,10 +301,10 @@ function OverviewTab({
 
   return (
     <>
-      {scoped && (
+      {scope && (
         <Banner level="info">
-          Vista limitata alla <strong>Community League</strong>: i dati web sono filtrati sulle
-          pagine <code>/community</code>. Registrazioni e ingressi non sono ancora separabili per
+          Vista limitata alla <strong>{scope.label}</strong>: i dati web sono filtrati sulle
+          pagine <code>{scope.path}</code>. Registrazioni e ingressi non sono ancora separabili per
           lega finché l'app non invia gli eventi con <code>league_id</code>.
         </Banner>
       )}
